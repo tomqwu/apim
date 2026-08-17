@@ -415,6 +415,21 @@
 
   async function renderDiagramPreviews() {
     const targets = [...document.querySelectorAll("[data-diagram-preview]")];
+    targets.forEach((target) => {
+      const card = target.closest(".architecture-card");
+      if (!card || card.dataset.previewKeyboard === "true") return;
+      card.dataset.previewKeyboard = "true";
+      const label = target.dataset.diagramLabel || "Architecture diagram";
+      card.setAttribute("aria-label", `${label}. Use the left and right arrow keys to pan the preview. Press Enter to open the companion note.`);
+      card.addEventListener("keydown", (event) => {
+        if (event.key !== "ArrowLeft" && event.key !== "ArrowRight") return;
+        event.preventDefault();
+        target.scrollBy({
+          left: event.key === "ArrowRight" ? 120 : -120,
+          behavior: window.matchMedia("(prefers-reduced-motion: reduce)").matches ? "auto" : "smooth",
+        });
+      });
+    });
     const load = async (target) => {
       if (target.dataset.rendered === "true") return;
       target.dataset.rendered = "true";
@@ -662,8 +677,12 @@
     container.addEventListener("click", (event) => {
       const link = event.target.closest('a[href^="#"]');
       if (!link) return;
+      const href = link.getAttribute("href");
+      if (!href || href.startsWith("#/")) return;
+      const destination = document.getElementById(href.slice(1));
+      if (!destination) return;
       event.preventDefault();
-      document.getElementById(link.getAttribute("href").slice(1))?.scrollIntoView({ behavior: "smooth", block: "start" });
+      destination.scrollIntoView({ behavior: "smooth", block: "start" });
     });
 
     container.querySelectorAll("a[href]").forEach((link) => {
@@ -831,6 +850,109 @@
     return new XMLSerializer().serializeToString(documentNode.documentElement);
   }
 
+  function medianNumber(values, fallback) {
+    if (!values.length) return fallback;
+    const ordered = [...values].sort((left, right) => left - right);
+    const middle = Math.floor(ordered.length / 2);
+    return ordered.length % 2 ? ordered[middle] : (ordered[middle - 1] + ordered[middle]) / 2;
+  }
+
+  function diagramGeometry(svg) {
+    const viewBox = svg.viewBox?.baseVal;
+    const width = viewBox?.width || Number.parseFloat(svg.getAttribute("width")) || svg.getBoundingClientRect().width || 1;
+    const fontSizes = [...svg.querySelectorAll("text")]
+      .map((node) => Number.parseFloat(getComputedStyle(node).fontSize))
+      .filter((value) => Number.isFinite(value) && value > 0);
+    return { width, labelSize: medianNumber(fontSizes, 18) };
+  }
+
+  function setDiagramWidth(svg, naturalWidth, scale) {
+    const safeScale = Math.max(0.05, Math.min(3, scale));
+    svg.style.width = `${Math.ceil(naturalWidth * safeScale)}px`;
+    svg.style.maxWidth = "none";
+    svg.style.height = "auto";
+    return safeScale;
+  }
+
+  function diagramContentWidth(element) {
+    const styles = getComputedStyle(element);
+    const padding = Number.parseFloat(styles.paddingLeft) + Number.parseFloat(styles.paddingRight);
+    return Math.max(1, element.clientWidth - padding);
+  }
+
+  function configureDiagram(target, svg, label) {
+    const geometry = diagramGeometry(svg);
+    const isPreview = target.classList.contains("architecture-preview");
+    const isPresentation = target.classList.contains("slide-diagram");
+    const minimumLabel = isPresentation ? 18 : isPreview ? 14 : 16;
+    const availableWidth = diagramContentWidth(target);
+    const readableScale = Math.max(availableWidth / geometry.width, minimumLabel / geometry.labelSize);
+
+    if (isPreview || isPresentation) {
+      setDiagramWidth(svg, geometry.width, readableScale);
+      target.setAttribute("aria-label", `${label}. Scroll to inspect the diagram at a readable scale.`);
+      return;
+    }
+
+    const toolbar = document.createElement("div");
+    toolbar.className = "diagram-toolbar";
+    toolbar.setAttribute("role", "toolbar");
+    toolbar.setAttribute("aria-label", `${label} zoom controls`);
+    const viewport = document.createElement("div");
+    viewport.className = "diagram-scroll";
+    viewport.tabIndex = 0;
+    viewport.setAttribute("aria-label", `${label}. Scroll horizontally and vertically to inspect the diagram.`);
+    const status = document.createElement("output");
+    status.className = "diagram-zoom-status";
+    status.setAttribute("aria-live", "polite");
+    let scale = readableScale;
+    let mode = "readable";
+
+    const makeButton = (text, action, accessibleLabel) => {
+      const button = document.createElement("button");
+      button.type = "button";
+      button.textContent = text;
+      button.dataset.diagramAction = action;
+      button.setAttribute("aria-label", accessibleLabel);
+      return button;
+    };
+    const fit = makeButton("Fit", "fit", "Fit the whole diagram to the available width");
+    const actual = makeButton("100%", "actual", "Show the diagram at its natural size");
+    const out = makeButton("−", "out", "Zoom out");
+    const zoomIn = makeButton("+", "in", "Zoom in");
+    toolbar.append(fit, actual, out, zoomIn, status);
+    target.replaceChildren(toolbar, viewport);
+    viewport.appendChild(svg);
+
+    const update = () => {
+      scale = setDiagramWidth(svg, geometry.width, scale);
+      status.value = `${Math.round(scale * 100)}%`;
+      status.textContent = status.value;
+      fit.setAttribute("aria-pressed", String(mode === "fit"));
+      actual.setAttribute("aria-pressed", String(mode === "actual"));
+    };
+
+    toolbar.addEventListener("click", (event) => {
+      const action = event.target.closest("button")?.dataset.diagramAction;
+      if (!action) return;
+      if (action === "fit") {
+        mode = "fit";
+        scale = diagramContentWidth(viewport) / geometry.width;
+      } else if (action === "actual") {
+        mode = "actual";
+        scale = 1;
+      } else if (action === "out") {
+        mode = "custom";
+        scale /= 1.2;
+      } else if (action === "in") {
+        mode = "custom";
+        scale *= 1.2;
+      }
+      update();
+    });
+    update();
+  }
+
   async function mermaidMarkup(text, target, label = "Mermaid diagram") {
     if (!window.mermaid) {
       target.innerHTML = `<pre class="code-view"><code>${escapeHtml(text)}</code></pre>`;
@@ -845,6 +967,7 @@
         flowchart: { htmlLabels: false, useMaxWidth: true },
         sequence: { useMaxWidth: true },
         themeVariables: {
+          fontSize: "18px",
           background: "#fbfaf5",
           primaryColor: "#e9e4d8",
           primaryTextColor: "#151714",
@@ -876,6 +999,7 @@
         svg.removeAttribute("aria-hidden");
         svg.setAttribute("role", "img");
         svg.setAttribute("aria-labelledby", `${titleId} ${descriptionId}`);
+        configureDiagram(target, svg, label);
       }
     } catch (error) {
       target.innerHTML = `<div class="error-state"><h1>Diagram source could not render.</h1><p>${escapeHtml(error.message)}</p><pre class="code-view"><code>${escapeHtml(text)}</code></pre></div>`;
@@ -914,6 +1038,23 @@
     return charts?.documentContext ? charts.documentContext(item, state.manifest.visuals || {}) : "";
   }
 
+  function embedDocumentVisualContext(item, prose) {
+    const markup = documentVisualContext(item);
+    if (!markup) return;
+    const template = document.createElement("template");
+    template.innerHTML = markup.trim();
+    const context = template.content.firstElementChild;
+    if (!context) return;
+    context.classList.add("is-inline");
+    const firstHeading = prose.querySelector("h2");
+    let anchor = firstHeading || prose.querySelector("p, ol, ul, .table-wrap, blockquote") || prose.firstElementChild;
+    if (firstHeading) {
+      while (anchor.nextElementSibling && anchor.nextElementSibling.tagName !== "H2") anchor = anchor.nextElementSibling;
+    }
+    if (anchor) anchor.after(context);
+    else prose.prepend(context);
+  }
+
   async function renderDocument(id) {
     const item = state.manifest.items.find((candidate) => candidate.id === id);
     if (!item) return renderNotFound("That resource is not in the generated index.");
@@ -934,9 +1075,11 @@
       const text = await fetchText(item.contentUrl);
       if (token !== state.renderToken) return;
       if (item.type === "markdown") {
-        target.innerHTML = `${documentVisualContext(item)}<div class="prose">${markdownToHtml(text)}</div>`;
-        enhanceMarkdown(target.querySelector(".prose"), item);
-        await renderInlineMermaid(target.querySelector(".prose"), item.title);
+        target.innerHTML = `<div class="prose">${markdownToHtml(text)}</div>`;
+        const prose = target.querySelector(".prose");
+        enhanceMarkdown(prose, item);
+        await renderInlineMermaid(prose, item.title);
+        embedDocumentVisualContext(item, prose);
       } else if (item.type === "csv") {
         target.innerHTML = `${documentVisualContext(item)}${csvMarkup(text)}`;
         document.querySelector("[data-document-rail]").innerHTML = "<span>Filterable dataset</span>";
