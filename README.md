@@ -1,10 +1,10 @@
 # API Management Studies
 
-A living collection of API management studies, research, architecture, platform comparisons, proofs of concept, migration material, workshops, templates, and presentation-ready evidence. The working hypothesis is that Kong is the strongest fit for a Kubernetes-native, hybrid-cloud gateway layer, while Azure API Management and Apigee remain serious benchmarks. MuleSoft is the current-state baseline, not a one-for-one migration target.
+A living collection of API management studies, research, architecture, platform comparisons, proofs of concept, migration material, workshops, templates, and presentation-ready evidence. Kong hybrid variants are low-confidence priority-validation hypotheses; Azure API Management and Apigee remain required hybrid benchmarks, and MuleSoft remains the current-state baseline rather than a one-for-one migration target.
 
-> **Assessment status:** discovery baseline, not a purchase recommendation. All organization-specific topology, volume, SLO, inventory, regulatory, data-residency, identity, and commercial inputs remain to be confirmed. No real customer data or credentials belong in this repository.
+> **Assessment status:** approve evidence closure, not a purchase recommendation. All organization-specific topology, volume, SLO, inventory, regulatory, data-residency, identity, and commercial inputs remain to be confirmed. No customer data, credentials, private topology, commercial quotes, NDA material, raw security evidence, or named-person mapping belongs in this public repository.
 
-**Live portal:** [API Management Studies](https://tomqwu.github.io/apim/) · [Audience briefings](https://tomqwu.github.io/apim/#/audiences) · [Visual Atlas](https://tomqwu.github.io/apim/#/visuals) · [Methodology review](reports/methodology-review.md) · [Repository roadmap](docs/39-repository-roadmap.md)
+**Live portal:** [API Management Studies](https://tomqwu.github.io/apim/) · [Audience briefings](https://tomqwu.github.io/apim/#/audiences) · [Visual Atlas](https://tomqwu.github.io/apim/#/visuals) · [Principal review](reports/methodology-review.md) · [Evidence state](reports/evidence-state.md) · [Repository roadmap](docs/39-repository-roadmap.md)
 
 ## Decision statement
 
@@ -26,7 +26,7 @@ Select the API management and gateway architecture that best supports a Kubernet
 |---|---|
 | [`docs/`](docs/README.md) | Assessment narrative, architecture, security, operations, roadmap, risks, and open questions |
 | [`architecture/`](architecture/README.md) | Current, transition, target, security, network, API operations, observability, and DR views |
-| [`decision-matrix/`](decision-matrix/README.md) | 120 gated and weighted criteria, scoring method, and provisional scorecard templates |
+| [`decision-matrix/`](decision-matrix/README.md) | 120 gated and weighted criteria, scoring method, exact-variant evidence-ledger schema, and scorecard projections |
 | [`workshops/`](workshops/README.md) | Nine workshop plans, a 180-question bank, and vendor-specific validation prompts |
 | [`poc/`](poc/README.md) | Executable Docker baseline plus Kubernetes/Kong manifests, tests, and evidence capture |
 | [`mule-migration/`](mule-migration/README.md) | Inventory, classification, routing patterns, wave planning, and decommission controls |
@@ -101,7 +101,7 @@ It does **not** prove Konnect, Kong Enterprise plugins, OIDC, production PKI/mTL
 
 ## Current hypothesis
 
-Kong is the leading candidate because its hybrid control-plane/data-plane architecture, workload-local data planes, Kubernetes integration, and declarative automation align with the target operating model. This hypothesis can fail if the PoC, operating model, support model, security review, total cost, or required enterprise capabilities do not meet decision gates.
+Kong hybrid variants are low-confidence priority-validation hypotheses because their control/data-plane separation, workload-local data planes, Kubernetes integration, and declarative automation align with the target intent. All seven variants receive an equivalent E1/E2 screen before finalists are approved for symmetric E3 proof. The Kong hypothesis fails if the PoC, operating model, support model, security review, total cost, or required enterprise capabilities do not meet decision gates.
 
 Azure APIM is an important Azure-native benchmark. Its self-hosted gateway supports hybrid placement, but current documented feature and support boundaries—including the inability to associate APIM workspaces with self-hosted gateways—must be tested against the target federation model. Apigee Hybrid is an important enterprise-lifecycle benchmark, but its customer-managed runtime components and Google-hosted management plane must be justified in a hybrid Kubernetes estate.
 

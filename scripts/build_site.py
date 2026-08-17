@@ -109,6 +109,21 @@ TAG_RULES = {
     "governance": ("governance", "operating model", "guardrail"),
 }
 
+DIAGRAM_COMPANIONS = {
+    "architecture/diagrams/apiops-flow.mmd": "architecture/apiops-architecture.md",
+    "architecture/diagrams/current-state.mmd": "architecture/current-state.md",
+    "architecture/diagrams/dr-failover.mmd": "architecture/ha-dr-architecture.md",
+    "architecture/diagrams/east-west.mmd": "architecture/network-architecture.md",
+    "architecture/diagrams/hybrid-data-plane.mmd": "architecture/kong-hybrid-architecture.md",
+    "architecture/diagrams/kong-control-data-plane.mmd": "architecture/kong-hybrid-architecture.md",
+    "architecture/diagrams/mule-decomposition.mmd": "architecture/pcf-aks-transition.md",
+    "architecture/diagrams/north-south.mmd": "architecture/network-architecture.md",
+    "architecture/diagrams/observability-flow.mmd": "architecture/observability-architecture.md",
+    "architecture/diagrams/security-flow.mmd": "architecture/security-architecture.md",
+    "architecture/diagrams/target-state.mmd": "architecture/target-state.md",
+    "architecture/diagrams/transition-state.mmd": "architecture/transition-state.md",
+}
+
 
 def slug(value: str) -> str:
     value = re.sub(r"[^a-z0-9]+", "-", value.lower()).strip("-")
@@ -224,6 +239,13 @@ def collect_items(output: Path) -> list[dict[str, object]]:
                 }
             )
     items.sort(key=lambda item: (CONTENT_ROOTS.index(str(item["path"]).split("/", 1)[0]), int(item["order"]), str(item["title"])))
+    by_path = {str(item["path"]): item for item in items}
+    for diagram_path, companion_path in DIAGRAM_COMPANIONS.items():
+        diagram = by_path.get(diagram_path)
+        companion = by_path.get(companion_path)
+        if diagram and companion:
+            diagram["companionId"] = companion["id"]
+            diagram["companionPath"] = companion_path
     return items
 
 
@@ -568,6 +590,59 @@ def methodology_visuals() -> dict[str, object]:
     return {"steps": steps, "evidenceLevels": evidence_levels}
 
 
+def review_visuals() -> dict[str, object]:
+    text = safe_text(ROOT / "reports" / "methodology-review.md")
+    rows = markdown_table(text, ("Decision", "Principal recommendation", "Status", "Exit evidence"))
+    return {
+        "decisions": [
+            {
+                "name": row_value(row, "Decision"),
+                "status": row_value(row, "Status"),
+                "recommendation": row_value(row, "Principal recommendation"),
+                "exitEvidence": row_value(row, "Exit evidence"),
+                "evidenceStatus": (
+                    f"{row_value(row, 'Principal recommendation')} — Exit: {row_value(row, 'Exit evidence')}"
+                ).strip(" —"),
+            }
+            for row in rows
+        ]
+    }
+
+
+def visual_provenance(items: list[dict[str, object]]) -> dict[str, dict[str, object]]:
+    by_path = {str(item["path"]): str(item["id"]) for item in items}
+    source_paths = {
+        "criteria": ("decision-matrix/criteria.csv", "decision-matrix/weights.yaml"),
+        "variants": ("decision-matrix/README.md",),
+        "sources": ("research/sources.csv", "research/findings.md"),
+        "findings": ("research/findings.md",),
+        "poc": ("poc/test-plan.md",),
+        "governance": ("docs/02-current-state-assumptions.md", "adr/README.md", "docs/37-risks.md", "docs/38-open-questions.md"),
+        "roadmap": ("docs/36-implementation-roadmap.md",),
+        "repositoryRoadmap": ("docs/39-repository-roadmap.md",),
+        "methodology": ("docs/03-assessment-methodology.md",),
+        "review": ("reports/methodology-review.md",),
+    }
+    provenance: dict[str, dict[str, object]] = {}
+    for key, paths in source_paths.items():
+        available = [path for path in paths if path in by_path]
+        if not available:
+            continue
+        provenance[key] = {
+            "sourcePath": available[0],
+            "sourceId": by_path[available[0]],
+            "sourcePaths": available,
+            "sourceIds": [by_path[path] for path in available],
+        }
+    provenance["library"] = {
+        "sourcePath": "content-manifest.json",
+        "sourceHref": "content-manifest.json",
+        "sourcePaths": ["content-manifest.json"],
+        "sourceIds": [],
+    }
+    return provenance
+
+
 def build_visuals(items: list[dict[str, object]]) -> dict[str, object]:
     """Build chart-ready data exclusively from tracked repository content."""
     return {
@@ -581,6 +656,8 @@ def build_visuals(items: list[dict[str, object]]) -> dict[str, object]:
         "roadmap": roadmap_visuals(),
         "repositoryRoadmap": repository_roadmap_visuals(),
         "methodology": methodology_visuals(),
+        "review": review_visuals(),
+        "provenance": visual_provenance(items),
     }
 
 
@@ -689,10 +766,10 @@ def build_audiences(
                 "Who owns the decision, evidence threshold, funding, and review date?",
             ),
             signals=(("Criteria with evidence", evidenced_criteria), ("Mandatory gates", stats.get("mandatoryGates", 0)), ("Unscored variants", unscored_variants), ("PoC scenarios not run", not_run_scenarios)),
-            source_paths=("docs/00-executive-summary.md", "reports/methodology-review.md", "decision-matrix/findings.md", "decision-matrix/README.md", "docs/37-risks.md", "docs/36-implementation-roadmap.md", "docs/39-repository-roadmap.md"),
+            source_paths=("docs/00-executive-summary.md", "reports/methodology-review.md", "reports/evidence-state.md", "decision-matrix/findings.md", "decision-matrix/README.md", "docs/37-risks.md", "docs/36-implementation-roadmap.md", "docs/39-repository-roadmap.md"),
             recommended_route="#/compare",
             visual="executive",
-            presentation_slides=("orientation", "decision", "landscape", "evidence", "delivery", "next"),
+            presentation_slides=("decision", "landscape", "evidence", "delivery", "next"),
         ),
         audience(
             audience_id="directors",
@@ -702,13 +779,13 @@ def build_audiences(
             verb="Mobilize",
             framing="Portfolio, operating-model, capacity, and delivery-accountability view.",
             decision="What must be funded, staffed, governed, sequenced, and evidenced before the next investment gate?",
-            action="Turn the roadmap into an accountable plan with named owners, dates, capacity, dependencies, and exit evidence.",
+            action="Turn the roadmap into an accountable plan with public roles or owner IDs, restricted named owners, dates, capacity, dependencies, and exit evidence.",
             questions=("Who owns each workstream, assumption, risk, acceptance decision, and dependency?", "Which environments, people, commercial inputs, and pilots must be funded now?", "What evidence must each phase produce before the program receives more capacity?"),
             signals=(("Open assumptions", open_assumptions), ("Registered risks", stats.get("risks", 0)), ("Proposed ADRs", proposed_adrs), ("Repository phases", length(repository_roadmap.get("phases")))),
             source_paths=("docs/02-current-state-assumptions.md", "docs/33-operating-model.md", "docs/36-implementation-roadmap.md", "docs/37-risks.md", "docs/38-open-questions.md", "docs/39-repository-roadmap.md", "workshops/README.md", "mule-migration/migration-factory.md"),
             recommended_route="#/doc/docs-33-operating-model",
             visual="directors",
-            presentation_slides=("orientation", "decision", "evidence", "proof", "delivery", "next"),
+            presentation_slides=("decision", "evidence", "proof", "delivery", "next"),
         ),
         audience(
             audience_id="architects",
@@ -721,7 +798,7 @@ def build_audiences(
             action="Approve the capability boundary and vendor-neutral logical model before candidate physical topologies are scored.",
             questions=("Where is the gateway/integration boundary, and what must never move into policy?", "Which locality, residency, isolation, identity, network, and recovery constraints shape placement?", "Which current-state, data-flow, transition, and failure assumptions require evidence?"),
             signals=(("Architecture diagrams", stats.get("diagrams", 0)), ("Assessment categories", length(criteria.get("categories"))), ("Mandatory gates", stats.get("mandatoryGates", 0)), ("Evidence levels", length(methodology.get("evidenceLevels")))),
-            source_paths=("architecture/current-state.md", "docs/05-target-state-vision.md", "docs/06-hybrid-cloud-requirements.md", "docs/07-api-gateway-vs-integration-runtime.md", "architecture/network-architecture.md", "architecture/security-architecture.md", "architecture/ha-dr-architecture.md", "adr/README.md"),
+            source_paths=("architecture/current-state.md", "architecture/target-state.md", "docs/06-hybrid-cloud-requirements.md", "docs/07-api-gateway-vs-integration-runtime.md", "architecture/network-architecture.md", "architecture/security-architecture.md", "architecture/ha-dr-architecture.md", "adr/README.md"),
             recommended_route="#/architecture",
             visual="architects",
             presentation_slides=("decision", "target-state", "landscape", "system", "evidence", "proof"),
@@ -808,13 +885,14 @@ def build_stats(items: list[dict[str, object]]) -> dict[str, int]:
 def make_presentation(items: list[dict[str, object]], stats: dict[str, int], visuals: dict[str, object]) -> list[dict[str, object]]:
     by_path = {str(item["path"]): str(item["id"]) for item in items}
     variant_total = len(visuals.get("variants", []))
+    variant_scope = f"all {variant_total} variants" if variant_total else "all variants"
     roadmap_phase_total = len(visuals.get("roadmap", {}).get("phases", []))
     specs = [
         ("orientation", "Orientation", "A living evidence base for API management decisions", "Research, architecture, proof, and reusable delivery material in one navigable system.", "docs/00-executive-summary.md", stats["resources"], "indexed resources", "composition"),
-        ("decision", "Decision", "Choose an operating model—not only a gateway", "The study separates request-path policy from integration logic, then tests platform fit against hybrid-cloud constraints.", "docs/01-problem-statement.md", stats["criteria"], "decision criteria", "methodologyFlow"),
-        ("target-state", "Target state", "Workload-local data planes, centrally governed", "A Kubernetes-centered direction keeps latency and failure boundaries near workloads while governance stays coherent.", "docs/05-target-state-vision.md", stats["diagrams"], "architecture views", "stackedBars"),
-        ("landscape", "Landscape", "One hypothesis, several serious benchmarks", "Kong leads the current hypothesis; Azure API Management, Apigee, and the MuleSoft baseline remain explicit comparison points.", "docs/09-product-shortlist.md", variant_total, "deployment variants", "statusMatrix"),
-        ("system", "System", "Make the transition visible", "Current, transition, and target-state diagrams connect the decision to network, security, observability, and resilience consequences.", "architecture/diagrams/target-state.mmd", stats["diagrams"], "renderable diagrams", "architectureDiagram"),
+        ("decision", "Decision", "Approve evidence closure—not platform selection", f"Run one evidence-led screen across {variant_scope}, then fund symmetric proof only for approved finalists. Kong remains a low-confidence priority-validation hypothesis, not a selection.", "reports/methodology-review.md", "NOW", "evidence closure", "recommendation"),
+        ("target-state", "Target state", "Workload-local data planes, centrally governed", "A vendor-neutral logical view keeps latency and failure boundaries near workloads while governance stays coherent; candidate physical views must prove their own control, persistence, telemetry, and support boundaries.", "architecture/diagrams/target-state.mmd", stats["diagrams"], "architecture views", "architectureDiagram"),
+        ("landscape", "Landscape", "One hypothesis, several serious benchmarks", "Kong is the current priority-validation hypothesis; Azure API Management, Apigee, and the MuleSoft baseline remain explicit comparison points through the evidence-led down-select.", "docs/09-product-shortlist.md", variant_total, "deployment variants", "statusMatrix"),
+        ("system", "System", "Make the transition reversible", "The transition view makes coexistence, weighted cutover, integration decomposition, rollback, and retirement evidence visible.", "architecture/diagrams/transition-state.mmd", stats["diagrams"], "renderable diagrams", "architectureDiagram"),
         ("evidence", "Evidence", "Unknown stays unknown", "Mandatory gates are scored before weighted preferences. Claims require authoritative evidence or execution proof.", "decision-matrix/criteria.csv", stats["mandatoryGates"], "mandatory gates", "donut"),
         ("research", "Research", "Trace claims back to sources", "The source register and finding states separate confirmed facts from interpretation, assumptions, risks, and recommendations.", "research/findings.md", stats["sources"], "official sources", "sourceBalance"),
         ("proof", "Proof", "Turn architecture claims into tests", "The PoC provides synthetic APIs, gateway configuration, observability hooks, and explicit security, performance, failure, and migration tests.", "poc/test-plan.md", stats["pocScenarios"], "PoC scenarios", "pocStatus"),

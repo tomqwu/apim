@@ -14,5 +14,5 @@
 | F-010 | Confirmed | Apigee Hybrid runtime includes Cassandra and MART alongside processors/synchronizer. | G-001,G-002 | Material platform operations and upgrade footprint to cost/test. |
 | F-011 | Confirmed | DataWeave provides application-level data transformation; API Manager policies govern traffic. | MU-001,MU-002 | Mule replacement must split integration runtime from gateway migration. |
 | F-012 | Confirmed | Gateway API is role-oriented and portable, but implementation-specific extensions remain vendor-specific. | K8S-001 | Use portable routing intent and track policy lock-in separately. |
-| F-013 | Interpretation | Kong currently best matches the stated Kubernetes/hybrid hypothesis. | F-001–F-005 | Advance to PoC; do not award a final recommendation. |
+| F-013 | Interpretation | Kong is a low-confidence priority-validation hypothesis for the stated Kubernetes/hybrid intent; the current evidence does not establish comparative superiority. | F-001–F-012 | Screen all exact variants at E1/E2, then run symmetric E3 proof only for the approved finalists. |
 | F-014 | Risk | Product documentation can change between assessment and procurement. | All | Revalidate volatile facts, versions, entitlements, limits, and support terms at each gate. |

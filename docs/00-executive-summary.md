@@ -6,9 +6,11 @@ An organization needs an enterprise API connectivity layer that can remain stabl
 
 ## Provisional direction
 
-**Recommendation — provisional:** take Kong Konnect hybrid and self-managed Kong into a controlled PoC as the leading deployment variants. Benchmark them against Azure APIM managed plus self-hosted gateway and Apigee X plus Apigee Hybrid. Retain MuleSoft as the current-state baseline.
+**Recommendation — provisional:** approve a stage-gated evidence-closure programme, not a product selection. Screen all seven exact deployment variants at E1/E2. Subject to that screen, take Kong Konnect hybrid and self-managed Kong into controlled E3 PoCs as low-confidence priority-validation hypotheses; benchmark approved finalist variants from Azure APIM and Apigee symmetrically; retain MuleSoft as the current-state baseline.
 
-The hypothesis rests on Kong's clean separation of control and data planes, data-plane placement near workloads, native Kubernetes/Gateway API integration, and declarative workflows. It is not yet a product selection. The hypothesis must survive pass/fail security and residency gates, disconnected-control-plane tests, plugin/licensing validation, support-model review, performance tests, operating-cost analysis, and migration pilots.
+The hypothesis rests on Kong's clean separation of control and data planes, data-plane placement near workloads, native Kubernetes/Gateway API integration, and declarative workflows. It is not yet a product selection. A Gate 2 conditional selection requires pass/fail security and residency dispositions, disconnected-control-plane tests, plugin/licensing validation, support-model review, performance tests, and operating-cost analysis. Gate 4 approval to scale additionally requires representative E4 production-pilot evidence.
+
+The formal steering recommendation, excluded decisions, conditions, and exit evidence are in the [principal methodology and decision-assurance review](../reports/methodology-review.md).
 
 ## Important findings from official documentation
 
@@ -23,9 +25,9 @@ The gateway owns transport-facing cross-cutting controls: authentication enforce
 
 ## Next decision gates
 
-1. Confirm PCF meaning, Mule inventory, traffic/SLO profiles, environments, regions, identity, and residency controls.
-2. Agree mandatory gates and category weights before vendor workshops.
-3. Run the baseline PoC, followed by licensed/vendor-assisted tests.
-4. Pilot two representative Mule workloads: one gateway-heavy and one integration-heavy.
-5. Perform TCO and contract assessment using actual quotes and staffing assumptions.
-6. Issue the product recommendation only after evidence coverage reaches the agreed threshold.
+1. **Gate 0 — decision contract:** confirm scope, PCF meaning, Mule inventory, traffic/SLO profiles, environments, regions, identity, residency controls, mandatory gates, weights, evidence threshold, and decision rights.
+2. **Gate 1 — finalist down-select:** apply an equivalent E1/E2 screen to all seven exact variants and approve the symmetric finalist proof scope.
+3. **Gate 2 — conditional selection:** run equivalent E3 tests and complete TCO, contract/support, staffing, risk, and sensitivity analysis using actual organization inputs.
+4. **Gate 3 — production-pilot readiness:** build the selected platform foundation, controls, support model, runbooks, and tested rollback.
+5. **Gate 4 — migration-at-scale approval:** pilot at least two representative Mule workloads—one gateway-dominant and one integration-dominant—and accept measured SLO, cost, operability, rollback, and reconciliation evidence.
+6. **Gate 5 — decommission authorization:** prove dependency zero, archive required evidence, revalidate controls, and close legacy contracts before retirement.

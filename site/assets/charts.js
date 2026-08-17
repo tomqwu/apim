@@ -58,6 +58,19 @@
     return `<div class="viz-empty">${escapeHtml(message)}</div>`;
   }
 
+  function sourceLink(meta, labelText = "Open canonical source") {
+    if (!meta?.sourceId && !meta?.sourceHref) return "";
+    const paths = Array.isArray(meta.sourcePaths) && meta.sourcePaths.length ? meta.sourcePaths : [meta.sourcePath].filter(Boolean);
+    const detail = paths.length > 1 ? `${paths.length} sources · ${paths[0]}` : paths[0] || "";
+    const href = meta.sourceId ? `#/doc/${encodeURIComponent(meta.sourceId)}` : meta.sourceHref;
+    return `<a class="visual-source" href="${escapeHtml(href)}" title="${escapeHtml(paths.join(" · "))}">${escapeHtml(labelText)}<span>${escapeHtml(detail)}</span></a>`;
+  }
+
+  function seriesValue(data, wanted) {
+    const match = series(data).find((item) => item.label.toLowerCase() === String(wanted).toLowerCase());
+    return match ? number(match.value) : 0;
+  }
+
   function legend(data, options = {}) {
     const items = series(data);
     if (!items.length) return "";
@@ -88,9 +101,10 @@
     const maxTotal = Math.max(...rows.map((row) => keys.reduce((sum, key) => sum + number(row[key]), 0)), 1);
     const content = rows.map((row) => {
       const rowTotal = keys.reduce((sum, key) => sum + number(row[key]), 0);
+      const detail = keys.map((key) => `${key}: ${number(row[key])}`).join(", ");
       return `<div class="viz-stacked-row">
         <span class="viz-bar-label">${escapeHtml(row.label || row.id)}</span>
-        <span class="viz-stacked-track" aria-label="${escapeHtml(row.label || row.id)}: ${rowTotal}">
+        <span class="viz-stacked-track" role="img" aria-label="${escapeHtml(row.label || row.id)} — ${escapeHtml(detail)}; total: ${rowTotal}">
           ${keys.map((key, index) => {
             const value = number(row[key]);
             const width = (value / maxTotal) * 100;
@@ -136,10 +150,19 @@
   function statusMatrix(data, options = {}) {
     const rows = Array.isArray(data) ? data : data?.rows || [];
     if (!rows.length) return empty();
-    return `<figure class="viz viz-matrix ${options.compact ? "is-compact" : ""}" aria-label="${escapeHtml(options.title || "Status matrix")}">${heading(options)}
+    const nameHeader = options.nameHeader || "Item";
+    const statusHeader = options.statusHeader || "Status";
+    const noteHeader = options.noteHeader || "Evidence / condition";
+    return `<figure class="viz viz-matrix ${options.compact ? "is-compact" : ""}" aria-label="${escapeHtml(options.title || "Status table")}">${heading(options)}
       <div class="viz-matrix-table" role="table">
+        <div class="viz-matrix-header" role="row">
+          <span role="columnheader">#</span>
+          <strong role="columnheader">${escapeHtml(nameHeader)}</strong>
+          <span role="columnheader">${escapeHtml(statusHeader)}</span>
+          ${options.compact ? "" : `<small role="columnheader">${escapeHtml(noteHeader)}</small>`}
+        </div>
         ${rows.map((item, index) => `<div class="viz-matrix-row" role="row">
-          <span class="viz-matrix-index">${String(index + 1).padStart(2, "0")}</span>
+          <span class="viz-matrix-index" role="cell">${String(index + 1).padStart(2, "0")}</span>
           <strong role="cell">${escapeHtml(item.name || item.label)}</strong>
           <span class="viz-status is-${escapeHtml(slug(item.status))}" role="cell">${escapeHtml(item.status || "Unknown")}</span>
           ${options.compact ? "" : `<small role="cell">${escapeHtml(item.evidenceStatus || item.note || "")}</small>`}
@@ -160,7 +183,7 @@
     const phases = Array.isArray(data) ? data : data?.phases || [];
     if (!phases.length) return empty();
     return `<figure class="viz viz-roadmap ${options.compact ? "is-compact" : ""}" aria-label="${escapeHtml(options.title || "Roadmap")}">${heading(options)}
-      <ol class="viz-roadmap-list">${phases.map((phase, index) => `<li>
+      <ol class="viz-roadmap-list" style="--phase-count:${phases.length}">${phases.map((phase, index) => `<li>
         <span class="viz-roadmap-marker">${String(index).padStart(2, "0")}</span>
         <div><strong>${escapeHtml(phase.label)}</strong><b>${escapeHtml(phase.duration)}</b>${options.compact ? "" : `<p>${escapeHtml(phase.exitCriteria || "")}</p>`}</div>
       </li>`).join("")}</ol>
@@ -204,14 +227,16 @@
 
   function governance(data, options = {}) {
     if (!data || typeof data !== "object") return empty();
-    const assumption = number(data.assumptionTotal ?? total(series(data.assumptions)));
-    const adrs = number(data.adrTotal ?? total(series(data.adrs)));
+    const assumptionTotal = number(data.assumptionTotal ?? total(series(data.assumptions)));
+    const adrTotal = number(data.adrTotal ?? total(series(data.adrs)));
+    const assumption = series(data.assumptions).length ? seriesValue(data.assumptions, "Open") : assumptionTotal;
+    const adrs = series(data.adrs).length ? seriesValue(data.adrs, "Proposed") : adrTotal;
     const risks = number(data.riskTotal ?? total(series(data.risksByOwner)));
     const questions = number(data.openQuestions);
     return `<figure class="viz viz-governance ${options.compact ? "is-compact" : ""}" aria-label="${escapeHtml(options.title || "Governance state")}">${heading(options)}
       <div class="viz-governance-metrics">
-        <span><strong>${assumption}</strong><small>open assumptions</small></span>
-        <span><strong>${adrs}</strong><small>proposed ADRs</small></span>
+        <span><strong>${assumption}</strong><small>open assumptions · ${assumptionTotal} total</small></span>
+        <span><strong>${adrs}</strong><small>proposed ADRs · ${adrTotal} total</small></span>
         <span><strong>${risks}</strong><small>registered risks</small></span>
         <span><strong>${questions}</strong><small>open questions</small></span>
       </div>
@@ -224,54 +249,81 @@
     return `<div class="viz-overview">${donut(data.statuses || [], { ...options, compact: true, total: data.total, centerLabel: "criteria" })}${stackedBars(data.categories || [], { ...options, compact: true, keys: ["mandatory", "weighted"] })}</div>`;
   }
 
+  function recommendation(data, options = {}) {
+    const rows = Array.isArray(data) ? data : data?.decisions || [];
+    return statusMatrix(rows, {
+      ...options,
+      nameHeader: options.nameHeader || "Decision",
+      statusHeader: options.statusHeader || "Status",
+      noteHeader: options.noteHeader || "Recommendation and exit evidence",
+    });
+  }
+
   function documentContext(item, visuals = {}) {
     const path = item?.path || "";
+    const provenance = visuals.provenance || {};
     const charts = [];
-    const add = (caption, name, data, options = {}) => charts.push(`<div class="document-visual"><span class="section-index">${escapeHtml(caption)}</span>${render(name, data, { ...options, compact: true })}</div>`);
-    if (["docs/00-executive-summary.md", "decision-matrix/findings.md", "reports/methodology-review.md"].includes(path)) {
-      add("Decision readiness", "donut", visuals.criteria?.statuses || [], { title: "Criteria state", total: visuals.criteria?.total, centerLabel: "criteria" });
-      add("Execution proof", "pocStatus", visuals.poc || {}, { title: "PoC state" });
+    const add = (caption, name, data, options = {}, sourceKey = "") => charts.push(`<div class="document-visual"><span class="section-index">${escapeHtml(caption)}</span>${render(name, data, { ...options, compact: true })}${sourceLink(provenance[sourceKey], "Source")}</div>`);
+    if (path === "reports/methodology-review.md") {
+      add("Steering recommendation", "statusMatrix", visuals.review?.decisions || [], { title: "Decision state", nameHeader: "Decision", noteHeader: "Exit evidence" }, "review");
+      add("Decision readiness", "donut", visuals.criteria?.statuses || [], { title: "Criteria state", total: visuals.criteria?.total, centerLabel: "criteria" }, "criteria");
+      add("Execution proof", "pocStatus", visuals.poc || {}, { title: "PoC state" }, "poc");
+      add("Evidence-system roadmap", "roadmap", visuals.repositoryRoadmap || {}, { title: "Study maturity" }, "repositoryRoadmap");
+    } else if (["docs/00-executive-summary.md", "decision-matrix/findings.md"].includes(path)) {
+      add("Steering recommendation", "statusMatrix", visuals.review?.decisions || [], { title: "Decision state", nameHeader: "Decision" }, "review");
+      add("Decision readiness", "donut", visuals.criteria?.statuses || [], { title: "Criteria state", total: visuals.criteria?.total, centerLabel: "criteria" }, "criteria");
+      add("Execution proof", "pocStatus", visuals.poc || {}, { title: "PoC state" }, "poc");
     }
     if (["docs/03-assessment-methodology.md", "adr/0001-assessment-methodology.md"].includes(path)) {
-      add("Assessment sequence", "methodologyFlow", visuals.methodology?.steps || [], { title: "From frame to pilot" });
-      add("Evidence confidence", "evidenceLadder", visuals.methodology?.evidenceLevels || [], { title: "Evidence levels" });
+      add("Assessment sequence", "methodologyFlow", visuals.methodology?.steps || [], { title: "From frame to pilot" }, "methodology");
+      add("Evidence confidence", "evidenceLadder", visuals.methodology?.evidenceLevels || [], { title: "Evidence levels" }, "methodology");
     }
     if (path.startsWith("decision-matrix/") || path === "docs/09-product-shortlist.md") {
-      add("Gate distribution", "stackedBars", visuals.criteria?.categories || [], { title: "Mandatory and weighted", keys: ["mandatory", "weighted"] });
-      add("Variant state", "statusMatrix", visuals.variants || [], { title: "Exact variants" });
+      add("Gate distribution", "stackedBars", visuals.criteria?.categories || [], { title: "Mandatory and weighted", keys: ["mandatory", "weighted"] }, "criteria");
+      add("Variant state", "statusMatrix", visuals.variants || [], { title: "Exact variants", nameHeader: "Variant" }, "variants");
     }
     if (path.startsWith("research/") || path === "docs/04-kong-first-hypothesis.md") {
-      add("Research balance", "sourceBalance", visuals.sources || {}, { title: "Sources by vendor" });
-      add("Claim state", "bars", visuals.findings?.byState || [], { title: "Findings by state", horizontal: true });
+      add("Research balance", "sourceBalance", visuals.sources || {}, { title: "Sources by vendor" }, "sources");
+      add("Claim state", "bars", visuals.findings?.byState || [], { title: "Findings by state", horizontal: true }, "findings");
     }
-    if (path.startsWith("poc/") && item?.type === "markdown") add("Scenario state", "pocStatus", visuals.poc || {}, { title: "PoC progress" });
-    if (["docs/02-current-state-assumptions.md", "docs/37-risks.md", "docs/38-open-questions.md", "adr/README.md"].includes(path)) add("Governance state", "governance", visuals.governance || {}, { title: "Open decision work" });
-    if (path === "docs/36-implementation-roadmap.md") add("Delivery sequence", "roadmap", visuals.roadmap || {}, { title: "Six controlled phases" });
-    if (path === "docs/39-repository-roadmap.md") add("Study maturity", "roadmap", visuals.repositoryRoadmap || {}, { title: "Seven evidence-system phases" });
+    if (path.startsWith("poc/") && item?.type === "markdown") add("Scenario state", "pocStatus", visuals.poc || {}, { title: "PoC progress" }, "poc");
+    if (["docs/02-current-state-assumptions.md", "docs/37-risks.md", "docs/38-open-questions.md", "adr/README.md"].includes(path)) add("Governance state", "governance", visuals.governance || {}, { title: "Open decision work" }, "governance");
+    if (path === "docs/36-implementation-roadmap.md") add("Delivery sequence", "roadmap", visuals.roadmap || {}, { title: "Controlled delivery phases" }, "roadmap");
+    if (path === "docs/39-repository-roadmap.md") add("Study maturity", "roadmap", visuals.repositoryRoadmap || {}, { title: "Evidence-system phases" }, "repositoryRoadmap");
     if (!charts.length) return "";
-    return `<section class="document-visual-context" aria-label="Visual summary of this source"><header><p class="eyebrow">Visual summary</p><h2>What this source changes in the decision.</h2></header><div class="document-visual-grid">${charts.join("")}</div></section>`;
+    return `<section class="document-visual-context" aria-label="Related decision evidence"><header><p class="eyebrow">Decision context</p><h2>How this source relates to the current evidence.</h2></header><div class="document-visual-grid">${charts.join("")}</div></section>`;
   }
 
   function atlas(visuals = {}) {
     const criteria = visuals.criteria || {};
     const sources = visuals.sources || {};
-    const panel = (index, eyebrow, title, note, body, extraClass = "") => `<article class="visual-panel ${escapeHtml(extraClass)}"><header class="visual-panel-heading"><span class="section-index">${escapeHtml(index)} / ${escapeHtml(eyebrow)}</span><h2>${escapeHtml(title)}</h2><p>${escapeHtml(note)}</p></header><div class="visual-panel-body">${body}</div></article>`;
+    const provenance = visuals.provenance || {};
+    const criteriaTotal = number(criteria.total);
+    const unknownCriteria = series(criteria.statuses).length ? seriesValue(criteria.statuses, "Unknown") : criteriaTotal;
+    const evidencedCriteria = Math.max(criteriaTotal - unknownCriteria, 0);
+    const variantCount = Array.isArray(visuals.variants) ? visuals.variants.length : 0;
+    const pocTotal = number(visuals.poc?.total);
+    const pocNotRun = seriesValue(visuals.poc?.byStatus || [], "Not run");
+    const repositoryPhases = visuals.repositoryRoadmap?.phases || [];
+    const deliveryPhases = visuals.roadmap?.phases || [];
+    const panel = (index, eyebrow, title, note, body, extraClass = "", source = null) => `<article class="visual-panel ${escapeHtml(extraClass)}"><header class="visual-panel-heading"><span class="section-index">${escapeHtml(index)} / ${escapeHtml(eyebrow)}</span><h2>${escapeHtml(title)}</h2><p>${escapeHtml(note)}</p>${sourceLink(source)}</header><div class="visual-panel-body">${body}</div></article>`;
     return `<div class="page-shell visual-atlas">
       <header class="page-intro"><div><p class="eyebrow">Decision evidence, drawn</p><h1>Visual Atlas</h1><p class="lede">Charts, matrices, timelines, and system models generated from the repository’s real assessment data.</p></div><p class="intro-note">These views expose evidence state and study structure. They do not manufacture platform scores where the underlying scorecards remain unknown.</p></header>
       <section class="visual-grid" aria-label="Decision readiness visualizations">
-        ${panel("01", "Readiness", "The score is still unknown", "Evidence coverage must be earned before products can be ranked.", donut(criteria.statuses || [], { title: "Criteria evidence state", total: criteria.total, centerLabel: "criteria", tone: "signal" }), "is-compact")}
-        ${panel("02", "Gate structure", "Thirty gates cannot be averaged away", "Mandatory and weighted requirements are visible by decision category.", stackedBars(criteria.categories || [], { title: "Mandatory and weighted criteria", keys: ["mandatory", "weighted"] }), "is-wide")}
-        ${panel("03", "Candidate state", "Seven exact deployment variants", "Every variant remains unscored until its own topology and entitlement evidence exists.", statusMatrix(visuals.variants || [], { title: "Variant decision state" }), "is-wide")}
-        ${panel("04", "Research balance", "Source coverage is visible", "Official-source volume is not the same as criterion coverage, but imbalance is an important review signal.", sourceBalance(sources, { title: "Official sources by vendor" }))}
-        ${panel("05", "Finding state", "Fact stays separate from interpretation", "The claim register distinguishes confirmed findings, interpretations, and risks.", bars(visuals.findings?.byState || [], { title: "Findings by state" }))}
-        ${panel("06", "Source use", "Registered versus decision-bearing", "A source only becomes decision evidence when it is tied to a finding or criterion.", donut([{ label: "Used in findings", value: sources.usedInFindings || 0 }, { label: "Not yet used", value: sources.unusedInFindings || 0 }], { title: "Source use in findings", centerLabel: "sources" }))}
-        ${panel("07", "Proof", "PoC progress, without overclaiming", "Automated baseline checks are separated from scripted and not-run enterprise scenarios.", pocStatus(visuals.poc || {}, { title: "PoC scenario state" }), "is-wide")}
-        ${panel("08", "Governance", "Open work has an explicit state", "Assumptions, decisions, risks, and open questions remain visible until owners close them.", governance(visuals.governance || {}, { title: "Decision governance" }), "is-wide")}
-        ${panel("09", "Method", "A gated path from framing to pilot", "Evidence confidence increases as claims move from documentation to repeatable labs and representative pilots.", methodologyFlow(visuals.methodology?.steps || [], { title: "Assessment sequence" }), "is-wide")}
-        ${panel("10", "Evidence", "Confidence has levels", "Marketing assertion, official documentation, vendor confirmation, labs, and pilots are not interchangeable.", evidenceLadder(visuals.methodology?.evidenceLevels || [], { title: "Evidence ladder" }))}
-        ${panel("11", "Roadmap", "Six controlled phases", "The current plan uses exit criteria rather than calendar dates masquerading as commitments.", roadmap(visuals.roadmap || {}, { title: "Implementation sequence" }), "is-wide")}
-        ${panel("12", "Study roadmap", "Mature the evidence system", "The repository itself moves through explicit decision-assurance gates before becoming a continuous study platform.", roadmap(visuals.repositoryRoadmap || {}, { title: "Repository maturity sequence" }), "is-wide")}
-        ${panel("13", "Library", "The evidence base has shape", "Repository composition shows where the study is deep and where additional evidence will accumulate.", composition(visuals.library || {}, { title: "Resources by study stream" }), "is-wide")}
+        ${panel("01", "Recommendation", "Approve evidence closure—not platform selection", "The principal review separates the decision requested now from conditional hypotheses and deferred commitments.", statusMatrix(visuals.review?.decisions || [], { title: "Steering decision state", nameHeader: "Decision", noteHeader: "Exit evidence" }), "is-wide", provenance.review)}
+        ${panel("02", "Readiness", `${evidencedCriteria} of ${criteriaTotal} criteria have a recorded evidence state`, "Evidence coverage must be earned before products can be ranked.", donut(criteria.statuses || [], { title: "Criteria evidence state", total: criteria.total, centerLabel: "criteria", tone: "signal" }), "is-compact", provenance.criteria)}
+        ${panel("03", "Gate structure", `${number(criteria.mandatory)} mandatory gates stay explicit`, "Mandatory and weighted requirements are visible by decision category.", stackedBars(criteria.categories || [], { title: "Mandatory and weighted criteria", keys: ["mandatory", "weighted"] }), "is-wide", provenance.criteria)}
+        ${panel("04", "Candidate state", `${variantCount} exact deployment variants`, "Each variant needs its own topology, entitlement, evidence, and scorecard.", statusMatrix(visuals.variants || [], { title: "Variant decision state", nameHeader: "Variant" }), "is-wide", provenance.variants)}
+        ${panel("05", "Research balance", `${number(sources.total)} registered official sources`, "Official-source volume is not the same as criterion coverage, but imbalance is an important review signal.", sourceBalance(sources, { title: "Official sources by vendor" }), "", provenance.sources)}
+        ${panel("06", "Finding state", `${number(visuals.findings?.total)} tracked claims and interpretations`, "The claim register distinguishes confirmed findings, interpretations, and risks.", bars(visuals.findings?.byState || [], { title: "Findings by state" }), "", provenance.findings)}
+        ${panel("07", "Source use", `${number(sources.usedInFindings)} source IDs are used in findings`, "A registered source is not decision evidence until it is tied to a claim or criterion.", donut([{ label: "Used in findings", value: sources.usedInFindings || 0 }, { label: "Not yet used", value: sources.unusedInFindings || 0 }], { title: "Source use in findings", centerLabel: "sources" }), "", provenance.sources)}
+        ${panel("08", "Proof", `${pocNotRun} of ${pocTotal} scenarios are not run`, "Automated baseline checks are separated from unexecuted enterprise scenarios.", pocStatus(visuals.poc || {}, { title: "PoC scenario state" }), "is-wide", provenance.poc)}
+        ${panel("09", "Governance", "Open work remains explicit", "Assumptions, decisions, risks, and open questions remain visible until accountable roles close them.", governance(visuals.governance || {}, { title: "Decision governance" }), "is-wide", provenance.governance)}
+        ${panel("10", "Method", `${(visuals.methodology?.steps || []).length} gated assessment steps`, "Evidence confidence increases as claims move from documentation to repeatable labs and representative pilots.", methodologyFlow(visuals.methodology?.steps || [], { title: "Assessment sequence" }), "is-wide", provenance.methodology)}
+        ${panel("11", "Evidence", `${(visuals.methodology?.evidenceLevels || []).length} confidence levels`, "Marketing assertion, official documentation, vendor confirmation, labs, and pilots are not interchangeable.", evidenceLadder(visuals.methodology?.evidenceLevels || [], { title: "Evidence ladder" }), "", provenance.methodology)}
+        ${panel("12", "Delivery roadmap", `${deliveryPhases.length} controlled delivery phases`, "The organization plan uses exit evidence and decision rights rather than dates masquerading as commitments.", roadmap(visuals.roadmap || {}, { title: "Assessment-to-decommission sequence" }), "is-wide", provenance.roadmap)}
+        ${panel("13", "Study roadmap", `${repositoryPhases.length} evidence-system phases`, "The repository moves through explicit decision-assurance gates before becoming a continuous study platform.", roadmap(visuals.repositoryRoadmap || {}, { title: "Repository maturity sequence" }), "is-wide", provenance.repositoryRoadmap)}
+        ${panel("14", "Library", "The evidence base has shape", "Repository composition shows where the study is deep and where additional evidence will accumulate.", composition(visuals.library || {}, { title: "Resources by study stream" }), "is-wide", provenance.library)}
       </section>
     </div>`;
   }
@@ -299,6 +351,7 @@
     governance,
     criteriaOverview,
     criteria: criteriaOverview,
+    recommendation,
   };
 
   function render(name, data, options = {}) {
@@ -325,6 +378,8 @@
       roadmap: visuals?.roadmap,
       methodology: visuals?.methodology?.steps,
       evidence: visuals?.methodology?.evidenceLevels,
+      review: visuals?.review,
+      recommendation: visuals?.review,
     };
     return map[name] ?? visuals?.[name];
   }
@@ -354,6 +409,7 @@
     pocStatus,
     governance,
     criteriaOverview,
+    recommendation,
     documentContext,
     atlas,
     escapeHtml,

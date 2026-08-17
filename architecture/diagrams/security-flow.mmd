@@ -11,4 +11,6 @@ sequenceDiagram
   G->>G: Validate token, policy, limits, schema
   G->>S: Upstream TLS + identity context
   S->>S: Domain authorization and business logic
-  S-->>C: Response through gateway and edge
+  S-->>G: Domain response
+  G-->>E: Policy and telemetry applied
+  E-->>C: Response

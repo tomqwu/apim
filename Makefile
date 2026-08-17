@@ -4,13 +4,13 @@ COMPOSE := docker compose -f poc/docker-compose.yaml
 SITE_OUTPUT := _site
 SITE_PORT ?= 8008
 
-.PHONY: help validate validate-openapi validate-yaml validate-counts validate-links validate-site lint-shell site site-serve poc-up poc-down smoke rate-limit-test kind-up kind-down k8s-smoke
+.PHONY: help validate validate-openapi validate-yaml validate-counts validate-links validate-visuals validate-site lint-shell site site-serve poc-up poc-down smoke rate-limit-test kind-up kind-down k8s-smoke
 
 help:
 	@sed -n 's/^## //p' Makefile
 
 ## validate: Run all repository checks that do not require a live cluster.
-validate: validate-openapi validate-yaml validate-counts validate-links validate-site lint-shell
+validate: validate-openapi validate-yaml validate-counts validate-links validate-visuals validate-site lint-shell
 
 ## validate-openapi: Parse every OpenAPI document and enforce key fields.
 validate-openapi:
@@ -27,6 +27,10 @@ validate-counts:
 ## validate-links: Verify relative Markdown links resolve inside the repository.
 validate-links:
 	@python3 scripts/validate_links.py
+
+## validate-visuals: Keep architecture Mermaid mirrors and Markdown charts aligned to canonical sources.
+validate-visuals:
+	@python3 scripts/validate_visuals.py
 
 ## validate-site: Build the static research portal and verify its required entry points.
 validate-site: site

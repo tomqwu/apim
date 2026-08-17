@@ -25,13 +25,14 @@ Recommended evidence path:
 
 1. [Executive summary](00-executive-summary.md)
 2. [Methodology review](../reports/methodology-review.md)
-3. [Decision findings](../decision-matrix/findings.md)
-4. [Decision matrix](../decision-matrix/README.md)
-5. [Risks](37-risks.md)
-6. [Implementation roadmap](36-implementation-roadmap.md)
-7. [Repository roadmap](39-repository-roadmap.md)
+3. [Evidence state](../reports/evidence-state.md)
+4. [Decision findings](../decision-matrix/findings.md)
+5. [Decision matrix](../decision-matrix/README.md)
+6. [Risks](37-risks.md)
+7. [Delivery roadmap](36-implementation-roadmap.md)
+8. [Repository roadmap](39-repository-roadmap.md)
 
-The briefing should answer: what is known, what remains unknown, what can disqualify the leading hypothesis, what investment is requested now, and who owns the next gate.
+The briefing should answer: what is known, what remains unknown, what can disqualify the priority-validation hypotheses, what investment is requested now, and who owns the next gate.
 
 ## 2. Directors: mobilize
 
@@ -48,7 +49,7 @@ Recommended evidence path:
 7. [Workshop programme](../workshops/README.md)
 8. [Migration factory](../mule-migration/migration-factory.md)
 
-The briefing should produce named owners, capacity, dependencies, environments, commercial inputs, due dates, and evidence required at the next funding gate.
+The briefing should produce accountable public roles or owner IDs, a restricted named-person map, capacity, dependencies, environments, commercial inputs, due dates, and evidence required at the next funding gate.
 
 ## 3. Architects: design
 
@@ -57,7 +58,7 @@ Keep the logical architecture vendor-neutral and maintain separate physical view
 Recommended evidence path:
 
 1. [Current-state architecture](../architecture/current-state.md)
-2. [Target-state vision](05-target-state-vision.md)
+2. [Vendor-neutral target-state architecture](../architecture/target-state.md)
 3. [Hybrid-cloud requirements](06-hybrid-cloud-requirements.md)
 4. [Gateway and integration-runtime boundary](07-api-gateway-vs-integration-runtime.md)
 5. [Network architecture](../architecture/network-architecture.md)

@@ -2,6 +2,6 @@ flowchart TB
   CP["Central governance/control"] --> PRI["Primary-region production DP"]
   CP --> DR["Secondary-region DR DP"]
   CP --> INT["Internal/private DP"]
-  CAN --> AKS1["AKS workloads"]
+  PRI --> AKS1["AKS workloads"]
   DR --> AKS2["DR workloads"]
   INT --> PCF["PCF/Mule/legacy transition"]

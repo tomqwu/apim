@@ -2,7 +2,9 @@
 
 ## Hypothesis
 
-Kong is likely to fit the target state better than a cloud-bound managed gateway because it can place Kubernetes-native data planes close to cloud, on-premises, transitional legacy, or future workloads while centralizing policy and lifecycle control.
+Kong Konnect hybrid and self-managed Kong are **low-confidence priority-validation hypotheses** because they can place Kubernetes-native data planes close to cloud, on-premises, transitional legacy, or future workloads while centralizing policy and lifecycle control.
+
+This is not evidence that Kong outperforms Azure APIM self-hosted gateway or Apigee Hybrid, both of which are legitimate hybrid alternatives. All seven exact variants receive the same E1/E2 screen before the approved finalists receive symmetric E3 PoCs.
 
 ## Supporting evidence to validate
 
@@ -26,3 +28,10 @@ The hypothesis fails or requires redesign if any mandatory security/residency ga
 - decK gateway commands require the Admin API and cannot write to DB-less gateways.
 
 These are design inputs, not footnotes.
+
+## Counter-hypotheses to test
+
+- **Azure APIM may be the better fit** if Azure-native integration, managed-service accountability, commercial alignment, and operational simplicity outweigh self-hosted workspace, topology, and feature constraints.
+- **Apigee may be the better fit** if its API-product lifecycle, policy, analytics, and enterprise governance advantages justify the Kubernetes runtime footprint, Google-hosted management dependency, and support model.
+- **Retaining MuleSoft may be the prudent near-term baseline** if migration risk, embedded integration logic, contract position, or staffing makes platform change uneconomic before decomposition evidence exists.
+- **No current finalist may be acceptable** if mandatory residency, security, support, operability, or exit gates fail.

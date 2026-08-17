@@ -7,18 +7,20 @@
 
 The static `make validate` path parses OpenAPI/YAML, checks the minimum research counts, and lints shell scripts where available.
 
-## Demonstrated locally
+## Current execution state
 
-| Capability | Docker | Kubernetes | Evidence/test |
+The [test plan](test-plan.md) is the canonical scenario-status register. “Implemented” or “configured” is not an execution result.
+
+| Capability | Docker baseline | Kubernetes path | Evidence/test |
 |---|---:|---:|---|
-| Six banking facade operations | Yes | Yes | `make smoke` / `make k8s-smoke` |
-| API key allow/deny | Yes | Yes | smoke negative/positive cases |
-| Correlation ID | Yes | Yes | response-header assertion |
-| Request/response header transform | Yes | Yes | backend/body and response assertion |
-| Fixed-window local rate limit | Yes | Yes | `make rate-limit-test` |
-| Prometheus plugin | Configured | Configured | metrics endpoint/config inspection |
-| Gateway API HTTPRoute | No | Yes | accepted/programmed status and smoke |
-| OpenAPI validation | Static | Static | `make validate-openapi` |
+| Six banking facade operations | Executed — pass | Implemented — not run | `make smoke` / `make k8s-smoke` |
+| API key allow/deny | Executed — pass | Implemented — not run | smoke negative/positive cases |
+| Correlation ID | Executed — pass | Implemented — not run | response-header assertion |
+| Request/response header transform | Executed — pass | Implemented — not run | backend/body and response assertion |
+| Fixed-window local rate limit | Executed — pass | Implemented — not run | `make rate-limit-test` |
+| Prometheus plugin | Executed — pass | Configured — not run | metrics endpoint/config inspection |
+| Gateway API HTTPRoute | Not applicable | Implemented — not run | live Accepted/Programmed conditions and smoke |
+| OpenAPI validation | Automated — pass | Automated — pass | `make validate-openapi` |
 
 ## Deliberately not claimed as tested
 

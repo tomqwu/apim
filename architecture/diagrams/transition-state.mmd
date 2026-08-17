@@ -1,8 +1,9 @@
 flowchart LR
   C["Consumers"] --> E["Edge/WAF"] --> G["New enterprise gateway"]
-  G --> M["Mule coexistence"]
-  G --> P["PCF applications"]
-  G --> A["AKS services"]
+  G --> R{"Per-route allocation"}
+  R -->|"legacy or rollback"| M["Mule coexistence"]
+  R -->|"legacy PCF"| P["PCF applications"]
+  R -->|"weighted target"| A["AKS services"]
+  O["Release control + health evidence"] -->|"adjust weights or rollback"| R
   M --> I["Integration capabilities"]
   A --> I
-  G -. "weighted cutover" .-> A

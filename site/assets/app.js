@@ -179,6 +179,9 @@
     const { stats, generatedAt } = state.manifest;
     const visuals = state.manifest.visuals || {};
     const audiences = state.manifest.audiences || [];
+    const variantTotal = Array.isArray(visuals.variants) ? visuals.variants.length : 0;
+    const variantScope = variantTotal ? `all ${variantTotal} exact variants` : "all exact variants";
+    const review = findByPath("reports/methodology-review.md");
     const generated = new Date(generatedAt);
     const dateLabel = Number.isNaN(generated.getTime())
       ? "current repository state"
@@ -199,11 +202,23 @@
           <aside class="hero-aside">
             <p>This portal is generated directly from the repository. Source notes remain portable Markdown, Mermaid, CSV, YAML, code, and downloadable presentation material.</p>
             <div class="hero-actions">
-              <a class="action-link is-primary" href="#/present/0">Start presentation <span aria-hidden="true">→</span></a>
+              <a class="action-link is-primary" href="#/present/vp-executive/0">Start executive briefing <span aria-hidden="true">→</span></a>
               <a class="action-link" href="#/library">Explore the library <span aria-hidden="true">↗</span></a>
               <span class="resource-meta">Indexed ${escapeHtml(dateLabel)}</span>
             </div>
           </aside>
+        </section>
+
+        <section class="content-section overview-decision" aria-labelledby="overview-decision-title">
+          <div class="section-heading">
+            <span class="section-index">01 / Principal recommendation</span>
+            <h2 id="overview-decision-title">Approve evidence closure—not platform selection.</h2>
+            <p>Run an equivalent E1/E2 screen across ${escapeHtml(variantScope)}, then fund symmetric proof only for the approved finalists. Kong remains a low-confidence priority-validation hypothesis.</p>
+          </div>
+          <div class="decision-visual-grid">
+            ${visualPanel("A", "Steering state", "The decision requested now", "The recommendation separates approval, conditional hypotheses, required benchmarks, and deferred commitments.", chartMarkup("recommendation", visuals.review || {}, { title: "Decision state", compact: true }), "is-wide")}
+          </div>
+          ${review ? `<a class="action-link" href="${itemHref(review)}">Open the principal review <span aria-hidden="true">↗</span></a>` : ""}
         </section>
 
         ${window.ApiStudyAudiences?.band ? window.ApiStudyAudiences.band(audiences) : ""}
@@ -284,7 +299,7 @@
     if (!target) return;
     try {
       const text = await fetchText(target.dataset.audienceDiagram);
-      await mermaidMarkup(text, target);
+      await mermaidMarkup(text, target, "Vendor-neutral target-state architecture");
     } catch (error) {
       target.innerHTML = `<p class="visual-empty">Open the architecture gallery to inspect this model.</p>`;
     }
@@ -405,7 +420,7 @@
       target.dataset.rendered = "true";
       try {
         const text = await fetchText(target.dataset.diagramPreview);
-        await mermaidMarkup(text, target);
+        await mermaidMarkup(text, target, target.dataset.diagramLabel || "Architecture diagram preview");
       } catch (error) {
         target.innerHTML = `<p class="visual-empty">Preview unavailable. Open the source diagram to inspect it.</p>`;
       }
@@ -483,9 +498,10 @@
             <p>The visual model separates candidate status, evidence confidence, research balance, and gate structure.</p>
           </div>
           <div class="decision-visual-grid">
-            ${visualPanel("A", "Variants", "Exact deployment models", "Family-level scores would hide topology and entitlement differences.", chartMarkup("statusMatrix", visuals.variants || [], { title: "Variant status" }), "is-wide")}
-            ${visualPanel("B", "Evidence", "Confidence ladder", "Higher confidence requires execution under representative conditions.", chartMarkup("evidenceLadder", visuals.methodology?.evidenceLevels || [], { title: "Evidence levels" }))}
-            ${visualPanel("C", "Research", "Official-source balance", "Volume is visible; criterion-level traceability still determines fitness for scoring.", chartMarkup("sourceBalance", visuals.sources || {}, { title: "Sources by vendor" }))}
+            ${visualPanel("A", "Recommendation", "Approve evidence closure—not selection", "The current steering ask is explicit; product selection remains blocked by unmet gates.", chartMarkup("recommendation", visuals.review || {}, { title: "Decision state" }), "is-wide")}
+            ${visualPanel("B", "Variants", "Exact deployment models", "Family-level scores would hide topology and entitlement differences.", chartMarkup("statusMatrix", visuals.variants || [], { title: "Variant status", nameHeader: "Variant" }), "is-wide")}
+            ${visualPanel("C", "Evidence", "Confidence ladder", "Higher confidence requires execution under representative conditions.", chartMarkup("evidenceLadder", visuals.methodology?.evidenceLevels || [], { title: "Evidence levels" }))}
+            ${visualPanel("D", "Research", "Official-source balance", "Volume is visible; criterion-level traceability still determines fitness for scoring.", chartMarkup("sourceBalance", visuals.sources || {}, { title: "Sources by vendor" }))}
           </div>
         </section>
 
@@ -529,9 +545,9 @@
           </div>
           <div class="architecture-grid">
             ${diagrams.map((item, index) => `
-              <a class="architecture-card" href="${itemHref(item)}">
-                <div class="architecture-preview" data-diagram-preview="${escapeHtml(item.contentUrl)}" aria-label="Preview of ${escapeHtml(item.title)}"><p>Rendering model…</p></div>
-                <span class="card-label">${String(index + 1).padStart(2, "0")} / Mermaid source</span>
+              <a class="architecture-card" href="${item.companionId ? `#/doc/${encodeURIComponent(item.companionId)}` : itemHref(item)}">
+                <div class="architecture-preview" data-diagram-preview="${escapeHtml(item.contentUrl)}" data-diagram-label="${escapeHtml(item.title)}" aria-label="Preview of ${escapeHtml(item.title)}"><p>Rendering model…</p></div>
+                <span class="card-label">${String(index + 1).padStart(2, "0")} / ${item.companionId ? "Companion note + source" : "Mermaid source"}</span>
                 <h2>${escapeHtml(item.title)}</h2>
                 <p>${escapeHtml(item.summary)}</p>
               </a>`).join("")}
@@ -679,9 +695,9 @@
     });
   }
 
-  async function renderInlineMermaid(container) {
+  async function renderInlineMermaid(container, documentTitle = "Document") {
     const blocks = [...container.querySelectorAll("pre code.language-mermaid")];
-    for (const code of blocks) {
+    for (const [index, code] of blocks.entries()) {
       const source = code.textContent || "";
       const original = code.closest("pre");
       if (!original || !source.trim()) continue;
@@ -701,7 +717,7 @@
       details.append(summary, sourceView);
       figure.append(frame, details);
       original.replaceWith(figure);
-      await mermaidMarkup(source, frame);
+      await mermaidMarkup(source, frame, `${documentTitle} — diagram ${index + 1}`);
     }
   }
 
@@ -772,7 +788,50 @@
       <pre class="code-view"><code>${escapeHtml(text)}</code></pre>`;
   }
 
-  async function mermaidMarkup(text, target) {
+  function wrapSvgLabel(value, maximumCharacters) {
+    const words = String(value || "").replace(/\s+/g, " ").trim().split(" ").filter(Boolean);
+    const lines = [];
+    let line = "";
+    words.forEach((word) => {
+      const candidate = line ? `${line} ${word}` : word;
+      if (line && candidate.length > maximumCharacters) {
+        lines.push(line);
+        line = word;
+      } else {
+        line = candidate;
+      }
+    });
+    if (line) lines.push(line);
+    return lines.length ? lines : ["Diagram node"];
+  }
+
+  function replaceHtmlSvgLabels(svgMarkup) {
+    const namespace = "http://www.w3.org/2000/svg";
+    const documentNode = new DOMParser().parseFromString(svgMarkup, "image/svg+xml");
+    if (documentNode.querySelector("parsererror")) return svgMarkup;
+    [...documentNode.getElementsByTagName("foreignObject")].forEach((foreignObject) => {
+      const width = Number.parseFloat(foreignObject.getAttribute("width")) || 200;
+      const height = Number.parseFloat(foreignObject.getAttribute("height")) || 48;
+      const lines = wrapSvgLabel(foreignObject.textContent, Math.max(12, Math.floor(width / 7.2)));
+      const text = documentNode.createElementNS(namespace, "text");
+      text.setAttribute("class", "mermaid-svg-label");
+      text.setAttribute("x", String(width / 2));
+      text.setAttribute("y", String(height / 2));
+      text.setAttribute("text-anchor", "middle");
+      text.setAttribute("dominant-baseline", "central");
+      lines.forEach((line, index) => {
+        const tspan = documentNode.createElementNS(namespace, "tspan");
+        tspan.setAttribute("x", String(width / 2));
+        tspan.setAttribute("dy", index === 0 ? `${-0.55 * (lines.length - 1)}em` : "1.1em");
+        tspan.textContent = line;
+        text.appendChild(tspan);
+      });
+      foreignObject.replaceWith(text);
+    });
+    return new XMLSerializer().serializeToString(documentNode.documentElement);
+  }
+
+  async function mermaidMarkup(text, target, label = "Mermaid diagram") {
     if (!window.mermaid) {
       target.innerHTML = `<pre class="code-view"><code>${escapeHtml(text)}</code></pre>`;
       return;
@@ -783,6 +842,8 @@
         securityLevel: "strict",
         theme: "base",
         fontFamily: "Inter, Arial, sans-serif",
+        flowchart: { htmlLabels: false, useMaxWidth: true },
+        sequence: { useMaxWidth: true },
         themeVariables: {
           background: "#fbfaf5",
           primaryColor: "#e9e4d8",
@@ -797,7 +858,25 @@
       });
       const id = `mermaid-${Date.now()}-${Math.random().toString(16).slice(2)}`;
       const result = await window.mermaid.render(id, text);
-      target.innerHTML = window.DOMPurify ? window.DOMPurify.sanitize(result.svg, { USE_PROFILES: { svg: true, svgFilters: true } }) : result.svg;
+      const textLabelSvg = replaceHtmlSvgLabels(result.svg);
+      target.innerHTML = window.DOMPurify ? window.DOMPurify.sanitize(textLabelSvg, { USE_PROFILES: { svg: true, svgFilters: true } }) : textLabelSvg;
+      const svg = target.querySelector("svg");
+      if (svg) {
+        const namespace = "http://www.w3.org/2000/svg";
+        const titleId = `${id}-title`;
+        const descriptionId = `${id}-description`;
+        const title = document.createElementNS(namespace, "title");
+        const description = document.createElementNS(namespace, "desc");
+        title.id = titleId;
+        title.textContent = label;
+        description.id = descriptionId;
+        description.textContent = "Rendered from the repository Mermaid source. The adjacent source disclosure contains the complete text model.";
+        svg.prepend(description);
+        svg.prepend(title);
+        svg.removeAttribute("aria-hidden");
+        svg.setAttribute("role", "img");
+        svg.setAttribute("aria-labelledby", `${titleId} ${descriptionId}`);
+      }
     } catch (error) {
       target.innerHTML = `<div class="error-state"><h1>Diagram source could not render.</h1><p>${escapeHtml(error.message)}</p><pre class="code-view"><code>${escapeHtml(text)}</code></pre></div>`;
     }
@@ -818,6 +897,7 @@
               <dt>Size</dt><dd>${escapeHtml(formatBytes(item.size))}</dd>
             </dl>
             <div class="tag-list">${(item.tags || []).map((tag) => `<span class="tag">${escapeHtml(tag)}</span>`).join("")}</div>
+            ${item.companionId ? `<a class="action-link" href="#/doc/${encodeURIComponent(item.companionId)}">Open companion note <span aria-hidden="true">↗</span></a>` : ""}
             <a class="action-link" href="${escapeHtml(item.contentUrl)}" download>Download source <span aria-hidden="true">↓</span></a>
           </aside>
         </header>
@@ -856,7 +936,7 @@
       if (item.type === "markdown") {
         target.innerHTML = `${documentVisualContext(item)}<div class="prose">${markdownToHtml(text)}</div>`;
         enhanceMarkdown(target.querySelector(".prose"), item);
-        await renderInlineMermaid(target.querySelector(".prose"));
+        await renderInlineMermaid(target.querySelector(".prose"), item.title);
       } else if (item.type === "csv") {
         target.innerHTML = `${documentVisualContext(item)}${csvMarkup(text)}`;
         document.querySelector("[data-document-rail]").innerHTML = "<span>Filterable dataset</span>";
@@ -868,7 +948,7 @@
           document.getElementById("diagram-source")?.scrollIntoView({ behavior: "smooth", block: "start" });
         });
         target.querySelector("h2").id = "diagram-source";
-        await mermaidMarkup(text, target.querySelector("[data-diagram-frame]"));
+        await mermaidMarkup(text, target.querySelector("[data-diagram-frame]"), item.title);
       } else if (item.type === "openapi") {
         target.innerHTML = `<div class="prose">${openApiMarkup(text, item)}</div>`;
         enhanceMarkdown(target.querySelector(".prose"), item);
@@ -891,14 +971,33 @@
       case "methodologyFlow": return chartMarkup("methodologyFlow", visuals.methodology?.steps || [], options);
       case "stackedBars": return chartMarkup("stackedBars", visuals.criteria?.categories || [], { ...options, keys: ["mandatory", "weighted"] });
       case "statusMatrix": return chartMarkup("statusMatrix", visuals.variants || [], options);
-      case "architectureDiagram": return source ? `<div class="slide-diagram" data-slide-diagram="${escapeHtml(source.contentUrl)}"><p>Rendering system model…</p></div>` : "";
+      case "architectureDiagram": return presentationArchitectureMarkup(slide, source);
       case "donut": return chartMarkup("donut", visuals.criteria?.statuses || [], { ...options, total: visuals.criteria?.total, centerLabel: "criteria" });
       case "sourceBalance": return chartMarkup("sourceBalance", visuals.sources || {}, options);
       case "pocStatus": return chartMarkup("pocStatus", visuals.poc || {}, options);
       case "roadmap": return chartMarkup("roadmap", visuals.roadmap || {}, options);
       case "governance": return chartMarkup("governance", visuals.governance || {}, options);
+      case "recommendation": return chartMarkup("recommendation", visuals.review || {}, options);
       default: return "";
     }
+  }
+
+  function presentationArchitectureMarkup(slide, source) {
+    const node = (label, tone = "") => `<span class="slide-system-node ${tone}" role="presentation">${escapeHtml(label)}</span>`;
+    const arrow = '<span class="slide-system-arrow" aria-hidden="true">→</span>';
+    if (slide.key === "target-state") {
+      return `<figure class="slide-system-map is-target" role="img" aria-label="Reviewed API operations configure a control plane, while consumer traffic passes through edge controls and workload-local gateway data planes to domain and integration capabilities with shared observability.">
+        <div class="slide-system-lane"><b>Control</b><div class="slide-system-row is-control" aria-hidden="true">${node("Reviewed API operations")}${arrow}${node("API management control plane", "is-accent")}${arrow}${node("mTLS configuration")}</div></div>
+        <div class="slide-system-lane"><b>Request</b><div class="slide-system-row" aria-hidden="true">${node("Consumers + edge")}${arrow}${node("External + private gateway data planes", "is-accent")}${arrow}${node("AKS domain + integration capabilities")}${arrow}${node("Observability + security")}</div></div>
+      </figure>`;
+    }
+    if (slide.key === "system") {
+      return `<figure class="slide-system-map is-transition" role="img" aria-label="Release control and health evidence govern per-route allocation between legacy Mule or PCF services and AKS targets behind a stable enterprise gateway.">
+        <div class="slide-system-lane"><b>Control</b><div class="slide-system-row is-control" aria-hidden="true">${node("Release controls")}${arrow}${node("Health + reconciliation evidence", "is-accent")}${arrow}${node("Adjust weights or rollback")}</div></div>
+        <div class="slide-system-lane"><b>Traffic</b><div class="slide-system-row" aria-hidden="true">${node("Consumers + edge")}${arrow}${node("Enterprise gateway")}${arrow}${node("Per-route allocation", "is-accent")}${arrow}${node("Mule / PCF coexistence or AKS target")}${arrow}${node("Integration capabilities")}</div></div>
+      </figure>`;
+    }
+    return source ? `<div class="slide-diagram" data-slide-diagram="${escapeHtml(source.contentUrl)}"><p>Rendering system model…</p></div>` : "";
   }
 
   async function renderPresentationDiagram() {
@@ -906,7 +1005,7 @@
     if (!target) return;
     try {
       const text = await fetchText(target.dataset.slideDiagram);
-      await mermaidMarkup(text, target);
+      await mermaidMarkup(text, target, document.querySelector(".slide-title")?.textContent || "Presentation architecture diagram");
     } catch (error) {
       target.innerHTML = `<p class="visual-empty">Open the supporting source to inspect this model.</p>`;
     }
@@ -935,6 +1034,13 @@
     index = Math.min(Math.max(index, 0), slides.length - 1);
     const slide = slides[index];
     const source = state.manifest.items.find((item) => item.id === slide.sourceId);
+    const narrativeClass = slide.visual === "architectureDiagram"
+      ? " is-diagram"
+      : slide.visual === "roadmap"
+        ? " is-roadmap"
+        : slide.visual === "statusMatrix"
+          ? " is-matrix"
+          : "";
     document.body.classList.add("is-presenting");
     setPageTitle(`${index + 1}. ${slide.title}${audience ? ` — ${audience.shortLabel}` : ""}`);
     setActiveNav("");
@@ -943,7 +1049,7 @@
         <article class="presentation-slide">
           <div class="slide-main">
             <span class="eyebrow">${escapeHtml(slide.eyebrow)}${audience ? ` / ${escapeHtml(audience.shortLabel)} lens` : ""}</span>
-            <div class="slide-narrative">
+            <div class="slide-narrative${narrativeClass}">
               <h1 class="slide-title">${escapeHtml(slide.title)}</h1>
               <div class="slide-visual">${presentationVisualMarkup(slide, source)}</div>
             </div>

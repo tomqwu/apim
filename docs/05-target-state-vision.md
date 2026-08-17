@@ -1,18 +1,25 @@
 # Target-state vision
 
+This is a vendor-neutral logical view. Product-specific control planes, data planes, persistence, support boundaries, and entitlements belong in separate candidate physical views.
+
+<!-- diagram-alias-source: ../architecture/diagrams/target-state.mmd -->
 ```mermaid
 flowchart TB
-  C["Customers, staff, partners, workloads"] --> E["Edge: DNS, DDoS, WAF, load balancing"]
-  E --> DP["Regional/private Kong data planes"]
-  CP["Approved control plane"] -->|"mTLS configuration; no request payloads"| DP
-  GIT["OpenAPI + policy + route source"] --> CI["Guarded API operations pipeline"] --> CP
-  DP --> AKS["AKS domain services"]
-  DP --> LEG["Temporary PCF / Mule / legacy backends"]
-  DP --> SAAS["Approved SaaS and partners"]
-  AKS --> INT["Integration plane: services, workflow, messaging, events, adapters"]
-  DP --> OBS["Metrics, logs, traces, audit"]
+  C["Customers / staff / partners / workloads"] --> E["DNS + DDoS + WAF + load balancing"]
+  E --> DPE["External gateway data plane"]
+  C --> DPI["Private gateway data plane"]
+  CP["API management control plane"] -->|"mTLS config"| DPE
+  CP -->|"mTLS config"| DPI
+  GIT["Reviewed API operations"] --> CP
+  DPE --> AKS["AKS domain services"]
+  DPI --> AKS
+  AKS --> INT["Integration / workflow / messaging / events / adapters"]
+  DPE --> OBS["Observability + security"]
+  DPI --> OBS
   INT --> OBS
 ```
+
+Legacy, coexistence, SaaS, and migration routes are deliberately excluded from this logical target and are shown in the [transition-state view](../architecture/transition-state.md).
 
 ## Planes and ownership
 
@@ -32,3 +39,5 @@ flowchart TB
 - Keep management access private and strongly authenticated; permit data planes only the required outbound control-plane and telemetry paths.
 - Use stable gateway hostnames to decouple consumers from backend movement.
 - Treat east-west policy as a service-mesh or workload concern unless an enterprise API boundary is deliberate.
+
+See the [canonical logical architecture](../architecture/target-state.md) and [diagram catalog](../architecture/README.md).

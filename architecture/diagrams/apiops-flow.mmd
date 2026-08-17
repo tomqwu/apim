@@ -1,3 +1,5 @@
 flowchart LR
-  R["OpenAPI + route/policy source"] --> L["Lint + break/security checks"] --> T["Ephemeral tests"] --> A["Approval"] --> P["Signed promotion"] --> V["Runtime verification"] --> E["Evidence store"]
-  V -->|"failed"| B["Rollback"]
+  R["OpenAPI + route/policy source"] --> L["Lint + break/security checks"] --> T["Ephemeral tests"] --> A["Approval"] --> P["Signed promotion"] --> V{"Runtime verification passed?"}
+  V -->|"yes"| E["Evidence store"]
+  V -->|"no"| B["Promote known-good artifact"]
+  B --> V

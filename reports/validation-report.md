@@ -1,7 +1,7 @@
 # Validation report
 
 - Date: 2026-08-17
-- Commit: working tree prior to publication; CI will record the immutable commit
+- Revision evidence: use the GitHub Actions run attached to the reviewed commit; this file records the local baseline environment and scope rather than claiming an immutable run ID
 - Environment: local macOS host; Docker through temporary Colima runtime
 
 ## Passed

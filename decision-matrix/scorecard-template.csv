@@ -1,1 +1,1 @@
-criterion_id,score,gate_status,evidence_level,evidence_reference,tested_version,tested_topology,limitation,reviewer,review_date
+variant_id,criterion_id,score,gate_status,evidence_level,evidence_reference,test_scenario_id,test_status,tested_version,tested_topology,entitlement,limitation,reviewer_role,review_date,fresh_until,exception_reference,decision_status

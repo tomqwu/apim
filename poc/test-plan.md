@@ -7,7 +7,7 @@
 | POC-003 | Missing API key denied; fixture key accepted | Automated | 401/2xx assertions |
 | POC-004 | Correlation and transformed headers present | Automated | Header/body assertions |
 | POC-005 | Local fixed-window limit returns 429 | Automated | Rate test log |
-| POC-006 | Gateway API route accepted/programmed | Kubernetes script | Resource conditions |
+| POC-006 | Gateway API route accepted/programmed | Not run | Live-cluster Accepted/Programmed conditions |
 | POC-101 | Entra OIDC client credentials and negative claims | Not run | Token matrix |
 | POC-102 | Client/upstream/CP-DP mTLS rotation and revocation | Not run | PKI exercise |
 | POC-103 | Distributed limit consistency and Redis failure | Not run | Load/failure data |
