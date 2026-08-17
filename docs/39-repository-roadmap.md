@@ -20,7 +20,7 @@ It complements the [implementation roadmap](36-implementation-roadmap.md), which
 
 | Phase | Status | Primary outcome | Core deliverables | Exit gate |
 |---|---|---|---|---|
-| 0. Public study baseline | Complete | Searchable, reproducible study hub | Sanitized public repository, GitHub Pages portal, source manifest, validation workflow, Mermaid gallery, presentation mode | Main branch and Pages deployment pass validation |
+| 0. Public study baseline | Complete | Searchable, reproducible study hub | Sanitized public repository, GitHub Pages portal, source manifest, validation workflow, Mermaid gallery, six audience briefings, presentation mode | Main branch and Pages deployment pass validation |
 | 1. Decision contract | Next | Approved rules for making the decision | Named sponsor and decision owner, confirmed scope/non-goals, approved mandatory gates, weights, coverage threshold, decision calendar, dissent process | Steering approval recorded in an accepted methodology ADR |
 | 2. Evidence ledger | Planned | Criterion-level traceability | Source-to-criterion map, version/topology fields, evidence owners, freshness dates, limitation records, assumption closure, automated coverage dashboard | Every criterion has an owner and evidence plan; decision-critical assumptions have disposition |
 | 3. Comparative proof | Planned | Equivalent E2/E3 evidence for exact variants | Vendor responses, entitlement map, symmetric PoC environments, security/identity/PKI tests, disconnected-operation tests, API operations, performance, resilience, observability, and migration evidence | All mandatory gates have evidence; no unmitigated critical test finding |
@@ -69,7 +69,7 @@ The timing below is indicative and starts when owners and environments are avail
 | Architecture | `architecture/`, target and transition documents | Vendor-neutral logical model plus candidate physical topologies and verified data flows |
 | PoC and pilots | `poc/`, `templates/poc-result-template.md` | Equivalent multi-candidate execution, durable result artifacts, and automated evidence summaries |
 | Economics and operating model | operating-model and commercial criteria | Quote-based TCO, resource model, support RACI, benefits, and exit cost |
-| Portal and presentation | `site/`, `scripts/build_site.py` | Decision-readiness visualizations driven by populated scorecards and evidence coverage |
+| Portal and presentation | `site/`, `scripts/build_site.py`, `docs/40-audience-guide.md` | Decision-readiness visualizations driven by populated scorecards and evidence coverage |
 | Repository engineering | workflows and validation scripts | Schema validation, source freshness checks, accessibility tests, visual regression, and release automation |
 
 ## Prioritized product backlog

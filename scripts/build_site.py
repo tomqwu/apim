@@ -584,6 +584,199 @@ def build_visuals(items: list[dict[str, object]]) -> dict[str, object]:
     }
 
 
+def build_audiences(
+    items: list[dict[str, object]],
+    stats: dict[str, int],
+    visuals: dict[str, object],
+    presentation: list[dict[str, object]],
+) -> list[dict[str, object]]:
+    """Build six role-specific lenses over the same canonical evidence."""
+    by_path = {str(item["path"]): str(item["id"]) for item in items}
+    valid_slide_keys = {str(slide.get("key", "")) for slide in presentation}
+
+    criteria = visuals.get("criteria", {})
+    criteria = criteria if isinstance(criteria, dict) else {}
+    variants = visuals.get("variants", [])
+    variants = variants if isinstance(variants, list) else []
+    methodology = visuals.get("methodology", {})
+    methodology = methodology if isinstance(methodology, dict) else {}
+    repository_roadmap = visuals.get("repositoryRoadmap", {})
+    repository_roadmap = repository_roadmap if isinstance(repository_roadmap, dict) else {}
+    poc = visuals.get("poc", {})
+    poc = poc if isinstance(poc, dict) else {}
+    governance = visuals.get("governance", {})
+    governance = governance if isinstance(governance, dict) else {}
+
+    def length(value: object) -> int:
+        return len(value) if isinstance(value, list) else 0
+
+    def series_value(value: object, label: str) -> int:
+        if not isinstance(value, list):
+            return 0
+        for item in value:
+            if isinstance(item, dict) and str(item.get("label", "")).casefold() == label.casefold():
+                count = item.get("value", 0)
+                return count if isinstance(count, int) else 0
+        return 0
+
+    def audience(
+        *,
+        audience_id: str,
+        label: str,
+        short_label: str,
+        group: str,
+        verb: str,
+        framing: str,
+        decision: str,
+        action: str,
+        questions: tuple[str, ...],
+        signals: tuple[tuple[str, int], ...],
+        source_paths: tuple[str, ...],
+        recommended_route: str,
+        visual: str,
+        presentation_slides: tuple[str, ...],
+    ) -> dict[str, object]:
+        missing_sources = [path for path in source_paths if path not in by_path]
+        if missing_sources:
+            raise ValueError(f"Audience {audience_id} references missing sources: {missing_sources}")
+        missing_slides = [key for key in presentation_slides if key not in valid_slide_keys]
+        if missing_slides:
+            raise ValueError(f"Audience {audience_id} references unknown slides: {missing_slides}")
+        return {
+            "id": audience_id,
+            "label": label,
+            "shortLabel": short_label,
+            "group": group,
+            "verb": verb,
+            "framing": framing,
+            "decision": decision,
+            "action": action,
+            "questions": list(questions),
+            "signals": [{"label": signal_label, "value": value} for signal_label, value in signals],
+            "sourceIds": [by_path[path] for path in source_paths],
+            "sourcePaths": list(source_paths),
+            "recommendedRoute": recommended_route,
+            "visual": visual,
+            "presentationSlides": list(presentation_slides),
+            "presentationRoute": f"#/present/{audience_id}/0",
+        }
+
+    unscored_variants = sum(
+        1
+        for variant in variants
+        if isinstance(variant, dict) and str(variant.get("status", "")).casefold() == "unscored"
+    )
+    unknown_criteria = series_value(criteria.get("statuses"), "Unknown")
+    evidenced_criteria = max(stats.get("criteria", 0) - unknown_criteria, 0)
+    not_run_scenarios = series_value(poc.get("byStatus"), "Not run")
+    automated_scenarios = series_value(poc.get("byStatus"), "Automated")
+    open_assumptions = series_value(governance.get("assumptions"), "Open")
+    proposed_adrs = series_value(governance.get("adrs"), "Proposed")
+
+    return [
+        audience(
+            audience_id="vp-executive",
+            label="VP / Executive",
+            short_label="Executive",
+            group="Leadership",
+            verb="Decide",
+            framing="Decision, risk, and investment view of the API management study.",
+            decision="Is a platform decision supportable now, and which gates must close before investment is approved?",
+            action="Approve the decision contract and 90-day evidence-closure phase—not a vendor selection.",
+            questions=(
+                "What decision is requested now, and what is explicitly not being approved?",
+                "Which mandatory gates, risks, economics, and exit conditions can still change the direction?",
+                "Who owns the decision, evidence threshold, funding, and review date?",
+            ),
+            signals=(("Criteria with evidence", evidenced_criteria), ("Mandatory gates", stats.get("mandatoryGates", 0)), ("Unscored variants", unscored_variants), ("PoC scenarios not run", not_run_scenarios)),
+            source_paths=("docs/00-executive-summary.md", "reports/methodology-review.md", "decision-matrix/findings.md", "decision-matrix/README.md", "docs/37-risks.md", "docs/36-implementation-roadmap.md", "docs/39-repository-roadmap.md"),
+            recommended_route="#/compare",
+            visual="executive",
+            presentation_slides=("orientation", "decision", "landscape", "evidence", "delivery", "next"),
+        ),
+        audience(
+            audience_id="directors",
+            label="Directors",
+            short_label="Directors",
+            group="Leadership",
+            verb="Mobilize",
+            framing="Portfolio, operating-model, capacity, and delivery-accountability view.",
+            decision="What must be funded, staffed, governed, sequenced, and evidenced before the next investment gate?",
+            action="Turn the roadmap into an accountable plan with named owners, dates, capacity, dependencies, and exit evidence.",
+            questions=("Who owns each workstream, assumption, risk, acceptance decision, and dependency?", "Which environments, people, commercial inputs, and pilots must be funded now?", "What evidence must each phase produce before the program receives more capacity?"),
+            signals=(("Open assumptions", open_assumptions), ("Registered risks", stats.get("risks", 0)), ("Proposed ADRs", proposed_adrs), ("Repository phases", length(repository_roadmap.get("phases")))),
+            source_paths=("docs/02-current-state-assumptions.md", "docs/33-operating-model.md", "docs/36-implementation-roadmap.md", "docs/37-risks.md", "docs/38-open-questions.md", "docs/39-repository-roadmap.md", "workshops/README.md", "mule-migration/migration-factory.md"),
+            recommended_route="#/doc/docs-33-operating-model",
+            visual="directors",
+            presentation_slides=("orientation", "decision", "evidence", "proof", "delivery", "next"),
+        ),
+        audience(
+            audience_id="architects",
+            label="Architects",
+            short_label="Architects",
+            group="Architecture",
+            verb="Design",
+            framing="Logical, deployment, transition, security, network, observability, and resilience view.",
+            decision="Does the vendor-neutral logical architecture—and each candidate topology—satisfy the constraints?",
+            action="Approve the capability boundary and vendor-neutral logical model before candidate physical topologies are scored.",
+            questions=("Where is the gateway/integration boundary, and what must never move into policy?", "Which locality, residency, isolation, identity, network, and recovery constraints shape placement?", "Which current-state, data-flow, transition, and failure assumptions require evidence?"),
+            signals=(("Architecture diagrams", stats.get("diagrams", 0)), ("Assessment categories", length(criteria.get("categories"))), ("Mandatory gates", stats.get("mandatoryGates", 0)), ("Evidence levels", length(methodology.get("evidenceLevels")))),
+            source_paths=("architecture/current-state.md", "docs/05-target-state-vision.md", "docs/06-hybrid-cloud-requirements.md", "docs/07-api-gateway-vs-integration-runtime.md", "architecture/network-architecture.md", "architecture/security-architecture.md", "architecture/ha-dr-architecture.md", "adr/README.md"),
+            recommended_route="#/architecture",
+            visual="architects",
+            presentation_slides=("decision", "target-state", "landscape", "system", "evidence", "proof"),
+        ),
+        audience(
+            audience_id="developers",
+            label="Developers",
+            short_label="Developers",
+            group="Engineering",
+            verb="Build & consume",
+            framing="API contract, APIOps, developer experience, policy boundary, and runnable proof view.",
+            decision="Can teams design, publish, discover, secure, consume, change, and roll back APIs safely?",
+            action="Prove the complete producer and consumer journeys, including approval, promotion, rollback, discovery, and credentials.",
+            questions=("How does an API move from contract to production with ownership and breaking-change controls?", "How does a consumer discover, request, test, rotate credentials, and receive support?", "Which behavior belongs in gateway policy versus domain or integration code?"),
+            signals=(("API contracts", stats.get("apiContracts", 0)), ("PoC scenarios", int(poc.get("total", 0)) if isinstance(poc.get("total", 0), int) else 0), ("Automated scenarios", automated_scenarios), ("Scenarios not run", not_run_scenarios)),
+            source_paths=("docs/07-api-gateway-vs-integration-runtime.md", "docs/29-apiops-governance.md", "docs/30-developer-portal-api-products.md", "poc/README.md", "poc/apis/README.md", "poc/apiops-tests.md", "docs/35-mule-migration-strategy.md", "mule-migration/migration-patterns.md"),
+            recommended_route="#/lab",
+            visual="developers",
+            presentation_slides=("decision", "system", "proof", "delivery"),
+        ),
+        audience(
+            audience_id="devops-sre",
+            label="DevOps / SRE",
+            short_label="DevOps / SRE",
+            group="Operations",
+            verb="Operate & recover",
+            framing="Runtime, delivery automation, telemetry, failure, performance, support, and recovery view.",
+            decision="Can the runtime be operated, observed, recovered, upgraded, and supported under representative conditions?",
+            action="Run Kubernetes, disconnection, failure, soak, telemetry, redaction, and recovery exercises against approved SLOs.",
+            questions=("What happens during control-plane loss, restart, scaling, dependency failure, and recovery?", "Do telemetry, redaction, runbooks, support boundaries, and on-call demand meet the operating contract?", "Which SLO, RTO, RPO, load, and failure conditions must a representative pilot prove?"),
+            signals=(("PoC scenarios", stats.get("pocScenarios", 0)), ("Scenarios not run", not_run_scenarios), ("Recorded risks", stats.get("risks", 0)), ("Architecture diagrams", stats.get("diagrams", 0))),
+            source_paths=("architecture/observability-architecture.md", "architecture/ha-dr-architecture.md", "architecture/network-architecture.md", "poc/failure-tests.md", "poc/performance-tests.md", "poc/observability/README.md", "poc/kubernetes/README.md", "reports/validation-report.md"),
+            recommended_route="#/lab",
+            visual="devops-sre",
+            presentation_slides=("target-state", "system", "proof", "delivery", "next"),
+        ),
+        audience(
+            audience_id="platform-teams",
+            label="Platform Teams",
+            short_label="Platform",
+            group="Platform enablement",
+            verb="Enable & govern",
+            framing="Platform-product, paved-road, tenancy, automation, governance, migration, and adoption view.",
+            decision="What service catalogue, paved road, tenancy model, automation, and support contract can teams adopt repeatedly?",
+            action="Define the platform product, support tiers, onboarding SLO, tenancy model, decision rights, and unit economics.",
+            questions=("Where do platform and domain ownership, standards, shared services, and exceptions divide?", "Which exact variant has a sustainable upgrade, support, staffing, and cost model?", "What is the paved road for onboarding, tenancy, API operations, policy, and migration?"),
+            signals=(("Unscored variants", unscored_variants), ("Current-state assumptions", stats.get("assumptions", 0)), ("Proposed ADRs", proposed_adrs), ("Decision criteria", stats.get("criteria", 0))),
+            source_paths=("docs/33-operating-model.md", "docs/29-apiops-governance.md", "architecture/apiops-architecture.md", "architecture/kong-aks-architecture.md", "docs/12-kong-konnect-vs-self-managed.md", "decision-matrix/README.md", "poc/apiops-tests.md", "docs/39-repository-roadmap.md"),
+            recommended_route="#/doc/docs-33-operating-model",
+            visual="platform-teams",
+            presentation_slides=("target-state", "landscape", "system", "proof", "delivery"),
+        ),
+    ]
+
+
 def build_stats(items: list[dict[str, object]]) -> dict[str, int]:
     criteria = count_csv_rows(ROOT / "decision-matrix" / "criteria.csv")
     sources = count_csv_rows(ROOT / "research" / "sources.csv")
@@ -617,20 +810,21 @@ def make_presentation(items: list[dict[str, object]], stats: dict[str, int], vis
     variant_total = len(visuals.get("variants", []))
     roadmap_phase_total = len(visuals.get("roadmap", {}).get("phases", []))
     specs = [
-        ("Orientation", "A living evidence base for API management decisions", "Research, architecture, proof, and reusable delivery material in one navigable system.", "docs/00-executive-summary.md", stats["resources"], "indexed resources", "composition"),
-        ("Decision", "Choose an operating model—not only a gateway", "The study separates request-path policy from integration logic, then tests platform fit against hybrid-cloud constraints.", "docs/01-problem-statement.md", stats["criteria"], "decision criteria", "methodologyFlow"),
-        ("Target state", "Workload-local data planes, centrally governed", "A Kubernetes-centered direction keeps latency and failure boundaries near workloads while governance stays coherent.", "docs/05-target-state-vision.md", stats["diagrams"], "architecture views", "stackedBars"),
-        ("Landscape", "One hypothesis, several serious benchmarks", "Kong leads the current hypothesis; Azure API Management, Apigee, and the MuleSoft baseline remain explicit comparison points.", "docs/09-product-shortlist.md", variant_total, "deployment variants", "statusMatrix"),
-        ("System", "Make the transition visible", "Current, transition, and target-state diagrams connect the decision to network, security, observability, and resilience consequences.", "architecture/diagrams/target-state.mmd", stats["diagrams"], "renderable diagrams", "architectureDiagram"),
-        ("Evidence", "Unknown stays unknown", "Mandatory gates are scored before weighted preferences. Claims require authoritative evidence or execution proof.", "decision-matrix/criteria.csv", stats["mandatoryGates"], "mandatory gates", "donut"),
-        ("Research", "Trace claims back to sources", "The source register and finding states separate confirmed facts from interpretation, assumptions, risks, and recommendations.", "research/findings.md", stats["sources"], "official sources", "sourceBalance"),
-        ("Proof", "Turn architecture claims into tests", "The PoC provides synthetic APIs, gateway configuration, observability hooks, and explicit security, performance, failure, and migration tests.", "poc/test-plan.md", stats["pocScenarios"], "PoC scenarios", "pocStatus"),
-        ("Delivery", "Move in controlled waves", "The roadmap combines discovery, evidence closure, PoC execution, operating-model design, migration waves, and decision gates.", "docs/36-implementation-roadmap.md", roadmap_phase_total, "roadmap phases", "roadmap"),
-        ("Next", "Close the evidence gaps that can change the decision", "Open questions remain first-class work. The portal is designed to expose uncertainty, not decorate it.", "docs/38-open-questions.md", stats["openQuestions"], "open questions", "governance"),
+        ("orientation", "Orientation", "A living evidence base for API management decisions", "Research, architecture, proof, and reusable delivery material in one navigable system.", "docs/00-executive-summary.md", stats["resources"], "indexed resources", "composition"),
+        ("decision", "Decision", "Choose an operating model—not only a gateway", "The study separates request-path policy from integration logic, then tests platform fit against hybrid-cloud constraints.", "docs/01-problem-statement.md", stats["criteria"], "decision criteria", "methodologyFlow"),
+        ("target-state", "Target state", "Workload-local data planes, centrally governed", "A Kubernetes-centered direction keeps latency and failure boundaries near workloads while governance stays coherent.", "docs/05-target-state-vision.md", stats["diagrams"], "architecture views", "stackedBars"),
+        ("landscape", "Landscape", "One hypothesis, several serious benchmarks", "Kong leads the current hypothesis; Azure API Management, Apigee, and the MuleSoft baseline remain explicit comparison points.", "docs/09-product-shortlist.md", variant_total, "deployment variants", "statusMatrix"),
+        ("system", "System", "Make the transition visible", "Current, transition, and target-state diagrams connect the decision to network, security, observability, and resilience consequences.", "architecture/diagrams/target-state.mmd", stats["diagrams"], "renderable diagrams", "architectureDiagram"),
+        ("evidence", "Evidence", "Unknown stays unknown", "Mandatory gates are scored before weighted preferences. Claims require authoritative evidence or execution proof.", "decision-matrix/criteria.csv", stats["mandatoryGates"], "mandatory gates", "donut"),
+        ("research", "Research", "Trace claims back to sources", "The source register and finding states separate confirmed facts from interpretation, assumptions, risks, and recommendations.", "research/findings.md", stats["sources"], "official sources", "sourceBalance"),
+        ("proof", "Proof", "Turn architecture claims into tests", "The PoC provides synthetic APIs, gateway configuration, observability hooks, and explicit security, performance, failure, and migration tests.", "poc/test-plan.md", stats["pocScenarios"], "PoC scenarios", "pocStatus"),
+        ("delivery", "Delivery", "Move in controlled waves", "The roadmap combines discovery, evidence closure, PoC execution, operating-model design, migration waves, and decision gates.", "docs/36-implementation-roadmap.md", roadmap_phase_total, "roadmap phases", "roadmap"),
+        ("next", "Next", "Close the evidence gaps that can change the decision", "Open questions remain first-class work. The portal is designed to expose uncertainty, not decorate it.", "docs/38-open-questions.md", stats["openQuestions"], "open questions", "governance"),
     ]
     return [
         {
             "index": index,
+            "key": key,
             "eyebrow": eyebrow,
             "title": title,
             "body": body,
@@ -639,7 +833,7 @@ def make_presentation(items: list[dict[str, object]], stats: dict[str, int], vis
             "metricLabel": metric_label,
             "visual": visual,
         }
-        for index, (eyebrow, title, body, path, metric, metric_label, visual) in enumerate(specs)
+        for index, (key, eyebrow, title, body, path, metric, metric_label, visual) in enumerate(specs)
     ]
 
 
@@ -652,13 +846,15 @@ def build(output: Path) -> None:
     items = collect_items(output)
     stats = build_stats(items)
     visuals = build_visuals(items)
+    presentation = make_presentation(items, stats, visuals)
     manifest = {
         "site": {"title": "API Management Studies", "description": "A living research, architecture, comparison, and proof-of-concept library."},
         "generatedAt": datetime.now(timezone.utc).isoformat(timespec="seconds"),
         "stats": stats,
         "visuals": visuals,
+        "audiences": build_audiences(items, stats, visuals, presentation),
         "items": items,
-        "presentation": make_presentation(items, stats, visuals),
+        "presentation": presentation,
     }
     (output / "content-manifest.json").write_text(json.dumps(manifest, indent=2, ensure_ascii=False) + "\n", encoding="utf-8")
     (output / ".nojekyll").touch()

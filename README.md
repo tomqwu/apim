@@ -4,7 +4,7 @@ A living collection of API management studies, research, architecture, platform 
 
 > **Assessment status:** discovery baseline, not a purchase recommendation. All organization-specific topology, volume, SLO, inventory, regulatory, data-residency, identity, and commercial inputs remain to be confirmed. No real customer data or credentials belong in this repository.
 
-**Live portal:** [API Management Studies](https://tomqwu.github.io/apim/) · [Visual Atlas](https://tomqwu.github.io/apim/#/visuals) · [Methodology review](reports/methodology-review.md) · [Repository roadmap](docs/39-repository-roadmap.md)
+**Live portal:** [API Management Studies](https://tomqwu.github.io/apim/) · [Audience briefings](https://tomqwu.github.io/apim/#/audiences) · [Visual Atlas](https://tomqwu.github.io/apim/#/visuals) · [Methodology review](reports/methodology-review.md) · [Repository roadmap](docs/39-repository-roadmap.md)
 
 ## Decision statement
 
@@ -64,7 +64,7 @@ See [`poc/README.md`](poc/README.md) for test scope and limitations.
 
 ## Research portal
 
-The static site turns the repository into a searchable research library, visual evidence atlas, live Mermaid gallery, and interactive presentation without changing the source documents. Its generated index supports Markdown, Mermaid diagrams, CSV datasets, OpenAPI/YAML, code examples, images, PDF, HTML, and PowerPoint files.
+The static site turns the repository into a searchable research library, visual evidence atlas, live Mermaid gallery, and interactive presentation without changing the source documents. Six audience briefings tailor the sequence, depth, visuals, and meeting close for executives and VPs, directors, architects, developers, DevOps/SRE, and API platform teams while retaining one canonical evidence base. Its generated index supports Markdown, Mermaid diagrams, CSV datasets, OpenAPI/YAML, code examples, images, PDF, HTML, and PowerPoint files.
 
 Build and preview it locally:
 
@@ -72,7 +72,7 @@ Build and preview it locally:
 make site-serve
 ```
 
-Then open `http://localhost:8008`. Use **Present** for the curated story, arrow keys to move, `F` for fullscreen, and `Esc` to exit. Use `Cmd/Ctrl + K` anywhere in the portal for full-text search.
+Then open `http://localhost:8008`. Use **Audiences** to enter through a role-specific decision path, **Present** for the complete curated story, arrow keys to move, `F` for fullscreen, and `Esc` to exit. Use `Cmd/Ctrl + K` anywhere in the portal for full-text search.
 
 The output is generated in `_site/` and is not committed. Adding supported material under an existing repository collection is enough for it to appear in the next build; the first Markdown heading becomes its display title.
 

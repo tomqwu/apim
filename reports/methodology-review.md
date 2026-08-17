@@ -1,7 +1,7 @@
 # Consulting-style methodology and decision-readiness review
 
 - Review date: 2026-08-17
-- Scope: repository structure, assessment method, evidence chain, documents, PoC material, and presentation
+- Scope: repository structure, assessment method, evidence chain, documents, PoC material, audience briefings, and presentation
 - Evidence basis: committed repository content only; no stakeholder interviews, vendor briefings, commercial quotes, or client validation were available
 - Review stance: decision-assurance challenge; no platform selection is approved by this report
 
@@ -15,6 +15,7 @@ The repository is a strong assessment scaffold and an early evidence baseline. I
 | Evidence completion | Initial | All 120 criteria remain unknown and no candidate variant has a populated scorecard |
 | Comparative integrity | Developing | The comparison model is sound, but research and executable proof are currently asymmetric |
 | Governance readiness | Developing | Assumptions, risks, questions, weights, thresholds, and ADRs are visible but not yet operationally closed |
+| Audience communication | Strong scaffold | Six role-specific briefings sequence the same canonical evidence for executives, directors, architects, developers, DevOps/SRE, and platform teams |
 | Executive decision readiness | Not ready | The current direction is appropriately provisional; a final recommendation would be premature |
 
 The maturity labels are deliberately qualitative: **Initial** means decision evidence is largely uncollected; **Developing** means material controls exist but are not operationally complete; **Strong scaffold** means the method is well structured but not yet executed; and **Not ready** means the stated decision gates are unmet. These labels are not vendor or product scores.
@@ -31,7 +32,7 @@ The review applies three lenses:
 
 1. **Repository assurance:** completeness, provenance, freshness, reproducibility, navigation, and public-safe content.
 2. **Decision assurance:** scope, alternatives, approved gates, evidence quality, comparative fairness, economics, sensitivity, and decision rights.
-3. **Executive communication:** decision requested, insights, trade-offs, uncertainty, risks, roadmap, and accountable next actions.
+3. **Role-specific communication:** decision requested, appropriate level of detail, trade-offs, uncertainty, risks, roadmap, and accountable next actions for each audience.
 
 A conclusion remains provisional whenever one of those links is missing.
 
@@ -42,6 +43,7 @@ A conclusion remains provisional whenever one of those links is missing.
 - Evidence confidence progresses from assertion to official documentation, vendor confirmation, repeatable lab, and representative pilot in the [assessment methodology](../docs/03-assessment-methodology.md).
 - The [Kong-first hypothesis](../docs/04-kong-first-hypothesis.md) includes explicit falsification conditions.
 - The [executive summary](../docs/00-executive-summary.md) distinguishes a provisional direction from a product selection.
+- The [audience guide](../docs/40-audience-guide.md) gives six roles different decisions, reading sequences, visuals, and meeting closes without duplicating the underlying evidence.
 - The PoC documentation explicitly separates demonstrated baseline mechanics from licensed, hybrid, identity, performance, and production claims in [poc/README.md](../poc/README.md).
 
 ## Material gaps

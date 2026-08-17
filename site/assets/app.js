@@ -111,10 +111,11 @@
   }
 
   function parseRoute() {
-    const raw = location.hash.replace(/^#\/?/, "").split("?", 1)[0];
-    const parts = raw.split("/").filter(Boolean).map(decodeURIComponent);
-    if (!parts.length) return { name: "overview", parts: [] };
-    return { name: parts[0], parts: parts.slice(1) };
+    const [rawPath, rawQuery = ""] = location.hash.replace(/^#\/?/, "").split("?", 2);
+    const parts = rawPath.split("/").filter(Boolean).map(decodeURIComponent);
+    const params = new URLSearchParams(rawQuery);
+    if (!parts.length) return { name: "overview", parts: [], params };
+    return { name: parts[0], parts: parts.slice(1), params };
   }
 
   function sectionCount(name) {
@@ -177,6 +178,7 @@
   function renderOverview() {
     const { stats, generatedAt } = state.manifest;
     const visuals = state.manifest.visuals || {};
+    const audiences = state.manifest.audiences || [];
     const generated = new Date(generatedAt);
     const dateLabel = Number.isNaN(generated.getTime())
       ? "current repository state"
@@ -204,6 +206,8 @@
           </aside>
         </section>
 
+        ${window.ApiStudyAudiences?.band ? window.ApiStudyAudiences.band(audiences) : ""}
+
         <section class="metric-strip" aria-label="Repository facts">
           ${metricMarkup(stats.studies, "assessment chapters")}
           ${metricMarkup(stats.diagrams, "architecture diagrams")}
@@ -230,7 +234,7 @@
 
         <section class="content-section" aria-labelledby="streams-title">
           <div class="section-heading">
-            <span class="section-index">01 / Study streams</span>
+            <span class="section-index">02 / Study streams</span>
             <h2 id="streams-title">One repository, six ways into the evidence.</h2>
             <p>Use the curated paths for orientation. Use Library when you need the complete source record.</p>
           </div>
@@ -241,7 +245,7 @@
 
         <section class="content-section" aria-labelledby="method-title">
           <div class="section-heading">
-            <span class="section-index">02 / Method</span>
+            <span class="section-index">03 / Method</span>
             <h2 id="method-title">From claim to decision, without hiding uncertainty.</h2>
             <p>The material is intentionally explicit about what is known, inferred, assumed, tested, and still open.</p>
           </div>
@@ -265,6 +269,41 @@
           </div>
         </section>
       </div>`;
+  }
+
+  function renderAudiences() {
+    setPageTitle("Audience briefings");
+    setActiveNav("audiences");
+    main.innerHTML = window.ApiStudyAudiences?.directory
+      ? window.ApiStudyAudiences.directory(state.manifest.audiences || [])
+      : `<div class="page-shell"><div class="error-state"><h1>Audience paths unavailable.</h1></div></div>`;
+  }
+
+  async function renderAudienceDiagram() {
+    const target = document.querySelector("[data-audience-diagram]");
+    if (!target) return;
+    try {
+      const text = await fetchText(target.dataset.audienceDiagram);
+      await mermaidMarkup(text, target);
+    } catch (error) {
+      target.innerHTML = `<p class="visual-empty">Open the architecture gallery to inspect this model.</p>`;
+    }
+  }
+
+  function renderAudience(id) {
+    const audiences = state.manifest.audiences || [];
+    const audience = window.ApiStudyAudiences?.getById?.(audiences, id);
+    if (!audience) return renderNotFound("That audience briefing is not configured.");
+    setPageTitle(`${audience.label} briefing`);
+    setActiveNav("audiences");
+    main.innerHTML = window.ApiStudyAudiences.detail(
+      audience,
+      audiences,
+      state.manifest.items || [],
+      state.manifest.visuals || {},
+      window.ApiStudyCharts,
+    );
+    renderAudienceDiagram();
   }
 
   function renderVisualAtlas() {
@@ -873,8 +912,23 @@
     }
   }
 
-  function renderPresentation(rawIndex) {
-    const slides = state.manifest.presentation || [];
+  function presentationContext(audienceId = "") {
+    const allSlides = state.manifest.presentation || [];
+    const audience = audienceId
+      ? window.ApiStudyAudiences?.getById?.(state.manifest.audiences || [], audienceId)
+      : null;
+    const slides = window.ApiStudyAudiences?.presentationSlides
+      ? window.ApiStudyAudiences.presentationSlides(audience, allSlides)
+      : allSlides;
+    return { audience, slides };
+  }
+
+  function presentationExitHref(audience) {
+    return audience ? `#/audiences/${encodeURIComponent(audience.id)}` : "#/overview";
+  }
+
+  function renderPresentation(rawIndex, audienceId = "") {
+    const { audience, slides } = presentationContext(audienceId);
     if (!slides.length) return renderNotFound("No presentation story is configured.");
     let index = Number.parseInt(rawIndex, 10);
     if (Number.isNaN(index)) index = 0;
@@ -882,21 +936,22 @@
     const slide = slides[index];
     const source = state.manifest.items.find((item) => item.id === slide.sourceId);
     document.body.classList.add("is-presenting");
-    setPageTitle(`${index + 1}. ${slide.title}`);
+    setPageTitle(`${index + 1}. ${slide.title}${audience ? ` — ${audience.shortLabel}` : ""}`);
     setActiveNav("");
     main.innerHTML = `
       <section class="presentation-stage" aria-label="Presentation slide ${index + 1} of ${slides.length}">
         <article class="presentation-slide">
           <div class="slide-main">
-            <span class="eyebrow">${escapeHtml(slide.eyebrow)}</span>
+            <span class="eyebrow">${escapeHtml(slide.eyebrow)}${audience ? ` / ${escapeHtml(audience.shortLabel)} lens` : ""}</span>
             <div class="slide-narrative">
               <h1 class="slide-title">${escapeHtml(slide.title)}</h1>
               <div class="slide-visual">${presentationVisualMarkup(slide, source)}</div>
             </div>
-            <span class="slide-counter">${String(index + 1).padStart(2, "0")} / ${String(slides.length).padStart(2, "0")} · API Management Studies</span>
+            <span class="slide-counter">${audience ? `${escapeHtml(audience.shortLabel)} briefing · ` : ""}${String(index + 1).padStart(2, "0")} / ${String(slides.length).padStart(2, "0")}</span>
           </div>
           <aside class="slide-aside">
             <div class="slide-metric"><strong>${escapeHtml(slide.metric)}</strong><span>${escapeHtml(slide.metricLabel)}</span></div>
+            ${audience ? `<div class="slide-audience-cue"><span>Close this room with</span><p>${escapeHtml(audience.action)}</p></div>` : ""}
             <p class="slide-body">${escapeHtml(slide.body)}</p>
             ${source ? `<a class="slide-source" href="${itemHref(source)}">Open supporting source <span aria-hidden="true">↗</span></a>` : ""}
           </aside>
@@ -905,7 +960,7 @@
           <button type="button" data-slide-prev aria-label="Previous slide" ${index === 0 ? "disabled" : ""}>←</button>
           <button type="button" data-slide-next aria-label="Next slide" ${index === slides.length - 1 ? "disabled" : ""}>→</button>
           <button type="button" data-fullscreen aria-label="Toggle fullscreen">⛶</button>
-          <a href="#/overview" aria-label="Exit presentation">×</a>
+          <a href="${presentationExitHref(audience)}" aria-label="Exit presentation">×</a>
         </div>
         <span class="slide-progress" style="width:${((index + 1) / slides.length) * 100}%"></span>
       </section>`;
@@ -919,9 +974,12 @@
   function moveSlide(delta) {
     const route = parseRoute();
     if (route.name !== "present") return;
-    const current = Number.parseInt(route.parts[0] || "0", 10) || 0;
-    const next = Math.min(Math.max(current + delta, 0), state.manifest.presentation.length - 1);
-    if (next !== current) location.hash = `#/present/${next}`;
+    const hasAudience = route.parts.length > 1;
+    const audienceId = hasAudience ? route.parts[0] : "";
+    const current = Number.parseInt(route.parts[hasAudience ? 1 : 0] || "0", 10) || 0;
+    const { audience, slides } = presentationContext(audienceId);
+    const next = Math.min(Math.max(current + delta, 0), slides.length - 1);
+    if (next !== current) location.hash = audience ? `#/present/${audience.id}/${next}` : `#/present/${next}`;
   }
 
   async function toggleFullscreen() {
@@ -939,6 +997,13 @@
     main.innerHTML = `<div class="page-shell"><div class="error-state"><p class="eyebrow">404 / Not found</p><h1>Off the study map.</h1><p>${escapeHtml(message)}</p><a class="action-link" href="#/overview">Return to overview <span aria-hidden="true">→</span></a></div></div>`;
   }
 
+  function focusRouteHeading() {
+    const heading = main.querySelector("h1");
+    if (!heading) return;
+    heading.setAttribute("tabindex", "-1");
+    requestAnimationFrame(() => heading.focus({ preventScroll: true }));
+  }
+
   function route() {
     if (!state.manifest) return;
     closeMenu();
@@ -947,16 +1012,18 @@
     if (current.name !== "present") document.body.classList.remove("is-presenting");
     switch (current.name) {
       case "overview": renderOverview(); break;
+      case "audiences": current.parts[0] ? renderAudience(current.parts[0]) : renderAudiences(); break;
       case "visuals": renderVisualAtlas(); break;
       case "library": renderLibrary(); break;
       case "compare": renderCompare(); break;
       case "architecture": renderArchitecture(); break;
       case "lab": renderLab(); break;
       case "doc": renderDocument(current.parts[0]); break;
-      case "present": renderPresentation(current.parts[0]); break;
+      case "present": current.parts.length > 1 ? renderPresentation(current.parts[1], current.parts[0]) : renderPresentation(current.parts[0]); break;
       default: renderNotFound();
     }
     window.scrollTo(0, 0);
+    focusRouteHeading();
   }
 
   function scoreSearchItem(item, query) {
@@ -973,17 +1040,34 @@
 
   function updateGlobalSearch() {
     const query = globalSearch.value;
-    const results = state.manifest.items
-      .map((item) => ({ item, score: scoreSearchItem(item, query) }))
+    const audienceItems = (state.manifest.audiences || []).map((audience) => ({
+      id: audience.id,
+      title: `${audience.label} briefing`,
+      summary: `${audience.framing} ${audience.decision}`,
+      section: "Audience",
+      type: "briefing",
+      tags: [audience.group, audience.verb, ...(audience.questions || [])],
+      searchText: `${audience.action} ${(audience.sourcePaths || []).join(" ")}`,
+      href: `#/audiences/${encodeURIComponent(audience.id)}`,
+    }));
+    const candidates = [
+      ...audienceItems.map((item) => ({ item, href: item.href, boost: 2 })),
+      ...state.manifest.items.map((item) => ({ item, href: itemHref(item), boost: 0 })),
+    ];
+    const results = candidates
+      .map((entry) => {
+        const score = scoreSearchItem(entry.item, query);
+        return { ...entry, score: score < 0 ? -1 : score + entry.boost };
+      })
       .filter((entry) => entry.score >= 0)
       .sort((a, b) => b.score - a.score || a.item.title.localeCompare(b.item.title))
       .slice(0, 12);
     globalResults.innerHTML = results.length
-      ? results.map(({ item }) => `
-          <a class="search-result" href="${itemHref(item)}">
+      ? results.map(({ item, href }) => `
+          <a class="search-result" href="${escapeHtml(href)}">
             <span class="resource-meta">${escapeHtml(item.section)}</span>
             <strong>${escapeHtml(item.title)}</strong>
-            <span class="resource-meta">${escapeHtml(formatType(item.type))}</span>
+            <span class="resource-meta">${item.type === "briefing" ? "Briefing" : escapeHtml(formatType(item.type))}</span>
           </a>`).join("")
       : `<div class="empty-state" style="padding:2rem 1rem"><h2>No match.</h2><p>Try a platform, capability, or evidence term.</p></div>`;
   }
@@ -1057,10 +1141,16 @@
     }
     if (event.key === "Escape") {
       if (!searchDialog.hidden) closeSearch();
-      else if (document.body.classList.contains("is-presenting")) location.hash = "#/overview";
+      else if (document.body.classList.contains("is-presenting")) {
+        const current = parseRoute();
+        const { audience } = presentationContext(current.parts.length > 1 ? current.parts[0] : "");
+        location.hash = presentationExitHref(audience);
+      }
       return;
     }
     if (document.body.classList.contains("is-presenting")) {
+      const interactive = event.target instanceof Element && event.target.closest("a, button, input, select, textarea, summary, [contenteditable='true']");
+      if (interactive) return;
       if (["ArrowRight", "PageDown", " "].includes(event.key)) {
         event.preventDefault();
         moveSlide(1);
