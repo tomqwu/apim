@@ -24,13 +24,15 @@ Lead with the decision state, not the volume of work completed. Separate the cur
 Recommended evidence path:
 
 1. [Executive summary](00-executive-summary.md)
-2. [Methodology review](../reports/methodology-review.md)
-3. [Evidence state](../reports/evidence-state.md)
-4. [Decision findings](../decision-matrix/findings.md)
-5. [Decision matrix](../decision-matrix/README.md)
-6. [Risks](37-risks.md)
-7. [Delivery roadmap](36-implementation-roadmap.md)
-8. [Repository roadmap](39-repository-roadmap.md)
+2. [Principal content and research review](../reports/content-research-principal-review.md)
+3. [Content-remediation backlog](../reports/content-remediation-backlog.csv)
+4. [Methodology review](../reports/methodology-review.md)
+5. [Evidence state](../reports/evidence-state.md)
+6. [Decision findings](../decision-matrix/findings.md)
+7. [Decision matrix](../decision-matrix/README.md)
+8. [Risks](37-risks.md)
+9. [Delivery roadmap](36-implementation-roadmap.md)
+10. [Repository roadmap](39-repository-roadmap.md)
 
 The briefing should answer: what is known, what remains unknown, what can disqualify the priority-validation hypotheses, what investment is requested now, and who owns the next gate.
 

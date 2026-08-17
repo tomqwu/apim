@@ -20,7 +20,7 @@ validate-openapi:
 validate-yaml:
 	@python3 scripts/validate_yaml.py
 
-## validate-counts: Enforce the minimum 120 criteria and 180 workshop questions.
+## validate-counts: Enforce canonical criteria, workshop questions, and remediation-review traceability.
 validate-counts:
 	@python3 scripts/validate_counts.py
 

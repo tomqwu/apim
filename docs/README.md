@@ -11,6 +11,6 @@
 | 39 | Repository roadmap | Mature the evidence system from discovery baseline to decision assurance and continuous study |
 | 40 | Audience guide | Use one fact model to lead role-specific reviews, briefings, and decisions |
 
-Cross-cutting assurance outputs are maintained in the [principal review](../reports/methodology-review.md) and [evidence-state snapshot](../reports/evidence-state.md).
+Cross-cutting assurance outputs are maintained in the [principal content and research review](../reports/content-research-principal-review.md), its [machine-readable remediation backlog](../reports/content-remediation-backlog.csv), the [decision-assurance methodology review](../reports/methodology-review.md), and the [evidence-state snapshot](../reports/evidence-state.md). A rendered portal page is not automatically a mature study; content type, evidence depth, comparative integrity, inline figures, metadata, and independent review are separate gates.
 
 Documents use explicit evidence labels. Unknown organization-specific inputs are never inferred from generic industry practices.
