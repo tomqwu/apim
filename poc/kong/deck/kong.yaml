@@ -1,0 +1,51 @@
+_format_version: "3.0"
+_transform: true
+
+services:
+  - name: synthetic-bank
+    url: http://mock-bank:8080
+    connect_timeout: 3000
+    read_timeout: 10000
+    write_timeout: 10000
+    retries: 1
+    routes:
+      - name: synthetic-bank-v1
+        paths: [/health, /v1]
+        strip_path: false
+        preserve_host: false
+
+consumers:
+  - username: synthetic-consumer
+    custom_id: api-platform-poc-consumer
+    keyauth_credentials:
+      - key: api-platform-poc-key
+
+plugins:
+  - name: key-auth
+    config:
+      key_names: [apikey]
+      hide_credentials: true
+  - name: correlation-id
+    config:
+      header_name: X-Correlation-ID
+      generator: uuid
+      echo_downstream: true
+  - name: request-transformer
+    config:
+      add:
+        headers: ["X-API-Platform-Gateway:kong-poc"]
+  - name: response-transformer
+    config:
+      add:
+        headers: ["X-API-Platform-PoC:synthetic-only"]
+  - name: rate-limiting
+    config:
+      minute: 10
+      policy: local
+      fault_tolerant: false
+      hide_client_headers: false
+  - name: prometheus
+    config:
+      status_code_metrics: true
+      latency_metrics: true
+      upstream_health_metrics: true

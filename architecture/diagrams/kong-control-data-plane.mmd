@@ -1,0 +1,8 @@
+flowchart LR
+  API["Pipeline / UI / API"] --> CP["Kong control plane"]
+  CP -->|"mTLS configuration"| DP1["AKS DP group A"]
+  CP -->|"mTLS configuration"| DP2["AKS DP group B/DR"]
+  CP -->|"mTLS configuration"| DP3["Private/transition DP"]
+  DP1 -->|"telemetry"| CP
+  DP2 -->|"telemetry"| CP
+  DP3 -->|"telemetry"| CP

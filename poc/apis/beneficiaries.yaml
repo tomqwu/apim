@@ -1,0 +1,68 @@
+openapi: "3.0.3"
+info:
+  title: "Beneficiaries API"
+  version: "1.0.0"
+  description: "Synthetic banking facade for gateway evaluation only. No real customer data."
+servers:
+  - url: "http://localhost:8000"
+paths:
+  /v1/beneficiaries:
+    post:
+      summary: "Create a synthetic beneficiary"
+      operationId: "createBeneficiary"
+      tags:
+        - "Beneficiaries"
+      security:
+        - ApiKeyAuth: []
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              type: "object"
+              required:
+                - "displayName"
+                - "accountReference"
+              properties:
+                displayName:
+                  type: "string"
+                  minLength: 1
+                  maxLength: 100
+                accountReference:
+                  type: "string"
+                  minLength: 1
+                  maxLength: 100
+                institutionNumber:
+                  type: "string"
+                  pattern: "^[0-9]{3}$"
+      responses:
+        "200":
+          description: "Successful synthetic response"
+          headers:
+            X-Correlation-ID:
+              schema:
+                type: "string"
+          content:
+            application/json:
+              schema:
+                type: "object"
+                required:
+                  - "beneficiaryId"
+                  - "status"
+                properties:
+                  beneficiaryId:
+                    type: "string"
+                  status:
+                    type: "string"
+                    enum:
+                      - "CREATED"
+        "401":
+          description: "Missing or invalid API key"
+        "429":
+          description: "Rate limit exceeded"
+components:
+  securitySchemes:
+    ApiKeyAuth:
+      type: "apiKey"
+      in: "header"
+      name: "apikey"

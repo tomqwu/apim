@@ -1,0 +1,14 @@
+sequenceDiagram
+  participant C as Client
+  participant I as Enterprise IdP
+  participant E as Edge/WAF
+  participant G as Gateway
+  participant S as Domain service
+  C->>I: Authenticate / obtain token
+  I-->>C: Signed access token
+  C->>E: TLS request + token
+  E->>G: Filtered request
+  G->>G: Validate token, policy, limits, schema
+  G->>S: Upstream TLS + identity context
+  S->>S: Domain authorization and business logic
+  S-->>C: Response through gateway and edge

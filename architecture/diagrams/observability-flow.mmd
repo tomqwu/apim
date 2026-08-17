@@ -1,0 +1,7 @@
+flowchart LR
+  G["Gateway"] --> C["OpenTelemetry/metrics collector"]
+  S["Services/integration"] --> C
+  C --> M["Metrics/APM"]
+  C --> L["Logs"]
+  C --> SIEM["SIEM"]
+  C --> T["Trace backend"]

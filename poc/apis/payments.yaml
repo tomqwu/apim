@@ -1,0 +1,72 @@
+openapi: "3.0.3"
+info:
+  title: "Payments API"
+  version: "1.0.0"
+  description: "Synthetic banking facade for gateway evaluation only. No real customer data."
+servers:
+  - url: "http://localhost:8000"
+paths:
+  /v1/payments:
+    post:
+      summary: "Create a synthetic payment"
+      operationId: "createPayment"
+      tags:
+        - "Payments"
+      security:
+        - ApiKeyAuth: []
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              type: "object"
+              required:
+                - "fromAccountId"
+                - "amount"
+                - "currency"
+              properties:
+                fromAccountId:
+                  type: "string"
+                payeeId:
+                  type: "string"
+                amount:
+                  type: "number"
+                  format: "double"
+                  minimum: 0
+                  exclusiveMinimum: true
+                currency:
+                  type: "string"
+                  pattern: "^[A-Z]{3}$"
+                idempotencyKey:
+                  type: "string"
+      responses:
+        "200":
+          description: "Successful synthetic response"
+          headers:
+            X-Correlation-ID:
+              schema:
+                type: "string"
+          content:
+            application/json:
+              schema:
+                type: "object"
+                required:
+                  - "paymentId"
+                  - "status"
+                properties:
+                  paymentId:
+                    type: "string"
+                  status:
+                    type: "string"
+                    enum:
+                      - "ACCEPTED"
+        "401":
+          description: "Missing or invalid API key"
+        "429":
+          description: "Rate limit exceeded"
+components:
+  securitySchemes:
+    ApiKeyAuth:
+      type: "apiKey"
+      in: "header"
+      name: "apikey"

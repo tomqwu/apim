@@ -1,0 +1,8 @@
+flowchart LR
+  C["Consumers"] --> E["Edge/WAF"] --> G["New enterprise gateway"]
+  G --> M["Mule coexistence"]
+  G --> P["PCF applications"]
+  G --> A["AKS services"]
+  M --> I["Integration capabilities"]
+  A --> I
+  G -. "weighted cutover" .-> A

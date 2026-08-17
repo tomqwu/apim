@@ -1,0 +1,8 @@
+flowchart LR
+  C["Clients"] --> D["DNS/edge health routing"]
+  D --> A["Primary regional DP"]
+  D -. "failover" .-> B["Secondary regional DP"]
+  CP["Control/config artifacts"] --> A
+  CP --> B
+  A --> WA["Primary backends"]
+  B --> WB["DR backends"]

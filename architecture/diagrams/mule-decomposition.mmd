@@ -1,0 +1,9 @@
+flowchart TD
+  M["Mule workload"] --> C{"Primary responsibility?"}
+  C -->|"Gateway"| G["Kong route/policy"]
+  C -->|"Transformation"| T["AKS integration service"]
+  C -->|"Workflow"| W["Domain/workflow runtime"]
+  C -->|"Messaging/events"| Q["Approved broker/event platform"]
+  C -->|"Batch/file"| B["Job/MFT capability"]
+  C -->|"Connector"| A["Adapter/SaaS-native integration"]
+  C -->|"Unused"| R["Retire"]

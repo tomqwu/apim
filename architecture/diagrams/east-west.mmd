@@ -1,0 +1,3 @@
+flowchart LR
+  A["Service A"] -->|"normal service call"| B["Service B"]
+  A -->|"deliberate enterprise API boundary"| G["Private gateway"] --> C["Service C"]

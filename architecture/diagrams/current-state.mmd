@@ -1,0 +1,7 @@
+flowchart LR
+  C["Consumers"] --> E["Existing edge controls — confirm"]
+  E --> M["Mule APIs and integrations — inventory"]
+  M --> P["PCF applications — confirm"]
+  M --> L["Legacy/on-prem backends"]
+  M --> S["SaaS/partners"]
+  M --> A["Existing AKS services — confirm"]

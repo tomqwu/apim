@@ -1,0 +1,11 @@
+schema_version: 1
+canonical_source: criteria.csv
+criterion_count: 120
+category_count: 12
+mandatory_gate_count: 30
+status_values: [unknown, pass, fail, not-applicable]
+evidence_levels: [E0, E1, E2, E3, E4]
+score_values: [0, 1, 2, 3, 4, 5]
+notes: >-
+  YAML contains matrix metadata to avoid maintaining duplicate criteria.
+  criteria.csv is the canonical machine-readable criterion list.

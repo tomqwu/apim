@@ -1,0 +1,19 @@
+apiVersion: networking.k8s.io/v1
+kind: NetworkPolicy
+metadata:
+  name: mock-bank-default-deny
+  namespace: api-platform-poc
+spec:
+  podSelector:
+    matchLabels:
+      app.kubernetes.io/name: mock-bank
+  policyTypes: [Ingress, Egress]
+  ingress:
+    - from:
+        - namespaceSelector:
+            matchLabels:
+              kubernetes.io/metadata.name: kong
+      ports:
+        - protocol: TCP
+          port: 8080
+  egress: []

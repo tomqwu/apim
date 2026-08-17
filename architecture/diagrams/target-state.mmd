@@ -1,0 +1,13 @@
+flowchart TB
+  C["Customers / staff / partners / workloads"] --> E["DNS + DDoS + WAF + load balancing"]
+  E --> DPE["External gateway data plane"]
+  C --> DPI["Private gateway data plane"]
+  CP["API management control plane"] -->|"mTLS config"| DPE
+  CP -->|"mTLS config"| DPI
+  GIT["Reviewed API operations"] --> CP
+  DPE --> AKS["AKS domain services"]
+  DPI --> AKS
+  AKS --> INT["Integration / workflow / messaging / events / adapters"]
+  DPE --> OBS["Observability + security"]
+  DPI --> OBS
+  INT --> OBS

@@ -1,0 +1,15 @@
+architecture: 12
+security: 15
+network: 8
+kubernetes: 8
+api-lifecycle: 8
+apiops: 9
+traffic-policy: 7
+observability: 7
+resilience-performance: 10
+operations-support: 6
+mule-migration: 6
+commercial-strategy: 4
+
+# Percentages total 100. These are workshop defaults, not an approved organizational decision.
+# Mandatory gates are evaluated before weighted scores and cannot be offset.

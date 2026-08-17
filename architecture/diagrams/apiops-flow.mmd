@@ -1,0 +1,3 @@
+flowchart LR
+  R["OpenAPI + route/policy source"] --> L["Lint + break/security checks"] --> T["Ephemeral tests"] --> A["Approval"] --> P["Signed promotion"] --> V["Runtime verification"] --> E["Evidence store"]
+  V -->|"failed"| B["Rollback"]

@@ -1,0 +1,56 @@
+openapi: "3.0.3"
+info:
+  title: "Customers API"
+  version: "1.0.0"
+  description: "Synthetic banking facade for gateway evaluation only. No real customer data."
+servers:
+  - url: "http://localhost:8000"
+paths:
+  /v1/customers/{customerId}:
+    get:
+      summary: "Get a synthetic customer"
+      operationId: "getCustomer"
+      tags:
+        - "Customers"
+      security:
+        - ApiKeyAuth: []
+      parameters:
+        - name: "customerId"
+          in: "path"
+          required: true
+          schema:
+            type: "string"
+            pattern: "^[A-Za-z0-9-]{1,64}$"
+      responses:
+        "200":
+          description: "Successful synthetic response"
+          headers:
+            X-Correlation-ID:
+              schema:
+                type: "string"
+          content:
+            application/json:
+              schema:
+                type: "object"
+                required:
+                  - "customerId"
+                  - "displayName"
+                properties:
+                  customerId:
+                    type: "string"
+                  displayName:
+                    type: "string"
+                    example: "Synthetic Customer"
+                  segment:
+                    type: "string"
+                    example: "PERSONAL"
+        "401":
+          description: "Missing or invalid API key"
+        "429":
+          description: "Rate limit exceeded"
+components:
+  securitySchemes:
+    ApiKeyAuth:
+      type: "apiKey"
+      in: "header"
+      name: "apikey"

@@ -1,0 +1,33 @@
+gateway:
+  image:
+    repository: kong
+    tag: "3.9.1"
+  replicaCount: 2
+  proxy:
+    type: ClusterIP
+  resources:
+    requests:
+      cpu: 100m
+      memory: 256Mi
+    limits:
+      cpu: "1"
+      memory: 1Gi
+  podDisruptionBudget:
+    enabled: true
+    minAvailable: 1
+  env:
+    database: "off"
+    role: traditional
+    log_level: notice
+
+controller:
+  ingressController:
+    env:
+      feature_gates: FillIDs=true
+    resources:
+      requests:
+        cpu: 100m
+        memory: 128Mi
+      limits:
+        cpu: 500m
+        memory: 512Mi

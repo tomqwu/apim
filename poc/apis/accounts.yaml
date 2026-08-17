@@ -1,0 +1,63 @@
+openapi: "3.0.3"
+info:
+  title: "Accounts API"
+  version: "1.0.0"
+  description: "Synthetic banking facade for gateway evaluation only. No real customer data."
+servers:
+  - url: "http://localhost:8000"
+paths:
+  /v1/accounts/{accountId}:
+    get:
+      summary: "Get a synthetic account"
+      operationId: "getAccount"
+      tags:
+        - "Accounts"
+      security:
+        - ApiKeyAuth: []
+      parameters:
+        - name: "accountId"
+          in: "path"
+          required: true
+          schema:
+            type: "string"
+            pattern: "^[A-Za-z0-9-]{1,64}$"
+      responses:
+        "200":
+          description: "Successful synthetic response"
+          headers:
+            X-Correlation-ID:
+              schema:
+                type: "string"
+          content:
+            application/json:
+              schema:
+                type: "object"
+                required:
+                  - "accountId"
+                  - "currency"
+                  - "status"
+                properties:
+                  accountId:
+                    type: "string"
+                  currency:
+                    type: "string"
+                    example: "CAD"
+                  status:
+                    type: "string"
+                    enum:
+                      - "ACTIVE"
+                      - "RESTRICTED"
+                  balance:
+                    type: "number"
+                    format: "double"
+                    example: 1250.42
+        "401":
+          description: "Missing or invalid API key"
+        "429":
+          description: "Rate limit exceeded"
+components:
+  securitySchemes:
+    ApiKeyAuth:
+      type: "apiKey"
+      in: "header"
+      name: "apikey"
