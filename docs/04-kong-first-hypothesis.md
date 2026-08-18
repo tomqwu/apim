@@ -14,9 +14,11 @@
 | As-of date | 2026-08-17; factual source-review metadata, not a scenario assumption |
 | Next gate | Equivalent E1/E2 screen of all seven bounded archetypes, then steering approval of symmetric E3 finalists |
 
-## Provisional answer
+> **Planning-direction update — 2026-08-18:** Stakeholders subsequently chose Kong as the working platform direction. The [Kong enterprise platform deployment strategy](47-kong-enterprise-platform-strategy.md) now governs the bounded, reversible foundation and self-managed-control proof sequence. This study remains the pre-direction evidence record: its `E1` mechanisms, counterfactuals, and unexecuted gates are not upgraded by the stakeholder decision.
 
-Not yet. **Current evidence does not justify giving Kong execution priority.** Kong Konnect hybrid and self-managed Kong are useful, falsifiable sequencing hypotheses because their documented control/data-plane separation, customer-placeable data planes, Kubernetes integration and declarative paths align with the target direction. They may advance only through the same Gate-1 option resolution, common-evidence screen and mandatory-gate rules as APIM managed/self-hosted, Apigee X/Hybrid and the bounded MuleSoft baseline.
+## Historical provisional answer — 2026-08-17
+
+At the time of this study, not yet. **The `E1` evidence recorded here did not justify giving Kong evidence-derived execution priority.** Kong Konnect hybrid and self-managed Kong were useful, falsifiable sequencing hypotheses because their documented control/data-plane separation, customer-placeable data planes, Kubernetes integration and declarative paths aligned with the target direction. They could advance only through the same Gate-1 option resolution, common-evidence screen and mandatory-gate rules as APIM managed/self-hosted, Apigee X/Hybrid and the bounded MuleSoft baseline. The later stakeholder decision supplies bounded sequencing authority as a business input; it does not change this historical evidence finding or relax those proof gates.
 
 The [top-ten industry-problem study](43-api-management-industry-problems.md) defines the common P1–P10 problem and proof taxonomy. The [Kong long-term multicloud study roadmap](44-kong-multicloud-study-roadmap.md) projects that same taxonomy into distinct Kong operating models, evidence workstreams, gates and stop rules; it does not supersede the symmetric shortlist or authorize a Kong-first foundation.
 

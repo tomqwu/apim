@@ -5,24 +5,24 @@
 | Field | Value |
 |---|---|
 | Artifact type | principal-study |
-| Decision question | What should the organization authorize now, before it selects or scales an API-management platform? |
+| Decision question | What should the organization authorize now that Kong is the stakeholder-selected platform direction, and what evidence must still gate production scale? |
 | Decision owner | Executive sponsor and API-platform selection decision owner |
 | Primary audiences | Executives, vice-presidents, directors, enterprise/platform architects, developers, DevOps, SRE, security, operations, sourcing, and FinOps |
-| Scope | Seven bounded API-management deployment archetypes pending Gate-1 option resolution; mixed Mule, PCF, AKS, on-premises, SaaS and partner estate; decision, PoC, pilot, migration and decommission gates |
+| Scope | Bounded Kong self-managed-hybrid platform direction; retained Konnect and cross-platform counterfactuals; mixed Mule, PCF, AKS, on-premises, SaaS and partner estate; option, PoC, pilot, migration and decommission gates |
 | Evidence state | Provisional interpretation; selected mechanisms are documented, candidate fit is unobserved, and RE-1 values are scenario assumptions |
 | Reference case | RE-1, a synthetic regulated-enterprise case |
-| As-of date | 2026-08-17; factual source-review metadata, not a scenario assumption |
-| Next gate | Gate 0 decision-contract approval, followed by an equivalent E1/E2 variant screen |
+| As-of date | 2026-08-18; factual source-review metadata, not a scenario assumption |
+| Next gate | KP0 accepts the exact-option fields, self-managed service boundary, accountable capacity, proof thresholds, Konnect benchmark and true-exit contract |
 
-## Provisional answer
+## Executive answer
 
-Authorize a **stage-gated evidence-closure programme**, not a product selection or migration factory.
+Authorize a **bounded, reversible Kong platform foundation** centered on self-managed hybrid control: enterprise-operated Kong control-plane nodes and PostgreSQL, with customer-hosted data-plane cells near approved cloud, Kubernetes and private workloads. Do not authorize critical production scale or a migration factory yet.
 
-The present direction remains deliberately provisional: screen all seven bounded deployment archetypes at equivalent documented-evidence levels and resolve edition, version, topology, entitlement, region and support fields before any scoring. Kong Konnect hybrid and self-managed Kong are **named, low-confidence sequencing hypotheses**, not priority candidates; Azure API Management, Apigee and the MuleSoft baseline receive the same questions, evidence burden and opportunity to advance. No product has yet earned finalist status or an unconditional recommendation.
+Kong is the better fit for the stated strategy while four priorities remain hard: enterprise custody of management state, multicloud/on-premises runtime placement without a database in every zone, request continuity during control-plane loss, and declarative platform operations. The stakeholder decision gives Kong real sequencing and funding priority. It does not turn documented mechanisms into observed fit: the exact version, entitlement, support, database recovery, named-node trust, configuration authority, counter correctness, telemetry loss, staffing, cost and exit behavior still have to pass.
 
 The strongest current architectural direction is a stable API edge with workload-local data planes where justified, centralized lifecycle/control intent, domain-owned business semantics, and fit-for-purpose integration/workflow/message/file capabilities. The gateway should own transport-facing cross-cutting policy. It should not become the next integration monolith.
 
-Confidence is high that a feature comparison is insufficient, moderate that the proposed gated method exposes the material choices, and low in any product ranking until entitlement, topology, performance, failure, support, staffing, and total-cost evidence exist. The cost of being wrong is not limited to license spend: RE-1 shows plausible duplicate transfers, stale policy after partial disconnection, certificate rollover failures, regional writes against stale data, telemetry-induced request collapse, and stranded Mule/PCF dependencies.
+Confidence is high that Kong is a coherent target to prove for those priorities, medium that self-managed custody will justify its added duties, and zero that production fit or scale has been demonstrated. The [Kong enterprise platform deployment strategy](47-kong-enterprise-platform-strategy.md) converts the direction into explicit outcomes, a 0–18 month evidence sequence, a Konnect custody benchmark and a true non-Kong exit. The earlier symmetric studies remain the evidence history and counterfactual record; they are not a parallel implementation programme.
 
 ## Decision state, not product theatre
 
@@ -161,7 +161,7 @@ All quantitative thresholds below are RE-1 **scenario assumptions**.
 
 - RE-1 traffic, estate, SLO, staffing, schedule and cost values are scenario assumptions; current-state calibration can change shortlist and sequencing.
 - Official documentation confirms mechanisms only for stated versions, tiers and topology; entitlement, limits, regions, support and pricing are volatile.
-- The named Kong sequencing hypothesis may create anchoring bias. It confers no priority; symmetric questions, environments, tuning, advancement rules and reviewers are mandatory.
+- The stakeholder-selected Kong direction creates anchoring and sunk-cost risk. It confers sequencing priority, not evidence confidence; decision-changing counterfactuals, equivalent outcome measures, stop rules and independent reviewers remain mandatory.
 - Laboratory evidence has high confidence only inside its tested boundary; it cannot establish production support, human operability or rare long-duration failure behavior.
 - The executive summary does not select an event backbone, workflow engine, MFT platform, universal integration runtime or east-west service-mesh strategy.
 - A lower platform run cost can be overwhelmed by migration, dual-run, specialist, support, telemetry, network and delayed-decommission cost.

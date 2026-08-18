@@ -14,9 +14,11 @@
 | As-of date | 2026-08-17; revalidate versions, geos, regions, hosting modes, plugins, entitlements, limits and support terms at every option freeze |
 | Next gate | Gate K0 approves the problem ranking, exact-option fields, common evidence contract, owner capacity and stop rules; it authorizes study work, not a Kong implementation |
 
-## Provisional answer
+> **Planning-direction update — 2026-08-18:** The stakeholder direction now concentrates implementation proof on Kong. The [Kong enterprise platform deployment strategy](47-kong-enterprise-platform-strategy.md) selects self-managed hybrid as the leading custody target and turns this roadmap into an evidence dependency for a reversible foundation. The direction does not alter the `E1` state, erase stop rules, or make any workstream an observed result.
 
-Continue the **symmetric Gate-1 screen of all seven canonical longlist archetypes**. This Kong roadmap is one candidate-specific projection of that common work; it grants Kong no build priority, finalist status, easier evidence burden or funding preference. Within the Kong portion of the screen, study a portfolio of separately resolved operating mechanisms rather than one product-shaped answer. Kong's documented plane separation and hosting choices shape falsifiable RE-1 tests only. They do not establish fit or justify earlier execution than the equivalent APIM, Apigee and MuleSoft-baseline work.
+## Historical provisional answer — 2026-08-17
+
+At the time this roadmap was authored, the evidence-derived recommendation was to continue the **symmetric Gate-1 screen of all seven canonical longlist archetypes**. This Kong roadmap was one candidate-specific projection of that common work; by itself it granted Kong no build priority, finalist status, easier evidence burden or funding preference. Within the Kong portion of the screen, the work still resolves operating mechanisms rather than assuming one product-shaped answer. Kong's documented plane separation and hosting choices shape falsifiable RE-1 tests only; they do not establish fit. The 2026-08-18 stakeholder direction now provides bounded sequencing and funding authority for Kong-specific proof, while this roadmap's common evidence burden, stop rules, and historical evidence state remain unchanged.
 
 The Kong work therefore retains three mechanism hypotheses without ranking them:
 

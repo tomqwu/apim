@@ -1,10 +1,12 @@
 # Evidence-state snapshot
 
-- Snapshot date: 2026-08-17
+- Snapshot date: 2026-08-18
 - Scope: canonical tracked repository data
 - Decision use: show what can and cannot be concluded; this is not a platform score or ranking
 
 The charts below are portable Markdown Mermaid views. Repository validation checks their values against the same CSV and Markdown sources used by the site Visual Atlas.
+
+Stakeholders have chosen Kong as the planning direction, with self-managed hybrid as the leading custody model. That business input authorizes concentrated, reversible proof; it does not change any count below, turn an unknown gate into a pass, or establish production fit. The [Kong platform strategy](../docs/47-kong-enterprise-platform-strategy.md) defines the outcome and stop conditions that must close before scale.
 
 ## Decision criteria structure
 
@@ -61,7 +63,7 @@ Source: [sources.csv](../research/sources.csv) and [findings.md](../research/fin
 |---|---:|---|
 | Bounded deployment archetypes | 7 | Every archetype requires Gate-1 edition/version/topology/entitlement/support resolution |
 | Exact resolved options / populated option scorecards | 0 / 0 | No comparative ranking is supportable |
-| Mandatory gates | 30 unknown | Product selection remains blocked |
+| Mandatory gates | 30 unknown | Evidence-derived production fit and permission to scale remain blocked despite the stakeholder direction |
 | Assumptions | 10 open | Organization context is not yet confirmed |
 | ADRs | 5 proposed | Evaluation and architecture decisions are not accepted |
 | Risks | 20 active RE-1 scenario risks with inherent and residual targets | Organization-specific ratings and acceptance still require accountable review |

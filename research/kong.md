@@ -2,14 +2,16 @@
 
 ## Purpose and decision boundary
 
-This is the supporting evidence ledger for the principal studies [10](../docs/10-kong-deep-dive.md) through [18](../docs/18-kong-ha-dr.md) and the [Kong long-term multicloud study roadmap](../docs/44-kong-multicloud-study-roadmap.md). It records bounded variant boundaries, primary-source claims, counter-evidence and proof gaps. It does not repeat the study arguments, score a vendor, or report tests.
+This is the supporting evidence ledger for the principal studies [10](../docs/10-kong-deep-dive.md) through [18](../docs/18-kong-ha-dr.md), the [Kong long-term multicloud study roadmap](../docs/44-kong-multicloud-study-roadmap.md), and the [Kong enterprise platform deployment strategy](../docs/47-kong-enterprise-platform-strategy.md). It records bounded variant boundaries, primary-source claims, counter-evidence and proof gaps. It does not repeat the study arguments, score a vendor, or report tests.
 
-**As of:** 2026-08-17
+**As of:** 2026-08-18
 
 **Evidence state:** `E1 — documented` unless a row says otherwise. `E2 — contractual`, `E3 — reproducible lab`, and `E4 — representative pilot/operating` evidence are absent.
 
 **Reference case:** [RE-1 enterprise reference case](../docs/41-enterprise-reference-case.md) is synthetic and non-organizational. Its numbers are **scenario assumptions**, not estate facts, vendor limits or observed results.
 **Version baseline:** customer-hosted analysis uses the Kong Gateway Enterprise **3.14 LTS version line**, with an exact patch/image digest still to be frozen. Kong 3.15 is currently supported but is not silently substituted into that baseline.
+
+**Current planning posture:** stakeholders intend to proceed with Kong. `KV-1` self-managed hybrid is the leading custody target for a bounded, reversible foundation; it is not an `E3`/`E4` result. `KV-2` Konnect hybrid is the mandatory same-vendor operating benchmark if customer control-plane custody does not justify its PostgreSQL, PKI, upgrade, backup, recovery, observability, and on-call burden. A separate non-Kong rebuild remains the true platform-exit proof.
 
 ## Bounded deployable-archetype register
 
@@ -82,6 +84,9 @@ IDs K-001 through K-015 already exist in `research/sources.csv`. IDs marked **pr
 | K-048 **proposed** | Larger payloads and buffering/streaming choices materially change memory/disk/latency behavior | [Large-payload tuning](https://developer.konghq.com/gateway/performance/large-payloads/) | `E1`; J-04/J-05 exact payload E3 |
 | K-049 **proposed** | CP/traditional blue-green upgrade has limited support and database migration finalization changes rollback | [Blue-green upgrade](https://developer.konghq.com/gateway/upgrade/blue-green/) | `E1`; exact upgrade plan/support statement required |
 | K-050 **proposed** | Konnect maintains a topology-specific Gateway compatibility policy; vendor-managed Dedicated and Serverless runtimes cannot be assumed to follow customer-hosted DP version control | [Konnect compatibility](https://developer.konghq.com/konnect-platform/compatibility/) | `E1`, volatile; record policy and resolved service version at option freeze |
+| K-051 **proposed** | New data planes normally cannot become configured during a CP outage; object-store fallback adds exact-version, IAM/encryption, exporter, one-shot import and maintenance obligations | [Control-plane outage management](https://developer.konghq.com/gateway/cp-outage/) | `E1`; prove no-fallback and fallback paths independently |
+| K-052 **proposed** | Self-managed hybrid/traditional configuration can be migrated to Konnect, but RBAC, workspaces/control planes, certificates, custom plugins and data planes require explicit transformation and validation | [Self-managed migration to Konnect](https://developer.konghq.com/gateway/self-managed-migration/) | `E1`; same-vendor custody benchmark, not true platform exit |
+| K-053 **proposed** | The self-managed Admin API has full control and requires a private authenticated boundary; Enterprise RBAC and audit behavior must be explicitly configured and tested | [Secure the Admin API](https://developer.konghq.com/gateway/secure-the-admin-api/), [RBAC](https://developer.konghq.com/gateway/entities/rbac/), [audit logs](https://developer.konghq.com/gateway/audit-logs/) | `E1`; entitlement/configuration plus negative-access and export proof required |
 
 ## External platform sources needed by the AKS study
 
@@ -143,9 +148,9 @@ Existing `K8S-002` (disruptions/PDB) and `K8S-003` (HPA) remain relevant and sho
 
 | Evidence layer | Status | Missing artifact |
 |---|---|---|
-| E1 official mechanism | Current as of 2026-08-17 | Revalidate at variant freeze; several pages are release/service volatile |
+| E1 official mechanism | Current as of 2026-08-18 | Revalidate at variant freeze; several pages are release/service volatile |
 | E2 entitlement/support/privacy/SLA | Not obtained | quote/order, support matrix, DPA/location, SLA/remedy, audit/export, managed responsibility |
 | E3 lab | Not run | KONG/CPDP/KVS/AKS/KSEC/KOPS/KOBS/KPERF/KDR proof bundles from docs 10–18 |
 | E4 representative pilot/operations | Not run | estate workload, operator toil, incident/support, capacity/cost and migration evidence |
 
-The next evidence action is not another feature list. It is to freeze one exact variant/BOM per operating model, approve RE-1 thresholds, add K-016 through K-049 plus AZK-001/AZK-002/K8S-005 to `research/sources.csv` if absent, and execute the principal proof plans with independent review.
+The next evidence action is not another feature list. It is to freeze `KP-SMH1` and the Konnect benchmark as exact option/BOM records, approve RE-1 and platform-outcome thresholds, add the decision-bearing proposed Kong and external-platform rows to `research/sources.csv` when promoted, and execute the existing dossier plus KPS proof plans with independent review.
