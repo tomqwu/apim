@@ -3889,6 +3889,40 @@ class PublishedGateTests(WorkflowTestCase):
             contains="invalid workflow transition: MERGED -> CLOSED",
         )
         self.assertEqual(before, checkpoint.read_bytes())
+
+    def test_published_resume_uses_the_immutable_candidate_after_a_later_path_deletion(self) -> None:
+        repository = self.repository(local_origin=True)
+        checkpoint, data, candidate, merge_sha = self.prepare_published(repository)
+        rendered = repository.cli("render", "--checkpoint", str(checkpoint))
+        self.assertEqual(0, rendered.returncode, rendered.stdout + rendered.stderr)
+        pr = repository.valid_pr_json(candidate, merged=True, merge_sha=merge_sha)
+        pr["body"] = rendered.stdout.strip()
+
+        checkpoint.unlink()
+        (repository.root / "docs" / "workflow-test.md").unlink()
+        later_main = repository.commit_all("Remove an old published canonical path")
+        repository.git("push", "-q", "origin", "main")
+        self.assertNotEqual(merge_sha, later_main)
+
+        resumed = repository.cli(
+            "resume",
+            "--pr-number",
+            "17",
+            "--base",
+            repository.base_sha,
+            "--requested-actions",
+            ",".join(data["requestedActions"]),
+            environment=repository.fake_github_environment(pr, candidate),
+        )
+        self.assertEqual(0, resumed.returncode, resumed.stdout + resumed.stderr)
+        result = json.loads(resumed.stdout)
+        restored = repository.root / result["checkpoint"]
+        restored_data = json.loads(restored.read_text(encoding="utf-8"))
+        self.assertEqual("PUBLISHED", result["state"])
+        self.assertEqual("PUBLISHED", restored_data["canonicalState"])
+        self.assertEqual(candidate, restored_data["candidateSha"])
+        self.assertEqual(merge_sha, restored_data["mergeSha"])
+        self.assertFalse((repository.root / "docs" / "workflow-test.md").exists())
     def test_published_gate_rejects_an_intake_branch_that_was_not_cleaned(self) -> None:
         repository = self.repository(local_origin=True)
         checkpoint, _, candidate, merge_sha = self.prepare_published(repository, clean_branch=False)

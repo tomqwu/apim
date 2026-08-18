@@ -1690,7 +1690,10 @@ def command_resume(args: argparse.Namespace) -> int:
     else:
         raise WorkflowError("only open or merged pull requests can be resumed")
 
-    validate_checkpoint_shape(data)
+    # Open PRs must still describe artifacts in the checked-out candidate.
+    # Merged records were already re-authenticated against refs/pull/<n>/head;
+    # later governed main changes must not make their durable history unrestorable.
+    validate_checkpoint_shape(data, verify_artifacts=state == "OPEN")
     if state == "OPEN":
         fail_unless(working_tree_clean_at(data["prHeadSha"]), "resumed PR branch raw bytes differ from its recorded head")
         fail_unless(data["localValidationDigest"] == source_tree_digest(), "resumed PR branch differs from its locally validated source-tree digest")
