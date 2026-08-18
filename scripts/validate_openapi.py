@@ -20,6 +20,20 @@ try:
 except ImportError:
     validate_spec = None
 
+if yaml is None or validate_spec is None:
+    missing = []
+    if yaml is None:
+        missing.append("PyYAML")
+    if validate_spec is None:
+        missing.append("openapi-spec-validator")
+    print(
+        "ERROR: required validation dependencies are unavailable: "
+        + ", ".join(missing)
+        + "; install requirements-validation.txt in Python 3.12",
+        file=sys.stderr,
+    )
+    raise SystemExit(1)
+
 operation_ids = []
 for path in files:
     text = path.read_text(encoding="utf-8")
@@ -49,10 +63,4 @@ if len(operation_ids) != 6 or len(set(operation_ids)) != 6 or any(not item for i
 if errors:
     print("ERROR: " + "; ".join(errors), file=sys.stderr)
     raise SystemExit(1)
-if validate_spec is not None:
-    mode = "OpenAPI semantic validation"
-elif yaml is not None:
-    mode = "full YAML parse (install openapi-spec-validator for semantic validation)"
-else:
-    mode = "structural fallback (install PyYAML for full parse)"
-print(f"OK: six OpenAPI documents validated using {mode}")
+print("OK: six OpenAPI documents validated using OpenAPI semantic validation")

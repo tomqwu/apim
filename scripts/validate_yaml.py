@@ -6,8 +6,8 @@ import sys
 try:
     import yaml  # type: ignore
 except ImportError:
-    print("SKIP: PyYAML unavailable; CI installs it and performs full YAML parsing")
-    raise SystemExit(0)
+    print("ERROR: PyYAML is required; install requirements-validation.txt in Python 3.12", file=sys.stderr)
+    raise SystemExit(1)
 
 root = pathlib.Path(__file__).resolve().parents[1]
 ignored_directories = {".git", "_site"}

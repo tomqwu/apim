@@ -1,0 +1,4 @@
+interface:
+  display_name: "Publish API Study"
+  short_description: "Turn new evidence into reviewed studies and Pages"
+  default_prompt: "Use $publish-api-study to ingest this input and publish a reviewed docs-first update to the API Management Studies repository."

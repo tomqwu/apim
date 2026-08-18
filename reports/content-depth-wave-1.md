@@ -62,7 +62,7 @@ Each inline Mermaid is adjacent to a stable unique ID/title, depicted scope, exc
 
 ### 6. Source-promotion boundary
 
-The [source-coverage report](source-coverage.md) and [machine-readable usage ledger](source-coverage.csv) scan 67 article files and fail CI when citation state drifts. Registered citations may support decision-bearing findings only through the finding chain; 227 contextual URLs remain explanation-only until an evidence owner promotes the claims that can change a gate, score or recommendation.
+The [source-coverage report](source-coverage.md) and [machine-readable usage ledger](source-coverage.csv) scan 68 article files and fail CI when citation state drifts. Registered citations may support decision-bearing findings only through the finding chain; 227 contextual URLs remain explanation-only until an evidence owner promotes the claims that can change a gate, score or recommendation.
 
 ### 7. One dependency-aware roadmap
 
