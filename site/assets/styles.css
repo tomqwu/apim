@@ -1183,6 +1183,171 @@ a {
   text-transform: uppercase;
 }
 
+.viz-practice-key,
+.viz-scenario-key {
+  display: none;
+}
+
+.viz-practice-list,
+.viz-scenario-list,
+.viz-maturity-list {
+  display: grid;
+  grid-template-columns: repeat(2, minmax(0, 1fr));
+  padding: 0;
+  margin: 0;
+  border-top: 1px solid var(--ink);
+  border-left: 1px solid var(--ink);
+  list-style: none;
+}
+
+.viz-practice-list > li,
+.viz-scenario-list > li,
+.viz-maturity-list > li {
+  min-width: 0;
+  display: grid;
+  grid-template-columns: 58px minmax(0, 1fr);
+  gap: 0.8rem;
+  align-content: start;
+  padding: 1rem;
+  border-right: 1px solid var(--ink);
+  border-bottom: 1px solid var(--ink);
+}
+
+.viz-practice-index,
+.viz-scenario-index,
+.viz-maturity-index {
+  color: var(--signal-dark);
+  font-family: var(--mono);
+  font-size: 1rem;
+  letter-spacing: 0.035em;
+}
+
+.viz-practice-index {
+  display: grid;
+  align-content: start;
+  gap: 0.25rem;
+}
+
+.viz-practice-index b {
+  font-weight: 600;
+}
+
+.viz-practice-index small {
+  color: var(--muted);
+  font-size: 0.875rem;
+}
+
+.viz-practice-copy,
+.viz-scenario-copy,
+.viz-maturity-list > li > div {
+  min-width: 0;
+  display: grid;
+  align-content: start;
+  gap: 0.65rem;
+}
+
+.viz-practice-copy > *,
+.viz-scenario-copy > *,
+.viz-maturity-list > li > div > * {
+  min-width: 0;
+  margin: 0;
+  overflow-wrap: anywhere;
+}
+
+.viz-practice-copy strong,
+.viz-scenario-copy strong,
+.viz-maturity-list strong {
+  font-family: var(--serif);
+  font-size: 1.25rem;
+  font-weight: 400;
+  letter-spacing: -0.02em;
+  line-height: 1.1;
+  text-wrap: balance;
+}
+
+.viz-practice-copy p,
+.viz-scenario-copy p,
+.viz-maturity-list p,
+.viz-practice-copy small,
+.viz-scenario-copy small,
+.viz-maturity-list small,
+.viz-practice-copy em,
+.viz-scenario-copy em,
+.viz-maturity-list em {
+  font-size: 1rem;
+  font-style: normal;
+  line-height: 1.45;
+}
+
+.viz-practice-copy p::before,
+.viz-practice-copy small::before,
+.viz-practice-copy em::before,
+.viz-scenario-copy p::before,
+.viz-scenario-copy small::before,
+.viz-scenario-copy em::before,
+.viz-maturity-list p::before,
+.viz-maturity-list small::before,
+.viz-maturity-list em::before {
+  display: block;
+  margin-bottom: 0.18rem;
+  color: var(--signal-dark);
+  font-family: var(--mono);
+  font-size: 0.875rem;
+  font-style: normal;
+  letter-spacing: 0.035em;
+  text-transform: uppercase;
+}
+
+.viz-practice-copy p::before { content: "Minimum mechanism"; }
+.viz-practice-copy small::before { content: "Acceptance evidence"; }
+.viz-practice-copy em::before { content: "Hold when"; }
+.viz-scenario-failure::before { content: "Failure mechanism"; }
+.viz-scenario-control::before { content: "Best-practice control"; }
+.viz-scenario-control-label { display: none; }
+.viz-scenario-copy small::before { content: "Measurable acceptance"; }
+.viz-scenario-copy em::before { content: "Accountable owner"; }
+.viz-maturity-list p::before { content: "Operating outcome"; }
+.viz-maturity-list small::before { content: "Required evidence"; }
+.viz-maturity-list em::before { content: "Exit gate"; }
+
+.viz-practice-copy small,
+.viz-scenario-copy small,
+.viz-maturity-list small {
+  color: var(--muted);
+}
+
+.viz-practice-copy em,
+.viz-scenario-copy em,
+.viz-maturity-list em {
+  padding-top: 0.6rem;
+  border-top: 1px solid var(--line);
+}
+
+.viz-practice-framework.is-compact .viz-practice-list > li,
+.viz-scenario-matrix.is-compact .viz-scenario-list > li {
+  min-height: 156px;
+}
+
+.viz-practice-framework.is-compact .viz-practice-copy p,
+.viz-scenario-matrix.is-compact .viz-scenario-copy p {
+  display: -webkit-box;
+  overflow: hidden;
+  -webkit-box-orient: vertical;
+  -webkit-line-clamp: 3;
+}
+
+.viz-maturity-list {
+  grid-template-columns: repeat(auto-fit, minmax(220px, 1fr));
+}
+
+.viz-maturity-list > li {
+  min-height: 230px;
+}
+
+.viz-maturity-sequence.is-compact .viz-maturity-list > li {
+  min-height: 180px;
+}
+
 .viz-study-roadmap-list {
   display: grid;
   grid-template-columns: repeat(auto-fit, minmax(260px, 1fr));
@@ -2965,6 +3130,98 @@ a {
   display: none;
 }
 
+.presentation-stage .viz-practice-list,
+.presentation-stage .viz-scenario-list,
+.presentation-stage .viz-maturity-list,
+.presentation-stage .viz-practice-list > li,
+.presentation-stage .viz-scenario-list > li,
+.presentation-stage .viz-maturity-list > li,
+.presentation-stage .viz-practice-copy em,
+.presentation-stage .viz-scenario-copy em,
+.presentation-stage .viz-maturity-list em {
+  border-color: #5d6159;
+}
+
+.presentation-stage .viz-practice-index,
+.presentation-stage .viz-scenario-index,
+.presentation-stage .viz-maturity-index,
+.presentation-stage .viz-practice-copy p::before,
+.presentation-stage .viz-practice-copy small::before,
+.presentation-stage .viz-practice-copy em::before,
+.presentation-stage .viz-scenario-copy p::before,
+.presentation-stage .viz-scenario-copy small::before,
+.presentation-stage .viz-scenario-copy em::before,
+.presentation-stage .viz-maturity-list p::before,
+.presentation-stage .viz-maturity-list small::before,
+.presentation-stage .viz-maturity-list em::before {
+  color: #ff6a4d;
+}
+
+.presentation-stage .viz-practice-copy small,
+.presentation-stage .viz-scenario-copy small,
+.presentation-stage .viz-maturity-list small {
+  color: #bdc2b8;
+}
+
+.presentation-stage .viz-scenario-list {
+  grid-template-columns: repeat(4, minmax(0, 1fr));
+  border-color: #5d6159;
+}
+
+.presentation-stage .viz-scenario-list > li,
+.presentation-stage .viz-scenario-matrix.is-compact .viz-scenario-list > li {
+  min-height: 0;
+  grid-template-columns: 42px minmax(0, 1fr);
+  gap: 0.55rem;
+  padding: 0.7rem;
+  border-color: #5d6159;
+}
+
+.presentation-stage .viz-scenario-index {
+  font-size: var(--slide-meta);
+}
+
+.presentation-stage .viz-scenario-copy {
+  gap: 0.45rem;
+}
+
+.presentation-stage .viz-scenario-copy strong {
+  color: #f3f0e7;
+  font-size: clamp(1.45rem, 1.5vw, 1.85rem);
+  line-height: 1.08;
+}
+
+.presentation-stage .viz-scenario-copy .viz-scenario-failure,
+.presentation-stage .viz-scenario-copy small,
+.presentation-stage .viz-scenario-copy em {
+  display: none;
+}
+
+.presentation-stage .viz-scenario-copy .viz-scenario-control {
+  display: -webkit-box;
+  overflow: hidden;
+  color: #d4d7cf;
+  font-size: clamp(1.25rem, 1.25vw, 1.55rem);
+  line-height: 1.22;
+  -webkit-box-orient: vertical;
+  -webkit-line-clamp: 4;
+}
+
+.presentation-stage .viz-scenario-copy .viz-scenario-control::before {
+  content: none;
+}
+
+.presentation-stage .viz-scenario-control-label {
+  display: block;
+  color: #ff6a4d;
+  font-family: var(--mono);
+  font-size: var(--slide-meta);
+  font-weight: 700;
+  letter-spacing: 0.08em;
+  line-height: 1;
+  text-transform: uppercase;
+}
+
 .presentation-stage .viz-study-roadmap-list {
   grid-template-columns: repeat(var(--study-columns, 4), minmax(0, 1fr));
   border-color: #5d6159;
@@ -3129,6 +3386,7 @@ a {
   text-transform: uppercase;
   line-height: 1.35;
   flex-wrap: wrap;
+  max-width: 16ch;
 }
 
 @media (min-width: 761px) {
@@ -3854,6 +4112,29 @@ body.is-presenting .site-footer {
   }
 }
 
+@media (min-width: 1025px) {
+  .presentation-stage.is-industry-practices .presentation-slide {
+    grid-template-rows: minmax(0, 1fr);
+  }
+
+  .presentation-stage.is-industry-practices .slide-main,
+  .presentation-stage.is-industry-practices .slide-aside {
+    min-height: 0;
+  }
+
+  .presentation-stage.is-industry-practices .slide-aside {
+    overflow-y: auto;
+    overscroll-behavior: contain;
+    padding-bottom: 6rem;
+  }
+}
+
+@media (min-width: 1025px) and (max-width: 1600px) {
+  .presentation-stage.is-industry-practices .slide-main {
+    padding: clamp(2.5rem, 3vw, 3rem);
+  }
+}
+
 @media (max-width: 1024px) {
   .overview-visuals {
     grid-template-columns: 1fr;
@@ -3914,6 +4195,46 @@ body.is-presenting .site-footer {
 }
 
 @media (min-width: 761px) and (max-width: 1024px) {
+  .presentation-stage.is-industry-practices {
+    overflow-y: auto;
+    overscroll-behavior: contain;
+  }
+
+  .presentation-stage.is-industry-practices .presentation-slide {
+    position: relative;
+    inset: auto;
+    min-height: 100dvh;
+    grid-template-rows: auto;
+    align-items: start;
+  }
+
+  .presentation-stage.is-industry-practices .slide-main {
+    min-height: 100dvh;
+    overflow: visible;
+    justify-content: flex-start;
+    gap: 1.25rem;
+    padding-bottom: 6rem;
+  }
+
+  .presentation-stage.is-industry-practices .slide-narrative {
+    margin: 0;
+  }
+
+  .presentation-stage.is-industry-practices .slide-counter {
+    margin-top: 1rem;
+  }
+
+  .presentation-stage.is-industry-practices .slide-aside {
+    position: sticky;
+    top: 0;
+    align-self: start;
+  }
+
+  .presentation-stage.is-industry-practices .slide-controls,
+  .presentation-stage.is-industry-practices .slide-progress {
+    position: fixed;
+  }
+
   .presentation-slide {
     min-height: 0;
   }
@@ -3953,6 +4274,10 @@ body.is-presenting .site-footer {
     font-size: 0.875rem;
     text-overflow: clip;
     white-space: normal;
+  }
+
+  .presentation-stage .viz-scenario-list {
+    grid-template-columns: repeat(2, minmax(0, 1fr));
   }
 }
 
@@ -4193,6 +4518,22 @@ body.is-presenting .site-footer {
   .viz-problem-copy small {
     display: block;
     margin-top: 0.45rem;
+  }
+
+  .viz-practice-list,
+  .viz-scenario-list,
+  .viz-maturity-list,
+  .presentation-stage .viz-scenario-list {
+    grid-template-columns: 1fr;
+  }
+
+  .viz-practice-list > li,
+  .viz-scenario-list > li,
+  .viz-maturity-list > li {
+    min-height: 0;
+    grid-template-columns: 48px minmax(0, 1fr);
+    gap: 0.6rem;
+    padding: 0.85rem;
   }
 
   .viz-study-roadmap-list {
@@ -4556,6 +4897,24 @@ body.is-presenting .site-footer {
     grid-template-columns: 1fr;
   }
 
+  .presentation-stage .viz-scenario-list > li,
+  .presentation-stage .viz-scenario-matrix.is-compact .viz-scenario-list > li {
+    grid-template-columns: 34px minmax(0, 1fr);
+    padding: 0.55rem 0;
+  }
+
+  .presentation-stage .viz-scenario-copy strong {
+    font-size: 1.125rem;
+  }
+
+  .presentation-stage .viz-scenario-copy .viz-scenario-control {
+    font-size: 1rem;
+  }
+
+  .presentation-stage .viz-scenario-control-label {
+    font-size: 0.875rem;
+  }
+
   .presentation-stage .viz-study-roadmap-list > li {
     min-height: 0;
   }
@@ -4653,6 +5012,7 @@ body.is-presenting .site-footer {
 
   .slide-source {
     align-self: end;
+    max-width: none;
     font-size: 0.875rem;
   }
 

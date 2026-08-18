@@ -81,7 +81,7 @@ A conclusion remains provisional whenever one of those links is missing.
 - The [architecture catalog](../architecture/README.md) designates one vendor-neutral logical target and makes candidate-specific views visibly provisional.
 - The [audience guide](../docs/40-audience-guide.md) gives six roles different decisions, reading sequences, visuals, and meeting closes without duplicating the underlying evidence.
 - The PoC documentation separates 16 aggregate status-register items from 28 atomic decision-grade real-world, portal and observability cases, and does not count protocol depth as execution in [poc/README.md](../poc/README.md).
-- Forty-one principal studies now enforce answer-first framing, mechanism/failure depth, counter-evidence, proof plans and inline interpreted figures; this is content maturity, not candidate evidence. The canonical P1–P10 industry-problem taxonomy structures reusable proof, while the Kong multicloud roadmap remains a candidate-specific sequencing hypothesis under the same gates.
+- Forty-two principal studies now enforce answer-first framing, mechanism/failure depth, counter-evidence, proof plans and inline interpreted figures; this is content maturity, not candidate evidence. The canonical P1–P10 industry-problem taxonomy structures reusable proof, the industry-practices study maps it to operating patterns and synthetic practice cases, and the Kong multicloud roadmap remains a candidate-specific sequencing hypothesis under the same gates.
 - The [citation-coverage report](source-coverage.md) keeps contextual official links visibly outside the score-capable source/finding chain until promoted.
 
 ## Priority findings
@@ -110,7 +110,7 @@ The method keeps seven bounded archetypes separate, but they are not exact until
 
 The logical target is vendor-neutral, and Kong, APIM, Apigee, MuleSoft and secondary-product studies now use deep, mechanism-level dossiers, bounded archetypes, failure analysis, inline figures and Gate-1 blockers. That symmetry is E1 research design, not comparative execution. Exact physical bills of materials, organization topology, entitlement/support facts and E3 result bundles remain open.
 
-The authoritative register contains 40 official sources: 28 source IDs are used directly by 24 findings and 12 remain unused there. The wider article corpus contains 236 unique external citations; 36 resolve to registered URLs and 200 remain explicitly contextual under the generated coverage ledger. Five of 16 aggregate PoC register items have automated baseline evidence and 11 remain not run. The 28 atomic real-world, portal and observability protocol cases are designs, not observed results; they must be executed across approved finalist options.
+The authoritative register contains 40 official sources: 28 source IDs are used directly by 24 findings and 12 remain unused there. The wider article corpus contains 263 unique external citations; 36 resolve to registered URLs and 227 remain explicitly contextual under the generated coverage ledger. Five of 16 aggregate PoC register items have automated baseline evidence and 11 remain not run. The 28 atomic real-world, portal and observability protocol cases are designs, not observed results; they must be executed across approved finalist options.
 
 ### 4. Organizational facts remain assumptions
 

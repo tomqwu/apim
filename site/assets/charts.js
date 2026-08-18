@@ -208,6 +208,49 @@
     </figure>`;
   }
 
+  function practiceFramework(data, options = {}) {
+    const practices = Array.isArray(data) ? data : data?.practices || [];
+    if (!practices.length) return empty();
+    const displayPractice = (practice) => label(practice.label).replace(/^BP-\d+\s*(?:[—–:\-]\s*)?/i, "");
+    return `<figure class="viz viz-practice-framework ${options.compact ? "is-compact" : ""}" aria-label="${escapeHtml(options.title || "API-management best-practice framework")}">${heading(options)}
+      <div class="viz-practice-key" aria-hidden="true"><span>Practice</span><span>Required practice</span><span>Minimum mechanism</span>${options.compact ? "" : "<span>Acceptance evidence</span><span>Reject or hold</span>"}</div>
+      <ol class="viz-practice-list">${practices.map((practice, index) => `<li>
+        <span class="viz-practice-index"><b>${escapeHtml(practice.id || `BP-${index + 1}`)}</b><small>${escapeHtml(practice.problemId || "")}</small></span>
+        <div class="viz-practice-copy"><strong>${escapeHtml(displayPractice(practice))}</strong><p>${escapeHtml(practice.mechanism || "")}</p>${options.compact ? "" : `<small>${escapeHtml(practice.evidence || "")}</small><em>${escapeHtml(practice.hold || "")}</em>`}</div>
+      </li>`).join("")}</ol>
+    </figure>`;
+  }
+
+  function scenarioMatrix(data, options = {}) {
+    const scenarios = Array.isArray(data) ? data : data?.scenarios || [];
+    if (!scenarios.length) return empty();
+    const presentation = Boolean(options.presentation);
+    const displayControl = (scenario) => {
+      const control = label(scenario.control);
+      return presentation
+        ? control.replace(/^(?:BP-\d+\s*,\s*)*BP-\d+\s*[—–-]\s*/i, "")
+        : control;
+    };
+    return `<figure class="viz viz-scenario-matrix ${options.compact ? "is-compact" : ""} ${presentation ? "is-presentation" : ""}" aria-label="${escapeHtml(options.title || "Realistic API-management scenarios")}">${heading(options)}
+      <div class="viz-scenario-key" aria-hidden="true"><span></span><span>Scenario</span><span>Failure mechanism</span><span>Best-practice control</span>${options.compact ? "" : "<span>Measurable acceptance</span><span>Owner</span>"}</div>
+      <ol class="viz-scenario-list">${scenarios.map((scenario, index) => `<li>
+        <span class="viz-scenario-index">${escapeHtml(scenario.id || `S${index + 1}`)}</span>
+        <div class="viz-scenario-copy"><strong>${escapeHtml(scenario.label)}</strong>${presentation ? '<span class="viz-scenario-control-label" aria-hidden="true">Control</span>' : `<p class="viz-scenario-failure">${escapeHtml(scenario.failure || "")}</p>`}<p class="viz-scenario-control">${escapeHtml(displayControl(scenario))}</p>${options.compact || presentation ? "" : `<small>${escapeHtml(scenario.acceptance || "")}</small><em>${escapeHtml(scenario.owner || "")}</em>`}</div>
+      </li>`).join("")}</ol>
+    </figure>`;
+  }
+
+  function maturitySequence(data, options = {}) {
+    const stages = Array.isArray(data) ? data : data?.stages || [];
+    if (!stages.length) return empty();
+    return `<figure class="viz viz-maturity-sequence ${options.compact ? "is-compact" : ""}" aria-label="${escapeHtml(options.title || "Capability maturity and adoption sequence")}">${heading(options)}
+      <ol class="viz-maturity-list">${stages.map((stage, index) => `<li>
+        <span class="viz-maturity-index">${escapeHtml(stage.id || String(index + 1).padStart(2, "0"))}</span>
+        <div><strong>${escapeHtml(stage.label || stage.outcome)}</strong><p>${escapeHtml(stage.outcome || "")}</p>${options.compact ? "" : `<small>${escapeHtml(stage.evidence || "")}</small>`}<em>${escapeHtml(stage.exitGate || "")}</em></div>
+      </li>`).join("")}</ol>
+    </figure>`;
+  }
+
   function studyRoadmap(data, options = {}) {
     const workstreams = Array.isArray(data) ? data : data?.workstreams || [];
     if (!workstreams.length) return empty();
@@ -340,6 +383,23 @@
     return `<section class="document-visual-context" aria-label="Related decision evidence"><header><p class="eyebrow">Decision context</p><h2>How this source relates to the current evidence.</h2></header><div class="document-visual-grid">${charts.join("")}</div></section>`;
   }
 
+  function documentPlacements(item, visuals = {}) {
+    if (item?.path !== "docs/45-api-management-industry-practices.md") return [];
+    const source = visuals.provenance?.industryPractices;
+    const placement = (headingId, index, title, chart) => ({
+      headingId,
+      markup: `<section class="document-visual-context is-inline is-placed" aria-label="${escapeHtml(title)}">
+        <header><p class="eyebrow">Article figure / ${escapeHtml(index)}</p><h2>${escapeHtml(title)}</h2>${sourceLink(source, "Canonical source")}</header>
+        <div class="document-visual-grid"><div class="document-visual is-wide">${chart}</div></div>
+      </section>`,
+    });
+    return [
+      placement("best-practice-framework-mapped-to-p1-p10", "A", "The ten-practice operating contract", practiceFramework(visuals.industryPractices || {}, { title: "Problem → practice → evidence → hold condition" })),
+      placement("realistic-enterprise-scenarios", "B", "Eight realistic scenarios connect failure to proof", scenarioMatrix(visuals.industryPractices || {}, { title: "Scenario → failure → control → measurable acceptance" })),
+      placement("capability-maturity-and-adoption-sequence", "C", "Adoption advances only through evidence gates", maturitySequence(visuals.industryPractices || {}, { title: "Operating outcome → required evidence → exit gate" })),
+    ];
+  }
+
   function atlas(visuals = {}) {
     const criteria = visuals.criteria || {};
     const sources = visuals.sources || {};
@@ -353,6 +413,9 @@
     const repositoryPhases = visuals.repositoryRoadmap?.phases || [];
     const deliveryPhases = visuals.roadmap?.phases || [];
     const problemTotal = number(visuals.industryProblems?.total);
+    const practiceTotal = number(visuals.industryPractices?.practiceTotal);
+    const scenarioTotal = number(visuals.industryPractices?.scenarioTotal);
+    const maturityStageTotal = number(visuals.industryPractices?.stageTotal);
     const kongWorkstreamTotal = number(visuals.kongMulticloud?.workstreamTotal);
     const panel = (index, eyebrow, title, note, body, extraClass = "", source = null) => `<article class="visual-panel ${escapeHtml(extraClass)}"><header class="visual-panel-heading"><span class="section-index">${escapeHtml(index)} / ${escapeHtml(eyebrow)}</span><h2>${escapeHtml(title)}</h2><p>${escapeHtml(note)}</p>${sourceLink(source)}</header><div class="visual-panel-body">${body}</div></article>`;
     return `<div class="page-shell visual-atlas">
@@ -374,6 +437,9 @@
         ${panel("14", "Library", "The evidence base has shape", "Repository composition shows where the study is deep and where additional evidence will accumulate.", composition(visuals.library || {}, { title: "Resources by study stream" }), "is-wide", provenance.library)}
         ${panel("15", "Industry agenda", `${problemTotal} enduring problem families`, "The canonical taxonomy keeps vendor packaging subordinate to enterprise outcomes and equivalent proof.", problemMatrix(visuals.industryProblems || {}, { title: "Problem and mechanism map", compact: true }), "is-wide", provenance.industryProblems)}
         ${panel("16", "Kong roadmap", `${kongWorkstreamTotal} gated study workstreams`, "The Kong multicloud hypothesis advances only through exact options, explicit owners, prerequisite gates, and decision evidence.", studyRoadmap(visuals.kongMulticloud || {}, { title: "Kong study sequence", compact: true }), "is-wide", provenance.kongMulticloud)}
+        ${panel("17", "Industry practices", `${practiceTotal} problem-bound operating practices`, "Each practice connects the required control to its minimum mechanism, acceptance evidence, and an explicit hold condition.", practiceFramework(visuals.industryPractices || {}, { title: "Practice contract", compact: true }), "is-wide", provenance.industryPractices)}
+        ${panel("18", "Realistic cases", `${scenarioTotal} synthetic practice scenarios`, "RE-1 and case-local assumptions expose failure mechanisms, accountable controls, measurable acceptance, and named owner roles without pretending to be benchmark results.", scenarioMatrix(visuals.industryPractices || {}, { title: "Scenario-to-proof matrix", compact: true }), "is-wide", provenance.industryPractices)}
+        ${panel("19", "Adoption gates", `${maturityStageTotal} evidence-gated maturity stages`, "Capability advances through operating outcomes and exit evidence; ownership and runtime-custody choices remain orthogonal design decisions.", maturitySequence(visuals.industryPractices || {}, { title: "Capability maturity sequence", compact: true }), "is-wide", provenance.industryPractices)}
       </section>
     </div>`;
   }
@@ -395,6 +461,12 @@
     timeline: roadmap,
     problemMatrix,
     problems: problemMatrix,
+    practiceFramework,
+    practices: practiceFramework,
+    scenarioMatrix,
+    scenarios: scenarioMatrix,
+    maturitySequence,
+    maturity: maturitySequence,
     studyRoadmap,
     composition,
     sourceBalance,
@@ -435,6 +507,12 @@
       recommendation: visuals?.review,
       problemMatrix: visuals?.industryProblems,
       problems: visuals?.industryProblems,
+      practiceFramework: visuals?.industryPractices,
+      practices: visuals?.industryPractices,
+      scenarioMatrix: visuals?.industryPractices,
+      scenarios: visuals?.industryPractices,
+      maturitySequence: visuals?.industryPractices,
+      maturity: visuals?.industryPractices,
       studyRoadmap: visuals?.kongMulticloud,
     };
     return map[name] ?? visuals?.[name];
@@ -461,6 +539,9 @@
     methodologyFlow,
     roadmap,
     problemMatrix,
+    practiceFramework,
+    scenarioMatrix,
+    maturitySequence,
     studyRoadmap,
     composition,
     sourceBalance,
@@ -469,6 +550,7 @@
     criteriaOverview,
     recommendation,
     documentContext,
+    documentPlacements,
     atlas,
     escapeHtml,
   };

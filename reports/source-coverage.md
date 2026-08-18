@@ -13,11 +13,11 @@ This report is generated from the article corpus by `scripts/validate_source_cov
 
 | Measure | Count |
 |---|---:|
-| Article files scanned | 66 |
-| Article files containing external citations | 46 |
-| Unique external citations | 236 |
+| Article files scanned | 67 |
+| Article files containing external citations | 47 |
+| Unique external citations | 263 |
 | Unique registered citations used by articles | 36 |
-| Unique contextual citations awaiting promotion if decision-bearing | 200 |
+| Unique contextual citations awaiting promotion if decision-bearing | 227 |
 | Latest access date in authoritative register | 2026-08-17 |
 
 ## Coverage by article
@@ -65,6 +65,7 @@ This report is generated from the article corpus by `scripts/validate_source_cov
 | `docs/42-public-failure-casebook.md` | 5 | 0 | registered citations only |
 | `docs/43-api-management-industry-problems.md` | 7 | 26 | promotion debt visible |
 | `docs/44-kong-multicloud-study-roadmap.md` | 9 | 18 | promotion debt visible |
+| `docs/45-api-management-industry-practices.md` | 7 | 36 | promotion debt visible |
 | `poc/real-world-scenarios.md` | 4 | 9 | promotion debt visible |
 | `research/apigee.md` | 3 | 12 | promotion debt visible |
 | `research/azure-apim.md` | 5 | 3 | promotion debt visible |
@@ -77,27 +78,41 @@ This table helps evidence owners batch promotion and freshness work. A high coun
 
 | Host | Article-link occurrences |
 |---|---:|
-| `developer.konghq.com` | 113 |
-| `docs.mulesoft.com` | 69 |
-| `learn.microsoft.com` | 43 |
-| `docs.cloud.google.com` | 29 |
+| `developer.konghq.com` | 115 |
+| `docs.mulesoft.com` | 71 |
+| `learn.microsoft.com` | 44 |
+| `docs.cloud.google.com` | 31 |
 | `cloud.google.com` | 24 |
-| `gateway-api.sigs.k8s.io` | 12 |
-| `opentelemetry.io` | 9 |
-| `www.rfc-editor.org` | 7 |
+| `gateway-api.sigs.k8s.io` | 14 |
+| `opentelemetry.io` | 11 |
+| `www.rfc-editor.org` | 11 |
+| `spec.openapis.org` | 7 |
 | `documentation.gravitee.io` | 6 |
-| `spec.openapis.org` | 6 |
+| `sre.google` | 6 |
 | `docs.nginx.com` | 5 |
 | `gateway.envoyproxy.io` | 5 |
 | `kubernetes.io` | 5 |
 | `istio.io` | 4 |
-| `sre.google` | 4 |
+| `csrc.nist.gov` | 3 |
 | `docs.cloudfoundry.org` | 3 |
+| `aws.amazon.com` | 2 |
 | `cert-manager.io` | 2 |
-| `csrc.nist.gov` | 2 |
+| `github.com` | 2 |
+| `hl7.org` | 2 |
 | `tyk.io` | 2 |
 | `www.osfi-bsif.gc.ca` | 2 |
-| `github.com` | 1 |
+| `blog.modelcontextprotocol.io` | 1 |
+| `docs.stripe.com` | 1 |
+| `engineering.fb.com` | 1 |
+| `modelcontextprotocol.io` | 1 |
+| `openid.net` | 1 |
+| `owasp.org` | 1 |
+| `slsa.dev` | 1 |
 | `tomqwu.github.io` | 1 |
+| `www.asyncapi.com` | 1 |
+| `www.atlassian.com` | 1 |
+| `www.hl7.org` | 1 |
+| `www.nist.gov` | 1 |
+| `www.w3.org` | 1 |
 
 The machine-readable usage ledger is [`reports/source-coverage.csv`](source-coverage.csv). Promote only claims that can change the decision, and add the source ID to a specific finding rather than bulk-registering links to create an appearance of rigor.
