@@ -702,6 +702,10 @@ a {
   grid-column: 1 / -1;
 }
 
+.document-visual.is-wide {
+  grid-column: 1 / -1;
+}
+
 .document-visual > .section-index {
   display: block;
   margin-bottom: 1rem;
@@ -1091,6 +1095,187 @@ a {
   color: var(--muted);
   font-size: var(--viz-label);
   line-height: 1.5;
+}
+
+.viz-problem-key,
+.viz-problem-list li {
+  display: grid;
+  grid-template-columns: 42px minmax(180px, 1fr) minmax(240px, 1.25fr) minmax(240px, 1.5fr);
+  gap: 0.8rem;
+}
+
+.viz-problem-matrix.is-compact .viz-problem-key,
+.viz-problem-matrix.is-compact .viz-problem-list li {
+  grid-template-columns: 42px minmax(180px, 1fr) minmax(240px, 1.35fr);
+}
+
+.viz-problem-key {
+  padding: 0.5rem 0;
+  border-top: 1px solid var(--line-dark);
+  border-bottom: 1px solid var(--line-dark);
+  color: var(--muted);
+  font-family: var(--mono);
+  font-size: var(--viz-meta);
+  letter-spacing: 0.05em;
+  text-transform: uppercase;
+}
+
+.viz-problem-list {
+  padding: 0;
+  margin: 0;
+  list-style: none;
+}
+
+.viz-problem-list li {
+  align-items: start;
+  padding: 0.8rem 0;
+  border-bottom: 1px solid var(--line);
+}
+
+.viz-problem-index {
+  color: var(--signal-dark);
+  font-family: var(--mono);
+  font-size: var(--viz-meta);
+  letter-spacing: 0.04em;
+}
+
+.viz-problem-copy {
+  display: contents;
+}
+
+.viz-problem-copy strong,
+.viz-problem-copy p,
+.viz-problem-copy small {
+  min-width: 0;
+  margin: 0;
+  overflow-wrap: anywhere;
+}
+
+.viz-problem-copy strong {
+  font-size: 1rem;
+  line-height: 1.35;
+}
+
+.viz-problem-copy p {
+  color: var(--ink);
+  font-size: 1rem;
+  line-height: 1.45;
+}
+
+.viz-problem-copy small {
+  color: var(--muted);
+  font-size: 1rem;
+  line-height: 1.45;
+}
+
+.viz-problem-matrix.is-compact .viz-problem-copy small {
+  grid-column: 2 / -1;
+  padding-top: 0.55rem;
+  border-top: 1px solid var(--line);
+}
+
+.viz-problem-matrix.is-compact .viz-problem-copy small::before {
+  color: var(--signal-dark);
+  content: attr(data-label) " · ";
+  font-family: var(--mono);
+  font-size: var(--viz-meta);
+  letter-spacing: 0.035em;
+  text-transform: uppercase;
+}
+
+.viz-study-roadmap-list {
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(260px, 1fr));
+  padding: 0;
+  margin: 0;
+  border-top: 1px solid var(--ink);
+  border-left: 1px solid var(--ink);
+  list-style: none;
+}
+
+.viz-study-roadmap-list > li {
+  min-width: 0;
+  min-height: 210px;
+  display: flex;
+  flex-direction: column;
+  padding: 0.9rem;
+  border-right: 1px solid var(--ink);
+  border-bottom: 1px solid var(--ink);
+}
+
+.viz-study-roadmap-meta,
+.viz-study-roadmap-gates {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 0.45rem 0.8rem;
+  align-items: baseline;
+  justify-content: space-between;
+  font-family: var(--mono);
+  font-size: 1rem;
+}
+
+.viz-study-roadmap-meta span {
+  color: var(--signal-dark);
+}
+
+.viz-study-roadmap-meta b {
+  color: var(--muted);
+  font-weight: 500;
+}
+
+.viz-study-roadmap-list > li > strong {
+  margin-top: 1.4rem;
+  font-family: var(--serif);
+  font-size: 1.4rem;
+  font-weight: 400;
+  letter-spacing: -0.02em;
+  line-height: 1.05;
+  text-wrap: balance;
+}
+
+.viz-study-roadmap-list > li > p {
+  margin: 0.65rem 0 1rem;
+  color: var(--muted);
+  font-size: 1rem;
+  line-height: 1.45;
+}
+
+.viz-study-roadmap-gates {
+  align-items: center;
+  margin-top: auto;
+  padding-top: 0.75rem;
+  border-top: 1px solid var(--line);
+}
+
+.viz-study-roadmap-gates > span {
+  color: var(--ink);
+}
+
+.viz-study-roadmap-gates i {
+  color: var(--signal-dark);
+  font-style: normal;
+}
+
+.viz-study-roadmap-gates a {
+  min-height: 44px;
+  display: inline-flex;
+  gap: 0.35rem;
+  align-items: center;
+  color: var(--signal-dark);
+  text-decoration: none;
+}
+
+.viz-study-roadmap-gates a:hover {
+  text-decoration: underline;
+  text-underline-offset: 0.22em;
+}
+
+.viz-study-roadmap.is-compact .viz-study-roadmap-list > li {
+  min-height: 168px;
+}
+
+.viz-study-roadmap.is-compact .viz-study-roadmap-list > li > strong {
+  margin-bottom: 0.8rem;
 }
 
 .viz-composition-grid,
@@ -2403,6 +2588,28 @@ a {
   grid-template-columns: minmax(0, 8fr) minmax(260px, 4fr);
 }
 
+@media (min-width: 761px) {
+  .presentation-slide:has(.slide-narrative.is-roadmap) {
+    grid-template-columns: minmax(0, 17fr) minmax(300px, 7fr);
+  }
+
+  .presentation-slide:has(.slide-narrative.is-roadmap) .slide-main {
+    padding: clamp(1.5rem, 3vw, 3.5rem);
+  }
+
+  .presentation-slide:has(.slide-narrative.is-roadmap) .slide-narrative {
+    gap: 0.75rem;
+  }
+
+  .presentation-slide:has(.slide-narrative.is-roadmap) .slide-title {
+    font-size: clamp(2.4rem, 3.6vw, 4rem);
+  }
+
+  .presentation-slide:has(.slide-narrative.is-roadmap) .slide-visual {
+    padding: 0.75rem;
+  }
+}
+
 .slide-main {
   display: flex;
   flex-direction: column;
@@ -2713,6 +2920,133 @@ a {
   display: none;
 }
 
+.presentation-stage .viz-problem-key {
+  display: none;
+}
+
+.presentation-stage .viz-problem-list {
+  display: grid;
+  grid-template-columns: repeat(2, minmax(0, 1fr));
+  border-top: 1px solid #4b4f47;
+  border-left: 1px solid #4b4f47;
+}
+
+.presentation-stage .viz-problem-list li,
+.presentation-stage .viz-problem-matrix.is-compact .viz-problem-list li {
+  min-height: 72px;
+  grid-template-columns: 46px minmax(0, 1fr);
+  gap: 0.65rem;
+  align-items: center;
+  padding: 0.5rem 0.65rem;
+  border-right: 1px solid #4b4f47;
+  border-bottom: 1px solid #4b4f47;
+}
+
+.presentation-stage .viz-problem-copy {
+  display: block;
+}
+
+.presentation-stage .viz-problem-index {
+  font-size: var(--slide-meta);
+}
+
+.presentation-stage .viz-problem-copy strong {
+  display: block;
+  color: #f3f0e7;
+  font-size: var(--slide-data);
+  line-height: 1.12;
+}
+
+.presentation-stage .viz-problem-copy p {
+  display: none;
+}
+
+.presentation-stage .viz-problem-copy small {
+  display: none;
+}
+
+.presentation-stage .viz-study-roadmap-list {
+  grid-template-columns: repeat(var(--study-columns, 4), minmax(0, 1fr));
+  border-color: #5d6159;
+}
+
+.presentation-stage .viz-study-roadmap-list > li {
+  min-height: 0;
+  padding: 0.75rem;
+  border-color: #5d6159;
+}
+
+.presentation-stage .viz-study-roadmap.is-compact .viz-study-roadmap-list > li {
+  min-height: 0;
+}
+
+.presentation-stage .viz-study-roadmap-meta,
+.presentation-stage .viz-study-roadmap-gates {
+  gap: 0.35rem 0.65rem;
+  font-size: clamp(1rem, 1.4vw, 1.5rem);
+  line-height: 1.18;
+}
+
+.presentation-stage .viz-study-roadmap-meta {
+  display: grid;
+  grid-template-columns: auto minmax(0, 1fr);
+  align-items: start;
+}
+
+.presentation-stage .viz-study-roadmap-meta span,
+.presentation-stage .viz-study-roadmap-gates i,
+.presentation-stage .viz-study-roadmap-gates a {
+  color: #ff6a4d;
+}
+
+.presentation-stage .viz-study-roadmap-meta > span {
+  white-space: nowrap;
+}
+
+.presentation-stage .viz-study-roadmap-meta b,
+.presentation-stage .viz-study-roadmap-gates > span {
+  min-width: 0;
+  color: #bdc2b8;
+  overflow-wrap: anywhere;
+}
+
+.presentation-stage .viz-study-roadmap-meta b {
+  justify-self: end;
+  text-align: right;
+}
+
+.presentation-stage .viz-study-roadmap-list > li > strong {
+  display: block;
+  margin: 0.65rem 0;
+  color: #f3f0e7;
+  font-size: clamp(1rem, 1.4vw, 1.5rem);
+  line-height: 1.15;
+  overflow-wrap: anywhere;
+}
+
+.presentation-stage .viz-study-roadmap-gates {
+  display: grid;
+  grid-template-columns: minmax(0, 1fr);
+  gap: 0.15rem;
+  align-items: start;
+  padding-top: 0.4rem;
+  border-color: #4b4f47;
+}
+
+.presentation-stage .viz-study-roadmap-gates a {
+  min-height: 24px;
+  min-width: 0;
+  display: inline-flex;
+  flex-wrap: wrap;
+  justify-self: start;
+  overflow-wrap: anywhere;
+  white-space: normal;
+}
+
+.slide-aside-content {
+  display: contents;
+}
+
 .slide-aside {
   display: flex;
   flex-direction: column;
@@ -2799,7 +3133,7 @@ a {
 
 @media (min-width: 761px) {
   .slide-source {
-    margin-bottom: 3.5rem;
+    margin-bottom: 7rem;
   }
 }
 
@@ -3562,6 +3896,64 @@ body.is-presenting .site-footer {
   .schema-dictionary > dl > div:nth-child(2n) {
     border-right: 0;
   }
+
+  .document-visual .viz-problem-key {
+    display: none;
+  }
+
+  .document-visual .viz-problem-list li,
+  .document-visual .viz-problem-matrix.is-compact .viz-problem-list li {
+    grid-template-columns: 42px minmax(0, 1fr);
+    gap: 0.7rem;
+  }
+
+  .document-visual .viz-problem-copy {
+    display: grid;
+    gap: 0.45rem;
+  }
+}
+
+@media (min-width: 761px) and (max-width: 1024px) {
+  .presentation-slide {
+    min-height: 0;
+  }
+
+  .slide-main {
+    min-height: 0;
+    overflow-y: auto;
+    overscroll-behavior: contain;
+  }
+
+  .slide-aside {
+    min-height: 0;
+    height: 100dvh;
+    max-height: 100dvh;
+    display: grid;
+    grid-template-rows: minmax(0, 1fr) auto;
+    gap: 1rem;
+    justify-content: stretch;
+    overflow: hidden;
+    padding-bottom: 6.25rem;
+  }
+
+  .slide-aside-content {
+    min-height: 0;
+    display: flex;
+    flex-direction: column;
+    gap: 1.25rem;
+    overflow-y: auto;
+    padding-right: 0.35rem;
+    overscroll-behavior: contain;
+  }
+
+  .presentation-stage .slide-source {
+    overflow: visible;
+    flex-wrap: wrap;
+    margin-bottom: 0;
+    font-size: 0.875rem;
+    text-overflow: clip;
+    white-space: normal;
+  }
 }
 
 @media (max-width: 760px) {
@@ -3780,6 +4172,36 @@ body.is-presenting .site-footer {
     display: block;
     padding-top: 0.15rem;
     font-size: var(--viz-label);
+  }
+
+  .viz-problem-key {
+    display: none;
+  }
+
+  .viz-problem-list li,
+  .viz-problem-matrix.is-compact .viz-problem-list li {
+    grid-template-columns: 34px minmax(0, 1fr);
+    gap: 0.6rem;
+    padding: 0.85rem 0;
+  }
+
+  .viz-problem-copy {
+    display: block;
+  }
+
+  .viz-problem-copy p,
+  .viz-problem-copy small {
+    display: block;
+    margin-top: 0.45rem;
+  }
+
+  .viz-study-roadmap-list {
+    grid-template-columns: 1fr;
+  }
+
+  .viz-study-roadmap-list > li,
+  .viz-study-roadmap.is-compact .viz-study-roadmap-list > li {
+    min-height: 0;
   }
 
   .viz-ladder-step span {
@@ -4114,6 +4536,30 @@ body.is-presenting .site-footer {
     padding-top: 0;
   }
 
+  .presentation-stage .viz-problem-list {
+    grid-template-columns: 1fr;
+  }
+
+  .presentation-stage .viz-problem-list li,
+  .presentation-stage .viz-problem-matrix.is-compact .viz-problem-list li {
+    min-height: 0;
+    grid-template-columns: 34px minmax(0, 1fr);
+    padding: 0.5rem 0;
+  }
+
+  .presentation-stage .viz-problem-copy p {
+    font-size: 1rem;
+    -webkit-line-clamp: 3;
+  }
+
+  .presentation-stage .viz-study-roadmap-list {
+    grid-template-columns: 1fr;
+  }
+
+  .presentation-stage .viz-study-roadmap-list > li {
+    min-height: 0;
+  }
+
   .slide-diagram {
     min-height: 0;
     height: 27vh;
@@ -4186,7 +4632,7 @@ body.is-presenting .site-footer {
 
   .slide-metric span {
     margin-top: 0.5rem;
-    font-size: 0.875rem;
+    font-size: 1rem;
   }
 
   .slide-audience-cue {

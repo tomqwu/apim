@@ -18,6 +18,8 @@
 
 Not yet. **Current evidence does not justify giving Kong execution priority.** Kong Konnect hybrid and self-managed Kong are useful, falsifiable sequencing hypotheses because their documented control/data-plane separation, customer-placeable data planes, Kubernetes integration and declarative paths align with the target direction. They may advance only through the same Gate-1 option resolution, common-evidence screen and mandatory-gate rules as APIM managed/self-hosted, Apigee X/Hybrid and the bounded MuleSoft baseline.
 
+The [top-ten industry-problem study](43-api-management-industry-problems.md) defines the common P1–P10 problem and proof taxonomy. The [Kong long-term multicloud study roadmap](44-kong-multicloud-study-roadmap.md) projects that same taxonomy into distinct Kong operating models, evidence workstreams, gates and stop rules; it does not supersede the symmetric shortlist or authorize a Kong-first foundation.
+
 The two Kong options must be evaluated separately. Konnect can reduce control-plane lifecycle responsibility but adds vendor control, connectivity, telemetry, entitlement and support dependencies. Self-managed Kong increases control and exit flexibility but assigns the organization the control-plane database, availability, backup, upgrade and recovery burden. Confidence is medium that Kong is architecturally relevant, low that either option meets RE-1, and zero in a ranking until mandatory gates, symmetric PoCs, support and TCO close. A false positive could select a clean diagram that fails on plugin topology, stale config, business idempotency, certificate/identity operations, telemetry loss, staffing or total lifecycle cost.
 
 ## Hypothesis and its non-negotiable boundary

@@ -14,6 +14,8 @@ Substantive studies follow the [principal study standard](STUDY-STANDARD.md). It
 | 40 | Audience guide | Use one fact model to lead role-specific reviews, briefings, and decisions |
 | 41 | Synthetic enterprise reference case | Exercise every study against one complex, public-safe workload, topology, operations, migration, and failure scenario |
 | 42 | Public failure casebook | Convert documented production incidents into architecture controls and symmetric proof scenarios without treating them as candidate evidence |
+| 43 | Top 10 API-management industry problems | Organize cross-vendor study and proof around ten enduring enterprise outcomes, failure modes, operating tensions, and falsifiers rather than feature lists |
+| 44 | Kong long-term multicloud study roadmap | Project the canonical ten-problem taxonomy into bounded Kong operating models, workstreams, gates, ownership, stop rules, comparative counterfactuals, and reversible proof |
 
 Cross-cutting assurance outputs are maintained in the [baseline principal review](../reports/content-research-principal-review.md), [post-remediation release review](../reports/content-depth-wave-1.md), [machine-readable remediation backlog](../reports/content-remediation-backlog.csv), [decision-assurance methodology review](../reports/methodology-review.md), [evidence-state snapshot](../reports/evidence-state.md), and [source-coverage report](../reports/source-coverage.md). A rendered portal page is not automatically a mature study; content type, evidence depth, comparative integrity, inline figures, metadata, and independent review are separate gates.
 

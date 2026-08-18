@@ -24,15 +24,17 @@ Lead with the decision state, not the volume of work completed. Separate the cur
 Recommended evidence path:
 
 1. [Executive summary](00-executive-summary.md)
-2. [Principal content and research review](../reports/content-research-principal-review.md)
-3. [Content-remediation backlog](../reports/content-remediation-backlog.csv)
-4. [Methodology review](../reports/methodology-review.md)
-5. [Evidence state](../reports/evidence-state.md)
-6. [Decision findings](../decision-matrix/findings.md)
-7. [Decision matrix](../decision-matrix/README.md)
-8. [Risks](37-risks.md)
-9. [Delivery roadmap](36-implementation-roadmap.md)
-10. [Repository roadmap](39-repository-roadmap.md)
+2. [Top 10 API-management industry problems](43-api-management-industry-problems.md)
+3. [Kong long-term multicloud study roadmap](44-kong-multicloud-study-roadmap.md)
+4. [Principal content and research review](../reports/content-research-principal-review.md)
+5. [Content-remediation backlog](../reports/content-remediation-backlog.csv)
+6. [Methodology review](../reports/methodology-review.md)
+7. [Evidence state](../reports/evidence-state.md)
+8. [Decision findings](../decision-matrix/findings.md)
+9. [Decision matrix](../decision-matrix/README.md)
+10. [Risks](37-risks.md)
+11. [Delivery roadmap](36-implementation-roadmap.md)
+12. [Repository roadmap](39-repository-roadmap.md)
 
 The briefing should answer: what is known, what remains unknown, what can disqualify each named sequencing hypothesis, what investment is requested now, and who owns the next gate.
 
@@ -43,13 +45,15 @@ Translate the study into accountable work. Distinguish content inventory from de
 Recommended evidence path:
 
 1. [Current-state assumptions](02-current-state-assumptions.md)
-2. [Operating model](33-operating-model.md)
-3. [Implementation roadmap](36-implementation-roadmap.md)
-4. [Risks](37-risks.md)
-5. [Open questions](38-open-questions.md)
-6. [Repository roadmap](39-repository-roadmap.md)
-7. [Workshop programme](../workshops/README.md)
-8. [Migration factory](../mule-migration/migration-factory.md)
+2. [Top 10 API-management industry problems](43-api-management-industry-problems.md)
+3. [Kong long-term multicloud study roadmap](44-kong-multicloud-study-roadmap.md)
+4. [Operating model](33-operating-model.md)
+5. [Implementation roadmap](36-implementation-roadmap.md)
+6. [Risks](37-risks.md)
+7. [Open questions](38-open-questions.md)
+8. [Repository roadmap](39-repository-roadmap.md)
+9. [Workshop programme](../workshops/README.md)
+10. [Migration factory](../mule-migration/migration-factory.md)
 
 The briefing should produce accountable public roles or owner IDs, a restricted named-person map, capacity, dependencies, environments, commercial inputs, due dates, and evidence required at the next funding gate.
 
@@ -61,12 +65,14 @@ Recommended evidence path:
 
 1. [Current-state architecture](../architecture/current-state.md)
 2. [Vendor-neutral target-state architecture](../architecture/target-state.md)
-3. [Hybrid-cloud requirements](06-hybrid-cloud-requirements.md)
-4. [Gateway and integration-runtime boundary](07-api-gateway-vs-integration-runtime.md)
-5. [Network architecture](../architecture/network-architecture.md)
-6. [Security architecture](../architecture/security-architecture.md)
-7. [High availability and disaster recovery](../architecture/ha-dr-architecture.md)
-8. [Architecture decisions](../adr/README.md)
+3. [Top 10 API-management industry problems](43-api-management-industry-problems.md)
+4. [Kong long-term multicloud study roadmap](44-kong-multicloud-study-roadmap.md)
+5. [Hybrid-cloud requirements](06-hybrid-cloud-requirements.md)
+6. [Gateway and integration-runtime boundary](07-api-gateway-vs-integration-runtime.md)
+7. [Network architecture](../architecture/network-architecture.md)
+8. [Security architecture](../architecture/security-architecture.md)
+9. [High availability and disaster recovery](../architecture/ha-dr-architecture.md)
+10. [Architecture decisions](../adr/README.md)
 
 The briefing should confirm capability boundaries, constraints, transition assumptions, candidate topologies, and the evidence needed to approve an architecture decision.
 
@@ -77,13 +83,15 @@ Walk through the complete producer and consumer journeys. Do not use a successfu
 Recommended evidence path:
 
 1. [Gateway and integration-runtime boundary](07-api-gateway-vs-integration-runtime.md)
-2. [API operations governance](29-apiops-governance.md)
-3. [Developer portal and API products](30-developer-portal-api-products.md)
-4. [PoC guide](../poc/README.md)
-5. [API contracts](../poc/apis/README.md)
-6. [API operations tests](../poc/apiops-tests.md)
-7. [Migration strategy](35-mule-migration-strategy.md)
-8. [Migration patterns](../mule-migration/migration-patterns.md)
+2. [Top 10 API-management industry problems](43-api-management-industry-problems.md)
+3. [Kong long-term multicloud study roadmap](44-kong-multicloud-study-roadmap.md)
+4. [API operations governance](29-apiops-governance.md)
+5. [Developer portal and API products](30-developer-portal-api-products.md)
+6. [PoC guide](../poc/README.md)
+7. [API contracts](../poc/apis/README.md)
+8. [API operations tests](../poc/apiops-tests.md)
+9. [Migration strategy](35-mule-migration-strategy.md)
+10. [Migration patterns](../mule-migration/migration-patterns.md)
 
 The briefing should expose time-to-first-call, ownership, contract checks, approval, promotion, rollback, policy boundaries, discovery, access, credential rotation, and support.
 
@@ -96,11 +104,13 @@ Recommended evidence path:
 1. [Observability architecture](../architecture/observability-architecture.md)
 2. [High availability and disaster recovery](../architecture/ha-dr-architecture.md)
 3. [Network architecture](../architecture/network-architecture.md)
-4. [Failure tests](../poc/failure-tests.md)
-5. [Performance tests](../poc/performance-tests.md)
-6. [PoC observability](../poc/observability/README.md)
-7. [Kubernetes PoC](../poc/kubernetes/README.md)
-8. [Validation report](../reports/validation-report.md)
+4. [Top 10 API-management industry problems](43-api-management-industry-problems.md)
+5. [Kong long-term multicloud study roadmap](44-kong-multicloud-study-roadmap.md)
+6. [Failure tests](../poc/failure-tests.md)
+7. [Performance tests](../poc/performance-tests.md)
+8. [PoC observability](../poc/observability/README.md)
+9. [Kubernetes PoC](../poc/kubernetes/README.md)
+10. [Validation report](../reports/validation-report.md)
 
 The briefing should agree the SLO, RTO, RPO, scale and failure profile, telemetry and redaction requirements, operational ownership, support boundary, and durable evidence format.
 
@@ -111,13 +121,15 @@ Frame the platform as a product, not a collection of gateway components. Make ad
 Recommended evidence path:
 
 1. [Operating model](33-operating-model.md)
-2. [API operations governance](29-apiops-governance.md)
-3. [API operations architecture](../architecture/apiops-architecture.md)
-4. [Product shortlist and bounded option set](09-product-shortlist.md)
-5. [Symmetric platform dossiers: Kong](10-kong-deep-dive.md), [Azure API Management](19-azure-apim-assessment.md), [Apigee](21-apigee-assessment.md), and [MuleSoft baseline](23-mulesoft-current-state-baseline.md)
-6. [Candidate-neutral target architecture](../architecture/target-state.md)
-7. [Decision matrix](../decision-matrix/README.md)
-8. [Repository roadmap](39-repository-roadmap.md)
+2. [Top 10 API-management industry problems](43-api-management-industry-problems.md)
+3. [Kong long-term multicloud study roadmap](44-kong-multicloud-study-roadmap.md)
+4. [API operations governance](29-apiops-governance.md)
+5. [API operations architecture](../architecture/apiops-architecture.md)
+6. [Product shortlist and bounded option set](09-product-shortlist.md)
+7. [Symmetric platform dossiers: Kong](10-kong-deep-dive.md), [Azure API Management](19-azure-apim-assessment.md), [Apigee](21-apigee-assessment.md), and [MuleSoft baseline](23-mulesoft-current-state-baseline.md)
+8. [Candidate-neutral target architecture](../architecture/target-state.md)
+9. [Decision matrix](../decision-matrix/README.md)
+10. [Repository roadmap](39-repository-roadmap.md)
 
 The briefing should define the service catalogue, paved road, tenancy model, standard and exception ownership, onboarding SLO, support tiers, upgrade responsibility, staffing, and unit economics.
 

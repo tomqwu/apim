@@ -13,12 +13,14 @@ MARKER = "<!-- study-contract: principal -->"
 PROTOCOL_MARKER = "<!-- protocol-contract: decision-grade -->"
 MIN_WORDS = 900
 MIN_PROTOCOL_WORDS = 1500
-MIN_CONTRACT_STUDIES = 39
+MIN_CONTRACT_STUDIES = 41
 MIN_CONTRACT_PROTOCOLS = 3
 REQUIRED_STUDY_PREFIXES = {
     *(f"{number:02d}-" for number in range(37)),
     "41-",
     "42-",
+    "43-",
+    "44-",
 }
 ALLOWED_ARTIFACT_TYPES = {
     "principal-study",

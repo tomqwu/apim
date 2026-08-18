@@ -13,11 +13,11 @@ This report is generated from the article corpus by `scripts/validate_source_cov
 
 | Measure | Count |
 |---|---:|
-| Article files scanned | 64 |
-| Article files containing external citations | 44 |
-| Unique external citations | 211 |
-| Unique registered citations used by articles | 35 |
-| Unique contextual citations awaiting promotion if decision-bearing | 176 |
+| Article files scanned | 66 |
+| Article files containing external citations | 46 |
+| Unique external citations | 236 |
+| Unique registered citations used by articles | 36 |
+| Unique contextual citations awaiting promotion if decision-bearing | 200 |
 | Latest access date in authoritative register | 2026-08-17 |
 
 ## Coverage by article
@@ -63,6 +63,8 @@ This report is generated from the article corpus by `scripts/validate_source_cov
 | `docs/40-audience-guide.md` | 0 | 1 | promotion debt visible |
 | `docs/41-enterprise-reference-case.md` | 3 | 9 | promotion debt visible |
 | `docs/42-public-failure-casebook.md` | 5 | 0 | registered citations only |
+| `docs/43-api-management-industry-problems.md` | 7 | 26 | promotion debt visible |
+| `docs/44-kong-multicloud-study-roadmap.md` | 9 | 18 | promotion debt visible |
 | `poc/real-world-scenarios.md` | 4 | 9 | promotion debt visible |
 | `research/apigee.md` | 3 | 12 | promotion debt visible |
 | `research/azure-apim.md` | 5 | 3 | promotion debt visible |
@@ -75,23 +77,24 @@ This table helps evidence owners batch promotion and freshness work. A high coun
 
 | Host | Article-link occurrences |
 |---|---:|
-| `developer.konghq.com` | 93 |
-| `docs.mulesoft.com` | 67 |
-| `learn.microsoft.com` | 39 |
+| `developer.konghq.com` | 113 |
+| `docs.mulesoft.com` | 69 |
+| `learn.microsoft.com` | 43 |
+| `docs.cloud.google.com` | 29 |
 | `cloud.google.com` | 24 |
-| `docs.cloud.google.com` | 23 |
-| `gateway-api.sigs.k8s.io` | 7 |
-| `opentelemetry.io` | 7 |
+| `gateway-api.sigs.k8s.io` | 12 |
+| `opentelemetry.io` | 9 |
+| `www.rfc-editor.org` | 7 |
 | `documentation.gravitee.io` | 6 |
 | `spec.openapis.org` | 6 |
 | `docs.nginx.com` | 5 |
 | `gateway.envoyproxy.io` | 5 |
-| `www.rfc-editor.org` | 5 |
+| `kubernetes.io` | 5 |
 | `istio.io` | 4 |
-| `kubernetes.io` | 4 |
 | `sre.google` | 4 |
 | `docs.cloudfoundry.org` | 3 |
 | `cert-manager.io` | 2 |
+| `csrc.nist.gov` | 2 |
 | `tyk.io` | 2 |
 | `www.osfi-bsif.gc.ca` | 2 |
 | `github.com` | 1 |

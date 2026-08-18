@@ -190,6 +190,45 @@
     </figure>`;
   }
 
+  function problemMatrix(data, options = {}) {
+    const problems = Array.isArray(data) ? data : data?.problems || [];
+    if (!problems.length) return empty();
+    const mechanismLabel = options.mechanismLabel || "Mechanism vendors productize";
+    const proofLabel = options.proofLabel || "Decision implication";
+    return `<figure class="viz viz-problem-matrix ${options.compact ? "is-compact" : ""}" aria-label="${escapeHtml(options.title || "Enduring API-management problems")}">${heading(options)}
+      <div class="viz-problem-key" aria-hidden="true"><span></span><span>Problem</span><span>${escapeHtml(mechanismLabel)}</span>${options.compact ? "" : `<span>${escapeHtml(proofLabel)}</span>`}</div>
+      <ol class="viz-problem-list">${problems.map((problem, index) => {
+        const rawId = label(problem.id, String(index + 1));
+        const displayId = /^\d+$/.test(rawId) ? rawId.padStart(2, "0") : rawId;
+        return `<li>
+          <span class="viz-problem-index">${escapeHtml(displayId)}</span>
+          <div class="viz-problem-copy"><strong>${escapeHtml(problem.label || problem.name)}</strong><p>${escapeHtml(problem.mechanism || "")}</p><small data-label="${escapeHtml(proofLabel)}">${escapeHtml(problem.proof || problem.implication || "")}</small></div>
+        </li>`;
+      }).join("")}</ol>
+    </figure>`;
+  }
+
+  function studyRoadmap(data, options = {}) {
+    const workstreams = Array.isArray(data) ? data : data?.workstreams || [];
+    if (!workstreams.length) return empty();
+    const problemHref = data?.problemSourceId ? `#/doc/${encodeURIComponent(data.problemSourceId)}` : "";
+    return `<figure class="viz viz-study-roadmap ${options.compact ? "is-compact" : ""}" aria-label="${escapeHtml(options.title || "Gated study roadmap")}">${heading(options)}
+      <ol class="viz-study-roadmap-list" style="--study-columns:${workstreams.length <= 6 ? 3 : 4}">${workstreams.map((workstream, index) => {
+        const id = label(workstream.id, `WS-${String(index + 1).padStart(2, "0")}`);
+        const fullLabel = label(workstream.label);
+        const workstreamLabel = fullLabel.toLowerCase().startsWith(id.toLowerCase()) ? fullLabel.slice(id.length).trim() : fullLabel;
+        const problemIds = Array.isArray(workstream.problemIds) ? workstream.problemIds : [];
+        const problemLabel = label(workstream.problemLabel, problemIds.join(", ")).replace(/\s+,/g, ",");
+        return `<li>
+          <div class="viz-study-roadmap-meta"><span>${escapeHtml(id)}</span><b title="${escapeHtml(workstream.duration || "Scenario pending")}">${escapeHtml(workstream.duration || "Scenario pending")}</b></div>
+          <strong title="${escapeHtml(workstreamLabel)}">${escapeHtml(workstreamLabel)}</strong>
+          ${options.compact ? "" : `<p>${escapeHtml(workstream.question || "")}</p>`}
+          <div class="viz-study-roadmap-gates"><span title="${escapeHtml(`${workstream.entryGate || "Entry pending"} to ${workstream.exitGate || "Exit pending"}`)}">${escapeHtml(workstream.entryGate || "Entry pending")} <i aria-hidden="true">→</i> ${escapeHtml(workstream.exitGate || "Exit pending")}</span>${problemHref ? `<a href="${escapeHtml(problemHref)}" title="${escapeHtml(problemIds.join(", "))}" aria-label="Open canonical industry problems ${escapeHtml(problemIds.join(", "))}">${escapeHtml(problemLabel)} <span aria-hidden="true">↗</span></a>` : ""}</div>
+        </li>`;
+      }).join("")}</ol>
+    </figure>`;
+  }
+
   function composition(data, options = {}) {
     const sections = data?.bySection || (Array.isArray(data) ? data : []);
     const types = data?.byType || [];
@@ -263,7 +302,7 @@
     const path = item?.path || "";
     const provenance = visuals.provenance || {};
     const charts = [];
-    const add = (caption, name, data, options = {}, sourceKey = "") => charts.push(`<div class="document-visual"><span class="section-index">${escapeHtml(caption)}</span>${render(name, data, { ...options, compact: true })}${sourceLink(provenance[sourceKey], "Source")}</div>`);
+    const add = (caption, name, data, options = {}, sourceKey = "", extraClass = "") => charts.push(`<div class="document-visual ${escapeHtml(extraClass)}"><span class="section-index">${escapeHtml(caption)}</span>${render(name, data, { compact: true, ...options })}${sourceLink(provenance[sourceKey], "Source")}</div>`);
     if (path === "reports/methodology-review.md") {
       add("Steering recommendation", "statusMatrix", visuals.review?.decisions || [], { title: "Decision state", nameHeader: "Decision", noteHeader: "Exit evidence" }, "review");
       add("Decision readiness", "donut", visuals.criteria?.statuses || [], { title: "Criteria state", total: visuals.criteria?.total, centerLabel: "criteria" }, "criteria");
@@ -290,6 +329,13 @@
     if (["docs/02-current-state-assumptions.md", "docs/37-risks.md", "docs/38-open-questions.md", "adr/README.md"].includes(path)) add("Governance state", "governance", visuals.governance || {}, { title: "Open decision work" }, "governance");
     if (path === "docs/36-implementation-roadmap.md") add("Delivery sequence", "roadmap", visuals.roadmap || {}, { title: "Controlled delivery phases" }, "roadmap");
     if (path === "docs/39-repository-roadmap.md") add("Study maturity", "roadmap", visuals.repositoryRoadmap || {}, { title: "Evidence-system phases" }, "repositoryRoadmap");
+    if (path === "docs/43-api-management-industry-problems.md") {
+      add("Canonical problem taxonomy", "problemMatrix", visuals.industryProblems || {}, { title: "Problem → vendor mechanism → decision test", compact: false }, "industryProblems", "is-wide");
+    }
+    if (path === "docs/44-kong-multicloud-study-roadmap.md") {
+      add("Canonical problem frame", "problemMatrix", visuals.industryProblems || {}, { title: "The cross-vendor problems this roadmap must answer" }, "industryProblems", "is-wide");
+      add("Kong study sequence", "studyRoadmap", visuals.kongMulticloud || {}, { title: "Workstreams, gates, and scenario ranges", compact: false }, "kongMulticloud", "is-wide");
+    }
     if (!charts.length) return "";
     return `<section class="document-visual-context" aria-label="Related decision evidence"><header><p class="eyebrow">Decision context</p><h2>How this source relates to the current evidence.</h2></header><div class="document-visual-grid">${charts.join("")}</div></section>`;
   }
@@ -306,6 +352,8 @@
     const pocNotRun = seriesValue(visuals.poc?.byStatus || [], "Not run");
     const repositoryPhases = visuals.repositoryRoadmap?.phases || [];
     const deliveryPhases = visuals.roadmap?.phases || [];
+    const problemTotal = number(visuals.industryProblems?.total);
+    const kongWorkstreamTotal = number(visuals.kongMulticloud?.workstreamTotal);
     const panel = (index, eyebrow, title, note, body, extraClass = "", source = null) => `<article class="visual-panel ${escapeHtml(extraClass)}"><header class="visual-panel-heading"><span class="section-index">${escapeHtml(index)} / ${escapeHtml(eyebrow)}</span><h2>${escapeHtml(title)}</h2><p>${escapeHtml(note)}</p>${sourceLink(source)}</header><div class="visual-panel-body">${body}</div></article>`;
     return `<div class="page-shell visual-atlas">
       <header class="page-intro"><div><p class="eyebrow">Decision evidence, drawn</p><h1>Visual Atlas</h1><p class="lede">Charts, matrices, timelines, and system models generated from the repository’s real assessment data.</p></div><p class="intro-note">These views expose evidence state and study structure. They do not manufacture platform scores where the underlying scorecards remain unknown.</p></header>
@@ -324,6 +372,8 @@
         ${panel("12", "Delivery roadmap", `${deliveryPhases.length} controlled delivery phases`, "The organization plan uses exit evidence and decision rights rather than dates masquerading as commitments.", roadmap(visuals.roadmap || {}, { title: "Assessment-to-decommission sequence" }), "is-wide", provenance.roadmap)}
         ${panel("13", "Study roadmap", `${repositoryPhases.length} evidence-system phases`, "The repository moves through explicit decision-assurance gates before becoming a continuous study platform.", roadmap(visuals.repositoryRoadmap || {}, { title: "Repository maturity sequence" }), "is-wide", provenance.repositoryRoadmap)}
         ${panel("14", "Library", "The evidence base has shape", "Repository composition shows where the study is deep and where additional evidence will accumulate.", composition(visuals.library || {}, { title: "Resources by study stream" }), "is-wide", provenance.library)}
+        ${panel("15", "Industry agenda", `${problemTotal} enduring problem families`, "The canonical taxonomy keeps vendor packaging subordinate to enterprise outcomes and equivalent proof.", problemMatrix(visuals.industryProblems || {}, { title: "Problem and mechanism map", compact: true }), "is-wide", provenance.industryProblems)}
+        ${panel("16", "Kong roadmap", `${kongWorkstreamTotal} gated study workstreams`, "The Kong multicloud hypothesis advances only through exact options, explicit owners, prerequisite gates, and decision evidence.", studyRoadmap(visuals.kongMulticloud || {}, { title: "Kong study sequence", compact: true }), "is-wide", provenance.kongMulticloud)}
       </section>
     </div>`;
   }
@@ -343,6 +393,9 @@
     flow: methodologyFlow,
     roadmap,
     timeline: roadmap,
+    problemMatrix,
+    problems: problemMatrix,
+    studyRoadmap,
     composition,
     sourceBalance,
     sources: sourceBalance,
@@ -380,6 +433,9 @@
       evidence: visuals?.methodology?.evidenceLevels,
       review: visuals?.review,
       recommendation: visuals?.review,
+      problemMatrix: visuals?.industryProblems,
+      problems: visuals?.industryProblems,
+      studyRoadmap: visuals?.kongMulticloud,
     };
     return map[name] ?? visuals?.[name];
   }
@@ -404,6 +460,8 @@
     statusMatrix,
     methodologyFlow,
     roadmap,
+    problemMatrix,
+    studyRoadmap,
     composition,
     sourceBalance,
     pocStatus,

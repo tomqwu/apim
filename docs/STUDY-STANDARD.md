@@ -12,6 +12,14 @@ A principal study must let a skeptical reviewer trace this chain without reconst
 
 If any link is absent, the article is incomplete. Length is not a substitute for the chain, and a diagram is not evidence merely because it renders.
 
+## Docs-first publication and projection contract
+
+The canonical study, guide, roadmap, comparison, or recommendation is authored and reviewed in `docs/` first. Before publication, the contributor updates `docs/README.md` and any roadmap or cross-reference that establishes how the new document participates in the study system.
+
+The static site is a derived presentation layer. It may parse canonical tables, surface article-owned figures, generate navigational charts, tailor audience routes, and create presentation scenes, but it must not introduce a second problem taxonomy, recommendation, roadmap status, option count, evidence claim, or decision conclusion. Every site projection links back to its canonical document and is rebuilt after the document changes.
+
+A site-only study or guide is incomplete. A diagram or chart that carries an argument belongs in the article at the point of use under the inline figure contract; the Visual Atlas, overview, comparison, audience page, and presentation remain indexes and projections of that argument.
+
 ## Required study header
 
 Every principal study begins with a compact metadata block containing:

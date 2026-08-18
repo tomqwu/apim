@@ -351,6 +351,23 @@ def count_series(values: list[str]) -> list[dict[str, object]]:
     ]
 
 
+def canonical_problem_ids(value: str) -> list[str]:
+    """Expand canonical P-ID lists and ranges while preserving first-seen order."""
+    # Inline-code markers often wrap each end of a range independently
+    # (for example, ``P1``–``P10``); remove them before range matching.
+    normalized = value.replace("`", "").replace("—", "-").replace("–", "-")
+    problem_ids: list[str] = []
+    for match in re.finditer(r"\bP(\d+)(?:\s*-\s*P?(\d+))?\b", normalized, flags=re.IGNORECASE):
+        start = int(match.group(1))
+        end = int(match.group(2) or start)
+        numbers = range(start, end + 1) if end >= start else ()
+        for number in numbers:
+            problem_id = f"P{number}"
+            if problem_id not in problem_ids:
+                problem_ids.append(problem_id)
+    return problem_ids
+
+
 def simple_yaml_numbers(path: Path) -> dict[str, int]:
     """Parse the repository's flat numeric weight map without a YAML dependency."""
     values: dict[str, int] = {}
@@ -591,6 +608,97 @@ def repository_roadmap_visuals() -> dict[str, object]:
     }
 
 
+def industry_problem_visuals() -> dict[str, object]:
+    """Project the canonical cross-vendor problem taxonomy into chart-ready rows."""
+    text = safe_text(ROOT / "docs" / "43-api-management-industry-problems.md")
+    rows = markdown_table(
+        text,
+        (
+            "Rank",
+            "Enduring problem",
+            "Mechanism vendors productize",
+            "RE-1 exposure",
+            "Decision implication",
+        ),
+    )
+    problems = [
+        {
+            "id": f"P{clean_inline(row_value(row, 'Rank'))}",
+            "label": clean_inline(row_value(row, "Enduring problem")),
+            "mechanism": clean_inline(row_value(row, "Mechanism vendors productize")),
+            "exposure": clean_inline(row_value(row, "RE-1 exposure")),
+            "proof": clean_inline(row_value(row, "Decision implication")),
+        }
+        for row in rows
+    ]
+    return {"total": len(problems), "problems": problems}
+
+
+def kong_multicloud_visuals(items: list[dict[str, object]]) -> dict[str, object]:
+    """Project Kong option and workstream data without creating a second problem taxonomy."""
+    text = safe_text(ROOT / "docs" / "44-kong-multicloud-study-roadmap.md")
+    workstream_rows = markdown_table(
+        text,
+        (
+            "Workstream",
+            "Canonical problems",
+            "Study question",
+            "Exact evidence outputs",
+            "Owner",
+            "Dependencies",
+            "Entry gate",
+            "Exit gate",
+            "Scenario range",
+        ),
+    )
+    option_rows = markdown_table(
+        text,
+        (
+            "Option ID",
+            "Bounded archetype",
+            "Plane placement and authority",
+            "Intended study role",
+            "Gate-1 unresolved fields",
+            "Evidence transfer prohibited",
+        ),
+    )
+    by_path = {str(item["path"]): str(item["id"]) for item in items}
+    problem_source_path = "docs/43-api-management-industry-problems.md"
+    workstreams = [
+        {
+            "id": clean_inline(row_value(row, "Workstream")).split(" ", 1)[0],
+            "label": clean_inline(row_value(row, "Workstream")),
+            "problemIds": canonical_problem_ids(row_value(row, "Canonical problems")),
+            "problemLabel": clean_inline(row_value(row, "Canonical problems")),
+            "question": clean_inline(row_value(row, "Study question")),
+            "outputs": clean_inline(row_value(row, "Exact evidence outputs")),
+            "owner": clean_inline(row_value(row, "Owner")),
+            "dependencies": clean_inline(row_value(row, "Dependencies")),
+            "entryGate": clean_inline(row_value(row, "Entry gate")),
+            "exitGate": clean_inline(row_value(row, "Exit gate")),
+            "duration": clean_inline(row_value(row, "Scenario range")),
+        }
+        for row in workstream_rows
+    ]
+    options = [
+        {
+            "id": clean_inline(row_value(row, "Option ID")),
+            "label": clean_inline(row_value(row, "Bounded archetype")),
+            "placement": clean_inline(row_value(row, "Plane placement and authority")),
+            "role": clean_inline(row_value(row, "Intended study role")),
+        }
+        for row in option_rows
+    ]
+    return {
+        "workstreamTotal": len(workstreams),
+        "workstreams": workstreams,
+        "optionTotal": len(options),
+        "options": options,
+        "problemSourcePath": problem_source_path,
+        "problemSourceId": by_path.get(problem_source_path, ""),
+    }
+
+
 def methodology_visuals() -> dict[str, object]:
     text = safe_text(ROOT / "docs" / "03-assessment-methodology.md")
     sequence_rows = markdown_table(text, ("Stage", "Purpose", "Required output", "Stop condition"))
@@ -646,6 +754,8 @@ def visual_provenance(items: list[dict[str, object]]) -> dict[str, dict[str, obj
         "governance": ("docs/02-current-state-assumptions.md", "adr/README.md", "docs/37-risks.md", "docs/38-open-questions.md"),
         "roadmap": ("docs/36-implementation-roadmap.md",),
         "repositoryRoadmap": ("docs/39-repository-roadmap.md",),
+        "industryProblems": ("docs/43-api-management-industry-problems.md",),
+        "kongMulticloud": ("docs/44-kong-multicloud-study-roadmap.md",),
         "methodology": ("docs/03-assessment-methodology.md",),
         "review": ("reports/methodology-review.md",),
     }
@@ -681,6 +791,8 @@ def build_visuals(items: list[dict[str, object]]) -> dict[str, object]:
         "library": library_visuals(items),
         "roadmap": roadmap_visuals(),
         "repositoryRoadmap": repository_roadmap_visuals(),
+        "industryProblems": industry_problem_visuals(),
+        "kongMulticloud": kong_multicloud_visuals(items),
         "methodology": methodology_visuals(),
         "review": review_visuals(),
         "provenance": visual_provenance(items),
@@ -693,6 +805,8 @@ def validate_site_projection(stats: dict[str, int], visuals: dict[str, object]) 
     methodology = visuals.get("methodology")
     roadmap = visuals.get("roadmap")
     criteria = visuals.get("criteria")
+    industry_problems = visuals.get("industryProblems")
+    kong_multicloud = visuals.get("kongMulticloud")
     checks = {
         "bounded archetypes": isinstance(variants, list) and bool(variants),
         "methodology decision steps": isinstance(methodology, dict) and bool(methodology.get("steps")),
@@ -701,6 +815,29 @@ def validate_site_projection(stats: dict[str, int], visuals: dict[str, object]) 
             isinstance(criteria, dict)
             and criteria.get("total") == stats.get("criteria")
             and bool(criteria.get("categories"))
+        ),
+        "ten enduring industry problems": (
+            isinstance(industry_problems, dict)
+            and industry_problems.get("total") == 10
+            and len(industry_problems.get("problems", [])) == 10
+            and [problem.get("id") for problem in industry_problems.get("problems", [])]
+            == [f"P{rank}" for rank in range(1, 11)]
+        ),
+        "Kong multicloud study workstreams": (
+            isinstance(kong_multicloud, dict)
+            and bool(kong_multicloud.get("workstreams"))
+            and kong_multicloud.get("workstreamTotal") == 13
+            and kong_multicloud.get("workstreamTotal") == len(kong_multicloud.get("workstreams", []))
+            and [workstream.get("id") for workstream in kong_multicloud.get("workstreams", [])]
+            == [f"WS-{number:02d}" for number in range(1, 14)]
+            and all(workstream.get("problemIds") for workstream in kong_multicloud.get("workstreams", []))
+            and {
+                problem_id
+                for workstream in kong_multicloud.get("workstreams", [])
+                for problem_id in workstream.get("problemIds", [])
+            }
+            == {f"P{rank}" for rank in range(1, 11)}
+            and bool(kong_multicloud.get("problemSourceId"))
         ),
     }
     missing = [label for label, valid in checks.items() if not valid]
@@ -813,10 +950,10 @@ def build_audiences(
                 "Who owns the decision, evidence threshold, funding, and review date?",
             ),
             signals=(("Criteria with evidence", evidenced_criteria), ("Mandatory gates", stats.get("mandatoryGates", 0)), ("Unscored options", unscored_variants), ("Atomic protocol cases", stats.get("pocProtocolCases", 0))),
-            source_paths=("docs/00-executive-summary.md", "reports/methodology-review.md", "reports/evidence-state.md", "decision-matrix/findings.md", "docs/42-public-failure-casebook.md", "docs/37-risks.md", "docs/36-implementation-roadmap.md", "docs/39-repository-roadmap.md"),
+            source_paths=("docs/00-executive-summary.md", "docs/43-api-management-industry-problems.md", "docs/44-kong-multicloud-study-roadmap.md", "reports/methodology-review.md", "reports/evidence-state.md", "decision-matrix/findings.md", "docs/42-public-failure-casebook.md", "docs/37-risks.md", "docs/36-implementation-roadmap.md", "docs/39-repository-roadmap.md"),
             recommended_route="#/compare",
             visual="executive",
-            presentation_slides=("decision", "landscape", "evidence", "lessons", "delivery", "next"),
+            presentation_slides=("decision", "industry-problems", "kong-multicloud-foundations", "kong-multicloud-proof", "landscape", "evidence", "lessons", "delivery", "next"),
         ),
         audience(
             audience_id="directors",
@@ -829,10 +966,10 @@ def build_audiences(
             action="Turn the roadmap into an accountable plan with public roles or owner IDs, restricted named owners, dates, capacity, dependencies, and exit evidence.",
             questions=("Who owns each workstream, assumption, risk, acceptance decision, and dependency?", "Which environments, people, commercial inputs, and pilots must be funded now?", "What evidence must each phase produce before the program receives more capacity?"),
             signals=(("Open assumptions", open_assumptions), ("Registered risks", stats.get("risks", 0)), ("Proposed ADRs", proposed_adrs), ("Repository phases", length(repository_roadmap.get("phases")))),
-            source_paths=("docs/02-current-state-assumptions.md", "docs/33-operating-model.md", "docs/36-implementation-roadmap.md", "docs/37-risks.md", "docs/38-open-questions.md", "docs/42-public-failure-casebook.md", "docs/39-repository-roadmap.md", "mule-migration/migration-factory.md"),
+            source_paths=("docs/02-current-state-assumptions.md", "docs/43-api-management-industry-problems.md", "docs/44-kong-multicloud-study-roadmap.md", "docs/33-operating-model.md", "docs/36-implementation-roadmap.md", "docs/37-risks.md", "docs/38-open-questions.md", "docs/42-public-failure-casebook.md", "docs/39-repository-roadmap.md", "mule-migration/migration-factory.md"),
             recommended_route="#/doc/docs-33-operating-model",
             visual="directors",
-            presentation_slides=("decision", "evidence", "lessons", "proof", "delivery", "next"),
+            presentation_slides=("decision", "industry-problems", "kong-multicloud-foundations", "kong-multicloud-proof", "evidence", "lessons", "proof", "delivery", "next"),
         ),
         audience(
             audience_id="architects",
@@ -845,10 +982,10 @@ def build_audiences(
             action="Approve the capability boundary and vendor-neutral logical model before candidate physical topologies are scored.",
             questions=("Where is the gateway/integration boundary, and what must never move into policy?", "Which locality, residency, isolation, identity, network, and recovery constraints shape placement?", "Which current-state, data-flow, transition, and failure assumptions require evidence?"),
             signals=(("Architecture diagrams", stats.get("diagrams", 0)), ("Assessment categories", length(criteria.get("categories"))), ("Mandatory gates", stats.get("mandatoryGates", 0)), ("Evidence levels", length(methodology.get("evidenceLevels")))),
-            source_paths=("architecture/current-state.md", "architecture/target-state.md", "docs/06-hybrid-cloud-requirements.md", "docs/07-api-gateway-vs-integration-runtime.md", "architecture/network-architecture.md", "architecture/security-architecture.md", "architecture/ha-dr-architecture.md", "docs/42-public-failure-casebook.md"),
+            source_paths=("architecture/current-state.md", "architecture/target-state.md", "docs/43-api-management-industry-problems.md", "docs/44-kong-multicloud-study-roadmap.md", "docs/06-hybrid-cloud-requirements.md", "docs/07-api-gateway-vs-integration-runtime.md", "architecture/network-architecture.md", "architecture/security-architecture.md", "architecture/ha-dr-architecture.md", "docs/42-public-failure-casebook.md"),
             recommended_route="#/architecture",
             visual="architects",
-            presentation_slides=("decision", "target-state", "landscape", "system", "lessons", "evidence", "proof"),
+            presentation_slides=("decision", "target-state", "industry-problems", "kong-multicloud-foundations", "kong-multicloud-proof", "landscape", "system", "lessons", "evidence", "proof"),
         ),
         audience(
             audience_id="developers",
@@ -861,10 +998,10 @@ def build_audiences(
             action="Prove the complete producer and consumer journeys, including approval, promotion, rollback, discovery, and credentials.",
             questions=("How does an API move from contract to production with ownership and breaking-change controls?", "How does a consumer discover, request, test, rotate credentials, and receive support?", "Which behavior belongs in gateway policy versus domain or integration code?"),
             signals=(("API contracts", stats.get("apiContracts", 0)), ("Atomic protocol cases", stats.get("pocProtocolCases", 0)), ("Automated register items", automated_scenarios), ("Register items not run", not_run_scenarios)),
-            source_paths=("docs/07-api-gateway-vs-integration-runtime.md", "docs/29-apiops-governance.md", "docs/30-developer-portal-api-products.md", "docs/42-public-failure-casebook.md", "poc/portal-tests.md", "poc/real-world-scenarios.md", "docs/35-mule-migration-strategy.md", "mule-migration/migration-patterns.md"),
+            source_paths=("docs/07-api-gateway-vs-integration-runtime.md", "docs/43-api-management-industry-problems.md", "docs/44-kong-multicloud-study-roadmap.md", "docs/29-apiops-governance.md", "docs/30-developer-portal-api-products.md", "docs/42-public-failure-casebook.md", "poc/portal-tests.md", "poc/real-world-scenarios.md", "docs/35-mule-migration-strategy.md", "mule-migration/migration-patterns.md"),
             recommended_route="#/lab",
             visual="developers",
-            presentation_slides=("decision", "system", "lessons", "proof", "delivery"),
+            presentation_slides=("decision", "industry-problems", "kong-multicloud-foundations", "kong-multicloud-proof", "system", "lessons", "proof", "delivery"),
         ),
         audience(
             audience_id="devops-sre",
@@ -877,10 +1014,10 @@ def build_audiences(
             action="Run Kubernetes, disconnection, failure, soak, telemetry, redaction, and recovery exercises against approved SLOs.",
             questions=("What happens during control-plane loss, restart, scaling, dependency failure, and recovery?", "Do telemetry, redaction, runbooks, support boundaries, and on-call demand meet the operating contract?", "Which SLO, RTO, RPO, load, and failure conditions must a representative pilot prove?"),
             signals=(("Atomic protocol cases", stats.get("pocProtocolCases", 0)), ("Register items not run", not_run_scenarios), ("Recorded risks", stats.get("risks", 0)), ("Architecture diagrams", stats.get("diagrams", 0))),
-            source_paths=("architecture/observability-architecture.md", "architecture/ha-dr-architecture.md", "architecture/network-architecture.md", "docs/42-public-failure-casebook.md", "poc/real-world-scenarios.md", "poc/observability-tests.md", "poc/kubernetes/README.md", "reports/validation-report.md"),
+            source_paths=("architecture/observability-architecture.md", "architecture/ha-dr-architecture.md", "architecture/network-architecture.md", "docs/43-api-management-industry-problems.md", "docs/44-kong-multicloud-study-roadmap.md", "docs/42-public-failure-casebook.md", "poc/real-world-scenarios.md", "poc/observability-tests.md", "poc/kubernetes/README.md", "reports/validation-report.md"),
             recommended_route="#/lab",
             visual="devops-sre",
-            presentation_slides=("target-state", "system", "lessons", "proof", "delivery", "next"),
+            presentation_slides=("target-state", "industry-problems", "kong-multicloud-foundations", "kong-multicloud-proof", "system", "lessons", "proof", "delivery", "next"),
         ),
         audience(
             audience_id="platform-teams",
@@ -893,10 +1030,10 @@ def build_audiences(
             action="Define the platform product, support tiers, onboarding SLO, tenancy model, decision rights, and unit economics.",
             questions=("Where do platform and domain ownership, standards, shared services, and exceptions divide?", "Which resolved option has a sustainable upgrade, support, staffing, and cost model?", "What is the paved road for onboarding, tenancy, API operations, policy, and migration?"),
             signals=(("Unscored variants", unscored_variants), ("Current-state assumptions", stats.get("assumptions", 0)), ("Proposed ADRs", proposed_adrs), ("Decision criteria", stats.get("criteria", 0))),
-            source_paths=("docs/33-operating-model.md", "docs/29-apiops-governance.md", "architecture/apiops-architecture.md", "docs/09-product-shortlist.md", "docs/10-kong-deep-dive.md", "docs/19-azure-apim-assessment.md", "docs/21-apigee-assessment.md", "docs/23-mulesoft-current-state-baseline.md"),
+            source_paths=("docs/33-operating-model.md", "docs/43-api-management-industry-problems.md", "docs/44-kong-multicloud-study-roadmap.md", "docs/29-apiops-governance.md", "architecture/apiops-architecture.md", "docs/09-product-shortlist.md", "docs/10-kong-deep-dive.md", "docs/19-azure-apim-assessment.md", "docs/21-apigee-assessment.md", "docs/23-mulesoft-current-state-baseline.md"),
             recommended_route="#/doc/docs-33-operating-model",
             visual="platform-teams",
-            presentation_slides=("target-state", "landscape", "system", "lessons", "proof", "delivery"),
+            presentation_slides=("target-state", "industry-problems", "kong-multicloud-foundations", "kong-multicloud-proof", "landscape", "system", "lessons", "proof", "delivery"),
         ),
     ]
 
@@ -958,9 +1095,17 @@ def make_presentation(items: list[dict[str, object]], stats: dict[str, int], vis
     variant_total = len(visuals.get("variants", []))
     variant_scope = f"all {variant_total} bounded archetypes" if variant_total else "all bounded archetypes"
     roadmap_phase_total = len(visuals.get("roadmap", {}).get("phases", []))
+    industry_problem_total = int(visuals.get("industryProblems", {}).get("total", 0))
+    kong_workstreams = list(visuals.get("kongMulticloud", {}).get("workstreams", []))
+    kong_split_index = (len(kong_workstreams) + 1) // 2
+    kong_foundation_total = len(kong_workstreams[:kong_split_index])
+    kong_proof_total = len(kong_workstreams[kong_split_index:])
     specs = [
         ("orientation", "Orientation", "A living evidence base for API management decisions", "Research, architecture, proof, and reusable delivery material in one navigable system.", "docs/00-executive-summary.md", stats["resources"], "indexed resources", "composition"),
         ("decision", "Decision", "Approve evidence closure—not platform selection", f"Run one evidence-led screen across {variant_scope}; resolve each option before scoring, then fund symmetric proof only for approved finalists. Named sequencing hypotheses confer no priority.", "reports/methodology-review.md", "NOW", "evidence closure", "recommendation"),
+        ("industry-problems", "Industry agenda", "Start with the enduring problems—not vendor packaging", "The canonical taxonomy ties each API-management pressure to enterprise exposure and the equivalent decision proof required.", "docs/43-api-management-industry-problems.md", industry_problem_total, "enduring problem families", "problemMatrix"),
+        ("kong-multicloud-foundations", "Kong study roadmap · 1/2", "Calibrate topology, trust, change, and resilience", "WS-01 through WS-07 establish the comparative contract, resolve exact options, map plane and trust boundaries, prove configuration authority, and test runtime resilience without presuming selection.", "docs/44-kong-multicloud-study-roadmap.md", kong_foundation_total, "foundation workstreams", "studyRoadmap"),
+        ("kong-multicloud-proof", "Kong study roadmap · 2/2", "Prove operations, adoption, exit, and estate truth", "WS-08 through WS-13 close observability, consumer lifecycle, operating economics, migration, emerging-protocol boundaries, and estate ownership before the multicloud hypothesis can advance.", "docs/44-kong-multicloud-study-roadmap.md", kong_proof_total, "proof workstreams", "studyRoadmap"),
         ("target-state", "Target state", "Workload-local data planes, centrally governed", "A vendor-neutral logical view keeps latency and failure boundaries near workloads while governance stays coherent; candidate physical views must prove their own control, persistence, telemetry, and support boundaries.", "architecture/diagrams/target-state.mmd", stats["diagrams"], "architecture views", "architectureDiagram"),
         ("landscape", "Landscape", "Bounded archetypes, no presumed finalist", "Kong, Azure API Management, Apigee, and the MuleSoft baseline remain symmetric research objects until Gate 1 resolves their deployable options and common evidence supports an E3 down-select.", "docs/09-product-shortlist.md", variant_total, "bounded archetypes", "statusMatrix"),
         ("system", "System", "Make the transition reversible", "The transition view makes coexistence, weighted cutover, integration decomposition, rollback, and retirement evidence visible.", "architecture/diagrams/transition-state.mmd", stats["diagrams"], "renderable diagrams", "architectureDiagram"),
@@ -971,7 +1116,7 @@ def make_presentation(items: list[dict[str, object]], stats: dict[str, int], vis
         ("delivery", "Delivery", "Move in controlled waves", "The roadmap combines discovery, evidence closure, PoC execution, operating-model design, migration waves, and decision gates.", "docs/36-implementation-roadmap.md", roadmap_phase_total, "roadmap phases", "roadmap"),
         ("next", "Next", "Close the evidence gaps that can change the decision", "Open questions remain first-class work. The portal is designed to expose uncertainty, not decorate it.", "docs/38-open-questions.md", stats["openQuestions"], "open questions", "governance"),
     ]
-    return [
+    slides = [
         {
             "index": index,
             "key": key,
@@ -985,6 +1130,14 @@ def make_presentation(items: list[dict[str, object]], stats: dict[str, int], vis
         }
         for index, (key, eyebrow, title, body, path, metric, metric_label, visual) in enumerate(specs)
     ]
+    workstream_ids = {
+        "kong-multicloud-foundations": [str(workstream.get("id", "")) for workstream in kong_workstreams[:kong_split_index]],
+        "kong-multicloud-proof": [str(workstream.get("id", "")) for workstream in kong_workstreams[kong_split_index:]],
+    }
+    for slide in slides:
+        if slide["key"] in workstream_ids:
+            slide["workstreamIds"] = workstream_ids[slide["key"]]
+    return slides
 
 
 def build(output: Path) -> None:

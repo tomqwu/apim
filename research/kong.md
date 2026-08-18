@@ -2,7 +2,7 @@
 
 ## Purpose and decision boundary
 
-This is the supporting evidence ledger for the principal studies [10](../docs/10-kong-deep-dive.md) through [18](../docs/18-kong-ha-dr.md). It records bounded variant boundaries, primary-source claims, counter-evidence and proof gaps. It does not repeat the study arguments, score a vendor, or report tests.
+This is the supporting evidence ledger for the principal studies [10](../docs/10-kong-deep-dive.md) through [18](../docs/18-kong-ha-dr.md) and the [Kong long-term multicloud study roadmap](../docs/44-kong-multicloud-study-roadmap.md). It records bounded variant boundaries, primary-source claims, counter-evidence and proof gaps. It does not repeat the study arguments, score a vendor, or report tests.
 
 **As of:** 2026-08-17
 

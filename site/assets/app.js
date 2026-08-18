@@ -184,6 +184,10 @@
     const review = findByPath("reports/methodology-review.md");
     const referenceCase = findByPath("docs/41-enterprise-reference-case.md");
     const failureCasebook = findByPath("docs/42-public-failure-casebook.md");
+    const industryProblems = findByPath("docs/43-api-management-industry-problems.md");
+    const kongMulticloud = findByPath("docs/44-kong-multicloud-study-roadmap.md");
+    const problemTotal = Number(visuals.industryProblems?.total) || 0;
+    const kongWorkstreamTotal = Number(visuals.kongMulticloud?.workstreamTotal) || 0;
     const generated = new Date(generatedAt);
     const dateLabel = Number.isNaN(generated.getTime())
       ? "current repository state"
@@ -250,10 +254,27 @@
           </div>
         </section>
 
+        ${industryProblems && kongMulticloud ? `
+        <section class="content-section" aria-labelledby="industry-agenda-title">
+          <div class="section-heading">
+            <span class="section-index">02 / Industry agenda</span>
+            <h2 id="industry-agenda-title">Anchor on enduring problems. Falsify the multicloud thesis.</h2>
+            <p>The cross-vendor taxonomy defines the outcomes and proof burden. The Kong roadmap then tests an exact option portfolio against that same frame without presuming selection.</p>
+          </div>
+          <div class="decision-visual-grid">
+            ${visualPanel("A", "Problem system", `${problemTotal} problem families that outlive product packaging`, "Each problem connects enterprise exposure to the mechanisms vendors productize and the decision implication equivalent proof must resolve.", chartMarkup("problemMatrix", visuals.industryProblems || {}, { title: "Problem → mechanism map", compact: true }))}
+            ${visualPanel("B", "Kong study", `${kongWorkstreamTotal} gated workstreams`, "Exact options, owners, prerequisites, scenario ranges, and exit gates keep a multicloud hypothesis reversible and falsifiable.", chartMarkup("studyRoadmap", visuals.kongMulticloud || {}, { title: "Kong multicloud study sequence", compact: true }))}
+          </div>
+          <div class="hero-actions">
+            <a class="action-link is-primary" href="${itemHref(industryProblems)}">Open the industry problem study <span aria-hidden="true">↗</span></a>
+            <a class="action-link" href="${itemHref(kongMulticloud)}">Open the Kong roadmap <span aria-hidden="true">↗</span></a>
+          </div>
+        </section>` : ""}
+
         ${referenceCase && failureCasebook ? `
         <section class="content-section" aria-labelledby="depth-title">
           <div class="section-heading">
-            <span class="section-index">02 / Real-world depth</span>
+            <span class="section-index">03 / Real-world depth</span>
             <h2 id="depth-title">Start with difficult behavior—not a feature list.</h2>
             <p>One shared enterprise case gives every option the same workloads, trust boundaries, traffic, failure history, recovery obligations, and migration constraints. Public postmortems then turn real failure mechanisms into mandatory proof.</p>
           </div>
@@ -275,7 +296,7 @@
 
         <section class="content-section" aria-labelledby="streams-title">
           <div class="section-heading">
-            <span class="section-index">03 / Study streams</span>
+            <span class="section-index">04 / Study streams</span>
             <h2 id="streams-title">One repository, six ways into the evidence.</h2>
             <p>Use the curated paths for orientation. Use Library when you need the complete source record.</p>
           </div>
@@ -286,7 +307,7 @@
 
         <section class="content-section" aria-labelledby="method-title">
           <div class="section-heading">
-            <span class="section-index">04 / Method</span>
+            <span class="section-index">05 / Method</span>
             <h2 id="method-title">From claim to decision, without hiding uncertainty.</h2>
             <p>The material is intentionally explicit about what is known, inferred, assumed, tested, and still open.</p>
           </div>
@@ -494,6 +515,8 @@
       ? `All ${criteriaTotal} criteria currently remain “unknown” in the evidence ledger.`
       : `${unknownCriteria} of ${criteriaTotal} criteria remain “unknown”; ${evidencedCriteria} have a recorded evidence state.`;
     const criteria = findByPath("decision-matrix/criteria.csv");
+    const industryProblems = findByPath("docs/43-api-management-industry-problems.md");
+    const kongMulticloud = findByPath("docs/44-kong-multicloud-study-roadmap.md");
     const platformPaths = [
       "docs/10-kong-deep-dive.md",
       "docs/19-azure-apim-assessment.md",
@@ -532,9 +555,26 @@
           </div>
         </section>
 
+        ${industryProblems && kongMulticloud ? `
+        <section class="content-section" aria-labelledby="problem-comparison-title">
+          <div class="section-heading">
+            <span class="section-index">01 / Problem frame</span>
+            <h2 id="problem-comparison-title">Compare how exact options answer the same enduring problems.</h2>
+            <p>The taxonomy is canonical and cross-vendor. Kong is one long-term multicloud hypothesis with its own gates, counter-hypotheses, and non-fit conditions.</p>
+          </div>
+          <div class="decision-visual-grid">
+            ${visualPanel("A", "Industry problems", "The comparison denominator", "Vendor features matter only where they change an enterprise outcome under representative conditions.", chartMarkup("problemMatrix", visuals.industryProblems || {}, { title: "Problem → mechanism → decision test", compact: true }))}
+            ${visualPanel("B", "Kong roadmap", "A bounded proof sequence", "The workstreams expose contract, topology, security, runtime, product, economics, migration, and exit dependencies that a gateway demo cannot close.", chartMarkup("studyRoadmap", visuals.kongMulticloud || {}, { title: "Kong workstreams and gates", compact: true }))}
+          </div>
+          <div class="hero-actions">
+            <a class="action-link is-primary" href="${itemHref(industryProblems)}">Open the canonical problem taxonomy <span aria-hidden="true">↗</span></a>
+            <a class="action-link" href="${itemHref(kongMulticloud)}">Open the Kong multicloud roadmap <span aria-hidden="true">↗</span></a>
+          </div>
+        </section>` : ""}
+
         <section class="content-section" aria-labelledby="decision-views-title">
           <div class="section-heading">
-            <span class="section-index">01 / Decision views</span>
+            <span class="section-index">02 / Decision views</span>
             <h2 id="decision-views-title">See what can—and cannot—be concluded.</h2>
             <p>The visual model separates candidate status, evidence confidence, research balance, and gate structure.</p>
           </div>
@@ -548,7 +588,7 @@
 
         <section class="content-section" aria-labelledby="platforms-title">
           <div class="section-heading">
-            <span class="section-index">02 / Platform lenses</span>
+            <span class="section-index">03 / Platform lenses</span>
             <h2 id="platforms-title">Keep the alternatives explicit.</h2>
             <p>Each platform is assessed in its actual deployment model, with version, licensing, and operational boundaries visible.</p>
           </div>
@@ -566,6 +606,9 @@
 
   function renderArchitecture() {
     const diagrams = state.manifest.items.filter((item) => item.type === "mermaid");
+    const visuals = state.manifest.visuals || {};
+    const industryProblems = findByPath("docs/43-api-management-industry-problems.md");
+    const kongMulticloud = findByPath("docs/44-kong-multicloud-study-roadmap.md");
     setPageTitle("Architecture");
     setActiveNav("architecture");
     main.innerHTML = `
@@ -578,6 +621,22 @@
           </div>
           <p class="intro-note">Every diagram remains editable Mermaid source. The browser renders it on demand and the source stays available for review.</p>
         </header>
+        ${industryProblems && kongMulticloud ? `
+        <section class="content-section" aria-labelledby="multicloud-strategy-title">
+          <div class="section-heading">
+            <span class="section-index">Strategy / problem to proof</span>
+            <h2 id="multicloud-strategy-title">A multicloud topology is only one layer of the decision.</h2>
+            <p>Use the enduring-problem taxonomy to define what the architecture must accomplish, then use the Kong roadmap to resolve plane placement, authority, failure domains, operations, economics, migration, and exit.</p>
+          </div>
+          <div class="decision-visual-grid">
+            ${visualPanel("A", "Architecture pressure", "What every candidate topology must answer", "The canonical frame prevents a clean control/data-plane picture from hiding consumer, governance, evidence, operating-model, or exit obligations.", chartMarkup("problemMatrix", visuals.industryProblems || {}, { title: "Enduring problem system", compact: true }))}
+            ${visualPanel("B", "Study sequence", "How the Kong hypothesis earns confidence", "Workstreams advance through prerequisite and exit gates; every card links back to the canonical cross-vendor problem taxonomy.", chartMarkup("studyRoadmap", visuals.kongMulticloud || {}, { title: "Kong multicloud study roadmap", compact: true }))}
+          </div>
+          <div class="hero-actions">
+            <a class="action-link is-primary" href="${itemHref(industryProblems)}">Open industry problems <span aria-hidden="true">↗</span></a>
+            <a class="action-link" href="${itemHref(kongMulticloud)}">Open Kong roadmap <span aria-hidden="true">↗</span></a>
+          </div>
+        </section>` : ""}
         <section class="content-section">
           <div class="section-heading">
             <span class="section-index">${String(diagrams.length).padStart(2, "0")} / Diagrams</span>
@@ -1172,6 +1231,34 @@
     svg.dataset.viewBoxPadded = "true";
   }
 
+  function measuredSvgPadding(svg, selector, margin = 12) {
+    const values = (svg.getAttribute("viewBox") || "").trim().split(/\s+/).map(Number);
+    const svgRect = svg.getBoundingClientRect();
+    if (
+      values.length !== 4
+      || values.some((value) => !Number.isFinite(value))
+      || svgRect.width <= 0
+      || svgRect.height <= 0
+    ) return null;
+    const contentRects = [...svg.querySelectorAll(selector)]
+      .map((node) => node.getBoundingClientRect())
+      .filter((rect) => rect.width > 0 || rect.height > 0);
+    if (!contentRects.length) return null;
+    const [, , viewWidth, viewHeight] = values;
+    const unitsPerPixelX = viewWidth / svgRect.width;
+    const unitsPerPixelY = viewHeight / svgRect.height;
+    const minLeft = Math.min(...contentRects.map((rect) => rect.left));
+    const maxRight = Math.max(...contentRects.map((rect) => rect.right));
+    const minTop = Math.min(...contentRects.map((rect) => rect.top));
+    const maxBottom = Math.max(...contentRects.map((rect) => rect.bottom));
+    return {
+      left: Math.max(0, margin - ((minLeft - svgRect.left) * unitsPerPixelX)),
+      right: Math.max(0, margin - ((svgRect.right - maxRight) * unitsPerPixelX)),
+      top: Math.max(0, margin - ((minTop - svgRect.top) * unitsPerPixelY)),
+      bottom: Math.max(0, margin - ((svgRect.bottom - maxBottom) * unitsPerPixelY)),
+    };
+  }
+
   function medianNumber(values, fallback) {
     if (!values.length) return fallback;
     const ordered = [...values].sort((left, right) => left - right);
@@ -1314,6 +1401,10 @@
         if (/^\s*xychart-beta\b/m.test(text)) {
           padSvgViewBox(svg, { left: 44, right: 12, top: 12, bottom: 18 });
         }
+        if (/^\s*pie\b/m.test(text)) {
+          const padding = measuredSvgPadding(svg, ".pieTitleText, .pieCircle, .slice, .legend", 12);
+          if (padding) padSvgViewBox(svg, padding);
+        }
         const namespace = "http://www.w3.org/2000/svg";
         const titleId = `${id}-title`;
         const descriptionId = `${id}-description`;
@@ -1450,6 +1541,18 @@
       case "sourceBalance": return chartMarkup("sourceBalance", visuals.sources || {}, options);
       case "pocStatus": return chartMarkup("pocStatus", visuals.poc || {}, options);
       case "roadmap": return chartMarkup("roadmap", visuals.roadmap || {}, options);
+      case "problemMatrix": return chartMarkup("problemMatrix", visuals.industryProblems || {}, { ...options, presentation: true });
+      case "studyRoadmap": {
+        const roadmap = visuals.kongMulticloud || {};
+        const ids = Array.isArray(slide.workstreamIds) ? new Set(slide.workstreamIds) : null;
+        const slicedRoadmap = {
+          ...roadmap,
+          workstreams: Array.isArray(roadmap.workstreams)
+            ? roadmap.workstreams.filter((workstream) => !ids || ids.has(workstream.id))
+            : [],
+        };
+        return chartMarkup("studyRoadmap", slicedRoadmap, { ...options, presentation: true });
+      }
       case "governance": return chartMarkup("governance", visuals.governance || {}, options);
       case "recommendation": return chartMarkup("recommendation", visuals.review || {}, options);
       default: return "";
@@ -1519,9 +1622,11 @@
       ? " is-diagram"
       : slide.visual === "roadmap"
         ? " is-roadmap"
+        : slide.visual === "studyRoadmap"
+          ? " is-roadmap"
         : slide.visual === "sourceBalance"
           ? " is-matrix is-source-balance"
-        : ["statusMatrix", "recommendation", "governance"].includes(slide.visual)
+        : ["statusMatrix", "recommendation", "governance", "problemMatrix"].includes(slide.visual)
           ? " is-matrix"
           : "";
     document.body.classList.add("is-presenting");
@@ -1539,9 +1644,11 @@
             <span class="slide-counter">${audience ? `${escapeHtml(audience.shortLabel)} briefing · ` : ""}${String(index + 1).padStart(2, "0")} / ${String(slides.length).padStart(2, "0")}</span>
           </div>
           <aside class="slide-aside">
-            <div class="slide-metric"><strong>${escapeHtml(slide.metric)}</strong><span>${escapeHtml(slide.metricLabel)}</span></div>
-            ${audience ? `<div class="slide-audience-cue"><span>Close this room with</span><p>${escapeHtml(audience.action)}</p></div>` : ""}
-            <p class="slide-body">${escapeHtml(slide.body)}</p>
+            <div class="slide-aside-content">
+              <div class="slide-metric"><strong>${escapeHtml(slide.metric)}</strong><span>${escapeHtml(slide.metricLabel)}</span></div>
+              ${audience ? `<div class="slide-audience-cue"><span>Close this room with</span><p>${escapeHtml(audience.action)}</p></div>` : ""}
+              <p class="slide-body">${escapeHtml(slide.body)}</p>
+            </div>
             ${source ? `<a class="slide-source" href="${itemHref(source)}">Open supporting source <span aria-hidden="true">↗</span></a>` : ""}
           </aside>
         </article>

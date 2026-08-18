@@ -18,13 +18,20 @@ It complements the [assessment-to-decommission delivery roadmap](36-implementati
 8. Treat portal generation and deployment as technical publication controls, not proof of study maturity.
 9. Place canonical diagrams and charts inside the studies whose arguments they support; the Visual Atlas remains a secondary index.
 10. Apply the [principal content review](../reports/content-research-principal-review.md) and [remediation backlog](../reports/content-remediation-backlog.csv) as release-governance inputs.
+11. Organize new research around durable problems and common proof before creating candidate-specific roadmaps; a vendor roadmap may sequence evidence but cannot change symmetric gates or confer priority.
+
+## Problem-led and candidate-specific study roadmaps
+
+The [top-ten API-management industry-problem study](43-api-management-industry-problems.md) is the canonical P1–P10 taxonomy for the next research portfolio. It defines the recurring enterprise outcome, mechanism, failure signature, operating tension, non-fit condition and proof question independently of product selection.
+
+The [Kong long-term multicloud study roadmap](44-kong-multicloud-study-roadmap.md) is the first candidate-specific projection of that taxonomy. It separates Konnect with customer-hosted data planes, Dedicated Cloud Gateways, self-managed hybrid, KIC/Operator and bounded edge patterns; assigns workstreams, evidence owners, gates, stop rules and comparative counterfactuals; and remains a falsifiable sequencing hypothesis. Its K0–K4 labels are local checkpoints within the repository's Gate 0–4 assurance path. They cannot bypass exact-option resolution, equivalent alternative evidence, mandatory failures, independent review or the broader steering decision.
 
 ## Phased plan
 
 | Phase | Status | Primary outcome | Core deliverables | Exit gate |
 |---|---|---|---|---|
 | 0. Technical publication baseline | Complete | Searchable, reproducible publication shell | Sanitized public repository, GitHub Pages portal, source manifest, validation workflow, Mermaid gallery, six audience briefings, presentation mode | Main branch and Pages deployment pass technical validation; no editorial or decision-maturity claim is implied |
-| 1. Principal content baseline | Implemented; independent acceptance open | Substantive, contract-governed public study corpus | Principal-study standard and template, 39 deep studies, reference case and public failure casebook, symmetric dossiers, point-of-use figures, decision-grade protocols, machine-readable remediation workflow | Repository validators and independent principal review pass; material PCR findings are disposed with committed closure evidence—not merely marked complete |
+| 1. Principal content baseline | Implemented; independent acceptance open | Substantive, contract-governed public study corpus | Principal-study standard and template, 41 deep studies, reference case, public failure casebook, canonical industry-problem taxonomy, Kong multicloud study roadmap, symmetric dossiers, point-of-use figures, decision-grade protocols, machine-readable remediation workflow | Repository validators and independent principal review pass; material PCR findings are disposed with committed closure evidence—not merely marked complete |
 | 2. Gate-0 decision contract and calibration | Next | Organization-approved decision rules and representative inputs | Accountable sponsor/decision owner, scope/non-goals, bounded option catalog, Gate-1 resolution fields, mandatory gates, common-evidence/bounds/regret rules, calibrated journeys/inventory, evidence calendar, dissent and exception rights | Gate-0 ADR accepted; owners, capacity, representative inputs, evidence thresholds and stop rules are explicit |
 | 3. Option resolution and symmetric E1/E2 | Planned | Comparable, exact deployable option records | Edition/version/topology/region/entitlement/support bills of materials, source-to-criterion-to-option mapping, equivalent physical views, vendor answers, mandatory dispositions, source promotion/freshness | Every finalist candidate is an exact option; equivalent category coverage and mandatory-gate evidence support a down-select or removal |
 | 4. E3 proof, economics and operating model | Planned | Repeatable comparative behavior and fully allocated decision inputs | Equivalent environments and atomic protocols; security, failure, performance, portal, observability and migration result bundles; actual quotes; staffing/on-call/support/exit model; common-evidence, bounds, regret and sensitivity analysis | Gate 2 selects conditionally, requests targeted evidence or stops; no hard scenario is averaged into a preference score |
@@ -113,6 +120,7 @@ flowchart LR
 
 - Name the accountable sponsor, decision owner, evidence reviewers and restricted named-person map.
 - Calibrate RE-1 journeys, traffic, identity, network, data authority, recovery, inventory, staffing and economic inputs against observed organization evidence.
+- Accept, reorder or split the canonical P1–P10 problem taxonomy using observed consequence, prevalence and decision-leverage evidence; preserve the recorded rationale.
 - Approve bounded options, Gate-1 resolution fields, mandatory gates, category weights, common-evidence/bounds/regret rules, exceptions, dissent and stop conditions.
 - Capacity-load the action register and book vendor access, representative environments and cross-functional reviewers.
 
@@ -129,7 +137,7 @@ flowchart LR
 |---|---|---|
 | Decision governance | `adr/`, assumptions, risks, open questions | Named ownership, due dates, approval state, and decision calendar |
 | Requirements and scoring | `decision-matrix/` | Populated exact-option evidence ledger, common-evidence/category coverage, full-weight bounds, maximum regret, sensitivity and dissent report |
-| Research | `research/` | Decision-bearing source promotion, criterion linkage, freshness monitoring, entitlement/version tracking and archived evidence references |
+| Research | `research/`, [industry-problem taxonomy](43-api-management-industry-problems.md), [Kong multicloud study roadmap](44-kong-multicloud-study-roadmap.md) | Decision-bearing source promotion, problem-to-proof portfolio, candidate-specific workstreams without priority leakage, criterion linkage, freshness monitoring, entitlement/version tracking and archived evidence references |
 | Content architecture and editorial assurance | [Principal content review](../reports/content-research-principal-review.md), [remediation backlog](../reports/content-remediation-backlog.csv), `docs/`, `research/`, `reports/` | Independent acceptance of the implemented principal-study/figure contract and PCR closure with committed evidence |
 | Architecture | `architecture/`, target and transition documents | Vendor-neutral logical model plus candidate physical topologies and verified data flows |
 | PoC and pilots | `poc/`, `templates/poc-result-template.md` | Equivalent execution of the 28 atomic protocol cases, hard-gate dispositions, durable result artifacts and automated evidence summaries |

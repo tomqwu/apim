@@ -1,6 +1,6 @@
 # Principal content-depth remediation: release-candidate review
 
-- **Review date:** 2026-08-17
+- **Review date:** 2026-08-18
 - **Baseline:** commit `75c3459f4735f4fad152e227858bcc7012227ea6`
 - **Review target:** the post-remediation repository state prepared for the next `main` release
 - **Scope:** decision spine, numbered studies, vendor research, comparative pillars, reference cases, protocols, inline figures, source boundary, roadmaps, audience routes, site and presentation
@@ -9,7 +9,7 @@
 
 ## Principal verdict
 
-The repository has moved from an outline-heavy publication shell to a substantive, governed content baseline. The baseline review found a median numbered-document length of 148 words, 32 of 41 numbered documents below 300 words, no inline figures or point-of-claim external sources in docs 10–32, 647 words across the eight comparison pages, and 35–39-word vendor research stubs. The release candidate now contains 39 contract-enforced principal studies with 130,498 words, three decision-grade protocols with 10,397 words, deep symmetric dossiers, a synthetic enterprise case, public failure cases, and one visible figure contract for every inline Mermaid.
+The repository has moved from an outline-heavy publication shell to a substantive, governed content baseline. The baseline review found a median numbered-document length of 148 words, 32 of 41 numbered documents below 300 words, no inline figures or point-of-claim external sources in docs 10–32, 647 words across the eight comparison pages, and 35–39-word vendor research stubs. The release candidate now contains 41 contract-enforced principal studies with 150,334 words, three decision-grade protocols with 10,397 words, deep symmetric dossiers, a synthetic enterprise case, public failure cases, a canonical top-ten industry-problem taxonomy, a Kong multicloud study roadmap, and one visible figure contract for every inline Mermaid.
 
 That is a material editorial and methodological improvement. It is **not** product evidence. All 120 criteria remain unknown, the seven entries remain bounded archetypes rather than exact purchasable options, and no finalist has completed the 28 atomic E3 protocol cases. The defensible decision remains: accept the reusable evidence system for continued work, approve Gate 0 if organizational authority and inputs are available, and do not select a platform.
 
@@ -17,14 +17,14 @@ That is a material editorial and methodological improvement. It is **not** produ
 
 | Measure | Baseline | Release candidate | Decision interpretation |
 |---|---:|---:|---|
-| Principal-study contract | absent | 39 studies / 130,498 words | structural and editorial depth is now enforceable; word count alone is not evidence |
+| Principal-study contract | absent | 41 studies / 150,334 words | structural and editorial depth is now enforceable; word count alone is not evidence |
 | Numbered-document depth | median 148 words; 32/41 below 300 | every marked principal study ≥900 words; current total above | outline-level publication risk materially reduced |
 | Decision-grade protocols | absent | 3 protocols / 10,397 words | executable design exists; all candidate × atomic-case states still begin not run |
 | Atomic comparative cases | implicit/aggregate | 12 real-world + 7 portal + 9 observability = 28 | protocol count must never be reported as execution progress |
 | Inline principal-study figures | sparse and concentrated | at least one per principal study; every Mermaid has a visible contract | visuals now carry argument, scope, provenance, accessible equivalent, interpretation and limitation |
 | Registered official sources | 27 | 40 | register growth does not equal criterion coverage |
 | Finding register | 14 findings / 15 source IDs used | 24 findings / 28 source IDs used | decision-bearing chain is stronger but remains incomplete |
-| Wider article citations | not inventoried | 211 unique; 35 registered and 176 contextual | contextual links are non-scoring until promoted to a mapped finding |
+| Wider article citations | not inventoried | 236 unique; 36 registered and 200 contextual | contextual links are non-scoring until promoted to a mapped finding |
 | Criteria / mandatory gates | 120 / 30, all unknown | unchanged | no ranking is supportable |
 | Candidate definition | 7 mixed “exact variants” | 7 bounded archetypes; 0 resolved exact options | Gate-1 bill of materials is required before scoring |
 | PoC register | 14 items; 5 automated / 9 not run | 16 items; 5 automated baseline / 11 not run | aggregate register state remains modest local evidence |
@@ -42,7 +42,7 @@ The release candidate applies that pattern through answer-first studies, referen
 
 ### 1. Deep, symmetric study corpus
 
-Docs 00–36 and 41–42 now use the principal-study contract. Kong, Azure API Management, Apigee, MuleSoft and secondary-candidate material uses bounded archetypes, topology/state/ownership analysis, failure modes, counter-evidence, non-fit conditions, official sources, proof plans and Gate-1 blockers. Docs 25–31 use one comparative frame rather than candidate-specific checklists.
+Docs 00–36 and 41–44 now use the principal-study contract. Kong, Azure API Management, Apigee, MuleSoft and secondary-candidate material uses bounded archetypes, topology/state/ownership analysis, failure modes, counter-evidence, non-fit conditions, official sources, proof plans and Gate-1 blockers. Docs 25–31 use one comparative frame rather than candidate-specific checklists. Doc 43 adds a canonical P1–P10 problem portfolio across vendors; doc 44 projects it into bounded Kong operating models and evidence workstreams without creating a second taxonomy or conferring execution priority.
 
 ### 2. Real-world decision context
 
@@ -62,7 +62,7 @@ Each inline Mermaid is adjacent to a stable unique ID/title, depicted scope, exc
 
 ### 6. Source-promotion boundary
 
-The [source-coverage report](source-coverage.md) and [machine-readable usage ledger](source-coverage.csv) scan 64 article files and fail CI when citation state drifts. Registered citations may support decision-bearing findings only through the finding chain; 176 contextual URLs remain explanation-only until an evidence owner promotes the claims that can change a gate, score or recommendation.
+The [source-coverage report](source-coverage.md) and [machine-readable usage ledger](source-coverage.csv) scan 66 article files and fail CI when citation state drifts. Registered citations may support decision-bearing findings only through the finding chain; 200 contextual URLs remain explanation-only until an evidence owner promotes the claims that can change a gate, score or recommendation.
 
 ### 7. One dependency-aware roadmap
 
@@ -76,13 +76,13 @@ Six role paths retain one evidence base. The generic platform-team path is symme
 
 | Control | Current result | What the result proves | What it does not prove |
 |---|---|---|---|
-| Principal-study/protocol validator | Pass: 39 studies and 3 protocols | minimum depth, required sections, tables, point-of-use figure contracts and evidence language exist | correctness, organization acceptance or observed candidate behavior |
+| Principal-study/protocol validator | Pass: 41 studies and 3 protocols | minimum depth, required sections, tables, point-of-use figure contracts and evidence language exist | correctness, organization acceptance or observed candidate behavior |
 | Criteria/workshop/backlog validator | Pass: 120 / 180 / 68 | canonical counts and PCR narrative/CSV parity | gate quality or PCR closure |
 | Source and finding validator | Pass: 40 / 24 / 28 directly used | registered IDs, URLs, dates and finding references resolve | freshness/liveness or coverage of all decision claims |
-| Citation-coverage validator | Pass: 64 files / 211 URLs / 176 contextual | contextual promotion debt is explicit and drift-controlled | contextual evidence may influence a decision |
+| Citation-coverage validator | Pass: 66 files / 236 URLs / 200 contextual | contextual promotion debt is explicit and drift-controlled | contextual evidence may influence a decision |
 | Relative-link and visual-source validators | Pass in release-candidate checks | repository navigation and canonical visual mirrors resolve | external link permanence or visual truth |
 | Static site build and syntax | Pass in release-candidate checks | the content index and client assets compile/build | browser accessibility, projection legibility or Pages deployment |
-| Independent browser/release QA | Pass on the release-candidate tree: 47 presentation states at 1920×1080, 1440×900 and 390×844; all six affected XY charts; seven-row landscape; card-summary leakage check | room/laptop/mobile content remains readable without clipping or horizontal overflow; charts retain their labels; metadata comments do not leak into cards | content correctness, organization acceptance, observed candidate behavior or future-browser behavior |
+| Independent browser/release QA | Pass on the release-candidate tree: 68 configured presentation states; the new problem and two-part Kong-roadmap slides at 1920×1080, 1440×900, 1024×768, 760×820 and 390×844; all six affected XY charts; IP-6 pie bounds; seven-row landscape; card-summary leakage check | room/laptop/tablet/mobile content remains readable without painted-content clipping or horizontal overflow; all 13 roadmap workstreams and chart labels remain visible; metadata comments do not leak into cards | content correctness, organization acceptance, observed candidate behavior or future-browser behavior |
 
 ## Remaining recommendations and exit evidence
 
