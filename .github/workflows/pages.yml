@@ -7,8 +7,6 @@ on:
 
 permissions:
   contents: read
-  pages: write
-  id-token: write
 
 concurrency:
   group: pages
@@ -16,19 +14,34 @@ concurrency:
 
 jobs:
   build:
+    if: ${{ github.ref == 'refs/heads/main' }}
     runs-on: ubuntu-latest
+    timeout-minutes: 20
+    permissions:
+      contents: read
+    env:
+      SOURCE_REVISION: ${{ github.sha }}
+    outputs:
+      manifest_sha256: ${{ steps.manifest.outputs.manifest_sha256 }}
     steps:
       - name: Check out repository
         uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7
+        with:
+          persist-credentials: false
       - name: Set up Python
         uses: actions/setup-python@ece7cb06caefa5fff74198d8649806c4678c61a1 # v6
         with:
           python-version: "3.12"
-      - name: Build and verify site
-        run: make validate-site
-      - name: Configure Pages
-        if: ${{ vars.PAGES_ENABLED == 'true' }}
-        uses: actions/configure-pages@45bfe0192ca1faeb007ade9deae92b16b8254a0d # v6
+      - name: Install validation dependencies
+        run: pip install --disable-pip-version-check -r requirements-validation.txt
+      - name: Run the complete repository validation
+        run: make validate
+      - name: Verify deterministic site provenance
+        id: provenance
+        run: python3 -I scripts/validate_site_manifest.py --expected-revision "$SOURCE_REVISION" --require-clean
+      - name: Record the exact deployment manifest
+        id: manifest
+        run: sha256sum _site/content-manifest.json | sed 's/ .*//' | sed 's/^/manifest_sha256=/' >> "$GITHUB_OUTPUT"
       - name: Upload Pages artifact
         if: ${{ vars.PAGES_ENABLED == 'true' }}
         uses: actions/upload-pages-artifact@fc324d3547104276b827a68afc52ff2a11cc49c9 # v5
@@ -36,13 +49,41 @@ jobs:
           path: _site
 
   deploy:
-    if: ${{ vars.PAGES_ENABLED == 'true' }}
+    if: ${{ github.ref == 'refs/heads/main' && vars.PAGES_ENABLED == 'true' }}
     needs: build
     runs-on: ubuntu-latest
+    timeout-minutes: 20
+    permissions:
+      contents: read
+      pages: write
+      id-token: write
+    env:
+      SOURCE_REVISION: ${{ github.sha }}
+      EXPECTED_MANIFEST_SHA256: ${{ needs.build.outputs.manifest_sha256 }}
     environment:
       name: github-pages
       url: ${{ steps.deployment.outputs.page_url }}
     steps:
+      - name: Check out verifier
+        uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7
+        with:
+          persist-credentials: false
+      - name: Set up Python
+        uses: actions/setup-python@ece7cb06caefa5fff74198d8649806c4678c61a1 # v6
+        with:
+          python-version: "3.12"
+      - name: Configure Pages
+        uses: actions/configure-pages@45bfe0192ca1faeb007ade9deae92b16b8254a0d # v6
       - name: Deploy to GitHub Pages
         id: deployment
         uses: actions/deploy-pages@cd2ce8fcbc39b97be8ca5fce6e763baed58fa128 # v5
+      - name: Verify the deployed revision and every published byte
+        env:
+          PAGE_URL: ${{ steps.deployment.outputs.page_url }}
+        run: >-
+          python3 -I scripts/verify_pages.py
+          --base-url "$PAGE_URL"
+          --expected-revision "$SOURCE_REVISION"
+          --expected-manifest-sha256 "$EXPECTED_MANIFEST_SHA256"
+          --study-path docs/45-api-management-industry-practices.md
+          --study-path docs/46-study-publication-workflow.md

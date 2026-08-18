@@ -6,7 +6,7 @@ A living collection of API management studies, research, architecture, platform 
 
 > **Study maturity:** the repository now has an implemented principal-content baseline—42 contract-enforced studies, deep symmetric dossiers, a reference case, a public failure casebook, a problem-led research portfolio, an industry-practice and realistic-scenario guide, three decision-grade protocols, and point-of-use figure contracts. Independent content acceptance remains open, and no protocol depth substitutes for observed candidate evidence. The [principal content review](reports/content-research-principal-review.md), [remediation backlog](reports/content-remediation-backlog.csv), [source-coverage report](reports/source-coverage.md), and [repository roadmap](docs/39-repository-roadmap.md) govern closure.
 
-**Live portal:** [API Management Studies](https://tomqwu.github.io/apim/) · [Top 10 industry problems](docs/43-api-management-industry-problems.md) · [Industry practices and realistic cases](docs/45-api-management-industry-practices.md) · [Kong multicloud study roadmap](docs/44-kong-multicloud-study-roadmap.md) · [Enterprise reference case](docs/41-enterprise-reference-case.md) · [Public failure casebook](docs/42-public-failure-casebook.md) · [Audience briefings](https://tomqwu.github.io/apim/#/audiences) · [Visual Atlas](https://tomqwu.github.io/apim/#/visuals) · [Baseline principal review](reports/content-research-principal-review.md) · [Post-remediation review](reports/content-depth-wave-1.md) · [Content backlog](reports/content-remediation-backlog.csv) · [Decision-assurance review](reports/methodology-review.md) · [Evidence state](reports/evidence-state.md) · [Repository roadmap](docs/39-repository-roadmap.md)
+**Live portal:** [API Management Studies](https://tomqwu.github.io/apim/) · [Top 10 industry problems](docs/43-api-management-industry-problems.md) · [Industry practices and realistic cases](docs/45-api-management-industry-practices.md) · [Kong multicloud study roadmap](docs/44-kong-multicloud-study-roadmap.md) · [Study publication workflow](docs/46-study-publication-workflow.md) · [Enterprise reference case](docs/41-enterprise-reference-case.md) · [Public failure casebook](docs/42-public-failure-casebook.md) · [Audience briefings](https://tomqwu.github.io/apim/#/audiences) · [Visual Atlas](https://tomqwu.github.io/apim/#/visuals) · [Baseline principal review](reports/content-research-principal-review.md) · [Post-remediation review](reports/content-depth-wave-1.md) · [Content backlog](reports/content-remediation-backlog.csv) · [Decision-assurance review](reports/methodology-review.md) · [Evidence state](reports/evidence-state.md) · [Repository roadmap](docs/39-repository-roadmap.md)
 
 ## Decision statement
 
@@ -36,6 +36,7 @@ Select the API management and gateway architecture that best supports a Kubernet
 | [`adr/`](adr/README.md) | Architecture decision records; hypotheses are not silently promoted to decisions |
 | [`templates/`](templates/README.md) | Reusable collection and governance templates |
 | [`reports/`](reports/content-research-principal-review.md) | Principal content review and backlog, decision-assurance review, evidence state, table-experience review, delivery inventory, and reproducible validation record |
+| [`.agents/skills/publish-api-study/`](.agents/skills/publish-api-study/SKILL.md) | Repo-scoped Codex workflow for sanitized intake, docs-first research, site and presentation projection, independent review, pull-request publication, and live Pages verification |
 
 Substantive articles use the [principal study standard](docs/STUDY-STANDARD.md) and [study template](templates/principal-study-template.md). The standard requires a real decision chain, bounded option scope with Gate-1 resolution blockers, mechanism and failure analysis, point-of-use evidence, scenario depth, inline figure contracts, falsification, and limitations; longer prose alone does not satisfy it.
 
@@ -61,7 +62,44 @@ make kind-down
 Static checks do not require a cluster:
 
 ```bash
+python3.12 -I -m venv .venv
+.venv/bin/python -I -m pip install --disable-pip-version-check -r requirements-validation.txt
+export PATH="$PWD/.venv/bin:$PATH"
 make validate
+```
+
+The validation dependency graph is fully pinned. Missing semantic OpenAPI or YAML parsers fail closed; fallback parsing cannot produce a publication pass.
+
+## Publish a new study or guide
+
+New chat input, files, URLs, research, incident evidence, and PoC results enter through the [study publication workflow](docs/46-study-publication-workflow.md). Use the repository skill so a future Codex task applies the same public-safety, evidence, docs-first, visual, review, Git, and Pages controls:
+
+```text
+Use $publish-api-study to publish this input into the API Management Studies repository.
+```
+
+The deterministic helper creates a public-safe local checkpoint and validates each gate. The checkpoint is mutable and ignored by Git; its exact marker-delimited mirror in the pull-request body becomes the durable run record after a PR exists. Review and closure comments are evidence, not replacement state.
+
+```bash
+.venv/bin/python -I scripts/study_workflow.py new --slug example-study --title "Example study" --source-kind chat --requested-actions "research,edit,branch,commit,push,pull-request,merge,branch-cleanup,pages-verification" --request-summary "Publish a public-safe, evidence-bounded study update." --decision-question "What decision should this evidence change support?"
+.venv/bin/python -I scripts/study_workflow.py record --checkpoint .study-workflow/checkpoints/intake-YYYYMMDD-example-study.json --state FRAMED --change-class study --audience "Named decision audience" --scope-summary "Public-safe scope and exclusions." --delta-summary "Canonical and projected artifacts affected."
+.venv/bin/python -I scripts/study_workflow.py record --checkpoint .study-workflow/checkpoints/intake-YYYYMMDD-example-study.json --state RESEARCHED --evidence-reference "Public primary source or repository evidence path"
+# Author the canonical Markdown and inline figures first.
+.venv/bin/python -I scripts/study_workflow.py record --checkpoint .study-workflow/checkpoints/intake-YYYYMMDD-example-study.json --state AUTHORED --canonical-path docs/NN-example-study.md
+# Project that canon into the affected site, audience, and presentation surfaces.
+.venv/bin/python -I scripts/study_workflow.py record --checkpoint .study-workflow/checkpoints/intake-YYYYMMDD-example-study.json --state PROJECTED --derived-path '#/doc/docs-NN-example-study'
+export PATH="$PWD/.venv/bin:$PATH"
+make validate
+.venv/bin/python -I scripts/study_workflow.py record --checkpoint .study-workflow/checkpoints/intake-YYYYMMDD-example-study.json --local-validation pass
+.venv/bin/python -I scripts/study_workflow.py check --checkpoint .study-workflow/checkpoints/intake-YYYYMMDD-example-study.json --phase draft --base <40-character-base-SHA>
+```
+
+Canonical Markdown is authored before any site or slide work. The release then uses a short-lived `study/<slug>` branch, independent review, required PR checks, merge/branch cleanup, and deployed-manifest verification. See the [intake/checkpoint template](templates/study-intake-template.md) and [skill repository contract](.agents/skills/publish-api-study/references/repo-contract.md) for the exact state and acceptance model.
+
+If another task or clone no longer has the ignored checkpoint, restore it from the exact machine payload embedded in the existing PR rather than creating a second intake:
+
+```bash
+.venv/bin/python -I scripts/study_workflow.py resume --pr-number <number> --base <recorded-40-character-base-SHA> --requested-actions "<currently authorized actions exactly as recorded>"
 ```
 
 See [`poc/README.md`](poc/README.md) for test scope and limitations.

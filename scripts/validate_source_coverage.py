@@ -12,8 +12,16 @@ import sys
 from collections import Counter, defaultdict
 from urllib.parse import urlsplit, urlunsplit
 
+sys.path.insert(0, str(pathlib.Path(__file__).resolve().parent))
+from repository_inventory import InventoryError, candidate_files
+
 
 ROOT = pathlib.Path(__file__).resolve().parents[1]
+try:
+    CANDIDATE_FILES = candidate_files(ROOT)
+except InventoryError as exc:
+    print(f"ERROR: {exc}", file=sys.stderr)
+    raise SystemExit(1)
 REGISTER = ROOT / "research" / "sources.csv"
 REPORT_CSV = ROOT / "reports" / "source-coverage.csv"
 REPORT_MD = ROOT / "reports" / "source-coverage.md"
@@ -40,22 +48,19 @@ def normalize_url(raw: str) -> str:
 
 def article_paths() -> list[pathlib.Path]:
     paths: list[pathlib.Path] = []
-    paths.extend(sorted((ROOT / "docs").glob("[0-9][0-9]-*.md")))
-    paths.extend(sorted((ROOT / "poc").glob("*.md")))
-    paths.extend(
-        path
-        for path in sorted((ROOT / "research").glob("*.md"))
-        if path.name not in {"README.md", "findings.md"}
-    )
-    paths.extend(
-        path
-        for path in (
-            ROOT / "reports" / "methodology-review.md",
-            ROOT / "reports" / "evidence-state.md",
-        )
-        if path.exists()
-    )
-    return paths
+    for path in CANDIDATE_FILES:
+        if path.suffix.lower() != ".md":
+            continue
+        relative = path.relative_to(ROOT)
+        if relative.parts[:1] == ("docs",) and re.fullmatch(r"[0-9][0-9]-.*\.md", path.name):
+            paths.append(path)
+        elif relative.parts[:1] == ("poc",) and len(relative.parts) == 2:
+            paths.append(path)
+        elif relative.parts[:1] == ("research",) and len(relative.parts) == 2 and path.name not in {"README.md", "findings.md"}:
+            paths.append(path)
+        elif relative.as_posix() in {"reports/methodology-review.md", "reports/evidence-state.md"}:
+            paths.append(path)
+    return sorted(paths)
 
 
 def registered_sources() -> tuple[dict[str, str], str]:

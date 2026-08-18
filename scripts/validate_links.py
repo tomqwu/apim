@@ -4,16 +4,21 @@ import re
 import sys
 from urllib.parse import unquote
 
+sys.path.insert(0, str(pathlib.Path(__file__).resolve().parent))
+from repository_inventory import InventoryError, files_with_suffixes
+
 
 root = pathlib.Path(__file__).resolve().parents[1]
 pattern = re.compile(r"!?\[[^\]]*\]\(([^)]+)\)")
 errors = []
 checked = 0
-excluded_directories = {".git", "_site", "node_modules", ".venv", "venv"}
+try:
+    documents = files_with_suffixes(root, {".md"})
+except InventoryError as exc:
+    print(f"ERROR: {exc}", file=sys.stderr)
+    raise SystemExit(1)
 
-for document in root.rglob("*.md"):
-    if excluded_directories.intersection(document.relative_to(root).parts):
-        continue
+for document in documents:
     text = document.read_text(encoding="utf-8")
     for raw_target in pattern.findall(text):
         target = raw_target.strip().strip("<>").split()[0]

@@ -8,23 +8,42 @@ on:
 permissions:
   contents: read
 
+concurrency:
+  group: validate-${{ github.workflow }}-${{ github.ref }}
+  cancel-in-progress: ${{ github.event_name == 'pull_request' }}
+
 jobs:
   static-validation:
     runs-on: ubuntu-latest
+    timeout-minutes: 15
     steps:
-      - uses: actions/checkout@fbc6f3992d24b796d5a048ff273f7fcc4a7b6c09 # v5
-      - uses: actions/setup-python@ece7cb06caefa5fff74198d8649806c4678c61a1 # v6
+      - name: Check out repository without push credentials
+        uses: actions/checkout@fbc6f3992d24b796d5a048ff273f7fcc4a7b6c09 # v5
+        with:
+          persist-credentials: false
+      - name: Set up Python
+        uses: actions/setup-python@ece7cb06caefa5fff74198d8649806c4678c61a1 # v6
         with:
           python-version: "3.12"
-      - run: pip install pyyaml openapi-spec-validator
-      - run: make validate
+      - name: Install validation dependencies
+        run: pip install --disable-pip-version-check -r requirements-validation.txt
+      - name: Run complete repository validation
+        run: make validate
 
   docker-smoke:
     runs-on: ubuntu-latest
+    timeout-minutes: 20
     steps:
-      - uses: actions/checkout@fbc6f3992d24b796d5a048ff273f7fcc4a7b6c09 # v5
-      - run: make poc-up
-      - run: make smoke
-      - run: make rate-limit-test
-      - if: always()
+      - name: Check out repository without push credentials
+        uses: actions/checkout@fbc6f3992d24b796d5a048ff273f7fcc4a7b6c09 # v5
+        with:
+          persist-credentials: false
+      - name: Start PoC services
+        run: make poc-up
+      - name: Run functional smoke tests
+        run: make smoke
+      - name: Run traffic-control test
+        run: make rate-limit-test
+      - name: Stop PoC services
+        if: always()
         run: make poc-down

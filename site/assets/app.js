@@ -1202,30 +1202,57 @@
     return lines.length ? lines : ["Diagram node"];
   }
 
+  function htmlSvgLabelText(root) {
+    const chunks = [];
+    const boundaries = new Set(["br", "div", "p", "li", "section"]);
+    const visit = (node) => {
+      if (node.nodeType === Node.TEXT_NODE) {
+        chunks.push(node.nodeValue || "");
+        return;
+      }
+      const name = String(node.localName || node.nodeName || "").toLowerCase();
+      const boundary = boundaries.has(name);
+      if (boundary) chunks.push(" ");
+      [...node.childNodes].forEach(visit);
+      if (boundary) chunks.push(" ");
+    };
+    visit(root);
+    return chunks.join("").replace(/\s+/g, " ").trim();
+  }
+
   function replaceHtmlSvgLabels(svgMarkup) {
     const namespace = "http://www.w3.org/2000/svg";
-    const documentNode = new DOMParser().parseFromString(svgMarkup, "image/svg+xml");
-    if (documentNode.querySelector("parsererror")) return svgMarkup;
-    [...documentNode.getElementsByTagName("foreignObject")].forEach((foreignObject) => {
-      const width = Number.parseFloat(foreignObject.getAttribute("width")) || 200;
-      const height = Number.parseFloat(foreignObject.getAttribute("height")) || 48;
-      const lines = wrapSvgLabel(foreignObject.textContent, Math.max(12, Math.floor(width / 7.2)));
-      const text = documentNode.createElementNS(namespace, "text");
-      text.setAttribute("class", "mermaid-svg-label");
-      text.setAttribute("x", String(width / 2));
-      text.setAttribute("y", String(height / 2));
-      text.setAttribute("text-anchor", "middle");
-      text.setAttribute("dominant-baseline", "central");
-      lines.forEach((line, index) => {
-        const tspan = documentNode.createElementNS(namespace, "tspan");
-        tspan.setAttribute("x", String(width / 2));
-        tspan.setAttribute("dy", index === 0 ? `${-0.55 * (lines.length - 1)}em` : "1.1em");
-        tspan.textContent = line;
-        text.appendChild(tspan);
+    const template = document.createElement("template");
+    template.innerHTML = String(svgMarkup || "").trim();
+    const svg = template.content.querySelector("svg");
+    if (!svg) return svgMarkup;
+    // Mermaid currently emits HTML-backed labels even when flowchart
+    // `htmlLabels` is disabled. XML tag lookup is case-sensitive, while the
+    // emitted spelling has varied between Mermaid/browser combinations. Find
+    // the element by local name so every variant is converted to SVG text
+    // before DOMPurify removes foreign content.
+    [...svg.querySelectorAll("*")]
+      .filter((element) => String(element.localName || element.tagName || "").toLowerCase() === "foreignobject")
+      .forEach((foreignObject) => {
+        const width = Number.parseFloat(foreignObject.getAttribute("width")) || 200;
+        const height = Number.parseFloat(foreignObject.getAttribute("height")) || 48;
+        const lines = wrapSvgLabel(htmlSvgLabelText(foreignObject), Math.max(12, Math.floor(width / 7.2)));
+        const text = document.createElementNS(namespace, "text");
+        text.setAttribute("class", "mermaid-svg-label");
+        text.setAttribute("x", String(width / 2));
+        text.setAttribute("y", String(height / 2));
+        text.setAttribute("text-anchor", "middle");
+        text.setAttribute("dominant-baseline", "central");
+        lines.forEach((line, index) => {
+          const tspan = document.createElementNS(namespace, "tspan");
+          tspan.setAttribute("x", String(width / 2));
+          tspan.setAttribute("dy", index === 0 ? `${-0.55 * (lines.length - 1)}em` : "1.1em");
+          tspan.textContent = line;
+          text.appendChild(tspan);
+        });
+        foreignObject.replaceWith(text);
       });
-      foreignObject.replaceWith(text);
-    });
-    return new XMLSerializer().serializeToString(documentNode.documentElement);
+    return svg.outerHTML;
   }
 
   function padSvgViewBox(svg, padding = {}) {
@@ -1405,6 +1432,10 @@
       target.innerHTML = window.DOMPurify ? window.DOMPurify.sanitize(textLabelSvg, { USE_PROFILES: { svg: true, svgFilters: true } }) : textLabelSvg;
       const svg = target.querySelector("svg");
       if (svg) {
+        const blankNodes = [...svg.querySelectorAll("g.node")].filter((node) => !node.textContent.trim());
+        if (blankNodes.length) {
+          throw new Error(`Rendered diagram is missing ${blankNodes.length} node label${blankNodes.length === 1 ? "" : "s"}.`);
+        }
         // Mermaid's xychart renderer positions the rotated y-axis title just
         // outside its own root viewBox. Give that chart family a real canvas
         // margin so the label remains visible in scroll containers, screenshots,

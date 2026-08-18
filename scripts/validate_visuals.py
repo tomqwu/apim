@@ -9,9 +9,20 @@ import re
 import sys
 from collections import Counter
 
+sys.path.insert(0, str(pathlib.Path(__file__).resolve().parent))
+from repository_inventory import InventoryError, candidate_files
+
 
 ROOT = pathlib.Path(__file__).resolve().parents[1]
 ARCHITECTURE = ROOT / "architecture"
+
+
+try:
+    CANDIDATE_FILES = candidate_files(ROOT)
+except InventoryError as exc:
+    print(f"ERROR: {exc}", file=sys.stderr)
+    raise SystemExit(1)
+CANDIDATE_FILE_SET = set(CANDIDATE_FILES)
 
 
 def table_rows(path: pathlib.Path, required_header: str) -> list[dict[str, str]]:
@@ -65,12 +76,17 @@ def validate_diagram_mirrors(errors: list[str]) -> int:
         flags=re.DOTALL,
     )
     mirrors: dict[str, list[tuple[pathlib.Path, str]]] = {}
-    for markdown in sorted(ARCHITECTURE.glob("*.md")):
+    for markdown in sorted(path for path in CANDIDATE_FILES if path.parent == ARCHITECTURE and path.suffix.lower() == ".md"):
         text = markdown.read_text(encoding="utf-8")
         for source, block in pattern.findall(text):
             mirrors.setdefault(source, []).append((markdown, block.strip()))
 
-    expected = {path.relative_to(ARCHITECTURE).as_posix() for path in (ARCHITECTURE / "diagrams").glob("*.mmd")}
+    diagram_root = ARCHITECTURE / "diagrams"
+    expected = {
+        path.relative_to(ARCHITECTURE).as_posix()
+        for path in CANDIDATE_FILES
+        if path.parent == diagram_root and path.suffix.lower() == ".mmd"
+    }
     actual = set(mirrors)
     for source in sorted(expected - actual):
         errors.append(f"architecture diagram has no Markdown mirror: {source}")
@@ -83,7 +99,7 @@ def validate_diagram_mirrors(errors: list[str]) -> int:
             continue
         markdown, block = locations[0]
         source_path = ARCHITECTURE / source
-        if not source_path.exists():
+        if source_path not in CANDIDATE_FILE_SET:
             continue
         canonical = source_path.read_text(encoding="utf-8").strip()
         if block != canonical:
@@ -97,15 +113,12 @@ def validate_diagram_aliases(errors: list[str]) -> int:
         flags=re.DOTALL,
     )
     count = 0
-    for markdown in sorted(ROOT.rglob("*.md")):
-        relative = markdown.relative_to(ROOT)
-        if relative.parts and relative.parts[0] in {".git", "_site"}:
-            continue
+    for markdown in sorted(path for path in CANDIDATE_FILES if path.suffix.lower() == ".md"):
         text = markdown.read_text(encoding="utf-8")
         for source, block in pattern.findall(text):
             count += 1
             source_path = (markdown.parent / source).resolve()
-            if not source_path.is_relative_to(ROOT) or not source_path.exists():
+            if not source_path.is_relative_to(ROOT) or source_path not in CANDIDATE_FILE_SET:
                 errors.append(f"diagram alias references a missing source: {markdown.relative_to(ROOT)} -> {source}")
                 continue
             canonical = source_path.read_text(encoding="utf-8").strip()

@@ -4,6 +4,7 @@ Reusable, synthetic-data-safe templates for architecture decisions, workshops, r
 
 | Template | Use |
 |---|---|
+| [Study publication intake/checkpoint](study-intake-template.md) | Frame a public-safe change and mirror its mutable candidate/review/CI/merge/Pages checkpoint outside the reviewed tree |
 | [Principal study](principal-study-template.md) | Build a decision-bearing study with explicit scenario, mechanisms, evidence, inline figures, failure modes, falsification, and limitations |
 | [ADR](adr-template.md) | Record options, evidence, decision, conditions, and review date |
 | [Workshop](workshop-template.md) | Frame outcomes, participants, evidence, and actions |
