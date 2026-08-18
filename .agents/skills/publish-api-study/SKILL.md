@@ -13,10 +13,18 @@ Publish one coherent evidence change from intake through the live site. Keep Mar
 2. Read `references/repo-contract.md` completely.
 3. Read `docs/STUDY-STANDARD.md` and the current repository `AGENTS.md` completely.
 4. Inspect the authorized mutation scope, working tree, current branch, upstream, open PRs, and current validation/Pages state. If the request is review-only, do not create files, branches, commits, or GitHub state.
-5. For an authorized publication, fetch `origin/main`, record its full commit ID, create `study/<public-safe-slug>` from that immutable base before the first tracked write, and create or resume the local checkpoint with:
+5. Bootstrap the ignored, pinned validator environment before invoking the workflow. This local preflight is not a tracked publication write:
 
    ```sh
-   python3 scripts/study_workflow.py new \
+   test -x .venv/bin/python || python3.12 -I -m venv .venv
+   .venv/bin/python -I -m pip install --disable-pip-version-check -r requirements-validation.txt
+   export PATH="$PWD/.venv/bin:$PATH"
+   ```
+
+6. For an authorized publication, fetch `origin/main`, record its full commit ID, create `study/<public-safe-slug>` from that immutable base before the first tracked write, and create or resume the local checkpoint with:
+
+   ```sh
+   .venv/bin/python -I scripts/study_workflow.py new \
      --slug <slug> \
      --title <title> \
      --source-kind <chat|file|url|research|poc|repository> \
@@ -25,7 +33,7 @@ Publish one coherent evidence change from intake through the live site. Keep Mar
      --decision-question "<decision this publication should support>"
    ```
 
-   The command checks the intended intake ID across all GitHub pull-request states before creating the branch, creates an ignored schema-versioned checkpoint under `.study-workflow/checkpoints/`, and, when requested, freezes a public-safe sections-1–9 specification under `workflow/intakes/`. If the intake, branch, or PR already exists, validate and reuse it. When the local ignored record is absent, restore the complete checkpoint embedded in the PR with `study_workflow.py resume --pr-number <number> --base <recorded-SHA> --requested-actions "<current exact authority>"`; never create a parallel record. Keep the intake branch linear—do not merge another branch into it—so every reviewed byte is attributable to one parent.
+   The command checks the intended intake ID across all GitHub pull-request states before creating the branch, creates an ignored schema-versioned checkpoint under `.study-workflow/checkpoints/`, and, when requested, freezes a public-safe sections-1–9 specification under `workflow/intakes/`. If the intake, branch, or PR already exists, validate and reuse it. When the local ignored record is absent, restore the complete checkpoint embedded in the PR body with `.venv/bin/python -I scripts/study_workflow.py resume --pr-number <number> --base <recorded-SHA> --requested-actions "<current exact authority>"`; never create a parallel record. Keep the intake branch linear—do not merge another branch into it—so every reviewed byte is attributable to one parent.
 
 ## Treat input as evidence
 
@@ -96,7 +104,7 @@ Update every applicable artifact, not all artifacts mechanically:
 - source/finding registers and generated source-coverage reports;
 - delivery, methodology, content-depth, and validation reports;
 - study-prefix/count validators and manifest assertions;
-- immutable intake-spec status where useful, plus the external/PR operational checkpoint containing evidence links, reviewer result, commit, PR, and live verification.
+- immutable intake-spec status where useful, plus the exact PR-body operational checkpoint containing evidence links, reviewer result, commit, PR, and live verification.
 
 Recompute counts from validators. Never hand-maintain a stale number.
 
@@ -105,10 +113,10 @@ Recompute counts from validators. Never hand-maintain a stale number.
 Advance the checkpoint through the evidence-producing states one step at a time. Use public-safe values specific to the intake; the following is the command shape, not content to copy literally:
 
 ```sh
-python3 scripts/study_workflow.py record --checkpoint <checkpoint> --state FRAMED --change-class <study|evidence|guide|projection|remediation|workflow> --audience "<decision audience>" --scope-summary "<scope and exclusions>" --delta-summary "<canonical and derived impact>"
-python3 scripts/study_workflow.py record --checkpoint <checkpoint> --state RESEARCHED --evidence-reference "<public primary source or repository evidence path>"
-python3 scripts/study_workflow.py record --checkpoint <checkpoint> --state AUTHORED --canonical-path <canonical-repository-path>
-python3 scripts/study_workflow.py record --checkpoint <checkpoint> --state PROJECTED --derived-path <site-route-or-derived-repository-path>
+.venv/bin/python -I scripts/study_workflow.py record --checkpoint <checkpoint> --state FRAMED --change-class <study|evidence|guide|projection|remediation|workflow> --audience "<decision audience>" --scope-summary "<scope and exclusions>" --delta-summary "<canonical and derived impact>"
+.venv/bin/python -I scripts/study_workflow.py record --checkpoint <checkpoint> --state RESEARCHED --evidence-reference "<public primary source or repository evidence path>"
+.venv/bin/python -I scripts/study_workflow.py record --checkpoint <checkpoint> --state AUTHORED --canonical-path <canonical-repository-path>
+.venv/bin/python -I scripts/study_workflow.py record --checkpoint <checkpoint> --state PROJECTED --derived-path <site-route-or-derived-repository-path>
 ```
 
 Do not record a state until its artifact exists and its exit evidence is true. `record` rejects skipped transitions and missing prerequisites.
@@ -118,22 +126,22 @@ If authority changes, replace it explicitly with `record --requested-actions ...
 Run local controls, record the result in the ignored checkpoint, and pass the draft gate before committing:
 
 ```sh
-test -x .venv/bin/python || python3.12 -m venv .venv
-.venv/bin/python -m pip install --disable-pip-version-check -r requirements-validation.txt
+test -x .venv/bin/python || python3.12 -I -m venv .venv
+.venv/bin/python -I -m pip install --disable-pip-version-check -r requirements-validation.txt
 export PATH="$PWD/.venv/bin:$PATH"
 make validate
 git diff --check
-python3 scripts/study_workflow.py record \
+.venv/bin/python -I scripts/study_workflow.py record \
   --checkpoint .study-workflow/checkpoints/<intake>.json \
   --local-validation pass
-python3 scripts/study_workflow.py check \
+.venv/bin/python -I scripts/study_workflow.py check \
   --checkpoint .study-workflow/checkpoints/<intake>.json \
   --phase draft \
   --base <recorded-40-character-base-SHA>
 ```
 
 Do not record `pass` when required dependencies are missing or a validator reports a fallback/skip. The pinned Python 3.12 environment is part of the local release evidence.
-The validators use the Git candidate inventory: tracked and non-ignored untracked regular files are checked, ignored local evidence is not traversed, and any public symlink fails before its target is read.
+The validators use the Git candidate inventory: tracked and non-ignored untracked regular files are checked, ignored local evidence is not traversed, and percent/control paths, symlinks, gitlinks/submodules, and every other non-regular tracked mode fail before content is read.
 Recording `--local-validation pass` stores a deterministic digest of the candidate source tree. The draft and release gates reject any later byte or executable-mode change until validation is rerun and a new digest is recorded.
 The draft gate reruns `make validate`; do not replace that gate with a manually asserted checkpoint value.
 
@@ -148,10 +156,20 @@ Commit and push the candidate, open the draft PR, then require an independent re
 
 Fix all P0/P1 findings. Dispose or record every P2 before release. Rebuild and rerun the exact failing geometry after every visual correction.
 
-After opening the draft PR, record `CANDIDATE` with its number, URL, candidate SHA, and PR-head SHA. Replace the PR marker block with the exact rendered checkpoint, then rerun `check --phase draft`; this authenticates the real PR before it is handed to a reviewer. After the independent reviewer accepts that pushed SHA, record `REVIEWED` with the accepted SHA and same-PR review-comment URL. After required checks pass, record `VALIDATED` with the checked SHA, check URLs, green disposition, and ready-PR flag. Never skip a state, and rerender the exact PR checkpoint block after every update. Then run:
+After opening the draft PR, record `CANDIDATE` with its number, URL, candidate SHA, and PR-head SHA. Replace the PR marker block with the exact rendered checkpoint, then rerun `check --phase draft`; this authenticates the real PR before it is handed to a reviewer. After the independent reviewer accepts that pushed SHA and names its candidate-envelope SHA-256 in the same-PR review comment, record `REVIEWED` with the accepted SHA and comment URL. After required checks pass, record `VALIDATED` with the checked SHA, check URLs, green disposition, and ready-PR flag. Never skip a state, and rerender the exact PR checkpoint block after every update. Then run:
+
+The independent reviewer must post this exact public-safe block on the same PR; substitute the two digests and reviewer identity without changing the labels:
+
+```text
+Accepted head SHA: <40-character candidate SHA>
+Candidate envelope SHA-256: <64-character candidate-envelope digest>
+Independent reviewer: <reviewer identity or role>
+Reviewer did not author candidate: yes
+Review disposition: pass
+```
 
 ```sh
-python3 scripts/study_workflow.py check \
+.venv/bin/python -I scripts/study_workflow.py check \
   --checkpoint .study-workflow/checkpoints/<intake>.json \
   --phase release \
   --base <recorded-40-character-base-SHA>
@@ -163,11 +181,13 @@ Use the short-lived branch created at intake and a reviewed PR. This workflow ha
 
 1. Confirm the current branch is the intake-owned `study/<slug>` created from the recorded base.
 2. Commit only the locally validated scope with a decision-oriented message.
-3. Push the branch and open a draft PR that links the immutable public-safe specification when present and carries the marker-delimited operational checkpoint.
+3. Push the branch and open a draft PR in the canonical repository with `gh pr create --repo github.com/<owner>/<repo> --draft --fill`; link the immutable public-safe specification when present and carry the marker-delimited operational checkpoint in the PR body.
 4. Wait for required checks. Address review comments and rerun independent acceptance when behavior changes.
-5. Merge only when checks are green, the accepted candidate contains the current `origin/main`, and the user asked to publish/complete the workflow. If `main` advanced, rebase and repeat local validation, independent review, and required checks for the new SHA. Bind the merge to the accepted SHA with `gh pr merge --squash --delete-branch --match-head-commit <accepted-head-sha>`. If repository policy requires a true merge commit, stop as `BLOCKED`; this workflow deliberately permits only linear squash/rebase integration.
+5. Merge only when checks are green, the accepted candidate contains the current GitHub `main`, and the user asked to publish/complete the workflow. If `main` advanced before independent acceptance, rebase the intake branch, rerun local validation, and update the already-owned remote branch with exactly `git push --force-with-lease=refs/heads/<branch>:<recorded-old-head> origin HEAD:<branch>`; then repeat independent review and required checks for the new SHA. This is the only permitted force update and is forbidden after `REVIEWED`. Bind the merge to the accepted SHA with `gh pr merge <number> --repo github.com/<owner>/<repo> --squash --delete-branch --match-head-commit <accepted-head-sha>`. If repository policy requires a true merge commit, stop as `BLOCKED`; this workflow deliberately permits only linear squash/rebase integration.
 
-Do not force-push, rewrite shared history, bypass failed checks, or merge unrelated working-tree changes.
+Do not use an unbounded force-push, rewrite a reviewed/shared head, bypass failed checks, or merge unrelated working-tree changes. `gh pr checks <number> --repo github.com/<owner>/<repo> --watch` is the canonical wait command.
+
+Only one publication intake may occupy the merge-to-`CLOSED` interval. Do not merge another study publication while the prior intake is verifying main, Pages, and live parity; this prevents a later deployment from making the earlier release unverifiable. A post-merge defect leaves the intake at `MERGED` and is corrected by a new, superseding reviewed intake. `CLOSED` is immutable.
 
 ## Verify the live release
 
@@ -176,7 +196,7 @@ Do not force-push, rewrite shared history, bypass failed checks, or merge unrela
 - Record exactly `sourceRevision=<merge-SHA>`, `manifestSha256=<digest>`, and `sourceDirty=false` as manifest assertions; record every and only declared `#/...` derived route as route assertions so the live verifier checks them mechanically.
 - Compare deployed document and asset hashes with the reviewed source/build.
 - Open the live article and affected presentation routes; confirm visuals render and no runtime errors appear.
-- Update the ignored checkpoint and its PR/external mirror with merge commit, Actions runs, live URL, hashes, and final status. Never write mutable release results into the reviewed commit.
+- Update the ignored checkpoint with merge commit, Actions runs, live URL, hashes, and final status, rerender it, and replace the exact marker block in the PR body before the `PUBLISHED` and `CLOSED` gates. Review and closure comments are evidence; they are not the durable checkpoint. Never write mutable release results into the reviewed commit.
 - Report the live outcome, not merely the local build.
 
 Do not claim product fit, recommendation, observed evidence, or workflow closure beyond what the committed artifacts prove.

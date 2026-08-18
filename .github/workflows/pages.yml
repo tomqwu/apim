@@ -38,7 +38,7 @@ jobs:
         run: make validate
       - name: Verify deterministic site provenance
         id: provenance
-        run: python3 scripts/validate_site_manifest.py --expected-revision "$SOURCE_REVISION" --require-clean
+        run: python3 -I scripts/validate_site_manifest.py --expected-revision "$SOURCE_REVISION" --require-clean
       - name: Record the exact deployment manifest
         id: manifest
         run: sha256sum _site/content-manifest.json | sed 's/ .*//' | sed 's/^/manifest_sha256=/' >> "$GITHUB_OUTPUT"
@@ -81,7 +81,7 @@ jobs:
         env:
           PAGE_URL: ${{ steps.deployment.outputs.page_url }}
         run: >-
-          python3 scripts/verify_pages.py
+          python3 -I scripts/verify_pages.py
           --base-url "$PAGE_URL"
           --expected-revision "$SOURCE_REVISION"
           --expected-manifest-sha256 "$EXPECTED_MANIFEST_SHA256"

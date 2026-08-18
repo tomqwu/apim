@@ -4,6 +4,7 @@
 from __future__ import annotations
 
 import hashlib
+import os
 import subprocess
 import unicodedata
 from pathlib import Path
@@ -11,6 +12,36 @@ from pathlib import Path
 
 class InventoryError(RuntimeError):
     """Candidate source enumeration failed closed."""
+
+
+GIT_REDIRECT_VARIABLES = {
+    "GIT_DIR",
+    "GIT_WORK_TREE",
+    "GIT_INDEX_FILE",
+    "GIT_OBJECT_DIRECTORY",
+    "GIT_ALTERNATE_OBJECT_DIRECTORIES",
+    "GIT_COMMON_DIR",
+    "GIT_CEILING_DIRECTORIES",
+    "GIT_CONFIG_PARAMETERS",
+    "GIT_CONFIG",
+    "GIT_CONFIG_GLOBAL",
+    "GIT_CONFIG_SYSTEM",
+    "GIT_CONFIG_NOSYSTEM",
+    "GIT_LITERAL_PATHSPECS",
+    "GIT_GLOB_PATHSPECS",
+    "GIT_NOGLOB_PATHSPECS",
+    "GIT_ICASE_PATHSPECS",
+}
+
+
+def git_environment() -> dict[str, str]:
+    """Preserve authentication while removing repository/index redirection."""
+    environment = os.environ.copy()
+    for key in tuple(environment):
+        if key in GIT_REDIRECT_VARIABLES or key == "GIT_CONFIG_COUNT" or key.startswith("GIT_CONFIG_KEY_") or key.startswith("GIT_CONFIG_VALUE_"):
+            environment.pop(key, None)
+    environment["GIT_NO_REPLACE_OBJECTS"] = "1"
+    return environment
 
 
 def safe_location(value: str) -> str:
@@ -39,6 +70,7 @@ def candidate_files(root: Path) -> list[Path]:
     hidden = subprocess.run(
         ("git", "ls-files", "-v", "-z"),
         cwd=root,
+        env=git_environment(),
         check=False,
         stdout=subprocess.PIPE,
         stderr=subprocess.PIPE,
@@ -51,6 +83,7 @@ def candidate_files(root: Path) -> list[Path]:
     listed = subprocess.run(
         ("git", "ls-files", "-c", "-o", "--exclude-standard", "-z"),
         cwd=root,
+        env=git_environment(),
         check=False,
         stdout=subprocess.PIPE,
         stderr=subprocess.PIPE,
@@ -62,10 +95,25 @@ def candidate_files(root: Path) -> list[Path]:
     except UnicodeDecodeError as exc:
         raise InventoryError("candidate source path is not UTF-8") from exc
 
+    staged = subprocess.run(
+        ("git", "ls-files", "-s", "-z"),
+        cwd=root,
+        env=git_environment(),
+        check=False,
+        stdout=subprocess.PIPE,
+        stderr=subprocess.PIPE,
+    )
+    if staged.returncode:
+        raise InventoryError("unable to inspect tracked candidate modes")
+    for entry in (value for value in staged.stdout.split(b"\0") if value):
+        mode = entry.split(b" ", 1)[0]
+        if mode not in {b"100644", b"100755"}:
+            raise InventoryError("tracked candidate contains a non-regular Git mode")
+
     paths: list[Path] = []
     for name in names:
-        if name != name.strip() or any(unicodedata.category(character).startswith("C") for character in name):
-            raise InventoryError("candidate source path contains control or surrounding whitespace")
+        if "%" in name or name != name.strip() or any(unicodedata.category(character).startswith("C") for character in name):
+            raise InventoryError("candidate source path contains percent, control, or surrounding whitespace")
         location = safe_location(name)
         path = root / name
         if path.is_symlink() or _has_symlink_component(root, name):

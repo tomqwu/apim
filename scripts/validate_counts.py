@@ -5,6 +5,9 @@ import re
 import subprocess
 import sys
 
+sys.path.insert(0, str(pathlib.Path(__file__).resolve().parent))
+from repository_inventory import git_environment
+
 
 root = pathlib.Path(__file__).resolve().parents[1]
 with (root / "decision-matrix" / "criteria.csv").open(newline="", encoding="utf-8") as handle:
@@ -96,6 +99,7 @@ if backlog_path.exists():
         tracked_result = subprocess.run(
             ["git", "ls-files", "-z"],
             cwd=root,
+            env=git_environment(),
             check=True,
             capture_output=True,
             text=True,
@@ -137,6 +141,7 @@ if backlog_path.exists():
                 result = subprocess.run(
                     ["git", "cat-file", "-e", f"{commit}^{{commit}}"],
                     cwd=root,
+                    env=git_environment(),
                     capture_output=True,
                     text=True,
                 )

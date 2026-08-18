@@ -17,6 +17,9 @@ from pathlib import Path, PurePosixPath
 from typing import Any
 from urllib.parse import urlsplit
 
+sys.path.insert(0, str(Path(__file__).resolve().parent))
+from repository_inventory import git_environment
+
 
 ROOT = Path(__file__).resolve().parents[1]
 SCHEMA_VERSION = 1
@@ -89,6 +92,7 @@ def run_git(*args: str) -> str:
         result = subprocess.run(
             ("git", *args),
             cwd=ROOT,
+            env=git_environment(),
             check=True,
             capture_output=True,
             text=True,
@@ -107,6 +111,7 @@ def reject_hidden_index_flags() -> None:
     result = subprocess.run(
         ("git", "ls-files", "-v", "-z"),
         cwd=ROOT, check=False, stdout=subprocess.PIPE, stderr=subprocess.PIPE,
+        env=git_environment(),
     )
     require(result.returncode == 0, "unable to inspect Git index visibility flags")
     for entry in (value for value in result.stdout.split(b"\0") if value):
@@ -119,15 +124,31 @@ def repository_candidate_paths() -> list[Path]:
     result = subprocess.run(
         ("git", "ls-files", "-c", "-o", "--exclude-standard", "-z"),
         cwd=ROOT, check=False, stdout=subprocess.PIPE, stderr=subprocess.PIPE,
+        env=git_environment(),
     )
     require(result.returncode == 0, "unable to enumerate publishable source candidates")
     try:
         names = [value.decode("utf-8") for value in result.stdout.split(b"\0") if value]
     except UnicodeDecodeError as exc:
         raise ValidationError("publishable source path is not UTF-8") from exc
+    modes = subprocess.run(
+        ("git", "ls-files", "-s", "-z"),
+        cwd=ROOT,
+        env=git_environment(),
+        check=False,
+        stdout=subprocess.PIPE,
+        stderr=subprocess.PIPE,
+    )
+    require(
+        modes.returncode == 0 and all(
+            entry.split(b" ", 1)[0] in {b"100644", b"100755"}
+            for entry in modes.stdout.split(b"\0") if entry
+        ),
+        "publishable source contains a non-regular tracked Git mode",
+    )
     paths: list[Path] = []
     for name in names:
-        require(bool(name) and name == name.strip() and not any(unicodedata.category(character).startswith("C") for character in name), "publishable source path contains control or surrounding whitespace")
+        require(bool(name) and "%" not in name and name == name.strip() and not any(unicodedata.category(character).startswith("C") for character in name), "publishable source path contains percent, control, or surrounding whitespace")
         path = ROOT / name
         require(not path.is_symlink(), f"publishable source is a symlink at {safe_path_location(name)}")
         candidate = ROOT
@@ -150,7 +171,7 @@ def sha256_file(path: Path) -> str:
 def raw_tracked_bytes_match(revision: str) -> bool:
     """Compare worktree bytes to revision blobs without Git content filters."""
     listed = subprocess.run(
-        ("git", "ls-files", "-c", "-z"), cwd=ROOT, check=False,
+        ("git", "ls-files", "-c", "-z"), cwd=ROOT, env=git_environment(), check=False,
         stdout=subprocess.PIPE, stderr=subprocess.PIPE,
     )
     require(listed.returncode == 0, "unable to enumerate tracked raw-byte provenance")
@@ -163,7 +184,7 @@ def raw_tracked_bytes_match(revision: str) -> bool:
         if not path.is_file() or path.is_symlink():
             return False
         expected = subprocess.Popen(
-            ("git", "cat-file", "blob", f"{revision}:{name}"), cwd=ROOT,
+            ("git", "cat-file", "blob", f"{revision}:{name}"), cwd=ROOT, env=git_environment(),
             stdout=subprocess.PIPE, stderr=subprocess.DEVNULL,
         )
         expected_digest = hashlib.sha256()
@@ -183,6 +204,7 @@ def safe_relative(value: Any, label: str) -> PurePosixPath:
     split = urlsplit(value)
     require(not split.scheme and not split.netloc and not split.query and not split.fragment, f"{label} must be a relative path without query or fragment")
     require(split.path == value, f"{label} must contain only a canonical path")
+    require("%" not in value, f"{label} must not contain percent-encoded or literal percent syntax")
     relative = PurePosixPath(value)
     require(not relative.is_absolute(), f"{label} must be relative: {value!r}")
     require(".." not in relative.parts and "." not in relative.parts, f"{label} is not normalized: {value!r}")

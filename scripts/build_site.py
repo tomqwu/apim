@@ -11,10 +11,14 @@ import os
 import re
 import shutil
 import subprocess
+import sys
 import unicodedata
 from collections import Counter
 from datetime import datetime, timezone
 from pathlib import Path
+
+sys.path.insert(0, str(Path(__file__).resolve().parent))
+from repository_inventory import git_environment
 
 
 ROOT = Path(__file__).resolve().parents[1]
@@ -149,6 +153,7 @@ def run_git(*args: str) -> str:
         result = subprocess.run(
             ("git", *args),
             cwd=ROOT,
+            env=git_environment(),
             check=True,
             capture_output=True,
             text=True,
@@ -169,6 +174,7 @@ def reject_hidden_index_flags() -> None:
     result = subprocess.run(
         ("git", "ls-files", "-v", "-z"),
         cwd=ROOT, check=False, stdout=subprocess.PIPE, stderr=subprocess.PIPE,
+        env=git_environment(),
     )
     if result.returncode:
         raise SystemExit("Unable to inspect Git index visibility flags")
@@ -184,6 +190,7 @@ def repository_candidate_paths() -> list[Path]:
     result = subprocess.run(
         ("git", "ls-files", "-c", "-o", "--exclude-standard", "-z"),
         cwd=ROOT, check=False, stdout=subprocess.PIPE, stderr=subprocess.PIPE,
+        env=git_environment(),
     )
     if result.returncode:
         raise SystemExit("Unable to enumerate public build inputs with git ls-files")
@@ -191,10 +198,23 @@ def repository_candidate_paths() -> list[Path]:
         names = [value.decode("utf-8") for value in result.stdout.split(b"\0") if value]
     except UnicodeDecodeError as exc:
         raise SystemExit("Refusing a non-UTF-8 public build path") from exc
+    modes = subprocess.run(
+        ("git", "ls-files", "-s", "-z"),
+        cwd=ROOT,
+        env=git_environment(),
+        check=False,
+        stdout=subprocess.PIPE,
+        stderr=subprocess.PIPE,
+    )
+    if modes.returncode or any(
+        entry.split(b" ", 1)[0] not in {b"100644", b"100755"}
+        for entry in modes.stdout.split(b"\0") if entry
+    ):
+        raise SystemExit("Refusing a public build with a non-regular tracked Git mode")
     candidates: list[Path] = []
     for name in names:
-        if not name or name != name.strip() or any(unicodedata.category(character).startswith("C") for character in name):
-            raise SystemExit("Refusing a public build path containing control or surrounding whitespace")
+        if not name or "%" in name or name != name.strip() or any(unicodedata.category(character).startswith("C") for character in name):
+            raise SystemExit("Refusing a public build path containing percent, control, or surrounding whitespace")
         path = ROOT / name
         if path.is_symlink():
             raise SystemExit(f"Refusing symlinked public build input at {safe_path_location(name)}")
@@ -247,7 +267,7 @@ def source_is_dirty(revision: str) -> bool:
 def raw_tracked_bytes_match(revision: str) -> bool:
     """Compare worktree bytes with Git blobs without clean/smudge filters."""
     listed = subprocess.run(
-        ("git", "ls-files", "-c", "-z"), cwd=ROOT, check=False,
+        ("git", "ls-files", "-c", "-z"), cwd=ROOT, env=git_environment(), check=False,
         stdout=subprocess.PIPE, stderr=subprocess.PIPE,
     )
     if listed.returncode:
@@ -261,7 +281,7 @@ def raw_tracked_bytes_match(revision: str) -> bool:
         if not path.is_file() or path.is_symlink():
             return False
         expected = subprocess.Popen(
-            ("git", "cat-file", "blob", f"{revision}:{name}"), cwd=ROOT,
+            ("git", "cat-file", "blob", f"{revision}:{name}"), cwd=ROOT, env=git_environment(),
             stdout=subprocess.PIPE, stderr=subprocess.DEVNULL,
         )
         expected_digest = hashlib.sha256()

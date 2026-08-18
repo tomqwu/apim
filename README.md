@@ -62,8 +62,8 @@ make kind-down
 Static checks do not require a cluster:
 
 ```bash
-python3.12 -m venv .venv
-.venv/bin/python -m pip install --disable-pip-version-check -r requirements-validation.txt
+python3.12 -I -m venv .venv
+.venv/bin/python -I -m pip install --disable-pip-version-check -r requirements-validation.txt
 export PATH="$PWD/.venv/bin:$PATH"
 make validate
 ```
@@ -78,20 +78,20 @@ New chat input, files, URLs, research, incident evidence, and PoC results enter 
 Use $publish-api-study to publish this input into the API Management Studies repository.
 ```
 
-The deterministic helper creates a public-safe local checkpoint and validates each gate. The checkpoint is mutable and ignored by Git; the pull-request body/comment becomes the durable run record after a PR exists.
+The deterministic helper creates a public-safe local checkpoint and validates each gate. The checkpoint is mutable and ignored by Git; its exact marker-delimited mirror in the pull-request body becomes the durable run record after a PR exists. Review and closure comments are evidence, not replacement state.
 
 ```bash
-python3 scripts/study_workflow.py new --slug example-study --title "Example study" --source-kind chat --requested-actions "research,edit,branch,commit,push,pull-request,merge,branch-cleanup,pages-verification" --request-summary "Publish a public-safe, evidence-bounded study update." --decision-question "What decision should this evidence change support?"
-python3 scripts/study_workflow.py record --checkpoint .study-workflow/checkpoints/intake-YYYYMMDD-example-study.json --state FRAMED --change-class study --audience "Named decision audience" --scope-summary "Public-safe scope and exclusions." --delta-summary "Canonical and projected artifacts affected."
-python3 scripts/study_workflow.py record --checkpoint .study-workflow/checkpoints/intake-YYYYMMDD-example-study.json --state RESEARCHED --evidence-reference "Public primary source or repository evidence path"
+.venv/bin/python -I scripts/study_workflow.py new --slug example-study --title "Example study" --source-kind chat --requested-actions "research,edit,branch,commit,push,pull-request,merge,branch-cleanup,pages-verification" --request-summary "Publish a public-safe, evidence-bounded study update." --decision-question "What decision should this evidence change support?"
+.venv/bin/python -I scripts/study_workflow.py record --checkpoint .study-workflow/checkpoints/intake-YYYYMMDD-example-study.json --state FRAMED --change-class study --audience "Named decision audience" --scope-summary "Public-safe scope and exclusions." --delta-summary "Canonical and projected artifacts affected."
+.venv/bin/python -I scripts/study_workflow.py record --checkpoint .study-workflow/checkpoints/intake-YYYYMMDD-example-study.json --state RESEARCHED --evidence-reference "Public primary source or repository evidence path"
 # Author the canonical Markdown and inline figures first.
-python3 scripts/study_workflow.py record --checkpoint .study-workflow/checkpoints/intake-YYYYMMDD-example-study.json --state AUTHORED --canonical-path docs/NN-example-study.md
+.venv/bin/python -I scripts/study_workflow.py record --checkpoint .study-workflow/checkpoints/intake-YYYYMMDD-example-study.json --state AUTHORED --canonical-path docs/NN-example-study.md
 # Project that canon into the affected site, audience, and presentation surfaces.
-python3 scripts/study_workflow.py record --checkpoint .study-workflow/checkpoints/intake-YYYYMMDD-example-study.json --state PROJECTED --derived-path '#/doc/docs-NN-example-study'
+.venv/bin/python -I scripts/study_workflow.py record --checkpoint .study-workflow/checkpoints/intake-YYYYMMDD-example-study.json --state PROJECTED --derived-path '#/doc/docs-NN-example-study'
 export PATH="$PWD/.venv/bin:$PATH"
 make validate
-python3 scripts/study_workflow.py record --checkpoint .study-workflow/checkpoints/intake-YYYYMMDD-example-study.json --local-validation pass
-python3 scripts/study_workflow.py check --checkpoint .study-workflow/checkpoints/intake-YYYYMMDD-example-study.json --phase draft --base <40-character-base-SHA>
+.venv/bin/python -I scripts/study_workflow.py record --checkpoint .study-workflow/checkpoints/intake-YYYYMMDD-example-study.json --local-validation pass
+.venv/bin/python -I scripts/study_workflow.py check --checkpoint .study-workflow/checkpoints/intake-YYYYMMDD-example-study.json --phase draft --base <40-character-base-SHA>
 ```
 
 Canonical Markdown is authored before any site or slide work. The release then uses a short-lived `study/<slug>` branch, independent review, required PR checks, merge/branch cleanup, and deployed-manifest verification. See the [intake/checkpoint template](templates/study-intake-template.md) and [skill repository contract](.agents/skills/publish-api-study/references/repo-contract.md) for the exact state and acceptance model.
@@ -99,7 +99,7 @@ Canonical Markdown is authored before any site or slide work. The release then u
 If another task or clone no longer has the ignored checkpoint, restore it from the exact machine payload embedded in the existing PR rather than creating a second intake:
 
 ```bash
-python3 scripts/study_workflow.py resume --pr-number <number> --base <recorded-40-character-base-SHA> --requested-actions "<currently authorized actions exactly as recorded>"
+.venv/bin/python -I scripts/study_workflow.py resume --pr-number <number> --base <recorded-40-character-base-SHA> --requested-actions "<currently authorized actions exactly as recorded>"
 ```
 
 See [`poc/README.md`](poc/README.md) for test scope and limitations.

@@ -19,14 +19,17 @@ import unicodedata
 from datetime import date, datetime, timezone
 from pathlib import Path
 from typing import Any
-from urllib.parse import urlsplit
+from urllib.parse import quote, urlsplit
+
+sys.path.insert(0, str(Path(__file__).resolve().parent))
+from repository_inventory import git_environment
 
 
 ROOT = Path(__file__).resolve().parents[1]
 TEMPLATE = ROOT / "templates" / "study-intake-template.md"
 CHECKPOINT_ROOT = ROOT / ".study-workflow" / "checkpoints"
 SPEC_ROOT = ROOT / "workflow" / "intakes"
-SCHEMA_VERSION = 1
+SCHEMA_VERSION = 2
 
 SOURCE_KINDS = ("chat", "file", "url", "research", "poc", "repository")
 ARTIFACT_TYPES = ("study", "evidence", "guide", "projection", "remediation", "workflow")
@@ -46,8 +49,8 @@ REQUEST_ACTIONS = {
 }
 PHASE_REQUIRED_ACTIONS = {
     "draft": {"edit", "branch"},
-    "release": {"edit", "branch", "commit", "push", "pull-request", "merge"},
-    "published": {"merge", "branch-cleanup", "pages-verification"},
+    "release": {"edit", "branch", "commit", "push", "pull-request", "merge", "branch-cleanup"},
+    "published": {"pull-request", "merge", "branch-cleanup", "pages-verification"},
 }
 REQUIRED_PR_CHECKS = {"static-validation", "docker-smoke"}
 CANONICAL_ROOTS = {"docs", "research", "architecture", "poc", "reports", "decision-matrix", "adr", "templates"}
@@ -83,7 +86,7 @@ CHECKPOINT_KEYS = {
     "requestedActions", "inputReferences", "evidenceReferences",
     "canonicalState", "statusReason", "repositoryRemote", "baseBranch", "baseSha", "branch",
     "checkpointCreatedAt", "updatedAt",
-    "canonicalPaths", "derivedPaths", "localValidation", "localValidationDigest", "candidateSha", "prNumber",
+    "canonicalPaths", "derivedPaths", "localValidation", "localValidationDigest", "candidateSha", "candidateEnvelopeSha256", "prNumber",
     "prUrl", "prHeadSha", "prDraft", "reviewDisposition", "acceptedSha", "checkedSha",
     "reviewEvidenceUrls", "checkDisposition", "checkUrls", "mergeSha", "branchCleanupStatus",
     "cleanupEvidence", "mainValidationUrl", "pagesRunUrl", "manifestSha256", "closureEvidenceUrl",
@@ -97,6 +100,12 @@ UTC_TIMESTAMP = re.compile(r"\d{4}-\d{2}-\d{2}T\d{2}:\d{2}:\d{2}Z")
 CHECKPOINT_START = "<!-- study-workflow-checkpoint:start -->"
 CHECKPOINT_END = "<!-- study-workflow-checkpoint:end -->"
 CHECKPOINT_PAYLOAD = "study-workflow-checkpoint-json"
+CANDIDATE_ENVELOPE_FIELDS = (
+    "schemaVersion", "intakeId", "slug", "title", "sourceKind", "requestSummary",
+    "decisionQuestion", "artifactType", "audiences", "scopeSummary", "deltaSummary",
+    "evidenceReferences", "canonicalPaths", "derivedPaths", "repositoryRemote",
+    "baseBranch", "baseSha", "branch", "localValidationDigest", "candidateSha",
+)
 PUBLIC_ALLOWLIST = ROOT / "config" / "public-content-allowlist.json"
 BINARY_EXTENSIONS = {
     ".7z", ".avi", ".doc", ".docx", ".gif", ".gz", ".ico", ".jpeg", ".jpg",
@@ -113,8 +122,8 @@ TRANSITIONS = {
     "CANDIDATE": {"REVIEWED", "REWORK", "BLOCKED"},
     "REVIEWED": {"VALIDATED", "REWORK", "BLOCKED"},
     "VALIDATED": {"MERGED", "REWORK", "BLOCKED"},
-    "MERGED": {"PUBLISHED", "REWORK", "BLOCKED"},
-    "PUBLISHED": {"CLOSED", "REWORK"},
+    "MERGED": {"PUBLISHED"},
+    "PUBLISHED": {"CLOSED"},
     "CLOSED": set(),
     "REWORK": {"INTAKE", "FRAMED", "RESEARCHED", "AUTHORED", "PROJECTED", "CANDIDATE", "BLOCKED"},
     "BLOCKED": {"INTAKE", "FRAMED", "RESEARCHED"},
@@ -138,6 +147,22 @@ PUBLIC_RULES = (
     ("PS021", "bidirectional text control", re.compile(r"[\u202a-\u202e\u2066-\u2069]")),
     ("PS025", "HTTP URL with embedded credentials", re.compile(r"(?i)\bhttps?://[^\s/?#]*@[^\s/?#]+")),
     ("PS026", "local Linux home path", re.compile(r"(?<![A-Za-z0-9_])/home/[A-Za-z0-9._-]+/")),
+    (
+        "PS027",
+        "local macOS temporary attachment path",
+        re.compile(r"(?<![A-Za-z0-9_])/(?:private/)?" + "var" + r"/folders/[A-Za-z0-9._-]+/"),
+    ),
+    (
+        "PS030",
+        "scheme-independent private hostname",
+        re.compile(r"(?i)\b(?:[a-z0-9-]+\.)+(?:internal|corp|local)\b"),
+    ),
+    (
+        "PS031",
+        "RFC1918 private IPv4 address",
+        re.compile(r"(?<![0-9])(?:10\.(?:[0-9]{1,3}\.){2}[0-9]{1,3}|192\.168\.(?:[0-9]{1,3}\.)[0-9]{1,3}|172\.(?:1[6-9]|2[0-9]|3[01])\.(?:[0-9]{1,3}\.)[0-9]{1,3})(?![0-9])"),
+    ),
+    ("PS032", "local Linux root-home path", re.compile(r"(?<![A-Za-z0-9_])/root/[A-Za-z0-9._-]+/")),
 )
 
 
@@ -146,7 +171,24 @@ class WorkflowError(RuntimeError):
 
 
 def run(command: tuple[str, ...], *, check: bool = True) -> subprocess.CompletedProcess[str]:
-    result = subprocess.run(command, cwd=ROOT, check=False, text=True, stdout=subprocess.PIPE, stderr=subprocess.PIPE)
+    environment = git_environment()
+    for key in (
+        "PYTHONPATH", "PYTHONHOME", "PYTHONSTARTUP", "PYTHONINSPECT", "PYTHONUSERBASE",
+    ):
+        environment.pop(key, None)
+    environment["PYTHONNOUSERSITE"] = "1"
+    if command and command[0] == "gh":
+        environment.pop("GH_REPO", None)
+        environment.pop("GH_HOST", None)
+    result = subprocess.run(
+        command,
+        cwd=ROOT,
+        env=environment,
+        check=False,
+        text=True,
+        stdout=subprocess.PIPE,
+        stderr=subprocess.PIPE,
+    )
     if check and result.returncode:
         raise WorkflowError(result.stderr.strip() or result.stdout.strip() or f"{' '.join(command)} failed")
     return result
@@ -160,6 +202,40 @@ def gh(*args: str, check: bool = True) -> str:
     return run(("gh", *args), check=check).stdout.strip()
 
 
+def github_owner_repo() -> str:
+    identity = public_repository_identity(origin_remote_url())
+    return identity.removeprefix("github.com/")
+
+
+def github_ref_sha(reference: str, *, required: bool = True) -> str | None:
+    """Read an authoritative target-repository ref through GitHub's API."""
+    fail_unless(bool(re.fullmatch(r"heads/[A-Za-z0-9._/-]+", reference)), "GitHub ref name is invalid")
+    endpoint = f"repos/{github_owner_repo()}/git/matching-refs/{quote(reference, safe='/')}"
+    result = run(("gh", "api", endpoint, "--hostname", "github.com"), check=False)
+    fail_unless(result.returncode == 0, "unable to authenticate GitHub repository refs")
+    try:
+        payload = json.loads(result.stdout)
+    except json.JSONDecodeError as exc:
+        raise WorkflowError("GitHub ref response is invalid") from exc
+    fail_unless(isinstance(payload, list), "GitHub matching-ref response is invalid")
+    exact = [item for item in payload if isinstance(item, dict) and item.get("ref") == f"refs/{reference}"]
+    fail_unless(len(exact) <= 1, "GitHub matching-ref response contains duplicates")
+    if not exact:
+        fail_unless(not required, f"required GitHub ref is unavailable: {reference}")
+        return None
+    object_data = exact[0].get("object") if isinstance(exact[0].get("object"), dict) else None
+    sha = object_data.get("sha") if isinstance(object_data, dict) else None
+    return full_sha(f"GitHub {reference} ref", sha)
+
+
+def fetch_authenticated_main() -> str:
+    """Fetch origin/main and bind its result to the canonical GitHub repository."""
+    git("fetch", "origin", "main")
+    fetched = git("rev-parse", "origin/main")
+    fail_unless(fetched == github_ref_sha("heads/main"), "fetched origin/main differs from the authoritative GitHub main ref")
+    return fetched
+
+
 def reject_existing_intake_history(intake_id: str, repository_remote: str) -> None:
     """Prevent a cleaned branch from hiding a durable intake in GitHub PR history."""
     if not repository_remote.startswith("github.com/"):
@@ -169,6 +245,7 @@ def reject_existing_intake_history(intake_id: str, repository_remote: str) -> No
             "gh", "pr", "list", "--state", "all", "--limit", "100",
             "--search", f'"{intake_id}" in:body',
             "--json", "number,state,url,headRefName",
+            "--repo", repository_remote.removeprefix("github.com/"),
         ),
         check=False,
     )
@@ -208,10 +285,15 @@ def public_repository_identity(value: str) -> str:
     """Return a credential-free durable repository identity or fail closed."""
     identity = repository_identity(value)
     fail_unless(
-        bool(identity),
+        identity.startswith("github.com/"),
         "origin remote must be a credential-free GitHub repository identity",
     )
     return identity
+
+
+def origin_remote_url() -> str:
+    """Read the configured URL without applying Git url.*.insteadOf rewrites."""
+    return git("config", "--get", "remote.origin.url")
 
 
 def same_repository(left: str, right: str) -> bool:
@@ -222,18 +304,73 @@ def same_repository(left: str, right: str) -> bool:
 
 def validation_environment() -> dict[str, str]:
     """Make nested validation use the interpreter environment that launched the CLI."""
-    environment = os.environ.copy()
+    environment = git_environment()
     # Keep the virtualenv's lexical bin path. Resolving the Python symlink can
     # jump to a framework bin directory that does not provide `python3`.
     interpreter_dir = str(Path(sys.executable).absolute().parent)
     environment["PATH"] = interpreter_dir + os.pathsep + environment.get("PATH", "")
+    for key in (
+        "MAKEFLAGS", "GNUMAKEFLAGS", "MFLAGS", "MAKEFILES", "MAKELEVEL",
+        "PYTHONPATH", "PYTHONHOME", "PYTHONSTARTUP", "PYTHONINSPECT", "PYTHONUSERBASE",
+    ):
+        environment.pop(key, None)
+    environment["PYTHONNOUSERSITE"] = "1"
     return environment
 
 
 def run_make_validate() -> bool:
     return subprocess.run(
-        ("make", "validate"), cwd=ROOT, check=False, env=validation_environment()
+        ("make", "--no-print-directory", "validate"),
+        cwd=ROOT,
+        check=False,
+        env=validation_environment(),
     ).returncode == 0
+
+
+def verify_local_derived_routes(data: dict[str, Any]) -> None:
+    expected = {value for value in data["derivedPaths"] if value.startswith("#/")}
+    fail_unless(bool(expected), "projected publication must declare at least one site route")
+    manifest_path = ROOT / "_site" / "content-manifest.json"
+    fail_unless(manifest_path.is_file() and not manifest_path.is_symlink(), "derived-route validation requires the generated site manifest")
+    try:
+        manifest = json.loads(manifest_path.read_text(encoding="utf-8"))
+    except (OSError, UnicodeDecodeError, json.JSONDecodeError) as exc:
+        raise WorkflowError("generated site manifest is unavailable for derived-route validation") from exc
+    fail_unless(isinstance(manifest, dict), "generated site manifest is invalid")
+    available = {
+        "#/overview", "#/library", "#/compare", "#/architecture", "#/lab",
+        "#/visuals", "#/audiences",
+    }
+    items = manifest.get("items")
+    presentations = manifest.get("presentation")
+    audiences = manifest.get("audiences")
+    fail_unless(isinstance(items, list) and isinstance(presentations, list) and isinstance(audiences, list), "generated site route inventory is invalid")
+    item_routes = {
+        item.get("path"): item.get("route")
+        for item in items
+        if isinstance(item, dict)
+        and isinstance(item.get("path"), str)
+        and isinstance(item.get("route"), str)
+    }
+    missing_canonical = sorted(set(data["canonicalPaths"]) - set(item_routes))
+    if missing_canonical:
+        raise WorkflowError(f"canonical path is absent from the generated site manifest: {missing_canonical[0]}")
+    for canonical in data["canonicalPaths"]:
+        canonical_route = item_routes[canonical]
+        fail_unless(
+            canonical_route in expected,
+            f"canonical path manifest route is not declared as derived: {canonical} -> {canonical_route}",
+        )
+    available.update(item.get("route") for item in items if isinstance(item, dict) and isinstance(item.get("route"), str))
+    available.update(f"#/present/{index}" for index in range(len(presentations)))
+    for audience in audiences:
+        fail_unless(isinstance(audience, dict) and isinstance(audience.get("id"), str) and isinstance(audience.get("presentationSlides"), list), "generated audience route inventory is invalid")
+        audience_id = audience["id"]
+        available.add(f"#/audiences/{audience_id}")
+        available.update(f"#/present/{audience_id}/{index}" for index in range(len(audience["presentationSlides"])))
+    missing = sorted(expected - available)
+    if missing:
+        raise WorkflowError(f"declared derived route is absent from the generated site manifest: {missing[0]}")
 
 
 def now() -> str:
@@ -335,7 +472,14 @@ def scan_text(text: str, location: str) -> list[str]:
 
 
 def git_path_names(*args: str) -> list[str]:
-    result = subprocess.run(("git", *args, "-z"), cwd=ROOT, check=False, stdout=subprocess.PIPE, stderr=subprocess.PIPE)
+    result = subprocess.run(
+        ("git", *args, "-z"),
+        cwd=ROOT,
+        env=git_environment(),
+        check=False,
+        stdout=subprocess.PIPE,
+        stderr=subprocess.PIPE,
+    )
     if result.returncode:
         raise WorkflowError("git path enumeration failed without exposing path bytes")
     try:
@@ -407,6 +551,7 @@ def scan_public_file(path: Path, name: str, allowed_binaries: dict[str, str], lo
     errors: list[str] = []
     decoder = codecs.getincrementaldecoder("utf-8")("strict")
     tail = ""
+    decoded_newlines = 0
     seen_rules: set[str] = set()
     try:
         with path.open("rb") as handle:
@@ -416,24 +561,31 @@ def scan_public_file(path: Path, name: str, allowed_binaries: dict[str, str], lo
                     return errors
                 text = decoder.decode(raw, final=False)
                 window = tail + text
+                window_start_line = decoded_newlines - tail.count("\n") + 1
                 for rule_id, label, pattern in PUBLIC_RULES:
-                    if rule_id not in seen_rules and pattern.search(window):
-                        errors.append(f"{rule_id} {label} at {location}")
+                    match = pattern.search(window) if rule_id not in seen_rules else None
+                    if match:
+                        line = window_start_line + window.count("\n", 0, match.start())
+                        errors.append(f"{rule_id} {label} at {location}:{line}")
                         seen_rules.add(rule_id)
+                decoded_newlines += text.count("\n")
                 tail = window[-4096:]
             final = decoder.decode(b"", final=True)
             window = tail + final
+            window_start_line = decoded_newlines - tail.count("\n") + 1
             for rule_id, label, pattern in PUBLIC_RULES:
-                if rule_id not in seen_rules and pattern.search(window):
-                    errors.append(f"{rule_id} {label} at {location}")
+                match = pattern.search(window) if rule_id not in seen_rules else None
+                if match:
+                    line = window_start_line + window.count("\n", 0, match.start())
+                    errors.append(f"{rule_id} {label} at {location}:{line}")
     except UnicodeDecodeError:
         errors.append(f"PS018 non-UTF-8 public text artifact at {location}")
     return errors
 
 
 def validate_public_name(name: str) -> list[str]:
-    if not name or name != name.strip() or any(unicodedata.category(character).startswith("C") for character in name):
-        return ["PS019 public path contains control, newline, or surrounding whitespace"]
+    if not name or "%" in name or name != name.strip() or any(unicodedata.category(character).startswith("C") for character in name):
+        return ["PS019 public path contains percent, control, newline, or surrounding whitespace"]
     return scan_text(name, "public path")
 
 
@@ -443,13 +595,29 @@ def safe_location(name: str) -> str:
 
 def public_files(include_generated: bool = True) -> list[tuple[str, Path]]:
     hidden = subprocess.run(
-        ("git", "ls-files", "-v", "-z"), cwd=ROOT, check=False,
+        ("git", "ls-files", "-v", "-z"), cwd=ROOT, env=git_environment(), check=False,
         stdout=subprocess.PIPE, stderr=subprocess.PIPE,
     )
     if hidden.returncode:
         raise WorkflowError("PS023 unable to inspect Git index visibility flags")
     if any(entry[:1] == b"S" or entry[:1].islower() for entry in hidden.stdout.split(b"\0") if entry):
         raise WorkflowError("PS023 Git index visibility flags hide worktree state")
+    modes = subprocess.run(
+        ("git", "ls-files", "-s", "-z"),
+        cwd=ROOT,
+        env=git_environment(),
+        check=False,
+        stdout=subprocess.PIPE,
+        stderr=subprocess.PIPE,
+    )
+    if modes.returncode:
+        raise WorkflowError("PS028 unable to inspect tracked Git modes")
+    for entry in (value for value in modes.stdout.split(b"\0") if value):
+        mode = entry.split(b" ", 1)[0]
+        if mode == b"120000":
+            raise WorkflowError("PS022 tracked symlink is not a public regular file")
+        if mode not in {b"100644", b"100755"}:
+            raise WorkflowError("PS028 tracked Git link or non-regular mode is not public content")
     names = set(git_path_names("ls-files", "-co", "--exclude-standard"))
     site = ROOT / "_site"
     if include_generated and site.exists():
@@ -486,20 +654,39 @@ def public_content_errors(
                 errors.append(f"PS024 merge commits are not permitted in an intake branch at commit {commit}")
                 continue
             names = git_path_names("diff-tree", "--root", "--no-commit-id", "--name-only", "-r", commit)
+            tree = subprocess.run(
+                ("git", "ls-tree", "-r", "-z", commit),
+                cwd=ROOT,
+                env=git_environment(),
+                check=False,
+                stdout=subprocess.PIPE,
+                stderr=subprocess.PIPE,
+            )
+            if tree.returncode:
+                raise WorkflowError("PS028 unable to inspect historical Git modes")
+            tree_modes: dict[str, str] = {}
+            try:
+                for entry in (value for value in tree.stdout.split(b"\0") if value):
+                    metadata, encoded_name = entry.split(b"\t", 1)
+                    tree_modes[encoded_name.decode("utf-8")] = metadata.split(b" ", 1)[0].decode("ascii")
+            except (UnicodeDecodeError, ValueError) as exc:
+                raise WorkflowError("PS014 historical tree contains an invalid path entry") from exc
             for name in names:
                 name_errors = validate_public_name(name)
                 errors.extend(name_errors)
                 location = safe_location(name)
-                tree_entry = git("ls-tree", commit, "--", name, check=False)
-                mode = tree_entry.split(maxsplit=1)[0] if tree_entry else ""
+                mode = tree_modes.get(name, "")
                 if mode == "120000":
                     errors.append(f"PS022 symlink public path in commit {commit} at {location}")
                     continue
-                size_result = subprocess.run(("git", "cat-file", "-s", f"{commit}:{name}"), cwd=ROOT, check=False, text=True, stdout=subprocess.PIPE, stderr=subprocess.DEVNULL)
+                if mode and mode not in {"100644", "100755"}:
+                    errors.append(f"PS028 non-regular tracked Git mode in commit {commit} at {location}")
+                    continue
+                size_result = subprocess.run(("git", "cat-file", "-s", f"{commit}:{name}"), cwd=ROOT, env=git_environment(), check=False, text=True, stdout=subprocess.PIPE, stderr=subprocess.DEVNULL)
                 if size_result.returncode == 0 and int(size_result.stdout.strip()) > 64 * 1024 * 1024:
                     errors.append(f"PS020 oversized history artifact requires separate review at commit {commit}")
                     continue
-                blob = subprocess.run(("git", "show", f"{commit}:{name}"), cwd=ROOT, check=False, stdout=subprocess.PIPE, stderr=subprocess.DEVNULL)
+                blob = subprocess.run(("git", "show", f"{commit}:{name}"), cwd=ROOT, env=git_environment(), check=False, stdout=subprocess.PIPE, stderr=subprocess.DEVNULL)
                 if blob.returncode == 0:
                     text, decode_errors = decode_public_bytes(blob.stdout, name, allowed_binaries, location)
                     errors.extend(decode_errors)
@@ -511,7 +698,7 @@ def public_content_errors(
 def raw_tracked_bytes_match(revision: str) -> bool:
     """Compare raw worktree bytes to Git blobs without content filters."""
     listed = subprocess.run(
-        ("git", "ls-files", "-c", "-z"), cwd=ROOT, check=False,
+        ("git", "ls-files", "-c", "-z"), cwd=ROOT, env=git_environment(), check=False,
         stdout=subprocess.PIPE, stderr=subprocess.PIPE,
     )
     if listed.returncode:
@@ -525,7 +712,7 @@ def raw_tracked_bytes_match(revision: str) -> bool:
         if not path.is_file() or path.is_symlink():
             return False
         expected = subprocess.Popen(
-            ("git", "cat-file", "blob", f"{revision}:{name}"), cwd=ROOT,
+            ("git", "cat-file", "blob", f"{revision}:{name}"), cwd=ROOT, env=git_environment(),
             stdout=subprocess.PIPE, stderr=subprocess.DEVNULL,
         )
         digest = hashlib.sha256()
@@ -628,7 +815,7 @@ def full_sha(label: str, value: Any, required: bool = True) -> str | None:
 
 
 def canonical_path(value: str) -> str:
-    fail_unless(isinstance(value, str) and value and not value.startswith("/") and "\\" not in value, "canonical paths must be repository-relative POSIX paths")
+    fail_unless(isinstance(value, str) and value and "%" not in value and not value.startswith("/") and "\\" not in value, "canonical paths must be repository-relative POSIX paths without percent syntax")
     parts = Path(value).parts
     fail_unless(parts and parts[0] in CANONICAL_ROOTS and all(part not in {".", ".."} for part in parts), f"canonical path is outside declared roots: {value}")
     path = (ROOT / value).resolve()
@@ -639,6 +826,7 @@ def canonical_path(value: str) -> str:
 
 def derived_reference(value: str) -> str:
     value = safe_line("derived reference", value, 500)
+    fail_unless("%" not in value, "derived references must not contain percent-encoded or literal percent syntax")
     if value.startswith("#/"):
         fail_unless(" " not in value and ".." not in value, f"derived route is invalid: {value}")
         return value
@@ -648,6 +836,14 @@ def derived_reference(value: str) -> str:
     fail_unless((ROOT / value).resolve().is_relative_to(ROOT.resolve()), f"derived reference escapes the repository: {value}")
     fail_unless(not has_symlink_component(ROOT / value), f"derived reference contains a symlink: {value}")
     return value
+
+
+def candidate_envelope_digest(data: dict[str, Any]) -> str:
+    """Bind independently reviewed framing and artifacts to one candidate."""
+    payload = {key: data.get(key) for key in CANDIDATE_ENVELOPE_FIELDS}
+    payload["repositoryRemote"] = repository_identity(str(data.get("repositoryRemote", "")))
+    encoded = json.dumps(payload, sort_keys=True, separators=(",", ":"), ensure_ascii=False).encode("utf-8")
+    return hashlib.sha256(encoded).hexdigest()
 
 
 def state_evidence_errors(data: dict[str, Any], *, verify_artifacts: bool = True) -> list[str]:
@@ -683,6 +879,7 @@ def state_evidence_errors(data: dict[str, Any], *, verify_artifacts: bool = True
                 require((ROOT / value).is_file(), f"canonical path does not exist: {value}")
     if state in projected:
         require(bool(data["derivedPaths"]), "at least one derived path or route is required")
+        require(any(value.startswith("#/") for value in data["derivedPaths"]), "at least one site route is required")
         if verify_artifacts:
             for value in data["derivedPaths"]:
                 if value.startswith("#/"):
@@ -698,6 +895,11 @@ def state_evidence_errors(data: dict[str, Any], *, verify_artifacts: bool = True
         require(data["prNumber"] is not None, "prNumber is required")
         require(bool(data["prUrl"]), "prUrl is required")
         require(bool(data["candidateSha"]) and data["candidateSha"] == data["prHeadSha"], "candidateSha and prHeadSha must be identical")
+        require(
+            bool(data["candidateEnvelopeSha256"])
+            and data["candidateEnvelopeSha256"] == candidate_envelope_digest(data),
+            "candidateEnvelopeSha256 must bind the reviewed framing, artifacts, validation digest, and candidate SHA",
+        )
     if state == "CANDIDATE":
         require(data["prDraft"] is True, "candidate PR must remain draft")
     if state in reviewed:
@@ -786,6 +988,7 @@ def validate_checkpoint_shape(data: Any, path: Path | None = None, *, verify_art
     fail_unless(data["localValidation"] in {"pending", "pass", "fail"}, f"{label} localValidation is invalid")
     fail_unless(data["localValidationDigest"] is None or (isinstance(data["localValidationDigest"], str) and bool(SHA256.fullmatch(data["localValidationDigest"]))), f"{label} localValidationDigest is invalid")
     fail_unless(data["localValidation"] == "pass" or data["localValidationDigest"] is None, f"{label} non-passing localValidation cannot retain a digest")
+    fail_unless(data["candidateEnvelopeSha256"] is None or (isinstance(data["candidateEnvelopeSha256"], str) and bool(SHA256.fullmatch(data["candidateEnvelopeSha256"]))), f"{label} candidateEnvelopeSha256 is invalid")
     fail_unless(data["reviewDisposition"] in {"pending", "pass", "conditional", "fail"}, f"{label} reviewDisposition is invalid")
     fail_unless(data["checkDisposition"] in {"pending", "green", "failed"}, f"{label} checkDisposition is invalid")
     fail_unless(data["publicationStatus"] in {"pending", "published", "corrective-change-required"}, f"{label} publicationStatus is invalid")
@@ -870,14 +1073,16 @@ def command_new(args: argparse.Namespace) -> int:
         ensure_local_root(SPEC_ROOT, "intake specification")
         fail_unless(not spec.exists(), f"intake specification already exists: {spec.relative_to(ROOT)}")
 
-    repository_remote = public_repository_identity(git("remote", "get-url", "origin"))
+    repository_remote = public_repository_identity(origin_remote_url())
     reject_existing_intake_history(intake_id, repository_remote)
-    git("fetch", "origin", "main")
+    fetch_authenticated_main()
     git("merge", "--ff-only", "origin/main")
     base = git("rev-parse", "origin/main")
     fail_unless(git("rev-parse", "HEAD") == base, "local main must exactly equal origin/main before intake creation")
     fail_unless(not git("show-ref", "--verify", f"refs/heads/{branch}", check=False), f"branch already exists: {branch}; resume its existing checkpoint instead")
     fail_unless(not git("show-ref", "--verify", f"refs/remotes/origin/{branch}", check=False), f"remote branch already exists: {branch}; resume its existing checkpoint instead")
+    fail_unless(github_ref_sha(f"heads/{branch}", required=False) is None, f"GitHub branch already exists: {branch}; resume its existing checkpoint instead")
+    fail_unless(not git("ls-remote", "--heads", "origin", f"refs/heads/{branch}"), f"remote branch already exists: {branch}; resume its existing checkpoint instead")
     timestamp = now()
     data: dict[str, Any] = {
         "schemaVersion": SCHEMA_VERSION, "intakeId": intake_id, "slug": slug, "title": args.title,
@@ -888,7 +1093,7 @@ def command_new(args: argparse.Namespace) -> int:
         "statusReason": "Authorized public-safe intake created.", "repositoryRemote": repository_remote,
         "baseBranch": "main", "baseSha": base, "branch": branch,
         "checkpointCreatedAt": timestamp, "updatedAt": timestamp, "canonicalPaths": [], "derivedPaths": [],
-        "localValidation": "pending", "localValidationDigest": None, "candidateSha": None, "prNumber": None, "prUrl": None, "prHeadSha": None,
+        "localValidation": "pending", "localValidationDigest": None, "candidateSha": None, "candidateEnvelopeSha256": None, "prNumber": None, "prUrl": None, "prHeadSha": None,
         "prDraft": True, "reviewDisposition": "pending", "acceptedSha": None, "checkedSha": None,
         "reviewEvidenceUrls": [], "checkDisposition": "pending", "checkUrls": [], "mergeSha": None,
         "branchCleanupStatus": "pending", "cleanupEvidence": [], "mainValidationUrl": None,
@@ -927,7 +1132,18 @@ def resolve_sha(value: str | None) -> str | None:
 def command_record(args: argparse.Namespace) -> int:
     path, data = load_checkpoint(args.checkpoint)
     previous_state = data["canonicalState"]
+    fail_unless(previous_state != "CLOSED", "CLOSED is immutable; create a superseding intake for any correction")
     previous_candidate = data["candidateSha"]
+    locked_states = {"CANDIDATE", "REVIEWED", "VALIDATED", "MERGED", "PUBLISHED", "CLOSED"}
+    if previous_state in locked_states:
+        locked_scalars = {
+            "artifactType": args.artifact_type,
+            "scopeSummary": args.scope_summary,
+            "deltaSummary": args.delta_summary,
+        }
+        changed = [key for key, value in locked_scalars.items() if value is not None and value != data[key]]
+        fail_unless(not changed, f"change framing fields only after returning to REWORK: {', '.join(changed)}")
+        fail_unless(args.local_validation is None, "record local validation again only after returning to REWORK")
     if args.requested_actions is not None:
         fail_unless(bool(args.status_reason) and bool(args.input_reference), "changing requested actions requires --status-reason and a current --input-reference")
         data["requestedActions"] = parse_actions(args.requested_actions)
@@ -955,6 +1171,7 @@ def command_record(args: argparse.Namespace) -> int:
         data["localValidationDigest"] = source_tree_digest() if args.local_validation == "pass" else None
     if args.candidate_sha is not None and data["candidateSha"] != previous_candidate:
         data.update({
+            "candidateEnvelopeSha256": None,
             "acceptedSha": None, "checkedSha": None, "reviewDisposition": "pending",
             "reviewEvidenceUrls": [], "checkDisposition": "pending", "checkUrls": [],
             "mergeSha": None, "branchCleanupStatus": "pending", "cleanupEvidence": [],
@@ -972,7 +1189,6 @@ def command_record(args: argparse.Namespace) -> int:
         "routeAssertions": args.route_assertion, "residualLimitations": args.residual_limitation,
     }
     locked_content_fields = {"audiences", "inputReferences", "evidenceReferences", "canonicalPaths", "derivedPaths"}
-    locked_states = {"CANDIDATE", "REVIEWED", "VALIDATED", "MERGED", "PUBLISHED", "CLOSED"}
     for key, values in list_values.items():
         if values:
             authority_reference = key == "inputReferences" and args.requested_actions is not None
@@ -983,11 +1199,21 @@ def command_record(args: argparse.Namespace) -> int:
             elif key == "derivedPaths":
                 values = [derived_reference(value) for value in values]
             data[key] = list(dict.fromkeys([*data[key], *values]))
+    if previous_state in {"REWORK", "BLOCKED"} and (
+        args.artifact_type is not None
+        or args.scope_summary is not None
+        or args.delta_summary is not None
+        or any((args.audience, args.evidence_reference, args.canonical_path, args.derived_path))
+    ):
+        data["candidateEnvelopeSha256"] = None
     for key in ("prUrl", "mainValidationUrl", "pagesRunUrl", "liveBaseUrl", "closureEvidenceUrl"):
         if data[key]:
             safe_url(key, data[key])
-    data["updatedAt"] = now()
     next_state = data["canonicalState"]
+    candidate_states = {"CANDIDATE", "REVIEWED", "VALIDATED", "MERGED", "PUBLISHED", "CLOSED"}
+    if next_state in candidate_states and data["candidateEnvelopeSha256"] is None:
+        data["candidateEnvelopeSha256"] = candidate_envelope_digest(data)
+    data["updatedAt"] = now()
     if next_state != previous_state:
         fail_unless(next_state in TRANSITIONS[previous_state], f"invalid workflow transition: {previous_state} -> {next_state}")
     validate_checkpoint_shape(data, path)
@@ -1000,10 +1226,13 @@ def command_record(args: argparse.Namespace) -> int:
 
 def command_replace_list(args: argparse.Namespace) -> int:
     path, data = load_checkpoint(args.checkpoint)
+    fail_unless(data["canonicalState"] != "CLOSED", "CLOSED is immutable; create a superseding intake for any correction")
     locked_content_fields = {"audiences", "inputReferences", "evidenceReferences", "canonicalPaths", "derivedPaths"}
     if args.field in locked_content_fields and data["canonicalState"] in {"CANDIDATE", "REVIEWED", "VALIDATED", "MERGED", "PUBLISHED", "CLOSED"}:
         raise WorkflowError(f"replace {args.field} only before CANDIDATE or after returning to REWORK/BLOCKED")
     data[args.field] = list(dict.fromkeys(args.value))
+    if args.field in {"audiences", "evidenceReferences", "canonicalPaths", "derivedPaths"}:
+        data["candidateEnvelopeSha256"] = None
     data["statusReason"] = safe_line("replacement reason", args.status_reason, 500)
     data["updatedAt"] = now()
     validate_checkpoint_shape(data, path)
@@ -1030,7 +1259,7 @@ def rendered_cell(value: Any) -> str:
 def rendered_checkpoint(data: dict[str, Any]) -> str:
     rows = (
         ("Intake", "intakeId"), ("State", "canonicalState"), ("Base", "baseSha"),
-        ("Branch", "branch"), ("Candidate", "candidateSha"), ("Accepted", "acceptedSha"),
+        ("Branch", "branch"), ("Candidate", "candidateSha"), ("Candidate envelope", "candidateEnvelopeSha256"), ("Accepted", "acceptedSha"),
         ("CI checked", "checkedSha"), ("PR head", "prHeadSha"), ("PR", "prNumber"),
         ("PR URL", "prUrl"),
         ("Local validation", "localValidation"), ("Validated source tree", "localValidationDigest"),
@@ -1049,10 +1278,7 @@ def rendered_checkpoint(data: dict[str, Any]) -> str:
 
 
 def embedded_checkpoint(body: str) -> dict[str, Any]:
-    fail_unless(body.count(CHECKPOINT_START) == 1 and body.count(CHECKPOINT_END) == 1, "PR body must contain exactly one workflow checkpoint block")
-    start = body.index(CHECKPOINT_START)
-    end = body.index(CHECKPOINT_END, start) + len(CHECKPOINT_END)
-    block = body[start:end]
+    block = checkpoint_block(body)
     matches = re.findall(rf"<!-- {re.escape(CHECKPOINT_PAYLOAD)}:([A-Za-z0-9_-]+={{0,2}}) -->", block)
     fail_unless(len(matches) == 1, "PR checkpoint block must contain exactly one machine payload")
     try:
@@ -1063,6 +1289,15 @@ def embedded_checkpoint(body: str) -> dict[str, Any]:
     fail_unless(isinstance(data, dict) and set(data) == CHECKPOINT_KEYS, "PR checkpoint payload fields differ from the current schema")
     fail_unless(block.strip() == rendered_checkpoint(data).strip(), "PR checkpoint table and machine payload are inconsistent")
     return data
+
+
+def checkpoint_block(body: str) -> str:
+    """Extract one ordered durable block without leaking malformed body text."""
+    fail_unless(body.count(CHECKPOINT_START) == 1 and body.count(CHECKPOINT_END) == 1, "PR body must contain exactly one workflow checkpoint block")
+    start = body.find(CHECKPOINT_START)
+    finish = body.find(CHECKPOINT_END)
+    fail_unless(start >= 0 and finish > start, "PR workflow checkpoint markers are out of order")
+    return body[start : finish + len(CHECKPOINT_END)]
 
 
 def command_render(args: argparse.Namespace) -> int:
@@ -1089,7 +1324,7 @@ def validate_repo_errors() -> list[str]:
     if TEMPLATE.is_file():
         text = TEMPLATE.read_text(encoding="utf-8")
         errors.extend(f"intake template section is missing: {number}" for number in range(1, 15) if not re.search(rf"^## {number}\. ", text, re.M))
-        for marker in ("Candidate head SHA", "Validated source-tree SHA-256", "Accepted head SHA", "PR checked head SHA", "Merge/squash SHA", "Publication status"):
+        for marker in ("Candidate head SHA", "Candidate envelope SHA-256", "Validated source-tree SHA-256", "Accepted head SHA", "PR checked head SHA", "Merge/squash SHA", "Publication status"):
             if marker not in text:
                 errors.append(f"intake template release field is missing: {marker}")
     skill = ROOT / ".agents" / "skills" / "publish-api-study" / "SKILL.md"
@@ -1107,6 +1342,22 @@ def validate_repo_errors() -> list[str]:
         for flag in ("--request-summary", "--decision-question", "--change-class", "resume --pr-number", "--phase draft", "--phase release", "--match-head-commit", "requirements-validation.txt"):
             if flag not in contract_text:
                 errors.append(f"skill repository contract is missing {flag}")
+    operator_documents = (
+        ROOT / "README.md",
+        workflow,
+        skill,
+        contract,
+        TEMPLATE,
+        ROOT / ".github" / "pull_request_template.md",
+    )
+    for document in operator_documents:
+        if not document.is_file():
+            continue
+        operator_text = document.read_text(encoding="utf-8")
+        if ".venv/bin/python -I scripts/study_workflow.py" not in operator_text:
+            errors.append(f"operator workflow omits the isolated CLI invocation: {document.relative_to(ROOT)}")
+        if "python3 scripts/study_workflow.py" in operator_text:
+            errors.append(f"operator workflow contains a non-isolated CLI invocation: {document.relative_to(ROOT)}")
     agent_ui = ROOT / ".agents" / "skills" / "publish-api-study" / "agents" / "openai.yaml"
     if agent_ui.is_file():
         ui_text = agent_ui.read_text(encoding="utf-8")
@@ -1128,37 +1379,80 @@ def verify_base(data: dict[str, Any], base: str) -> str:
     full_sha("--base", base)
     git("cat-file", "-e", f"{base}^{{commit}}")
     fail_unless(data["baseSha"] == base, "--base does not match checkpoint baseSha")
-    fail_unless(same_repository(data["repositoryRemote"], git("remote", "get-url", "origin")), "checkpoint repositoryRemote differs from origin")
-    git("fetch", "origin", "main")
+    fail_unless(same_repository(data["repositoryRemote"], origin_remote_url()), "checkpoint repositoryRemote differs from origin")
+    fetch_authenticated_main()
     fail_unless(run(("git", "merge-base", "--is-ancestor", base, "origin/main"), check=False).returncode == 0, "recorded base is not reachable from origin/main")
     fail_unless(run(("git", "merge-base", "--is-ancestor", base, "HEAD"), check=False).returncode == 0, "recorded base is not an ancestor of HEAD")
     return base
+
+
+def verify_history_repository() -> None:
+    """Reject local Git graph rewrites that can hide candidate history."""
+    fail_unless(
+        git("rev-parse", "--is-shallow-repository") == "false",
+        "history certification requires a complete, non-shallow repository",
+    )
+    graft_value = git("rev-parse", "--git-path", "info/grafts")
+    graft_path = Path(graft_value)
+    if not graft_path.is_absolute():
+        graft_path = ROOT / graft_path
+    fail_unless(not graft_path.exists(), "history certification rejects legacy Git grafts")
 
 
 def actual_pr(number: int) -> dict[str, Any]:
     try:
         return json.loads(gh(
             "pr", "view", str(number), "--json",
-            "number,url,title,body,baseRefName,headRefOid,headRefName,isDraft,state,statusCheckRollup,mergeCommit",
+            "number,url,title,body,baseRefName,headRefOid,headRefName,headRepositoryOwner,isCrossRepository,isDraft,state,statusCheckRollup,mergeCommit",
+            "--repo", github_owner_repo(),
         ))
     except json.JSONDecodeError as exc:
         raise WorkflowError("gh returned invalid PR JSON") from exc
 
 
 def verify_actual_pr_checkpoint(data: dict[str, Any], pr: dict[str, Any], head: str) -> None:
+    verify_pr_repository_identity(data, pr)
     fail_unless(pr.get("baseRefName") == "main", "workflow requires a PR targeting main")
+    fail_unless(pr.get("isCrossRepository") is False, "workflow requires a same-repository PR")
     fail_unless(pr.get("headRefName") == data["branch"] and pr.get("headRefOid") == head, "actual PR branch/head differs from the checkpoint and HEAD")
     fail_unless(pr.get("url") == data["prUrl"], "actual PR URL differs from the checkpoint")
     fail_unless(pr.get("state") == "OPEN" and pr.get("isDraft") is data["prDraft"], "actual PR open/draft state differs from the checkpoint")
+    remote_head = git("ls-remote", "--heads", "origin", f"refs/heads/{data['branch']}")
+    fail_unless(bool(remote_head) and remote_head.split()[0] == head, "origin intake branch does not equal the recorded PR head")
+    fail_unless(github_ref_sha(f"heads/{data['branch']}") == head, "GitHub intake branch does not equal the recorded PR head")
+    verify_pr_checkpoint_body(data, pr)
+
+
+def verify_pr_checkpoint_body(data: dict[str, Any], pr: dict[str, Any]) -> None:
+    """Require the durable PR mirror to equal the local ignored checkpoint."""
     pr_text = f"{pr.get('title') or ''}\n{pr.get('body') or ''}"
     pr_findings = scan_text(pr_text, f"PR {data['prNumber']} title/body")
     if pr_findings:
         raise WorkflowError(pr_findings[0])
     body = pr.get("body") or ""
-    fail_unless(body.count(CHECKPOINT_START) == 1 and body.count(CHECKPOINT_END) == 1, "PR body must contain exactly one workflow checkpoint block")
-    start = body.index(CHECKPOINT_START)
-    end = body.index(CHECKPOINT_END, start) + len(CHECKPOINT_END)
-    fail_unless(body[start:end].strip() == rendered_checkpoint(data).strip(), "PR checkpoint block is stale or differs from the validated local checkpoint")
+    fail_unless(checkpoint_block(body).strip() == rendered_checkpoint(data).strip(), "PR checkpoint block is stale or differs from the validated local checkpoint")
+
+
+def verify_pr_repository_identity(data: dict[str, Any], pr: dict[str, Any]) -> None:
+    """Bind a GitHub response to origin, not ambient CLI repository context."""
+    owner_repo = github_owner_repo()
+    owner, _ = owner_repo.split("/", 1)
+    number = data.get("prNumber")
+    fail_unless(type(number) is int and pr.get("number") == number, "actual PR number differs from the checkpoint")
+    expected_url = f"https://github.com/{owner_repo}/pull/{number}"
+    fail_unless(pr.get("url") == expected_url and data.get("prUrl") == expected_url, "actual PR URL/repository differs from origin and the checkpoint")
+    head_owner = pr.get("headRepositoryOwner") if isinstance(pr.get("headRepositoryOwner"), dict) else {}
+    fail_unless(str(head_owner.get("login", "")).lower() == owner.lower(), "actual PR head repository owner differs from origin")
+
+
+def verify_merged_pr_checkpoint(data: dict[str, Any], pr: dict[str, Any], merge: str) -> None:
+    verify_pr_repository_identity(data, pr)
+    merge_commit = pr.get("mergeCommit") if isinstance(pr.get("mergeCommit"), dict) else {}
+    fail_unless(pr.get("state") == "MERGED" and merge_commit.get("oid") == merge, "recorded merge SHA is not the PR merge commit")
+    fail_unless(pr.get("isCrossRepository") is False, "workflow requires a same-repository merged PR")
+    fail_unless(pr.get("baseRefName") == "main" and pr.get("url") == data["prUrl"], "merged PR identity/base differs from the checkpoint")
+    fail_unless(pr.get("headRefName") == data["branch"] and pr.get("headRefOid") == data["candidateSha"], "merged PR head differs from the accepted candidate")
+    verify_pr_checkpoint_body(data, pr)
 
 
 def command_resume(args: argparse.Namespace) -> int:
@@ -1190,17 +1484,21 @@ def command_resume(args: argparse.Namespace) -> int:
     fail_unless(data["requestedActions"] == requested_actions, "current explicit requested actions differ from the durable checkpoint")
     fail_unless(data["baseSha"] == args.base, "--base differs from the durable checkpoint")
     fail_unless(data["prNumber"] == args.pr_number and data["prUrl"] == pr.get("url"), "PR identity differs from the durable checkpoint")
+    verify_pr_repository_identity(data, pr)
     fail_unless(pr.get("baseRefName") == "main" and data["baseBranch"] == "main", "resume requires a PR targeting main")
+    fail_unless(pr.get("isCrossRepository") is False, "resume requires a same-repository PR")
     fail_unless(data["branch"] == pr.get("headRefName") and data["prHeadSha"] == pr.get("headRefOid"), "PR head differs from the durable checkpoint")
-    fail_unless(same_repository(data["repositoryRemote"], git("remote", "get-url", "origin")), "durable checkpoint remote differs from origin")
+    fail_unless(same_repository(data["repositoryRemote"], origin_remote_url()), "durable checkpoint remote differs from origin")
 
-    git("fetch", "origin", "main")
+    fetch_authenticated_main()
     fail_unless(run(("git", "merge-base", "--is-ancestor", args.base, "origin/main"), check=False).returncode == 0, "durable base is not reachable from origin/main")
     state = pr.get("state")
     if state == "OPEN":
+        fail_unless(pr.get("isDraft") is data["prDraft"], "open PR draft state differs from the durable checkpoint")
         git("fetch", "origin", f"{data['branch']}:refs/remotes/origin/{data['branch']}")
         remote_head = git("rev-parse", f"origin/{data['branch']}")
         fail_unless(remote_head == data["prHeadSha"], "remote intake branch differs from the durable PR head")
+        fail_unless(github_ref_sha(f"heads/{data['branch']}") == remote_head, "GitHub intake branch differs from the durable PR head")
         local_exists = bool(git("show-ref", "--verify", f"refs/heads/{data['branch']}", check=False))
         if local_exists:
             fail_unless(git("rev-parse", data["branch"]) == remote_head, "existing local intake branch differs from the durable PR head")
@@ -1212,7 +1510,9 @@ def command_resume(args: argparse.Namespace) -> int:
         fail_unless(current_branch == "main", "merged intake resume must start from local main")
         fail_unless(data["canonicalState"] in {"VALIDATED", "MERGED", "PUBLISHED", "CLOSED"}, "merged PR durable state was not release-validated")
         fail_unless({"merge", "branch-cleanup"}.issubset(set(data["requestedActions"])), "merged intake resume lacks merge/branch-cleanup authority")
+        verify_candidate_acceptance(data, pr)
         fail_unless(not git("show-ref", "--verify", f"refs/heads/{data['branch']}", check=False), "remove the exact local intake branch before resuming the merged PR")
+        fail_unless(github_ref_sha(f"heads/{data['branch']}", required=False) is None, "GitHub intake branch still exists; complete its authorized cleanup before resume")
         fail_unless(not git("ls-remote", "--heads", "origin", data["branch"]), "remote intake branch still exists; complete its authorized cleanup before resume")
         git("merge", "--ff-only", "origin/main")
         origin_main = git("rev-parse", "origin/main")
@@ -1248,58 +1548,53 @@ def command_resume(args: argparse.Namespace) -> int:
     return 0
 
 
-def checks_green(rollup: Any, expected_sha: str) -> bool:
+def authenticated_check_urls(rollup: Any, expected_sha: str) -> set[str] | None:
     if not isinstance(rollup, list) or not rollup:
-        return False
+        return None
     accepted = {"SUCCESS", "NEUTRAL", "SKIPPED"}
-    try:
-        owner_repo = json.loads(gh("repo", "view", "--json", "nameWithOwner")).get("nameWithOwner")
-    except json.JSONDecodeError:
-        return False
-    if not isinstance(owner_repo, str) or "/" not in owner_repo:
-        return False
+    owner_repo = github_owner_repo()
     required_runs: dict[str, str] = {}
     for item in rollup:
         if not isinstance(item, dict):
-            return False
+            return None
         outcome = item.get("conclusion") or item.get("state") or ""
         if str(outcome).upper() not in accepted:
-            return False
+            return None
         name = item.get("name") or item.get("context")
         if isinstance(name, str) and name in REQUIRED_PR_CHECKS:
             if name in required_runs or str(outcome).upper() != "SUCCESS":
-                return False
+                return None
             details = item.get("detailsUrl")
             workflow = item.get("workflowName")
             if not isinstance(details, str) or str(workflow).lower() != "validate":
-                return False
+                return None
             split = urlsplit(details)
             match = re.fullmatch(rf"/{re.escape(owner_repo)}/actions/runs/(\d+)(?:/job/\d+)?/?", split.path)
             if split.scheme != "https" or split.netloc != "github.com" or match is None:
-                return False
+                return None
             required_runs[name] = f"https://github.com/{owner_repo}/actions/runs/{match.group(1)}"
     if set(required_runs) != REQUIRED_PR_CHECKS:
-        return False
+        return None
     try:
         for run_url in set(required_runs.values()):
             verify_action_run(run_url, expected_sha, "validate")
     except WorkflowError:
-        return False
-    return True
+        return None
+    return set(required_runs.values())
+
+
+def checks_green(rollup: Any, expected_sha: str) -> bool:
+    return authenticated_check_urls(rollup, expected_sha) is not None
 
 
 def fetch_same_pr_comment(value: str, pr_number: int) -> str:
-    try:
-        owner_repo = json.loads(gh("repo", "view", "--json", "nameWithOwner")).get("nameWithOwner")
-    except json.JSONDecodeError as exc:
-        raise WorkflowError("gh returned invalid repository JSON") from exc
-    fail_unless(isinstance(owner_repo, str) and "/" in owner_repo, "unable to resolve GitHub repository identity")
+    owner_repo = github_owner_repo()
     split = urlsplit(value)
     path_match = re.fullmatch(rf"/{re.escape(owner_repo)}/pull/{pr_number}", split.path)
     comment_match = re.fullmatch(r"issuecomment-(\d+)", split.fragment)
     fail_unless(split.scheme == "https" and split.netloc == "github.com" and path_match is not None and comment_match is not None, "evidence URL must identify a comment on the recorded PR")
     try:
-        comment = json.loads(gh("api", f"repos/{owner_repo}/issues/comments/{comment_match.group(1)}"))
+        comment = json.loads(gh("api", f"repos/{owner_repo}/issues/comments/{comment_match.group(1)}", "--hostname", "github.com"))
     except json.JSONDecodeError as exc:
         raise WorkflowError("gh returned invalid PR-comment JSON") from exc
     fail_unless(isinstance(comment, dict) and comment.get("html_url") == value and str(comment.get("issue_url", "")).endswith(f"/issues/{pr_number}"), "GitHub comment does not belong to the recorded PR")
@@ -1311,15 +1606,37 @@ def fetch_same_pr_comment(value: str, pr_number: int) -> str:
     return body
 
 
-def verify_review_evidence(urls: list[str], pr_number: int, accepted_sha: str) -> None:
+def verify_review_evidence(urls: list[str], pr_number: int, accepted_sha: str, envelope_sha256: str) -> None:
     verified = False
     for value in urls:
-        body = fetch_same_pr_comment(value, pr_number)
-        exact_sha = isinstance(body, str) and re.search(rf"(?im)^Accepted head SHA:\s*{re.escape(accepted_sha)}\s*$", body)
-        independent = isinstance(body, str) and re.search(r"(?im)^Independent reviewer:\s*\S.+$", body) and re.search(r"(?im)^Reviewer did not author candidate:\s*yes\s*$", body)
-        if exact_sha and independent and re.search(r"(?im)^Review disposition:\s*pass\s*$", body):
+        body = fetch_same_pr_comment(value, pr_number).replace("\r\n", "\n").replace("\r", "\n")
+        exact_block = re.search(
+            rf"(?m)^Accepted head SHA: {re.escape(accepted_sha)}\n"
+            rf"^Candidate envelope SHA-256: {re.escape(envelope_sha256)}\n"
+            r"^Independent reviewer: [^\r\n]+\n"
+            r"^Reviewer did not author candidate: yes\n"
+            r"^Review disposition: pass[ \t]*$",
+            body,
+        )
+        if exact_block:
             verified = True
-    fail_unless(verified, "independent review evidence must be an existing same-PR comment naming the accepted SHA and 'Review disposition: pass'")
+    fail_unless(verified, "independent review evidence must contain the exact contiguous five-line acceptance block for the accepted SHA and candidate envelope")
+
+
+def verify_candidate_acceptance(data: dict[str, Any], pr: dict[str, Any]) -> None:
+    """Re-authenticate the exact candidate review and CI evidence."""
+    candidate = full_sha("candidateSha", data["candidateSha"])
+    expected = [data[key] for key in ("acceptedSha", "checkedSha", "prHeadSha")]
+    fail_unless(all(value == candidate for value in expected), "candidate, accepted, checked, and recorded PR head SHAs must be identical")
+    fail_unless(data["reviewDisposition"] == "pass", "independent review disposition must be pass")
+    fail_unless(data["checkDisposition"] == "green", "required check disposition must be green")
+    fail_unless(data["prNumber"] is not None, "candidate acceptance requires a PR number")
+    envelope = data["candidateEnvelopeSha256"]
+    fail_unless(isinstance(envelope, str) and envelope == candidate_envelope_digest(data), "candidate envelope digest is missing or differs from the accepted scope")
+    verify_review_evidence(data["reviewEvidenceUrls"], data["prNumber"], candidate, envelope)
+    authenticated = authenticated_check_urls(pr.get("statusCheckRollup"), candidate)
+    fail_unless(authenticated is not None, "actual PR checks are missing, pending, failed, or are not authenticated required GitHub Actions jobs")
+    fail_unless(set(data["checkUrls"]) == authenticated, "recorded check URLs differ from the authenticated required runs")
 
 
 def verify_closure_evidence(url: str, pr_number: int, merge_sha: str, manifest_sha: str) -> None:
@@ -1334,7 +1651,7 @@ def verify_action_run(url: str, expected_sha: str, workflow_name: str) -> None:
     match = re.search(r"/actions/runs/(\d+)(?:/|$)", split.path)
     fail_unless(split.scheme == "https" and split.netloc == "github.com" and match is not None, f"{workflow_name} run URL is not a GitHub Actions run")
     try:
-        run_data = json.loads(gh("run", "view", match.group(1), "--json", "headSha,status,conclusion,url,workflowName"))
+        run_data = json.loads(gh("run", "view", match.group(1), "--json", "headSha,status,conclusion,url,workflowName", "--repo", github_owner_repo()))
     except json.JSONDecodeError as exc:
         raise WorkflowError(f"gh returned invalid {workflow_name} run JSON") from exc
     fail_unless(run_data.get("headSha") == expected_sha, f"{workflow_name} run did not execute the merge SHA")
@@ -1344,9 +1661,9 @@ def verify_action_run(url: str, expected_sha: str, workflow_name: str) -> None:
 
 
 def verify_pages_identity(value: str) -> None:
+    owner_repo = github_owner_repo()
     try:
-        owner_repo = json.loads(gh("repo", "view", "--json", "nameWithOwner")).get("nameWithOwner")
-        pages = json.loads(gh("api", f"repos/{owner_repo}/pages"))
+        pages = json.loads(gh("api", f"repos/{owner_repo}/pages", "--hostname", "github.com"))
     except json.JSONDecodeError as exc:
         raise WorkflowError("gh returned invalid Pages identity JSON") from exc
     expected = pages.get("html_url") if isinstance(pages, dict) else None
@@ -1392,6 +1709,7 @@ def command_check(args: argparse.Namespace) -> int:
         return 1
     _, data = load_checkpoint(args.checkpoint)
     base = verify_base(data, args.base)
+    verify_history_repository()
     missing_authority = PHASE_REQUIRED_ACTIONS[args.phase] - set(data["requestedActions"])
     fail_unless(not missing_authority, f"{args.phase} gate lacks explicit authority for: {', '.join(sorted(missing_authority))}")
     history_end = data["mergeSha"] if args.phase == "published" and data["mergeSha"] else "HEAD"
@@ -1414,38 +1732,34 @@ def command_check(args: argparse.Namespace) -> int:
         verify_actual_pr_checkpoint(data, actual_pr(data["prNumber"]), head)
     if args.phase == "draft":
         fail_unless(run_make_validate(), "make validate failed during draft gate")
+        verify_local_derived_routes(data)
     if args.phase == "release":
         fail_unless(
             run(("git", "merge-base", "--is-ancestor", "origin/main", head), check=False).returncode == 0,
             "release candidate must be rebased onto the current origin/main",
         )
         fail_unless(working_tree_clean_at(head), "release gate requires a clean working tree whose raw bytes match HEAD")
-        fail_unless(data["reviewDisposition"] == "pass", "independent review disposition must be pass")
-        fail_unless(data["checkDisposition"] == "green", "required check disposition must be green")
-        expected = [data[key] for key in ("candidateSha", "acceptedSha", "checkedSha", "prHeadSha")]
-        fail_unless(all(value == head for value in expected), "HEAD, candidate, accepted, checked, and recorded PR head SHAs must be identical")
         fail_unless(data["prNumber"] is not None, "release gate requires a PR number")
         pr = actual_pr(data["prNumber"])
         verify_actual_pr_checkpoint(data, pr, head)
         fail_unless(data["prDraft"] is False, "release gate requires a non-draft PR checkpoint")
-        verify_review_evidence(data["reviewEvidenceUrls"], data["prNumber"], head)
-        fail_unless(checks_green(pr.get("statusCheckRollup"), head), "actual PR checks are missing, pending, failed, or are not authenticated required GitHub Actions jobs")
+        verify_candidate_acceptance(data, pr)
         fail_unless(data["canonicalState"] == "VALIDATED", "release gate requires canonicalState VALIDATED")
         fail_unless(run_make_validate(), "make validate failed during release gate")
+        verify_local_derived_routes(data)
     if args.phase == "published":
         merge = full_sha("mergeSha", data["mergeSha"])
-        git("fetch", "origin", "main")
+        fetch_authenticated_main()
         fail_unless(run(("git", "merge-base", "--is-ancestor", merge, "origin/main"), check=False).returncode == 0, "mergeSha is not reachable from origin/main")
         origin_main = git("rev-parse", "origin/main")
         fail_unless(git("branch", "--show-current") == "main" and git("rev-parse", "HEAD") == origin_main, "published gate must run from local main exactly at current origin/main")
         fail_unless(working_tree_clean_at(origin_main), "published gate requires a clean working tree whose raw bytes match current origin/main")
         fail_unless(data["prNumber"] is not None, "published gate requires the merged PR number")
         pr = actual_pr(data["prNumber"])
-        merge_commit = pr.get("mergeCommit") if isinstance(pr.get("mergeCommit"), dict) else {}
-        fail_unless(pr.get("state") == "MERGED" and merge_commit.get("oid") == merge, "recorded merge SHA is not the PR merge commit")
-        fail_unless(pr.get("baseRefName") == "main" and pr.get("url") == data["prUrl"], "merged PR identity/base differs from the checkpoint")
-        fail_unless(pr.get("headRefName") == data["branch"] and pr.get("headRefOid") == data["candidateSha"], "merged PR head differs from the accepted candidate")
+        verify_merged_pr_checkpoint(data, pr, merge)
+        verify_candidate_acceptance(data, pr)
         fail_unless(not git("show-ref", "--verify", f"refs/heads/{data['branch']}", check=False), "local intake branch still exists")
+        fail_unless(github_ref_sha(f"heads/{data['branch']}", required=False) is None, "GitHub intake branch still exists")
         fail_unless(not git("ls-remote", "--heads", "origin", data["branch"]), "remote intake branch still exists")
         fail_unless(data["canonicalState"] in {"PUBLISHED", "CLOSED"}, "published gate requires state PUBLISHED or CLOSED")
         fail_unless(data["publicationStatus"] == "published", "publicationStatus must be published")

@@ -12,7 +12,7 @@
 The mutable run record is rendered from the ignored JSON checkpoint. Replace only the content between these markers; never commit candidate/review/merge/live state into the accepted tree.
 
 <!-- study-workflow-checkpoint:start -->
-Checkpoint pending. Run `python3 scripts/study_workflow.py render --checkpoint .study-workflow/checkpoints/<intake>.json`.
+Checkpoint pending. Run `.venv/bin/python -I scripts/study_workflow.py render --checkpoint .study-workflow/checkpoints/<intake>.json` and replace this block exactly.
 <!-- study-workflow-checkpoint:end -->
 
 ## Public-safety and authority
@@ -43,12 +43,22 @@ Checkpoint pending. Run `python3 scripts/study_workflow.py render --checkpoint .
 - Visual/accessibility reviewer and disposition:
 - Material findings and closure evidence:
 
+The independent reviewer posts this exact block as a separate comment on this pull request:
+
+```text
+Accepted head SHA: <40-character candidate SHA>
+Candidate envelope SHA-256: <64-character candidate-envelope digest>
+Independent reviewer: <reviewer identity or role>
+Reviewer did not author candidate: yes
+Review disposition: pass
+```
+
 - [ ] The final acceptor did not author the accepted material change.
 - [ ] Any commit after review repeated the affected review and validation.
 
 ## Validation
 
-- [ ] `python3 scripts/study_workflow.py check --checkpoint <ignored-json-path> --phase release --base <recorded-40-character-base-SHA>`
+- [ ] `.venv/bin/python -I scripts/study_workflow.py check --checkpoint <ignored-json-path> --phase release --base <recorded-40-character-base-SHA>`
 - [ ] `make validate`
 - [ ] `git diff --check`
 - [ ] Changed external source liveness/freshness checked.

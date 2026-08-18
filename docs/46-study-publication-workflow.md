@@ -6,7 +6,7 @@ This workflow turns a new chat request, pasted note, file, public source, experi
 
 It governs publication mechanics. It does not turn generic research into organization evidence, make an untested product claim observed, or authorize a platform decision. The [principal study standard](STUDY-STANDARD.md), [repository roadmap](39-repository-roadmap.md), [delivery roadmap](36-implementation-roadmap.md), and applicable decision gates still govern the substance.
 
-Use the [study intake template](../templates/study-intake-template.md) to start a packet. Its public-safe scope/evidence sections may be frozen as an intake specification before the candidate and committed when they have durable audit value. The mutable operational checkpoint—candidate/review/check/merge/Pages SHAs, run URLs, and live results—lives in the PR body/comment or an approved workflow system and never enters the reviewed tree; this avoids a record changing the SHA it claims to accept.
+Use the [study intake template](../templates/study-intake-template.md) to start a packet. Its public-safe scope/evidence sections may be frozen as an intake specification before the candidate and committed when they have durable audit value. The mutable operational checkpoint—candidate/review/check/merge/Pages SHAs, run URLs, and live results—lives in the exact marker-delimited block in the PR body and never enters the reviewed tree; review and closure comments are evidence, not the durable state mirror. This avoids a record changing the SHA it claims to accept.
 
 ## Non-negotiable operating contract
 
@@ -115,9 +115,9 @@ Every packet occupies exactly one state. A status describes the release, not the
 | `CANDIDATE` | Local gates pass; candidate is committed, pushed, and represented by a draft PR head SHA | Dirty scope, unsafe scan, or failed local gate | `REVIEWED` or `REWORK` |
 | `REVIEWED` | Independent content and visual acceptance names the candidate head SHA | Unresolved material defect or changed SHA | `VALIDATED` or `REWORK` |
 | `VALIDATED` | Required PR checks pass on the same reviewed head SHA | Any failing/pending check or changed SHA | `MERGED` or `REWORK` |
-| `MERGED` | Approved PR head is reachable from `origin/main`; intake branches are safely cleaned | Merge state or scope differs | `PUBLISHED` or `REWORK` through a corrective PR |
-| `PUBLISHED` | Main checks and Pages deployment are green; live routes/manifests match | Failed or stale deployment | `CLOSED` or `REWORK` through a corrective PR |
-| `CLOSED` | Closure record captures artifacts, SHAs, runs, live proof, residual limits, and next gate | Any required record or live assertion missing | Terminal; a new change gets a new intake |
+| `MERGED` | Approved PR head is reachable from GitHub `main`; intake branches are safely cleaned | Merge state or scope differs | `PUBLISHED`; a defect uses a superseding intake while this record remains `MERGED` |
+| `PUBLISHED` | Main checks and Pages deployment are green; live routes/manifests match | Failed or stale deployment | `CLOSED` only; correction uses a superseding intake |
+| `CLOSED` | Closure record captures artifacts, SHAs, runs, live proof, residual limits, and next gate | Any required record or live assertion missing | Immutable terminal state; a new change gets a new intake |
 | `REWORK` | Defect, responsible stage, owner, and required evidence are recorded | Remediation not complete | Earliest affected nonterminal state |
 | `BLOCKED` | Reason, owner role, required evidence/authority, and decision impact are recorded | Unsafe or unavailable prerequisite | `INTAKE`, `FRAMED`, `RESEARCHED`, or terminal blocked disposition |
 
@@ -144,8 +144,8 @@ flowchart LR
   T -->|"fail / new SHA"| D
   T -->|"pass"| M["PR merge<br/>accepted scope"]
   M --> G{"Pages deploy +<br/>live verification"}
-  G -->|"fail or stale"| C["Corrective change"]
-  C --> D
+  G -->|"fail or stale"| C["Superseding<br/>corrective intake"]
+  C --> I
   G -->|"pass"| U["PUBLISHED<br/>verified live release"]
   U --> Z["CLOSED<br/>release evidence + next gate"]
 ```
@@ -159,18 +159,18 @@ flowchart LR
 The ignored JSON checkpoint advances one state at a time; a state is recorded only after its exit evidence exists. These commands show the required sequence and field shape. Replace every placeholder with public-safe intake-specific evidence:
 
 ```bash
-python3 scripts/study_workflow.py record --checkpoint <checkpoint> --state FRAMED --change-class <study|evidence|guide|projection|remediation|workflow> --audience "<decision audience>" --scope-summary "<scope and exclusions>" --delta-summary "<canonical and derived impact>"
-python3 scripts/study_workflow.py record --checkpoint <checkpoint> --state RESEARCHED --evidence-reference "<public primary source or repository evidence path>"
-python3 scripts/study_workflow.py record --checkpoint <checkpoint> --state AUTHORED --canonical-path <canonical-repository-path>
-python3 scripts/study_workflow.py record --checkpoint <checkpoint> --state PROJECTED --derived-path <site-route-or-derived-repository-path>
+.venv/bin/python -I scripts/study_workflow.py record --checkpoint <checkpoint> --state FRAMED --change-class <study|evidence|guide|projection|remediation|workflow> --audience "<decision audience>" --scope-summary "<scope and exclusions>" --delta-summary "<canonical and derived impact>"
+.venv/bin/python -I scripts/study_workflow.py record --checkpoint <checkpoint> --state RESEARCHED --evidence-reference "<public primary source or repository evidence path>"
+.venv/bin/python -I scripts/study_workflow.py record --checkpoint <checkpoint> --state AUTHORED --canonical-path <canonical-repository-path>
+.venv/bin/python -I scripts/study_workflow.py record --checkpoint <checkpoint> --state PROJECTED --derived-path <site-route-or-derived-repository-path>
 ```
 
-`CANDIDATE`, `REVIEWED`, and `VALIDATED` are recorded later with the exact pushed PR head, independent-review comment, and required-check evidence shown in Stages 7–8. `MERGED`, `PUBLISHED`, and `CLOSED` are recorded only after the matching GitHub and live evidence in Stages 9–10 exists. The CLI rejects skipped transitions, unsupported authority, missing state evidence, and acceptance copied to a changed candidate SHA.
+`CANDIDATE`, `REVIEWED`, and `VALIDATED` are recorded later with the exact pushed PR head, candidate-envelope SHA-256, independent-review comment, and required-check evidence shown in Stages 7–8. The envelope binds the decision frame, evidence/canonical/derived paths, validated source-tree digest, and candidate SHA; the independent review comment must name both the candidate SHA and envelope digest. `MERGED`, `PUBLISHED`, and `CLOSED` are recorded only after the matching GitHub and live evidence in Stages 9–10 exists. The CLI rejects skipped transitions, unsupported authority, missing state evidence, and acceptance copied to a changed candidate or rewritten envelope.
 
 The PR checkpoint block contains both a human-readable table and a complete, schema-versioned machine payload. A later task or fresh clone restores a missing ignored checkpoint only from that exact block:
 
 ```bash
-python3 scripts/study_workflow.py resume --pr-number <number> --base <recorded-40-character-base-SHA> --requested-actions "<current exact authority>"
+.venv/bin/python -I scripts/study_workflow.py resume --pr-number <number> --base <recorded-40-character-base-SHA> --requested-actions "<current exact authority>"
 ```
 
 The resume command verifies repository, PR, branch, base, head, schema, current authority, and block consistency before recreating local state. Record changed authority with `record --requested-actions ... --status-reason ... --input-reference ...`. Use `replace-list` with a reason to correct or clear a list; content, evidence, audience, and path lists cannot change after `CANDIDATE` without first returning to `REWORK` or `BLOCKED`.
@@ -178,6 +178,14 @@ The resume command verifies repository, PR, branch, base, head, schema, current 
 ## Stage 0 — Preflight and authority
 
 Before research or editing:
+
+```bash
+test -x .venv/bin/python || python3.12 -I -m venv .venv
+.venv/bin/python -I -m pip install --disable-pip-version-check -r requirements-validation.txt
+export PATH="$PWD/.venv/bin:$PATH"
+```
+
+This ignored pinned environment is preflight state, not a tracked publication write. It must exist before the first `.venv/bin/python -I scripts/study_workflow.py new` or `resume` command.
 
 1. Confirm the target repository, remote, public visibility, default branch, current upstream state, branch protection, open pull request scope, and Pages URL.
 2. Inspect working-tree and branch state. Preserve unrelated user changes. Do not reset, overwrite, stash, or include them in the release without explicit authority; use an isolated worktree or return the conflict when safe separation is impossible.
@@ -303,13 +311,13 @@ The projection engineer verifies expected counts and exact identifiers in `_site
 Run the complete repository controls on the feature branch, not a convenient subset:
 
 ```bash
-test -x .venv/bin/python || python3.12 -m venv .venv
-.venv/bin/python -m pip install --disable-pip-version-check -r requirements-validation.txt
+test -x .venv/bin/python || python3.12 -I -m venv .venv
+.venv/bin/python -I -m pip install --disable-pip-version-check -r requirements-validation.txt
 export PATH="$PWD/.venv/bin:$PATH"
 make validate
 git diff --check
-python3 scripts/study_workflow.py record --checkpoint <public-safe-checkpoint-path> --local-validation pass
-python3 scripts/study_workflow.py check --checkpoint <public-safe-checkpoint-path> --phase draft --base <recorded-40-character-base-SHA>
+.venv/bin/python -I scripts/study_workflow.py record --checkpoint <public-safe-checkpoint-path> --local-validation pass
+.venv/bin/python -I scripts/study_workflow.py check --checkpoint <public-safe-checkpoint-path> --phase draft --base <recorded-40-character-base-SHA>
 ```
 
 The dependency graph in `requirements-validation.txt` is pinned for Python 3.12 and is the same input used by CI. Missing PyYAML or OpenAPI semantic validation fails closed; a fallback or skipped parser cannot be recorded as a local publication pass.
@@ -319,7 +327,7 @@ The draft gate reruns `make validate` itself; the recorded pass and digest are r
 
 The publication-safety check is repository-owned and deterministic. The aggregate gate scans source before any content parser or generator runs, builds the site only after that scan passes, and then rescans source plus generated output. It inspects the change from the recorded base for prohibited credentials, private/internal references, local absolute paths, sensitive input residue, disallowed branding, and metadata leakage. Its pattern baseline and allowlist are versioned; a match fails closed with file/line and rule ID, and any exception requires a public rationale and independent approval recorded in the intake. The check does not echo matched secret values into logs.
 
-The aggregate validation parses OpenAPI and YAML, checks canonical counts and remediation traceability, resolves relative Markdown links, validates the registered source/finding chain and citation-coverage inventory, checks visual-source parity, enforces principal-study contracts, builds the site, validates its manifest, and lints shell scripts where the tool is available. Every source-facing validator enumerates tracked plus non-ignored untracked regular files through Git; ignored local evidence and its symlinks are neither parsed nor echoed, while a public symlink fails closed before content is read.
+The aggregate validation parses OpenAPI and YAML, checks canonical counts and remediation traceability, resolves relative Markdown links, validates the registered source/finding chain and citation-coverage inventory, checks visual-source parity, enforces principal-study contracts, builds the site, validates its manifest, and lints shell scripts where the tool is available. Every source-facing validator enumerates tracked plus non-ignored untracked regular files through Git; ignored local evidence and its symlinks are neither parsed nor echoed. Percent/control path names, public symlinks, gitlinks/submodules, and all other non-regular tracked modes fail closed before content is read.
 
 Also perform release-specific assertions that generic validators cannot infer:
 
@@ -336,10 +344,10 @@ When the local gates pass, inspect and stage only the intake-owned paths, commit
 Advance the external checkpoint one state at a time and replace the PR’s marker-delimited block after each update:
 
 ```bash
-python3 scripts/study_workflow.py record --checkpoint <checkpoint-path> --state CANDIDATE --candidate-sha HEAD --pr-number <number> --pr-url <url> --pr-head-sha HEAD
-python3 scripts/study_workflow.py render --checkpoint <checkpoint-path>
+.venv/bin/python -I scripts/study_workflow.py record --checkpoint <checkpoint-path> --state CANDIDATE --candidate-sha HEAD --pr-number <number> --pr-url <url> --pr-head-sha HEAD
+.venv/bin/python -I scripts/study_workflow.py render --checkpoint <checkpoint-path>
 # Replace the PR marker block with that exact render, then authenticate it:
-python3 scripts/study_workflow.py check --checkpoint <checkpoint-path> --phase draft --base <recorded-40-character-base-SHA>
+.venv/bin/python -I scripts/study_workflow.py check --checkpoint <checkpoint-path> --phase draft --base <recorded-40-character-base-SHA>
 ```
 
 **Candidate exit:** the locally clean, public-safe change is represented by one pushed draft-PR head SHA; the draft gate has authenticated the actual PR base, branch, head, URL, draft status, and exact checkpoint block; no unrelated work is staged; and another reviewer can reproduce the exact candidate.
@@ -375,16 +383,26 @@ Review feedback returns to the canonical author or projection owner. If the revi
 
 In parallel with review, let the draft PR execute the required [validation workflow](../.github/workflows/validate.yml), including the independent `make validate` run and Docker smoke baseline. Local success does not substitute for that run. Review comments or a failed check return the work to its earliest affected stage. Push a new candidate commit, update the operational checkpoint, and repeat the affected local gate, independent review, and all required PR checks; acceptance never transfers to a later SHA.
 
-After independent acceptance and green required checks, run the release gate against the same immutable base and current PR head:
+After independent acceptance names both the candidate head SHA and its candidate-envelope SHA-256, and green required checks bind that head, run the release gate against the same immutable base and current PR head:
 
-```bash
-python3 scripts/study_workflow.py record --checkpoint <checkpoint-path> --state REVIEWED --review-disposition pass --accepted-sha HEAD --review-evidence-url <same-PR-comment-url>
-python3 scripts/study_workflow.py record --checkpoint <checkpoint-path> --state VALIDATED --checked-sha HEAD --check-disposition green --check-url <required-check-url> --pr-ready
-python3 scripts/study_workflow.py render --checkpoint <checkpoint-path>
-python3 scripts/study_workflow.py check --checkpoint <public-safe-checkpoint-path> --phase release --base <recorded-40-character-base-SHA>
+The independent reviewer records acceptance in a same-PR comment using these exact labels; only the two digests and reviewer identity are substituted:
+
+```text
+Accepted head SHA: <40-character candidate SHA>
+Candidate envelope SHA-256: <64-character candidate-envelope digest>
+Independent reviewer: <reviewer identity or role>
+Reviewer did not author candidate: yes
+Review disposition: pass
 ```
 
-The workflow tool verifies that the recorded base is a full commit, remains an ancestor of the candidate, and matches the checkpoint; it does not silently replace it with a moving remote reference. The release candidate must also contain the current `origin/main`. If `main` advances after validation, rebase the intake branch, rerun affected local checks and independent review, push the new candidate SHA, and wait for its required checks; acceptance attached to the former SHA cannot be carried forward.
+```bash
+.venv/bin/python -I scripts/study_workflow.py record --checkpoint <checkpoint-path> --state REVIEWED --review-disposition pass --accepted-sha HEAD --review-evidence-url <same-PR-comment-url>
+.venv/bin/python -I scripts/study_workflow.py record --checkpoint <checkpoint-path> --state VALIDATED --checked-sha HEAD --check-disposition green --check-url <required-check-url> --pr-ready
+.venv/bin/python -I scripts/study_workflow.py render --checkpoint <checkpoint-path>
+.venv/bin/python -I scripts/study_workflow.py check --checkpoint <public-safe-checkpoint-path> --phase release --base <recorded-40-character-base-SHA>
+```
+
+The workflow tool verifies that the recorded base is a full commit, remains an ancestor of the candidate, and matches the checkpoint; it does not silently replace it with a moving remote reference. Fetched refs are cross-checked against the canonical GitHub repository. The release candidate must also contain the current GitHub `main`. If `main` advances before independent acceptance, rebase the intake branch and update only that intake-owned remote branch with `git push --force-with-lease=refs/heads/<branch>:<recorded-old-head> origin HEAD:<branch>`. Rerun affected local checks and independent review, record the new SHA, and wait for its required checks; acceptance attached to the former SHA cannot be carried forward. A force update is forbidden after `REVIEWED`.
 
 **Review/validation exit:** no unresolved publication-critical defect remains, conditional items are visible and non-decision-bearing, the independent reviewer names the accepted head SHA, every required PR check is green on that exact SHA, and the PR head still matches it.
 
@@ -398,13 +416,15 @@ Use one branch per intake, named with a public-safe purpose such as `study/multi
 4. identify and record the resulting merge/squash commit on `origin/main`; and
 5. fast-forward local `main`, confirm the reviewed content is reachable from it, then delete only the local branch created for this intake.
 
-Do not force-push after review, merge around a failed or pending required check, delete a branch that was not created by this packet, or claim branch cleanup from a visual list alone. Inspect local merged branches, remote heads, open pull requests, and the merge commit. An unmerged or active branch is not “orphaned”; leave unrelated branches untouched and report them separately.
+Bind every GitHub CLI mutation explicitly to `github.com/<owner>/<repo>` and the PR number. The merge command is `gh pr merge <number> --repo github.com/<owner>/<repo> --squash --delete-branch --match-head-commit <accepted-head-sha>`.
+
+Do not force-push after review, merge around a failed or pending required check, delete a branch that was not created by this packet, or claim branch cleanup from a visual list alone. Inspect local merged branches, authoritative GitHub refs, open pull requests, and the merge commit. An unmerged or active branch is not “orphaned”; leave unrelated branches untouched and report them separately.
 
 **Merge exit:** the accepted change is reachable from `origin/main`, the pull request is merged, the intake branch is removed locally and remotely, no unrelated branch was altered, and the merge commit is recorded for main-branch validation and Pages verification.
 
 ## Stage 10 — Pages and live verification
 
-The [Pages workflow](../.github/workflows/pages.yml) rebuilds `_site/` only from `main` and deploys only when `PAGES_ENABLED` is `true`; manual dispatch on a feature ref is gated before either job. After merge:
+The [Pages workflow](../.github/workflows/pages.yml) rebuilds `_site/` only from `main` and deploys only when `PAGES_ENABLED` is `true`; manual dispatch on a feature ref is gated before either job. After merge, this intake holds the repository publication lock through `CLOSED`; no later study publication may merge while this exact deployment is being proven:
 
 1. wait for the `validate` workflow on the merge SHA;
 2. wait for both build and deploy jobs in the `pages` workflow on the same main state;
@@ -418,7 +438,7 @@ A green `validate` run proves repository controls. A green Pages build proves si
 
 Record machine-checkable publication evidence, not prose placeholders: the three manifest assertions must be exactly `sourceRevision=<merge-SHA>`, `manifestSha256=<deployed-manifest-SHA-256>`, and `sourceDirty=false`; route assertions must be the exact `#/...` routes already declared in `derivedPaths`. The published gate feeds every asserted route to the merge-SHA Pages verifier and rejects missing, extra, or unknown routes.
 
-If Pages fails, keep the release open, inspect the exact job, and repair through a new reviewed commit. If the live site is stale after a successful deployment, check the deployed run, manifest, cache behavior, and route before changing source. If a merged release is materially wrong, use a corrective pull request or an approved `git revert`; do not rewrite shared history or reset `main`.
+If Pages fails, keep this record at `MERGED`, inspect the exact job, and open a superseding reviewed corrective intake. If the live site is stale after a successful deployment, check the deployed run, manifest, cache behavior, and route before changing source. If a merged release is materially wrong, use a corrective pull request or an approved `git revert`; do not rewrite shared history or reset `main`. Do not release the publication lock until live parity is proved and the exact `CLOSED` checkpoint block is in the PR body.
 
 **Publication exit:** GitHub checks, Pages deployment, live manifest, article, visuals, and presentations agree with the reviewed canonical source.
 
@@ -459,7 +479,7 @@ Do not optimize for studies published, citations added, diagrams drawn, commits 
 
 ## Agent execution interface
 
-An agent or skill uses two records. The optional **intake specification** freezes the authorized, sanitized scope, evidence plan, and file ownership before the candidate; if committed, it is immutable for that release. The **operational checkpoint** persists after every transition in the PR body/comment or an approved workflow system outside the reviewed tree. The checkpoint contains:
+An agent or skill uses two records. The optional **intake specification** freezes the authorized, sanitized scope, evidence plan, and file ownership before the candidate; if committed, it is immutable for that release. The **operational checkpoint** persists after every transition as the exact marker-delimited block in the PR body outside the reviewed tree. Review and closure comments supply independently verifiable evidence but cannot replace that block. The checkpoint contains:
 
 - intake ID, repository/remote, canonical workflow state, last transition time, and public-safe status reason;
 - base branch/SHA, feature branch, candidate SHA, accepted SHA, validated SHA, merge SHA, PR URL/number, and whether the branch is owned by this intake;
@@ -480,7 +500,7 @@ The canonical workflow state is the 13-value state model in this document. User-
 
 All other nonterminal states return an in-progress update with the exact canonical state rather than one of these terminal handoff dispositions.
 
-Resume is idempotent. Resolve an existing intake by intake ID before creating a packet, branch, or PR. Verify that its repository, base, branch ownership, PR head, and recorded SHAs still match remote state. Reuse the existing branch/PR when safe; do not duplicate them. A changed candidate SHA downgrades the packet to `CANDIDATE` or `REWORK` and invalidates affected acceptance/checks. A merged PR whose durable payload reached `VALIDATED` resumes at `MERGED` only after the actual merge commit and absence of both intake branches are verified. If deployment finished after the last PR-body checkpoint, reconstruct its Actions, manifest, closure-comment, and live-route evidence from GitHub, record `PUBLISHED`, and rerun live parity before `CLOSED`; do not infer publication from merge alone. Read-only checks may be retried; commits, pushes, merges, cleanup, and corrective actions occur only when the checkpoint proves they have not already completed for that intake.
+Resume is idempotent. Resolve an existing intake by intake ID before creating a packet, branch, or PR. Verify that its repository, base, branch ownership, PR head, and recorded SHAs still match authoritative GitHub state. Reuse the existing branch/PR when safe; do not duplicate them. A changed candidate SHA returns the packet to `CANDIDATE` or `REWORK` and invalidates affected acceptance/checks. A merged PR whose durable payload reached `VALIDATED` resumes at `MERGED` only after the actual merge commit, accepted review/check evidence, and absence of both intake branches are verified. If deployment finished after the last PR-body checkpoint, reconstruct its Actions, manifest, closure-comment, and live-route evidence from GitHub, record `PUBLISHED`, rerender the exact PR-body block, and rerun live parity before `CLOSED`; rerender it again for immutable closure. Do not infer publication from merge alone. Read-only checks may be retried; commits, pushes, merges, cleanup, and corrective actions occur only when the checkpoint proves they have not already completed for that intake.
 
 The agent records blockers and recommendations in repository artifacts or the pull-request workflow, not solely in chat. It asks for user direction only when authority, sensitive-data handling, a decision-changing choice, or a materially broader mutation cannot be resolved from the repository and current request. It never invents organization facts, silently changes canonical identifiers, edits generated `_site/` output, weakens a gate, deletes unrelated branches, or reports a release complete before live verification.
 

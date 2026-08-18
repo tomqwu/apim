@@ -12,6 +12,7 @@ import sys
 from collections import Counter, defaultdict
 from urllib.parse import urlsplit, urlunsplit
 
+sys.path.insert(0, str(pathlib.Path(__file__).resolve().parent))
 from repository_inventory import InventoryError, candidate_files
 
 

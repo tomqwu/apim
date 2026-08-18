@@ -4,6 +4,7 @@ import re
 import sys
 from urllib.parse import unquote
 
+sys.path.insert(0, str(pathlib.Path(__file__).resolve().parent))
 from repository_inventory import InventoryError, files_with_suffixes
 
 

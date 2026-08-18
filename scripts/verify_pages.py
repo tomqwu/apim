@@ -20,6 +20,9 @@ from urllib.error import HTTPError, URLError
 from urllib.parse import quote, urlencode, urljoin, urlsplit, urlunsplit
 from urllib.request import Request, urlopen
 
+sys.path.insert(0, str(Path(__file__).resolve().parent))
+from repository_inventory import git_environment
+
 
 SCHEMA_VERSION = 1
 SHA256_PATTERN = re.compile(r"[0-9a-f]{64}")
@@ -76,6 +79,7 @@ def run_git(*args: str) -> str:
         result = subprocess.run(
             ("git", *args),
             cwd=ROOT,
+            env=git_environment(),
             check=True,
             capture_output=True,
             text=True,
@@ -98,6 +102,7 @@ def safe_remote_path(value: Any, label: str) -> str:
     split = urlsplit(value)
     require(not split.scheme and not split.netloc and not split.query and not split.fragment, f"{label} must be a relative path")
     require(not split.path.startswith("/") and "\\" not in split.path, f"{label} must be a normalized relative path")
+    require("%" not in split.path, f"{label} must not contain percent-encoded or literal percent syntax")
     parts = split.path.split("/")
     require(all(part not in {"", ".", ".."} for part in parts), f"{label} contains an unsafe path segment")
     return split.path

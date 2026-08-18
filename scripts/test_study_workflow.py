@@ -153,13 +153,19 @@ class TemporaryWorkflowRepository:
         self.git("commit", "-q", "-m", "Canonical workflow baseline")
         self.base_sha = self.git("rev-parse", "HEAD").stdout.strip()
 
-        # Every fixture gets a local bare origin.  ``new`` and ``published`` both
-        # fetch ``origin/main``; a relative URL keeps the checkpoint public-safe
-        # and avoids network or machine-specific absolute paths.
+        # Every fixture gets a local bare origin behind a syntactically public
+        # GitHub URL. Git's insteadOf transport keeps production identity rules
+        # strict without contacting the network.
         self.origin = self.container / "origin.git"
         self._run(("git", "init", "--bare", "-q", str(self.origin)), cwd=self.container)
-        self.git("remote", "add", "origin", "../origin.git")
+        self.public_remote = "git@github.com:owner/repo.git"
+        self.git("config", f"url.{self.origin}.insteadOf", self.public_remote)
+        self.git("remote", "add", "origin", self.public_remote)
         self.git("push", "-q", "-u", "origin", "main")
+        self.environment["FAKE_MAIN_REF_JSON"] = json.dumps(
+            [{"ref": "refs/heads/main", "object": {"sha": self.base_sha}}]
+        )
+        self.install_fake_release_tools()
 
     def cleanup(self) -> None:
         self._temporary.cleanup()
@@ -209,6 +215,7 @@ class TemporaryWorkflowRepository:
         return self._run(
             (
                 str(python_executable or self.python_executable),
+                "-I",
                 str(self.root / "scripts" / "study_workflow.py"),
                 *arguments,
             ),
@@ -273,7 +280,17 @@ class TemporaryWorkflowRepository:
         ]
         if write_spec:
             arguments.append("--write-spec")
-        result = self.cli(*arguments, environment=environment)
+        main_result = self._run(("git", "ls-remote", "--heads", "origin", "refs/heads/main"))
+        main_line = main_result.stdout.strip() if main_result.returncode == 0 else ""
+        main_sha = main_line.split()[0] if main_line else self.base_sha
+        command_environment = {
+            "FAKE_MAIN_REF_JSON": json.dumps(
+                [{"ref": "refs/heads/main", "object": {"sha": main_sha}}]
+            )
+        }
+        if environment:
+            command_environment.update(environment)
+        result = self.cli(*arguments, environment=command_environment)
         if result.returncode:
             return Path(), {}, result
         payload = json.loads(result.stdout)
@@ -310,16 +327,34 @@ class TemporaryWorkflowRepository:
                 "deltaSummary": "A canonical workflow fixture plus its derived projection.",
                 "evidenceReferences": ["https://example.com/evidence/workflow-contract"],
                 "canonicalPaths": ["docs/workflow-test.md"],
-                "derivedPaths": ["site/workflow-test.json"],
+                "derivedPaths": ["site/workflow-test.json", "#/doc/workflow-test"],
                 "nextGate": "Create the candidate commit and draft pull request.",
             }
         )
         self.replace_checkpoint(checkpoint, data)
+        manifest = self.root / "_site" / "content-manifest.json"
+        manifest.parent.mkdir(parents=True, exist_ok=True)
+        manifest.write_text(
+            json.dumps(
+                {
+                    "items": [
+                        {
+                            "path": "docs/workflow-test.md",
+                            "route": "#/doc/workflow-test",
+                        }
+                    ],
+                    "presentation": [],
+                    "audiences": [],
+                }
+            ),
+            encoding="utf-8",
+        )
         self.install_fake_release_tools()
         return checkpoint, data, head
 
     def prepare_candidate(self) -> tuple[Path, dict[str, Any], str]:
         checkpoint, data, head = self.prepare_draft()
+        self.git("push", "-q", "origin", f"{head}:refs/heads/{data['branch']}")
         data.update(
             {
                 "canonicalState": "CANDIDATE",
@@ -332,11 +367,15 @@ class TemporaryWorkflowRepository:
                 "nextGate": "Complete independent review of the recorded candidate SHA.",
             }
         )
+        data["candidateEnvelopeSha256"] = self.load_module(
+            "scripts/study_workflow.py"
+        ).candidate_envelope_digest(data)
         self.replace_checkpoint(checkpoint, data)
         return checkpoint, data, head
 
     def prepare_release(self) -> tuple[Path, dict[str, Any], str]:
         checkpoint, data, head = self.prepare_draft()
+        self.git("push", "-q", "origin", f"{head}:refs/heads/{data['branch']}")
         data.update(
             {
                 "canonicalState": "VALIDATED",
@@ -353,11 +392,35 @@ class TemporaryWorkflowRepository:
                 ],
                 "checkedSha": head,
                 "checkDisposition": "green",
-                "checkUrls": ["https://github.com/owner/repo/actions/runs/17"],
+                "checkUrls": [
+                    "https://github.com/owner/repo/actions/runs/201",
+                    "https://github.com/owner/repo/actions/runs/202",
+                ],
+                "derivedPaths": ["site/workflow-test.json", "#/doc/workflow-test"],
                 "nextGate": "Merge the accepted pull request without SHA drift.",
             }
         )
+        data["candidateEnvelopeSha256"] = self.load_module(
+            "scripts/study_workflow.py"
+        ).candidate_envelope_digest(data)
         self.replace_checkpoint(checkpoint, data)
+        manifest = self.root / "_site" / "content-manifest.json"
+        manifest.parent.mkdir(parents=True, exist_ok=True)
+        manifest.write_text(
+            json.dumps(
+                {
+                    "items": [
+                        {
+                            "path": "docs/workflow-test.md",
+                            "route": "#/doc/workflow-test",
+                        }
+                    ],
+                    "presentation": [],
+                    "audiences": [],
+                }
+            ),
+            encoding="utf-8",
+        )
         self.install_fake_release_tools()
         return checkpoint, data, head
 
@@ -366,6 +429,8 @@ class TemporaryWorkflowRepository:
         gh.write_text(
             "#!/usr/bin/env python3\n"
             "import os, sys\n"
+            "if os.environ.get('GH_REPO') or os.environ.get('GH_HOST'):\n"
+            "    raise SystemExit(73)\n"
             "args = sys.argv[1:]\n"
             "if args[:2] == ['pr', 'view']:\n"
             "    key = 'FAKE_PR_JSON'\n"
@@ -374,18 +439,40 @@ class TemporaryWorkflowRepository:
             "elif args[:2] == ['repo', 'view']:\n"
             "    key = 'FAKE_REPO_JSON'\n"
             "elif args[:1] == ['api']:\n"
-            "    key = 'FAKE_PAGES_JSON' if args[1].endswith('/pages') else 'FAKE_COMMENT_JSON'\n"
+            "    if args[1].endswith('/pages'):\n"
+            "        key = 'FAKE_PAGES_JSON'\n"
+            "    elif args[1].endswith('/git/matching-refs/heads/main'):\n"
+            "        key = 'FAKE_MAIN_REF_JSON'\n"
+            "    elif '/git/matching-refs/heads/' in args[1]:\n"
+            "        import json\n"
+            "        explicit = os.environ.get('FAKE_BRANCH_REF_JSON')\n"
+            "        if explicit is not None:\n"
+            "            print(explicit)\n"
+            "            raise SystemExit(int(os.environ.get('FAKE_BRANCH_REF_RC', '0')))\n"
+            "        pr = json.loads(os.environ.get('FAKE_PR_JSON', '{}'))\n"
+            "        if pr.get('state') == 'OPEN' and pr.get('headRefOid'):\n"
+            "            print(json.dumps([{'ref': 'refs/heads/' + pr['headRefName'], 'object': {'sha': pr['headRefOid']}}]))\n"
+            "            raise SystemExit(0)\n"
+            "        print('[]')\n"
+            "        raise SystemExit(0)\n"
+            "    elif args[1].endswith('/100'):\n"
+            "        key = 'FAKE_CLOSURE_COMMENT_JSON'\n"
+            "    else:\n"
+            "        key = 'FAKE_COMMENT_JSON'\n"
             "elif args[:2] == ['run', 'view']:\n"
             "    key = 'FAKE_RUN_' + args[2] + '_JSON'\n"
             "else:\n"
             "    key = 'FAKE_UNKNOWN_JSON'\n"
-            "print(os.environ.get(key, '{}'))\n",
+            "default = '[]' if key == 'FAKE_PR_LIST_JSON' else '{}'\n"
+            "print(os.environ.get(key, default))\n",
             encoding="utf-8",
         )
         make = self.tool_bin / "make"
         make.write_text(
             "#!/usr/bin/env python3\n"
             "import os\n"
+            "if any(os.environ.get(key) for key in ('MAKEFLAGS', 'GNUMAKEFLAGS', 'MFLAGS', 'MAKEFILES')):\n"
+            "    raise SystemExit(42)\n"
             "expected = os.environ.get('EXPECTED_PYTHON_BIN')\n"
             "if expected and expected not in os.environ.get('PATH', '').split(os.pathsep):\n"
             "    raise SystemExit(41)\n"
@@ -431,6 +518,8 @@ class TemporaryWorkflowRepository:
             "baseRefName": "main",
             "headRefOid": head,
             "headRefName": branch,
+            "headRepositoryOwner": {"login": "owner"},
+            "isCrossRepository": False,
             "isDraft": draft,
             "state": "MERGED" if merged else "OPEN",
             "statusCheckRollup": [
@@ -450,17 +539,32 @@ class TemporaryWorkflowRepository:
             "mergeCommit": {"oid": merge_sha} if merge_sha else None,
         }
 
-    @staticmethod
-    def fake_github_environment(pr: dict[str, Any], accepted_sha: str) -> dict[str, str]:
+    def fake_github_environment(self, pr: dict[str, Any], accepted_sha: str) -> dict[str, str]:
+        main_line = self.git("ls-remote", "--heads", "origin", "refs/heads/main").stdout.strip()
+        main_sha = main_line.split()[0] if main_line else self.base_sha
+        checkpoint_data: dict[str, Any] | None = None
+        try:
+            checkpoint_data = self.load_module(
+                "scripts/study_workflow.py"
+            ).embedded_checkpoint(pr.get("body", ""))
+        except Exception:
+            checkpoint_data = None
+        envelope = (
+            checkpoint_data.get("candidateEnvelopeSha256")
+            if isinstance(checkpoint_data, dict)
+            else "0" * 64
+        )
         return {
             "FAKE_PR_JSON": json.dumps(pr),
             "FAKE_REPO_JSON": json.dumps({"nameWithOwner": "owner/repo"}),
+            "FAKE_MAIN_REF_JSON": json.dumps([{"ref": "refs/heads/main", "object": {"sha": main_sha}}]),
             "FAKE_COMMENT_JSON": json.dumps(
                 {
                     "html_url": "https://github.com/owner/repo/pull/17#issuecomment-99",
                     "issue_url": "https://api.github.com/repos/owner/repo/issues/17",
                     "body": (
                         f"Accepted head SHA: {accepted_sha}\n"
+                        f"Candidate envelope SHA-256: {envelope}\n"
                         "Independent reviewer: workflow acceptance role\n"
                         "Reviewer did not author candidate: yes\n"
                         "Review disposition: pass\n"
@@ -524,14 +628,100 @@ class WorkflowTestCase(unittest.TestCase):
 
 
 class CanonicalContractTests(WorkflowTestCase):
+    def test_operator_contract_bootstraps_before_new_and_uses_only_isolated_cli_commands(self) -> None:
+        paths = (
+            "README.md",
+            "docs/46-study-publication-workflow.md",
+            ".agents/skills/publish-api-study/SKILL.md",
+            ".agents/skills/publish-api-study/references/repo-contract.md",
+            ".github/pull_request_template.md",
+        )
+        for relative in paths:
+            with self.subTest(path=relative):
+                text_value = (SOURCE_ROOT / relative).read_text(encoding="utf-8")
+                self.assertIn(".venv/bin/python -I scripts/study_workflow.py", text_value)
+                self.assertNotIn("python3 scripts/study_workflow.py", text_value)
+        skill = (SOURCE_ROOT / ".agents/skills/publish-api-study/SKILL.md").read_text(encoding="utf-8")
+        self.assertLess(skill.index("python3.12 -I -m venv .venv"), skill.index("scripts/study_workflow.py new"))
+        self.assertIn(".venv/bin/python -I -m pip", skill)
+        self.assertIn("--repo github.com/<owner>/<repo>", skill)
+
     def test_source_safety_precedes_build_and_generated_safety_follows_it(self) -> None:
         makefile = (SOURCE_ROOT / "Makefile").read_text(encoding="utf-8")
         workflow = (SOURCE_ROOT / "docs/46-study-publication-workflow.md").read_text(encoding="utf-8")
+        source_readers = (
+            "validate-openapi",
+            "validate-yaml",
+            "validate-counts",
+            "validate-links",
+            "validate-sources",
+            "validate-source-coverage",
+            "validate-visuals",
+            "validate-studies",
+            "lint-shell",
+        )
+        for target in source_readers:
+            with self.subTest(target=target):
+                self.assertRegex(
+                    makefile,
+                    rf"(?m)^{re.escape(target)}: validate-public-source$",
+                )
         self.assertRegex(makefile, r"(?m)^site: validate-public-source$")
-        self.assertRegex(makefile, r"(?m)^validate-public-source:\n\t@python3 scripts/study_workflow.py validate-public-content --source-only$")
+        self.assertRegex(makefile, r"(?m)^validate-public-source:\n\t@\$\(PYTHON\) scripts/study_workflow.py validate-public-content --source-only$")
         self.assertRegex(makefile, r"(?m)^validate-public-content: site$")
         self.assertIn("scans source before any content parser or generator runs", workflow)
         self.assertIn("rescans source plus generated output", workflow)
+
+    def test_independent_review_comment_contract_is_exact_and_copyable(self) -> None:
+        required_lines = (
+            "Accepted head SHA:",
+            "Candidate envelope SHA-256:",
+            "Independent reviewer:",
+            "Reviewer did not author candidate: yes",
+            "Review disposition: pass",
+        )
+        paths = (
+            "docs/46-study-publication-workflow.md",
+            "templates/study-intake-template.md",
+            ".agents/skills/publish-api-study/SKILL.md",
+            ".agents/skills/publish-api-study/references/repo-contract.md",
+            ".github/pull_request_template.md",
+        )
+        expected_block = "\n".join(
+            (
+                "Accepted head SHA: <40-character candidate SHA>",
+                "Candidate envelope SHA-256: <64-character candidate-envelope digest>",
+                "Independent reviewer: <reviewer identity or role>",
+                "Reviewer did not author candidate: yes",
+                "Review disposition: pass",
+            )
+        )
+        for relative in paths:
+            with self.subTest(path=relative):
+                text_value = (SOURCE_ROOT / relative).read_text(encoding="utf-8")
+                self.assertIn(expected_block, text_value)
+                for line in required_lines:
+                    self.assertIn(line, expected_block)
+
+    def test_independent_review_requires_one_contiguous_ordered_exact_block(self) -> None:
+        module = load_production_module()
+        accepted = "a" * 40
+        envelope = "b" * 64
+        scrambled = (
+            "Review disposition: pass\n"
+            "Independent reviewer: workflow acceptance role\n"
+            "Reviewer did not author candidate: yes\n"
+            f"Candidate envelope SHA-256: {envelope}\n"
+            f"Accepted head SHA: {accepted}\n"
+        )
+        with mock.patch.object(module, "fetch_same_pr_comment", return_value=scrambled):
+            with self.assertRaisesRegex(module.WorkflowError, "exact contiguous five-line"):
+                module.verify_review_evidence(
+                    ["https://github.com/owner/repo/pull/17#issuecomment-99"],
+                    17,
+                    accepted,
+                    envelope,
+                )
 
     def test_mermaid_runtime_converts_and_rejects_blank_node_labels(self) -> None:
         app = (SOURCE_ROOT / "site/assets/app.js").read_text(encoding="utf-8")
@@ -591,7 +781,7 @@ class CanonicalContractTests(WorkflowTestCase):
         sections = tuple(int(value) for value in re.findall(r"^## (\d+)\. ", template, re.MULTILINE))
         self.assertEqual(tuple(range(1, 15)), sections)
         self.assertIn("Sections 1–9 form the public-safe intake specification", template)
-        self.assertIn("Sections 10–14 are the mutable operational checkpoint", template)
+        self.assertIn("Sections 10–14 define the mutable operational checkpoint", template)
 
 
 class CheckpointSchemaTests(WorkflowTestCase):
@@ -778,6 +968,9 @@ class CheckpointMutationTests(WorkflowTestCase):
                 "prDraft": True,
             }
         )
+        corrected_data["candidateEnvelopeSha256"] = repository.load_module(
+            "scripts/study_workflow.py"
+        ).candidate_envelope_digest(corrected_data)
         repository.replace_checkpoint(checkpoint, corrected_data)
         locked = repository.cli(
             "replace-list",
@@ -857,11 +1050,21 @@ class CheckpointMutationTests(WorkflowTestCase):
 
 
 class CheckpointRecoveryTests(WorkflowTestCase):
+    def test_checkpoint_markers_must_be_ordered(self) -> None:
+        repository = self.repository()
+        module = repository.load_module("scripts/study_workflow.py")
+        malformed = f"{module.CHECKPOINT_END}\ntext\n{module.CHECKPOINT_START}"
+        with self.assertRaisesRegex(module.WorkflowError, "markers are out of order"):
+            module.embedded_checkpoint(malformed)
+
     def test_pr_machine_payload_round_trips_and_resumes_a_missing_open_checkpoint(self) -> None:
         repository = self.repository()
         checkpoint, durable, head = repository.prepare_candidate()
         repository.git("push", "-q", "-u", "origin", durable["branch"])
         durable["repositoryRemote"] = "https://github.com/owner/repo.git"
+        durable["candidateEnvelopeSha256"] = repository.load_module(
+            "scripts/study_workflow.py"
+        ).candidate_envelope_digest(durable)
         repository.replace_checkpoint(checkpoint, durable)
         repository.git("remote", "set-url", "origin", "git@github.com:owner/repo.git")
         transport = repository.install_fake_ssh_transport()
@@ -888,6 +1091,7 @@ class CheckpointRecoveryTests(WorkflowTestCase):
 
         wrong_data = dict(durable)
         wrong_data["repositoryRemote"] = "https://github.com/other/repo.git"
+        wrong_data["candidateEnvelopeSha256"] = module.candidate_envelope_digest(wrong_data)
         wrong_pr = dict(pr)
         wrong_pr["body"] = module.rendered_checkpoint(wrong_data)
         different_repository = repository.cli(
@@ -1023,6 +1227,7 @@ class CheckpointRecoveryTests(WorkflowTestCase):
         checkpoint.unlink()
         repository.git("switch", "-q", "main")
         repository.git("branch", "-D", durable["branch"])
+        repository.git("push", "-q", "origin", "--delete", durable["branch"])
         self.assertFalse(checkpoint.exists())
         self.assertNotEqual(
             0,
@@ -1043,7 +1248,7 @@ class CheckpointRecoveryTests(WorkflowTestCase):
             repository.base_sha,
             "--requested-actions",
             ",".join(durable["requestedActions"]),
-            environment={"FAKE_PR_JSON": json.dumps(mismatch_pr)},
+            environment=repository.fake_github_environment(mismatch_pr, candidate),
         )
         self.assert_deterministic_error(
             mismatch,
@@ -1060,7 +1265,7 @@ class CheckpointRecoveryTests(WorkflowTestCase):
             repository.base_sha,
             "--requested-actions",
             ",".join(durable["requestedActions"]),
-            environment={"FAKE_PR_JSON": json.dumps(pr)},
+            environment=repository.fake_github_environment(pr, candidate),
         )
         self.assertEqual(0, resumed.returncode, resumed.stdout + resumed.stderr)
         result = json.loads(resumed.stdout)
@@ -1097,6 +1302,7 @@ class CheckpointRecoveryTests(WorkflowTestCase):
                 checkpoint.unlink()
                 repository.git("switch", "-q", "main")
                 repository.git("branch", "-D", durable["branch"])
+                repository.git("push", "-q", "origin", "--delete", durable["branch"])
                 if mode == "ahead":
                     repository.git("fetch", "-q", "origin", "main")
                     repository.git("merge", "-q", "--ff-only", "origin/main")
@@ -1117,7 +1323,7 @@ class CheckpointRecoveryTests(WorkflowTestCase):
                     repository.base_sha,
                     "--requested-actions",
                     ",".join(durable["requestedActions"]),
-                    environment={"FAKE_PR_JSON": json.dumps(pr)},
+                    environment=repository.fake_github_environment(pr, candidate),
                 )
                 output = resumed.stdout + resumed.stderr
                 self.assertEqual(2, resumed.returncode, output)
@@ -1134,6 +1340,17 @@ class CheckpointRecoveryTests(WorkflowTestCase):
 
 
 class NewIntakeSynchronizationTests(WorkflowTestCase):
+    def test_github_ref_lookup_fails_closed_on_api_errors_but_accepts_authenticated_absence(self) -> None:
+        repository = self.repository()
+        module = repository.load_module("scripts/study_workflow.py")
+        failed = SimpleNamespace(returncode=1, stdout="", stderr="forbidden")
+        with mock.patch.object(module, "github_owner_repo", return_value="owner/repo"), mock.patch.object(module, "run", return_value=failed):
+            with self.assertRaisesRegex(module.WorkflowError, "unable to authenticate GitHub repository refs"):
+                module.github_ref_sha("heads/study/workflow-test", required=False)
+        absent = SimpleNamespace(returncode=0, stdout="[]", stderr="")
+        with mock.patch.object(module, "github_owner_repo", return_value="owner/repo"), mock.patch.object(module, "run", return_value=absent):
+            self.assertIsNone(module.github_ref_sha("heads/study/workflow-test", required=False))
+
     def test_new_rejects_an_intake_already_present_in_pr_history(self) -> None:
         repository = self.repository()
         repository.install_fake_release_tools()
@@ -1521,6 +1738,23 @@ class PathTraversalTests(WorkflowTestCase):
 
 
 class PublicContentScannerTests(WorkflowTestCase):
+    def test_history_mode_lookup_treats_glob_like_names_literally(self) -> None:
+        repository = self.repository()
+        base = repository.base_sha
+        repository.write_text(
+            "docs/glob-safe.md",
+            "# Safe matching path\n\nThis regular file must not mask a historical symlink.\n",
+        )
+        symlink = repository.root / "docs" / "glob-*.md"
+        symlink.symlink_to("glob-safe.md")
+        repository.commit_all("Add a glob-like historical symlink fixture")
+        symlink.unlink()
+        repository.commit_all("Delete the glob-like historical symlink fixture")
+
+        module = repository.load_module("scripts/study_workflow.py")
+        errors = module.public_content_errors(base, "HEAD", include_generated=False)
+        self.assertTrue(any("PS022" in error for error in errors), errors)
+
     def test_scans_extensionless_env_key_svg_large_and_generated_text_without_echoing_values(self) -> None:
         repository = self.repository()
         github_token = "gh" + "p_" + "A" * 24
@@ -1529,6 +1763,10 @@ class PublicContentScannerTests(WorkflowTestCase):
         slack_token = "xo" + "xb-" + "C" * 24
         bearer_value = "D" * 32
         local_path = "/Us" + "ers/tester/private/input.txt"
+        macos_attachment = "/" + "var" + "/folders/ab/session/input.txt"
+        internal_host = "db.prod." + "internal:5432"
+        private_address = "10" + ".23.4.5"
+        root_home = "/root" + "/work/private.txt"
 
         repository.write_text("NOTICE", f"temporary credential {github_token}\n")
         repository.write_text(".env", f"ACCESS_KEY={aws_key}\n")
@@ -1540,6 +1778,11 @@ class PublicContentScannerTests(WorkflowTestCase):
             large_prefix + f"\nAuthorization: Bearer {bearer_value}\n",
         )
         repository.write_text("_site/generated.html", f"<p>{local_path}</p>\n")
+        repository.write_text("_site/attachment.html", f"<p>{macos_attachment}</p>\n")
+        repository.write_text(
+            "reports/private-topology.txt",
+            f"database {internal_host}\nendpoint {private_address}\nlocal file {root_home}\n",
+        )
         repository.git("add", "NOTICE", "assets/diagram.svg", "reports/large-fixture.txt")
         repository.git("add", "-f", ".env", "keys/release.key")
 
@@ -1553,6 +1796,8 @@ class PublicContentScannerTests(WorkflowTestCase):
             "assets/diagram.svg": "PS004",
             "reports/large-fixture.txt": "PS009",
             "_site/generated.html": "PS005",
+            "_site/attachment.html": "PS027",
+            "reports/private-topology.txt": "PS030",
         }
         for path, rule in expected.items():
             with self.subTest(path=path):
@@ -1565,8 +1810,15 @@ class PublicContentScannerTests(WorkflowTestCase):
             slack_token,
             bearer_value,
             local_path,
+            macos_attachment,
+            internal_host,
+            private_address,
+            root_home,
         ):
             self.assertNotIn(sensitive, output)
+        self.assertIn("reports/large-fixture.txt:3", output)
+        self.assertIn("PS031", output)
+        self.assertIn("PS032", output)
 
     def test_base_history_scan_finds_a_secret_added_then_deleted(self) -> None:
         repository = self.repository(local_origin=True)
@@ -1587,7 +1839,7 @@ class PublicContentScannerTests(WorkflowTestCase):
                 "deltaSummary": "A deleted credential fixture in candidate history.",
                 "evidenceReferences": ["https://example.com/evidence/deleted-history"],
                 "canonicalPaths": ["docs/workflow-test.md"],
-                "derivedPaths": ["docs/workflow-test.md"],
+                "derivedPaths": ["docs/workflow-test.md", "#/doc/workflow-test"],
                 "localValidation": "pass",
             }
         )
@@ -1607,6 +1859,91 @@ class PublicContentScannerTests(WorkflowTestCase):
         self.assertIn("PS002", output)
         self.assertIn(f"commit {introduced_sha} temporary-evidence", output)
         self.assertNotIn(secret, output)
+
+    def test_history_scan_ignores_local_replace_objects_and_rejects_shallow_graphs(self) -> None:
+        repository = self.repository(local_origin=True)
+        checkpoint, data, result = repository.new_checkpoint()
+        self.assertEqual(0, result.returncode, result.stderr)
+        repository.write_text("docs/workflow-test.md", "# Workflow test\n\nSafe current content.\n")
+        secret = "gh" + "p_" + "R" * 24
+        repository.write_text("temporary-replaced-history", f"credential {secret}\n")
+        introduced = repository.commit_all("Add replace-object history fixture")
+        (repository.root / "temporary-replaced-history").unlink()
+        repository.commit_all("Delete replace-object history fixture")
+
+        parent = repository.git("rev-parse", f"{introduced}^").stdout.strip()
+        safe_tree = repository.git("rev-parse", f"{parent}^{{tree}}").stdout.strip()
+        replacement = repository.git(
+            "commit-tree", safe_tree, "-p", parent, "-m", "Safe replacement object"
+        ).stdout.strip()
+        repository.git("replace", introduced, replacement)
+        hidden = repository._run(("git", "show", f"{introduced}:temporary-replaced-history"))
+        self.assertNotEqual(0, hidden.returncode, "fixture must hide the original blob without GIT_NO_REPLACE_OBJECTS")
+
+        module = repository.load_module("scripts/study_workflow.py")
+        errors = module.public_content_errors(repository.base_sha)
+        self.assertTrue(any("PS002" in error and introduced in error for error in errors), errors)
+        self.assertNotIn(secret, "\n".join(errors))
+        with mock.patch.object(module, "git", return_value="true"):
+            with self.assertRaisesRegex(module.WorkflowError, "complete, non-shallow"):
+                module.verify_history_repository()
+
+    def test_macos_attachment_path_is_rejected_in_checkpoint_and_deleted_history(self) -> None:
+        repository = self.repository(local_origin=True)
+        checkpoint, data, result = repository.new_checkpoint()
+        self.assertEqual(0, result.returncode, result.stderr)
+        macos_attachment = "/private/" + "var" + "/folders/xy/session/input.txt"
+        original = checkpoint.read_bytes()
+        checkpoint_result = repository.cli(
+            "record",
+            "--checkpoint",
+            str(checkpoint),
+            "--input-reference",
+            macos_attachment,
+        )
+        checkpoint_output = checkpoint_result.stdout + checkpoint_result.stderr
+        self.assertEqual(2, checkpoint_result.returncode, checkpoint_output)
+        self.assertIn("PS027", checkpoint_output)
+        self.assertNotIn(macos_attachment, checkpoint_output)
+        self.assertEqual(original, checkpoint.read_bytes())
+
+        repository.write_text("docs/workflow-test.md", "# Workflow test\n\nSafe current content.\n")
+        repository.write_text("temporary-attachment", f"local attachment {macos_attachment}\n")
+        introduced_sha = repository.commit_all("Add temporary attachment-path fixture")
+        (repository.root / "temporary-attachment").unlink()
+        repository.commit_all("Delete temporary attachment-path fixture")
+        validated = repository.cli(
+            "record", "--checkpoint", str(checkpoint), "--local-validation", "pass"
+        )
+        self.assertEqual(0, validated.returncode, validated.stdout + validated.stderr)
+        data = json.loads(checkpoint.read_text(encoding="utf-8"))
+        data.update(
+            {
+                "canonicalState": "PROJECTED",
+                "artifactType": "workflow",
+                "audiences": ["repository maintainers"],
+                "scopeSummary": "Reject local attachment paths from public workflow history.",
+                "deltaSummary": "A deleted macOS attachment-path fixture.",
+                "evidenceReferences": ["https://example.com/evidence/local-path-history"],
+                "canonicalPaths": ["docs/workflow-test.md"],
+                "derivedPaths": ["docs/workflow-test.md", "#/doc/workflow-test"],
+            }
+        )
+        repository.replace_checkpoint(checkpoint, data)
+        observed = repository.cli(
+            "check",
+            "--checkpoint",
+            str(checkpoint),
+            "--phase",
+            "draft",
+            "--base",
+            repository.base_sha,
+        )
+        output = observed.stdout + observed.stderr
+        self.assertEqual(2, observed.returncode, output)
+        self.assertIn("PS027", output)
+        self.assertIn(f"commit {introduced_sha} temporary-attachment", output)
+        self.assertNotIn(macos_attachment, output)
 
     def test_draft_history_rejects_merge_resolution_content_even_after_deletion(self) -> None:
         repository = self.repository(local_origin=True)
@@ -1679,7 +2016,7 @@ class PublicContentScannerTests(WorkflowTestCase):
                 "deltaSummary": "A deleted resolution-only credential fixture.",
                 "evidenceReferences": ["https://example.com/evidence/merge-history"],
                 "canonicalPaths": ["docs/workflow-test.md"],
-                "derivedPaths": ["docs/workflow-test.md"],
+                "derivedPaths": ["docs/workflow-test.md", "#/doc/workflow-test"],
             }
         )
         repository.replace_checkpoint(checkpoint, data)
@@ -1744,7 +2081,7 @@ class PublicContentScannerTests(WorkflowTestCase):
         public_result = public_repository.cli("validate-public-content")
         public_output = public_result.stdout + public_result.stderr
         self.assert_deterministic_error(public_result, contains="PS022")
-        self.assertIn("docs/public-link.md", public_output)
+        self.assertNotIn("docs/public-link.md", public_output)
         self.assertNotIn(secret, public_output)
         self.assertNotIn("PS002", public_output)
 
@@ -1763,6 +2100,39 @@ class PublicContentScannerTests(WorkflowTestCase):
 
 
 class BuildInputBoundaryTests(WorkflowTestCase):
+    def test_scanner_build_and_manifest_reject_gitlinks_and_percent_paths(self) -> None:
+        gitlink_repository = self.repository()
+        gitlink_repository.git(
+            "update-index",
+            "--add",
+            "--cacheinfo",
+            "160000",
+            gitlink_repository.base_sha,
+            "docs/vendor-module",
+        )
+        scanner = gitlink_repository.cli("validate-public-content", "--source-only")
+        self.assert_deterministic_error(scanner, contains="PS028")
+        builder = gitlink_repository.load_module("scripts/build_site.py")
+        validator = gitlink_repository.load_module("scripts/validate_site_manifest.py")
+        with self.assertRaisesRegex(SystemExit, "non-regular tracked Git mode"):
+            builder.repository_candidate_paths()
+        with self.assertRaisesRegex(validator.ValidationError, "non-regular tracked Git mode"):
+            validator.repository_candidate_paths()
+
+        percent_repository = self.repository()
+        percent_repository.write_text("docs/encoded%2Fname.md", "# Encoded path fixture\n")
+        percent_scanner = percent_repository.cli("validate-public-content", "--source-only")
+        self.assert_deterministic_error(percent_scanner, returncode=1, contains="PS019")
+        percent_builder = percent_repository.load_module("scripts/build_site.py")
+        percent_validator = percent_repository.load_module("scripts/validate_site_manifest.py")
+        with self.assertRaisesRegex(SystemExit, "containing percent"):
+            percent_builder.repository_candidate_paths()
+        with self.assertRaisesRegex(percent_validator.ValidationError, "contains percent"):
+            percent_validator.repository_candidate_paths()
+        verifier = load_pages_verifier_module()
+        with self.assertRaisesRegex(verifier.VerificationError, "must not contain percent"):
+            verifier.safe_remote_path("content/docs/encoded%2Fname.md", "fixture path")
+
     def test_openapi_failure_does_not_echo_absolute_paths_or_source_lines(self) -> None:
         repository = self.repository(full=True)
         marker = "PRIVATE-OPENAPI-MARKER-MUST-NOT-APPEAR"
@@ -1864,9 +2234,9 @@ class BuildInputBoundaryTests(WorkflowTestCase):
 
         builder = repository.load_module("scripts/build_site.py")
         validator = repository.load_module("scripts/validate_site_manifest.py")
-        with self.assertRaisesRegex(SystemExit, "symlinked public build input"):
+        with self.assertRaisesRegex(SystemExit, "non-regular tracked Git mode"):
             builder.repository_candidate_paths()
-        with self.assertRaisesRegex(validator.ValidationError, "publishable source is a symlink"):
+        with self.assertRaisesRegex(validator.ValidationError, "non-regular tracked Git mode"):
             validator.repository_candidate_paths()
 
     def test_scanner_build_and_manifest_reject_hidden_index_flags(self) -> None:
@@ -2161,6 +2531,41 @@ class ManifestRuntimeDependencyTests(WorkflowTestCase):
 
 
 class StatePrerequisiteTests(WorkflowTestCase):
+    def test_closed_checkpoint_rejects_all_mutation_commands(self) -> None:
+        repository = self.repository(local_origin=True)
+        checkpoint, data, head = repository.prepare_release()
+        manifest_sha = "a" * 64
+        data.update(
+            {
+                "canonicalState": "CLOSED",
+                "mergeSha": head,
+                "branchCleanupStatus": "complete",
+                "cleanupEvidence": ["verified branch cleanup"],
+                "mainValidationUrl": "https://github.com/owner/repo/actions/runs/101",
+                "pagesRunUrl": "https://github.com/owner/repo/actions/runs/102",
+                "manifestSha256": manifest_sha,
+                "closureEvidenceUrl": "https://github.com/owner/repo/pull/17#issuecomment-100",
+                "liveBaseUrl": "https://example.com/studies/",
+                "derivedPaths": ["site/workflow-test.json", "#/doc/workflow-test"],
+                "manifestAssertions": [
+                    f"sourceRevision={head}", f"manifestSha256={manifest_sha}", "sourceDirty=false",
+                ],
+                "routeAssertions": ["#/doc/workflow-test"],
+                "publicationStatus": "published",
+                "residualLimitations": ["No organization-specific fit is inferred."],
+                "nextGate": "Open a superseding intake for any correction.",
+            }
+        )
+        repository.replace_checkpoint(checkpoint, data)
+        before = checkpoint.read_bytes()
+        for arguments in (
+            ("record", "--checkpoint", str(checkpoint), "--next-gate", "Mutate closure."),
+            ("replace-list", "--checkpoint", str(checkpoint), "--field", "residualLimitations", "--value", "changed", "--status-reason", "Mutate closure."),
+        ):
+            with self.subTest(command=arguments[0]):
+                observed = repository.cli(*arguments)
+                self.assert_deterministic_error(observed, contains="CLOSED is immutable")
+                self.assertEqual(before, checkpoint.read_bytes())
     def test_record_rejects_every_target_state_when_its_exit_evidence_is_absent(self) -> None:
         repository = self.repository()
         checkpoint, intake, result = repository.new_checkpoint()
@@ -2211,7 +2616,7 @@ class StatePrerequisiteTests(WorkflowTestCase):
     def test_projected_state_requires_non_route_derived_files_to_exist(self) -> None:
         repository = self.repository()
         checkpoint, data, _ = repository.prepare_draft()
-        data["derivedPaths"] = ["site/missing-projection.json"]
+        data["derivedPaths"] = ["site/missing-projection.json", "#/doc/workflow-test"]
         repository.replace_checkpoint(checkpoint, data)
 
         missing = repository.cli("render", "--checkpoint", str(checkpoint))
@@ -2359,6 +2764,118 @@ class ImmutableSpecTests(WorkflowTestCase):
 
 
 class DraftGateTests(WorkflowTestCase):
+    def test_projected_publication_requires_a_manifest_backed_route_and_canonical_path(self) -> None:
+        repository = self.repository(local_origin=True)
+        checkpoint, data, _ = repository.prepare_draft()
+
+        no_route = dict(data)
+        no_route["derivedPaths"] = ["site/workflow-test.json"]
+        repository.replace_checkpoint(checkpoint, no_route)
+        missing_route = repository.cli("render", "--checkpoint", str(checkpoint))
+        self.assert_deterministic_error(
+            missing_route,
+            contains="at least one site route is required",
+        )
+
+        repository.replace_checkpoint(checkpoint, data)
+        manifest = repository.root / "_site" / "content-manifest.json"
+        manifest.write_text(
+            json.dumps(
+                {
+                    "items": [
+                        {
+                            "path": "docs/another-publication.md",
+                            "route": "#/doc/workflow-test",
+                        }
+                    ],
+                    "presentation": [],
+                    "audiences": [],
+                }
+            ),
+            encoding="utf-8",
+        )
+        missing_canonical = repository.cli(
+            "check", "--checkpoint", str(checkpoint), "--phase", "draft", "--base", repository.base_sha
+        )
+        self.assert_deterministic_error(
+            missing_canonical,
+            contains="canonical path is absent from the generated site manifest",
+        )
+
+        repository.replace_checkpoint(checkpoint, data)
+        manifest.write_text(
+            json.dumps(
+                {
+                    "items": [
+                        {
+                            "path": "docs/workflow-test.md",
+                            "route": "#/doc/workflow-test",
+                        }
+                    ],
+                    "presentation": [],
+                    "audiences": [],
+                }
+            ),
+            encoding="utf-8",
+        )
+        unrelated_route = dict(data)
+        unrelated_route["derivedPaths"] = ["site/workflow-test.json", "#/overview"]
+        repository.replace_checkpoint(checkpoint, unrelated_route)
+        mismatched = repository.cli(
+            "check", "--checkpoint", str(checkpoint), "--phase", "draft", "--base", repository.base_sha
+        )
+        self.assert_deterministic_error(
+            mismatched,
+            contains="canonical path manifest route is not declared as derived",
+        )
+
+    def test_draft_gate_requires_every_declared_route_in_the_generated_manifest(self) -> None:
+        repository = self.repository(local_origin=True)
+        checkpoint, data, _ = repository.prepare_draft()
+        data["derivedPaths"] = [
+            "site/workflow-test.json",
+            "#/doc/workflow-test",
+            "#/doc/missing-workflow-route",
+        ]
+        repository.replace_checkpoint(checkpoint, data)
+        manifest = repository.root / "_site" / "content-manifest.json"
+        manifest.parent.mkdir(parents=True, exist_ok=True)
+        manifest.write_text(
+            json.dumps(
+                {
+                    "items": [
+                        {
+                            "path": "docs/workflow-test.md",
+                            "route": "#/doc/workflow-test",
+                        }
+                    ],
+                    "presentation": [],
+                    "audiences": [],
+                }
+            ),
+            encoding="utf-8",
+        )
+        observed = repository.cli(
+            "check", "--checkpoint", str(checkpoint), "--phase", "draft", "--base", repository.base_sha
+        )
+        self.assert_deterministic_error(
+            observed,
+            contains="declared derived route is absent from the generated site manifest",
+        )
+
+    def test_candidate_framing_and_validation_digest_are_locked_until_rework(self) -> None:
+        repository = self.repository(local_origin=True)
+        checkpoint, _, _ = repository.prepare_candidate()
+        before = checkpoint.read_bytes()
+        for arguments, expected in (
+            (("--scope-summary", "Changed acceptance scope."), "change framing fields only after returning to REWORK"),
+            (("--local-validation", "pass"), "record local validation again only after returning to REWORK"),
+        ):
+            with self.subTest(arguments=arguments):
+                observed = repository.cli("record", "--checkpoint", str(checkpoint), *arguments)
+                self.assert_deterministic_error(observed, contains=expected)
+                self.assertEqual(before, checkpoint.read_bytes())
+
     def test_local_validation_digest_survives_unchanged_commit_and_rejects_changed_bytes(self) -> None:
         repository = self.repository(local_origin=True)
         checkpoint, _, result = repository.new_checkpoint()
@@ -2369,6 +2886,23 @@ class DraftGateTests(WorkflowTestCase):
             "# Workflow test\n\nValidated before its candidate commit.\n",
         )
         repository.write_text("site/workflow-test.json", '{"validated": true}\n')
+        manifest = repository.root / "_site" / "content-manifest.json"
+        manifest.parent.mkdir(parents=True, exist_ok=True)
+        manifest.write_text(
+            json.dumps(
+                {
+                    "items": [
+                        {
+                            "path": "docs/workflow-test.md",
+                            "route": "#/doc/workflow-test",
+                        }
+                    ],
+                    "presentation": [],
+                    "audiences": [],
+                }
+            ),
+            encoding="utf-8",
+        )
 
         validated = repository.cli(
             "record",
@@ -2395,7 +2929,7 @@ class DraftGateTests(WorkflowTestCase):
                 "deltaSummary": "A deterministic validation digest regression fixture.",
                 "evidenceReferences": ["https://example.com/evidence/validation-digest"],
                 "canonicalPaths": ["docs/workflow-test.md"],
-                "derivedPaths": ["site/workflow-test.json"],
+                "derivedPaths": ["site/workflow-test.json", "#/doc/workflow-test"],
                 "nextGate": "Create a draft candidate from the unchanged validated bytes.",
             }
         )
@@ -2625,10 +3159,18 @@ class DraftGateTests(WorkflowTestCase):
         self.assertEqual(0, accepted.returncode, accepted.stdout + accepted.stderr)
 
         cases: dict[str, tuple[dict[str, Any], str]] = {
-            "missing PR payload": ({}, "workflow requires a PR targeting main"),
+            "missing PR payload": ({}, "actual PR number differs from the checkpoint"),
             "wrong PR identity": (
                 {**valid_pr, "url": "https://github.com/owner/repo/pull/999"},
-                "actual PR URL differs from the checkpoint",
+                "actual PR URL/repository differs from origin and the checkpoint",
+            ),
+            "wrong PR number": (
+                {**valid_pr, "number": 99},
+                "actual PR number differs from the checkpoint",
+            ),
+            "wrong head repository owner": (
+                {**valid_pr, "headRepositoryOwner": {"login": "other-owner"}},
+                "actual PR head repository owner differs from origin",
             ),
             "missing checkpoint block": (
                 {**valid_pr, "body": "No durable workflow checkpoint is present."},
@@ -2662,6 +3204,47 @@ class DraftGateTests(WorkflowTestCase):
 
 
 class ValidationEnvironmentTests(WorkflowTestCase):
+    def test_publication_commands_ignore_repository_make_gh_and_python_redirectors(self) -> None:
+        repository = self.repository(local_origin=True)
+        hostile_python = repository.container / "hostile-python"
+        hostile_python.mkdir()
+        (hostile_python / "sitecustomize.py").write_text(
+            "raise SystemExit(91)\n", encoding="utf-8"
+        )
+        redirected_git = repository.container / "redirected.git"
+        repository._run(("git", "init", "--bare", "-q", str(redirected_git)), cwd=repository.container)
+        environment = {
+            "GIT_DIR": str(redirected_git),
+            "GIT_WORK_TREE": str(repository.container / "wrong-worktree"),
+            "GIT_CONFIG_PARAMETERS": "'core.hooksPath=/definitely-not-a-workflow-hook'",
+            "GIT_CONFIG_COUNT": "1",
+            "GIT_CONFIG_KEY_0": "remote.origin.pushurl",
+            "GIT_CONFIG_VALUE_0": str(redirected_git),
+            "GIT_GLOB_PATHSPECS": "1",
+            "GIT_LITERAL_PATHSPECS": "1",
+            "GIT_ICASE_PATHSPECS": "1",
+            "GH_REPO": "cli/cli",
+            "GH_HOST": "example.invalid",
+            "MAKEFLAGS": "-n -i",
+            "GNUMAKEFLAGS": "-n",
+            "PYTHONPATH": str(hostile_python),
+            "PYTHONHOME": str(hostile_python),
+        }
+        checkpoint, _, created = repository.new_checkpoint(
+            slug="environment-isolation", environment=environment
+        )
+        self.assertEqual(0, created.returncode, created.stdout + created.stderr)
+        repository.write_text("docs/workflow-test.md", "# Workflow test\n\nEnvironment isolation.\n")
+        validated = repository.cli(
+            "record",
+            "--checkpoint",
+            str(checkpoint),
+            "--local-validation",
+            "pass",
+            environment=environment,
+        )
+        self.assertEqual(0, validated.returncode, validated.stdout + validated.stderr)
+
     def test_draft_and_release_make_inherit_the_running_python_virtualenv(self) -> None:
         draft_repository = self.repository(local_origin=True)
         runtime = draft_repository.container / "workflow-runtime"
@@ -2714,6 +3297,23 @@ class ValidationEnvironmentTests(WorkflowTestCase):
 
 
 class ReleaseGateTests(WorkflowTestCase):
+    def test_release_gate_rejects_a_fetched_main_ref_not_authenticated_by_github(self) -> None:
+        repository = self.repository(local_origin=True)
+        checkpoint, _, head = repository.prepare_release()
+        pr = repository.with_current_checkpoint_body(repository.valid_pr_json(head), checkpoint)
+        environment = repository.fake_github_environment(pr, head)
+        environment["FAKE_MAIN_REF_JSON"] = json.dumps(
+            [{"ref": "refs/heads/main", "object": {"sha": head}}]
+        )
+        observed = repository.cli(
+            "check", "--checkpoint", str(checkpoint), "--phase", "release", "--base", repository.base_sha,
+            environment=environment,
+        )
+        self.assert_deterministic_error(
+            observed,
+            contains="fetched origin/main differs from the authoritative GitHub main ref",
+        )
+
     def test_release_gate_passes_with_local_fake_pr_and_validation_tools(self) -> None:
         repository = self.repository(local_origin=True)
         checkpoint, _, head = repository.prepare_release()
@@ -2813,6 +3413,13 @@ class ReleaseGateTests(WorkflowTestCase):
                 {**valid_pr, "statusCheckRollup": []},
                 "0",
                 "actual PR checks are missing",
+            ),
+            (
+                "recorded check URL drift",
+                {"checkUrls": ["https://github.com/owner/repo/actions/runs/999"]},
+                valid_pr,
+                "0",
+                "recorded check URLs differ from the authenticated required runs",
             ),
             (
                 "state is not validated",
@@ -2988,14 +3595,14 @@ class PublishedGateTests(WorkflowTestCase):
     ) -> tuple[Path, dict[str, Any], str, str]:
         checkpoint, data, candidate = repository.prepare_release()
         repository.git("switch", "-q", "main")
-        repository.write_text("docs/workflow-test.md", "# Workflow test\n\nPublished canonical fixture.\n")
-        repository.write_text("site/workflow-test.json", '{"fixture": true, "published": true}\n')
-        merge_sha = repository.commit_all("Publish workflow test candidate")
+        repository.git("merge", "-q", "--ff-only", candidate)
+        merge_sha = repository.git("rev-parse", "HEAD").stdout.strip()
         repository.git("push", "-q", "origin", "main")
         if clean_branch:
             repository.git("update-ref", "-d", "refs/heads/study/workflow-test")
+            repository.git("push", "-q", "origin", "--delete", "study/workflow-test")
         manifest_sha = "b" * 64
-        routes = ["#/studies/workflow-test", "#/presentations/workflow-test"]
+        routes = ["#/doc/workflow-test"]
         data.update(
             {
                 "canonicalState": "PUBLISHED",
@@ -3048,7 +3655,9 @@ class PublishedGateTests(WorkflowTestCase):
             ).returncode,
         )
 
-        pr = repository.valid_pr_json(candidate, merged=True, merge_sha=merge_sha)
+        pr = repository.with_current_checkpoint_body(
+            repository.valid_pr_json(candidate, merged=True, merge_sha=merge_sha), checkpoint
+        )
         environment = repository.fake_github_environment(pr, candidate)
         environment.update(
             {
@@ -3071,7 +3680,7 @@ class PublishedGateTests(WorkflowTestCase):
                     }
                 ),
                 "FAKE_PAGES_JSON": json.dumps({"html_url": data["liveBaseUrl"]}),
-                "FAKE_COMMENT_JSON": json.dumps(
+                "FAKE_CLOSURE_COMMENT_JSON": json.dumps(
                     {
                         "html_url": data["closureEvidenceUrl"],
                         "issue_url": "https://api.github.com/repos/owner/repo/issues/17",
@@ -3100,7 +3709,9 @@ class PublishedGateTests(WorkflowTestCase):
     def test_published_gate_rejects_an_intake_branch_that_was_not_cleaned(self) -> None:
         repository = self.repository(local_origin=True)
         checkpoint, _, candidate, merge_sha = self.prepare_published(repository, clean_branch=False)
-        pr = repository.valid_pr_json(candidate, merged=True, merge_sha=merge_sha)
+        pr = repository.with_current_checkpoint_body(
+            repository.valid_pr_json(candidate, merged=True, merge_sha=merge_sha), checkpoint
+        )
         observed = repository.cli(
             "check",
             "--checkpoint",
@@ -3113,11 +3724,26 @@ class PublishedGateTests(WorkflowTestCase):
         )
         self.assert_deterministic_error(observed, contains="local intake branch still exists")
 
+    def test_published_gate_rejects_a_branch_that_still_exists_on_github(self) -> None:
+        repository = self.repository(local_origin=True)
+        checkpoint, _, candidate, merge_sha = self.prepare_published(repository)
+        pr = repository.with_current_checkpoint_body(
+            repository.valid_pr_json(candidate, merged=True, merge_sha=merge_sha), checkpoint
+        )
+        environment = repository.fake_github_environment(pr, candidate)
+        environment["FAKE_BRANCH_REF_JSON"] = json.dumps(
+            [{"ref": "refs/heads/study/workflow-test", "object": {"sha": candidate}}]
+        )
+        observed = repository.cli(
+            "check", "--checkpoint", str(checkpoint), "--phase", "published", "--base", repository.base_sha,
+            environment=environment,
+        )
+        self.assert_deterministic_error(observed, contains="GitHub intake branch still exists")
+
     def test_published_gate_rejects_merge_state_status_url_assertion_and_closure_failures(self) -> None:
         repository = self.repository(local_origin=True)
         checkpoint, valid, candidate, merge_sha = self.prepare_published(repository)
         pr = repository.valid_pr_json(candidate, merged=True, merge_sha=merge_sha)
-        github = repository.fake_github_environment(pr, candidate)
         cases: dict[str, tuple[dict[str, Any], str]] = {
             "missing merge": ({"mergeSha": None}, "mergeSha is required"),
             "unreachable merge": (
@@ -3129,7 +3755,7 @@ class PublishedGateTests(WorkflowTestCase):
                         "sourceDirty=false",
                     ],
                 },
-                "mergeSha is not reachable",
+                "validate run did not execute the merge SHA",
             ),
             "wrong state": ({"canonicalState": "MERGED"}, "state PUBLISHED or CLOSED"),
             "pending publication": ({"publicationStatus": "pending"}, "publicationStatus must be published"),
@@ -3200,6 +3826,8 @@ class PublishedGateTests(WorkflowTestCase):
                 candidate_data = dict(valid)
                 candidate_data.update(changes)
                 repository.replace_checkpoint(checkpoint, candidate_data)
+                current_pr = repository.with_current_checkpoint_body(pr, checkpoint)
+                github = repository.fake_github_environment(current_pr, candidate)
                 observed = repository.cli(
                     "check",
                     "--checkpoint",
@@ -3230,6 +3858,79 @@ class PublishedGateTests(WorkflowTestCase):
             repository.base_sha,
         )
         self.assert_deterministic_error(observed, contains="main")
+
+    def test_published_gate_reauthenticates_review_checks_and_exact_durable_body(self) -> None:
+        repository = self.repository(local_origin=True)
+        checkpoint, _, candidate, merge_sha = self.prepare_published(repository)
+        exact_pr = repository.with_current_checkpoint_body(
+            repository.valid_pr_json(candidate, merged=True, merge_sha=merge_sha), checkpoint
+        )
+        cases = {
+            "stale durable body": (
+                {**exact_pr, "body": "No current workflow checkpoint."},
+                {},
+                "PR body must contain exactly one workflow checkpoint block",
+            ),
+            "missing candidate checks": (
+                {**exact_pr, "statusCheckRollup": []},
+                {},
+                "actual PR checks are missing",
+            ),
+            "forged review": (
+                exact_pr,
+                {
+                    "FAKE_COMMENT_JSON": json.dumps(
+                        {
+                            "html_url": "https://github.com/owner/repo/pull/17#issuecomment-99",
+                            "issue_url": "https://api.github.com/repos/owner/repo/issues/17",
+                            "body": "Review disposition: pass\n",
+                        }
+                    )
+                },
+                "independent review evidence",
+            ),
+        }
+        for label, (pr, overrides, expected) in cases.items():
+            with self.subTest(case=label):
+                environment = repository.fake_github_environment(pr, candidate)
+                environment.update(overrides)
+                observed = repository.cli(
+                    "check", "--checkpoint", str(checkpoint), "--phase", "published", "--base", repository.base_sha,
+                    environment=environment,
+                )
+                self.assert_deterministic_error(observed, contains=expected)
+
+    def test_published_gate_rejects_rewritten_candidate_envelope_metadata(self) -> None:
+        repository = self.repository(local_origin=True)
+        checkpoint, original, candidate, merge_sha = self.prepare_published(repository)
+        original_envelope = original["candidateEnvelopeSha256"]
+        rewritten = dict(original)
+        rewritten["scopeSummary"] = "A materially different safe-looking publication scope."
+        module = repository.load_module("scripts/study_workflow.py")
+        rewritten["candidateEnvelopeSha256"] = module.candidate_envelope_digest(rewritten)
+        repository.replace_checkpoint(checkpoint, rewritten)
+        pr = repository.with_current_checkpoint_body(
+            repository.valid_pr_json(candidate, merged=True, merge_sha=merge_sha), checkpoint
+        )
+        environment = repository.fake_github_environment(pr, candidate)
+        environment["FAKE_COMMENT_JSON"] = json.dumps(
+            {
+                "html_url": "https://github.com/owner/repo/pull/17#issuecomment-99",
+                "issue_url": "https://api.github.com/repos/owner/repo/issues/17",
+                "body": (
+                    f"Accepted head SHA: {candidate}\n"
+                    f"Candidate envelope SHA-256: {original_envelope}\n"
+                    "Independent reviewer: workflow acceptance role\n"
+                    "Reviewer did not author candidate: yes\n"
+                    "Review disposition: pass\n"
+                ),
+            }
+        )
+        observed = repository.cli(
+            "check", "--checkpoint", str(checkpoint), "--phase", "published", "--base", repository.base_sha,
+            environment=environment,
+        )
+        self.assert_deterministic_error(observed, contains="independent review evidence")
 
 
 if __name__ == "__main__":
