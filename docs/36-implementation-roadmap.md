@@ -32,6 +32,10 @@ This roadmap begins with decision mobilization and ends when the legacy platform
 
 The [repository roadmap](39-repository-roadmap.md) separately matures this public study system. The two roadmaps interact—better evidence automation reduces decision and migration toil—but publication engineering is not on the organization migration critical path.
 
+### Current Kong planning-direction overlay — 2026-08-18
+
+Stakeholders now intend to proceed with Kong, with a self-managed hybrid control plane as the leading deployment model. The [Kong enterprise platform deployment strategy](47-kong-enterprise-platform-strategy.md) instantiates this roadmap as a bounded, reversible Kong workstream; it does not retroactively mark Gate 2, Gate 3, or Gate 4 as passed. Its `KP0–KP2` phases resolve the exact option, build a reversible foundation, and generate the `E2`/`E3` evidence needed for conditional selection and pilot readiness. Its `KP3–KP4` phases establish paved roads and representative `E4` pilots before any scale decision, and `KP5` decides whether to scale self-managed Kong, narrow its scope, switch control-plane custody to Konnect, or exercise the separate non-Kong exit. The phase clocks are scenario assumptions in both studies; the stronger evidence gate controls when work may advance.
+
 ## Delivery mechanism and integrated workstream model
 
 **Figure ROAD-1 — Decision assurance, platform foundation and workload transformation advance in parallel only through explicit dependencies and gates.**

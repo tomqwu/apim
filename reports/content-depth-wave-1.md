@@ -9,22 +9,22 @@
 
 ## Principal verdict
 
-The repository has moved from an outline-heavy publication shell to a substantive, governed content baseline. The baseline review found a median numbered-document length of 148 words, 32 of 41 numbered documents below 300 words, no inline figures or point-of-claim external sources in docs 10–32, 647 words across the eight comparison pages, and 35–39-word vendor research stubs. The release candidate now contains 42 contract-enforced principal studies with 165,731 words, three decision-grade protocols with 10,397 words, deep symmetric dossiers, a synthetic enterprise case, public failure cases, a canonical top-ten industry-problem taxonomy, a vendor-neutral industry-practice and realistic-case system, a Kong multicloud study roadmap, and one visible figure contract for every inline Mermaid.
+The repository has moved from an outline-heavy publication shell to a substantive, governed content baseline. The baseline review found a median numbered-document length of 148 words, 32 of 41 numbered documents below 300 words, no inline figures or point-of-claim external sources in docs 10–32, 647 words across the eight comparison pages, and 35–39-word vendor research stubs. The release candidate now contains 43 contract-enforced principal studies with 177,105 words, three decision-grade protocols with 10,397 words, deep symmetric dossiers, a synthetic enterprise case, public failure cases, a canonical top-ten industry-problem taxonomy, a vendor-neutral industry-practice and realistic-case system, a Kong multicloud study roadmap, a bounded Kong enterprise-platform deployment strategy, and one visible figure contract for every inline Mermaid.
 
-That is a material editorial and methodological improvement. It is **not** product evidence. All 120 criteria remain unknown, the seven entries remain bounded archetypes rather than exact purchasable options, and no finalist has completed the 28 atomic E3 protocol cases. The defensible decision remains: accept the reusable evidence system for continued work, approve Gate 0 if organizational authority and inputs are available, and do not select a platform.
+That is a material editorial and methodological improvement. It is **not** product evidence. All 120 criteria remain unknown, the seven entries remain bounded archetypes rather than exact purchasable options, and no finalist has completed the 28 atomic E3 protocol cases. Stakeholders have separately chosen Kong as the planning direction. The defensible repository decision is therefore to accept the evidence system, fund a bounded and reversible Kong foundation, and withhold claims of demonstrated production fit or permission to scale until the recorded Kong gates pass.
 
 ## Quantitative delta
 
 | Measure | Baseline | Release candidate | Decision interpretation |
 |---|---:|---:|---|
-| Principal-study contract | absent | 42 studies / 165,731 words | structural and editorial depth is now enforceable; word count alone is not evidence |
+| Principal-study contract | absent | 43 studies / 177,105 words | structural and editorial depth is now enforceable; word count alone is not evidence |
 | Numbered-document depth | median 148 words; 32/41 below 300 | every marked principal study ≥900 words; current total above | outline-level publication risk materially reduced |
 | Decision-grade protocols | absent | 3 protocols / 10,397 words | executable design exists; all candidate × atomic-case states still begin not run |
 | Atomic comparative cases | implicit/aggregate | 12 real-world + 7 portal + 9 observability = 28 | protocol count must never be reported as execution progress |
 | Inline principal-study figures | sparse and concentrated | at least one per principal study; every Mermaid has a visible contract | visuals now carry argument, scope, provenance, accessible equivalent, interpretation and limitation |
 | Registered official sources | 27 | 40 | register growth does not equal criterion coverage |
 | Finding register | 14 findings / 15 source IDs used | 24 findings / 28 source IDs used | decision-bearing chain is stronger but remains incomplete |
-| Wider article citations | not inventoried | 263 unique; 36 registered and 227 contextual | contextual links are non-scoring until promoted to a mapped finding |
+| Wider article citations | not inventoried | 271 unique; 36 registered and 235 contextual | contextual links are non-scoring until promoted to a mapped finding |
 | Criteria / mandatory gates | 120 / 30, all unknown | unchanged | no ranking is supportable |
 | Candidate definition | 7 mixed “exact variants” | 7 bounded archetypes; 0 resolved exact options | Gate-1 bill of materials is required before scoring |
 | PoC register | 14 items; 5 automated / 9 not run | 16 items; 5 automated baseline / 11 not run | aggregate register state remains modest local evidence |
@@ -42,7 +42,7 @@ The release candidate applies that pattern through answer-first studies, referen
 
 ### 1. Deep, symmetric study corpus
 
-Docs 00–36 and 41–45 now use the principal-study contract. Kong, Azure API Management, Apigee, MuleSoft and secondary-candidate material uses bounded archetypes, topology/state/ownership analysis, failure modes, counter-evidence, non-fit conditions, official sources, proof plans and Gate-1 blockers. Docs 25–31 use one comparative frame rather than candidate-specific checklists. Doc 43 adds a canonical P1–P10 problem portfolio across vendors; doc 45 translates it into proposed operating practices, eight synthetic practice cases, anti-patterns and evidence gates; doc 44 projects it into bounded Kong operating models and evidence workstreams without creating a second taxonomy or conferring execution priority.
+Docs 00–36 and 41–47 now use the principal-study contract. Kong, Azure API Management, Apigee, MuleSoft and secondary-candidate material uses bounded archetypes, topology/state/ownership analysis, failure modes, counter-evidence, non-fit conditions, official sources, proof plans and Gate-1 blockers. Docs 25–31 use one comparative frame rather than candidate-specific checklists. Doc 43 adds a canonical P1–P10 problem portfolio across vendors; doc 45 translates it into proposed operating practices, eight synthetic practice cases, anti-patterns and evidence gates; doc 44 projects it into bounded Kong operating models and evidence workstreams; and doc 47 records the later stakeholder Kong direction as a reversible self-managed platform strategy with a Konnect custody benchmark and separate non-Kong exit. The direction changes sequencing, not evidence level.
 
 ### 2. Real-world decision context
 
@@ -62,7 +62,7 @@ Each inline Mermaid is adjacent to a stable unique ID/title, depicted scope, exc
 
 ### 6. Source-promotion boundary
 
-The [source-coverage report](source-coverage.md) and [machine-readable usage ledger](source-coverage.csv) scan 68 article files and fail CI when citation state drifts. Registered citations may support decision-bearing findings only through the finding chain; 227 contextual URLs remain explanation-only until an evidence owner promotes the claims that can change a gate, score or recommendation.
+The [source-coverage report](source-coverage.md) and [machine-readable usage ledger](source-coverage.csv) scan 69 article files and fail CI when citation state drifts. Registered citations may support decision-bearing findings only through the finding chain; 235 contextual URLs remain explanation-only until an evidence owner promotes the claims that can change a gate, score or recommendation.
 
 ### 7. One dependency-aware roadmap
 
@@ -70,19 +70,19 @@ The [repository roadmap](../docs/39-repository-roadmap.md) now marks the princip
 
 ### 8. Neutral audience and presentation story
 
-Six role paths retain one evidence base. The generic platform-team path is symmetric across Kong, APIM, Apigee and MuleSoft. Kong is a named falsifiable sequencing hypothesis with no execution priority. The overview and presentation begin with decision state, not content volume or a presumed finalist.
+Six role paths retain one evidence base. The generic platform-team path preserves the comparative and counterfactual record across Kong, APIM, Apigee and MuleSoft while making the later stakeholder Kong direction explicit. The overview and presentation distinguish stakeholder sequencing, reversible foundation, demonstrated fit and permission to scale instead of treating preference as proof.
 
 ## Release-candidate assurance matrix
 
 | Control | Current result | What the result proves | What it does not prove |
 |---|---|---|---|
-| Principal-study/protocol validator | Pass: 42 studies and 3 protocols | minimum depth, required sections, tables, point-of-use figure contracts and evidence language exist | correctness, organization acceptance or observed candidate behavior |
+| Principal-study/protocol validator | Pass: 43 studies and 3 protocols | minimum depth, required sections, tables, point-of-use figure contracts and evidence language exist | correctness, organization acceptance or observed candidate behavior |
 | Criteria/workshop/backlog validator | Pass: 120 / 180 / 68 | canonical counts and PCR narrative/CSV parity | gate quality or PCR closure |
 | Source and finding validator | Pass: 40 / 24 / 28 directly used | registered IDs, URLs, dates and finding references resolve | freshness/liveness or coverage of all decision claims |
-| Citation-coverage validator | Pass: 67 files / 263 URLs / 227 contextual | contextual promotion debt is explicit and drift-controlled | contextual evidence may influence a decision |
+| Citation-coverage validator | Pass: 69 files / 271 URLs / 235 contextual | contextual promotion debt is explicit and drift-controlled | contextual evidence may influence a decision |
 | Relative-link and visual-source validators | Pass in release-candidate checks | repository navigation and canonical visual mirrors resolve | external link permanence or visual truth |
 | Static site build and syntax | Pass in release-candidate checks | the content index and client assets compile/build | browser accessibility, projection legibility or Pages deployment |
-| Independent browser/release QA | Pass on the release-candidate tree: 75 configured presentation states; the problem, industry-practice and two-part Kong-roadmap slides at 1920×1080, 1440×900, 1024×768, 760×820 and 390×844; the industry-practice article with 11 inline figures and three data-backed placements; all six affected XY charts; IP-6 pie bounds; seven-row landscape; card-summary leakage check | room/laptop/tablet/mobile content remains readable without painted-content clipping or horizontal overflow; the 10 practices, eight scenarios, five maturity stages, all 13 Kong workstreams and chart labels remain visible; metadata comments do not leak into cards | content correctness, organization acceptance, observed candidate behavior or future-browser behavior |
+| Independent browser/release QA | Pass on the release-candidate tree: 81 configured presentation states; eight Kong-platform strategy states and tailored audience routes at 1920×1080, 1440×900, 1024×768, 760×820 and 390×844; doc47 with six inline figures and five data-backed placements; exact 7/10/8/6/11 fit/problem/case/phase/outcome projections; existing problem, industry-practice and Kong-roadmap coverage retained | room/laptop/tablet/mobile content remains readable without painted-content clipping, hidden critical fields or horizontal overflow; KPS owners, cadence, proof, hold and exit fields remain reachable; article tables are locally focusable/scrollable; metadata comments do not leak into cards | content correctness, organization acceptance, observed candidate behavior or future-browser behavior |
 
 ## Remaining recommendations and exit evidence
 

@@ -13,11 +13,11 @@ This report is generated from the article corpus by `scripts/validate_source_cov
 
 | Measure | Count |
 |---|---:|
-| Article files scanned | 68 |
-| Article files containing external citations | 47 |
-| Unique external citations | 263 |
+| Article files scanned | 69 |
+| Article files containing external citations | 48 |
+| Unique external citations | 271 |
 | Unique registered citations used by articles | 36 |
-| Unique contextual citations awaiting promotion if decision-bearing | 227 |
+| Unique contextual citations awaiting promotion if decision-bearing | 235 |
 | Latest access date in authoritative register | 2026-08-17 |
 
 ## Coverage by article
@@ -66,10 +66,11 @@ This report is generated from the article corpus by `scripts/validate_source_cov
 | `docs/43-api-management-industry-problems.md` | 7 | 26 | promotion debt visible |
 | `docs/44-kong-multicloud-study-roadmap.md` | 9 | 18 | promotion debt visible |
 | `docs/45-api-management-industry-practices.md` | 7 | 36 | promotion debt visible |
+| `docs/47-kong-enterprise-platform-strategy.md` | 5 | 21 | promotion debt visible |
 | `poc/real-world-scenarios.md` | 4 | 9 | promotion debt visible |
 | `research/apigee.md` | 3 | 12 | promotion debt visible |
 | `research/azure-apim.md` | 5 | 3 | promotion debt visible |
-| `research/kong.md` | 13 | 38 | promotion debt visible |
+| `research/kong.md` | 13 | 42 | promotion debt visible |
 | `research/mulesoft.md` | 2 | 18 | promotion debt visible |
 
 ## Contextual-source concentration
@@ -78,12 +79,12 @@ This table helps evidence owners batch promotion and freshness work. A high coun
 
 | Host | Article-link occurrences |
 |---|---:|
-| `developer.konghq.com` | 115 |
+| `developer.konghq.com` | 139 |
 | `docs.mulesoft.com` | 71 |
 | `learn.microsoft.com` | 44 |
 | `docs.cloud.google.com` | 31 |
 | `cloud.google.com` | 24 |
-| `gateway-api.sigs.k8s.io` | 14 |
+| `gateway-api.sigs.k8s.io` | 15 |
 | `opentelemetry.io` | 11 |
 | `www.rfc-editor.org` | 11 |
 | `spec.openapis.org` | 7 |

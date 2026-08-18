@@ -187,10 +187,15 @@
     const industryProblems = findByPath("docs/43-api-management-industry-problems.md");
     const industryPractices = findByPath("docs/45-api-management-industry-practices.md");
     const kongMulticloud = findByPath("docs/44-kong-multicloud-study-roadmap.md");
+    const kongPlatform = findByPath("docs/47-kong-enterprise-platform-strategy.md");
+    const kongPlatformVisual = visuals.kongPlatformStrategy || {};
     const problemTotal = Number(visuals.industryProblems?.total) || 0;
     const practiceTotal = Number(visuals.industryPractices?.practiceTotal) || 0;
     const scenarioTotal = Number(visuals.industryPractices?.scenarioTotal) || 0;
     const kongWorkstreamTotal = Number(visuals.kongMulticloud?.workstreamTotal) || 0;
+    const kongFitTotal = Number(kongPlatformVisual.fit?.rowTotal) || 0;
+    const kongPhaseTotal = Number(kongPlatformVisual.roadmap?.rowTotal) || 0;
+    const kongOutcomeTotal = Number(kongPlatformVisual.outcomes?.rowTotal) || 0;
     const generated = new Date(generatedAt);
     const dateLabel = Number.isNaN(generated.getTime())
       ? "current repository state"
@@ -221,11 +226,11 @@
         <section class="content-section overview-decision" aria-labelledby="overview-decision-title">
           <div class="section-heading">
             <span class="section-index">01 / Principal recommendation</span>
-            <h2 id="overview-decision-title">Approve evidence closure—not platform selection.</h2>
-            <p>Run an equivalent E1/E2 screen across ${escapeHtml(variantScope)}, resolve each deployable option before scoring, then fund symmetric proof only for approved finalists. Named sequencing hypotheses confer no priority.</p>
+            <h2 id="overview-decision-title">Proceed with a bounded, reversible Kong foundation—not unproved production scale.</h2>
+            <p>Treat Kong as the stakeholder-selected direction, freeze the exact self-managed hybrid option, and fund accountable foundation proof. Production fit, critical scale, support, recovery, and economics remain gated by representative evidence and explicit stop rules.</p>
           </div>
           <div class="decision-visual-grid">
-            ${visualPanel("A", "Steering state", "The decision requested now", "The recommendation separates approval, conditional hypotheses, required benchmarks, and deferred commitments.", chartMarkup("recommendation", visuals.review || {}, { title: "Decision state", compact: true }), "is-wide")}
+            ${visualPanel("A", "Steering state", "The decision requested now", "The recommendation separates the stakeholder-selected direction, required benchmarks, production gates, and deferred scale commitments.", chartMarkup("recommendation", visuals.review || {}, { title: "Decision state", compact: true }), "is-wide")}
           </div>
           ${review ? `<a class="action-link" href="${itemHref(review)}">Open the principal review <span aria-hidden="true">↗</span></a>` : ""}
         </section>
@@ -257,17 +262,35 @@
           </div>
         </section>
 
+        ${kongPlatform ? `
+        <section class="content-section" aria-labelledby="kong-platform-strategy-title">
+          <div class="section-heading">
+            <span class="section-index">02 / Selected-platform posture</span>
+            <h2 id="kong-platform-strategy-title">Deploy Kong as a platform service—and make self-managed control earn its cost.</h2>
+            <p>The stakeholder direction concentrates work on Kong. The canonical strategy keeps that choice scenario-relative: ${kongFitTotal} fit conditions, ${kongPhaseTotal} gated phases, and ${kongOutcomeTotal} outcome contracts preserve counterfactuals, proof, a Konnect custody switch, and a true non-Kong exit.</p>
+          </div>
+          <div class="decision-visual-grid">
+            ${visualPanel("A", "Strategic fit", "Better here, under explicit conditions", "Each Kong mechanism is paired with the scenario outcome it serves, the counterfactual that can change the answer, and proof before commitment.", chartMarkup("kongPlatformFit", kongPlatformVisual.fit || {}, { title: "Outcome-fit conditions", compact: true }), "is-wide")}
+            ${visualPanel("B", "Adoption", "Foundation before scale", "KP0 through KP5 advance only through bounded outcome and recovery evidence; elapsed windows remain scenario assumptions.", chartMarkup("kongPlatformRoadmap", kongPlatformVisual.roadmap || {}, { title: "0–18 month evidence-gated roadmap", compact: true }), "is-wide")}
+          </div>
+          <div class="hero-actions">
+            <a class="action-link is-primary" href="${itemHref(kongPlatform)}">Open the Kong platform strategy <span aria-hidden="true">↗</span></a>
+            <a class="action-link" href="#/architecture">Inspect the target architecture <span aria-hidden="true">→</span></a>
+            <a class="action-link" href="#/present/platform-teams/0">Start the platform-team briefing <span aria-hidden="true">→</span></a>
+          </div>
+        </section>` : ""}
+
         ${industryProblems && industryPractices && kongMulticloud ? `
         <section class="content-section" aria-labelledby="industry-agenda-title">
           <div class="section-heading">
-            <span class="section-index">02 / Industry agenda</span>
+            <span class="section-index">03 / Industry agenda</span>
             <h2 id="industry-agenda-title">Move from enduring problems to operating practices to option proof.</h2>
-            <p>The cross-vendor taxonomy defines the outcomes. The practice study turns them into realistic operating cases, and the Kong roadmap tests exact multicloud options without presuming selection.</p>
+            <p>The cross-vendor taxonomy defines the outcomes. The practice study turns them into realistic operating cases, and the Kong roadmap converts the stakeholder-selected direction into bounded, reversible self-managed proof before production adoption.</p>
           </div>
           <div class="decision-visual-grid">
             ${visualPanel("A", "Problem system", `${problemTotal} problem families that outlive product packaging`, "Each problem connects enterprise exposure to the mechanisms vendors productize and the decision implication equivalent proof must resolve.", chartMarkup("problemMatrix", visuals.industryProblems || {}, { title: "Problem → mechanism map", compact: true }))}
             ${visualPanel("B", "Operating practice", `${practiceTotal} practices across ${scenarioTotal} realistic cases`, industryPractices.summary, chartMarkup("scenarioMatrix", visuals.industryPractices || {}, { title: "Scenario → failure → best-practice control", compact: true }))}
-            ${visualPanel("C", "Kong study", `${kongWorkstreamTotal} gated workstreams`, "Exact options, owners, prerequisites, scenario ranges, and exit gates keep a multicloud hypothesis reversible and falsifiable.", chartMarkup("studyRoadmap", visuals.kongMulticloud || {}, { title: "Kong multicloud study sequence", compact: true }), "is-wide")}
+            ${visualPanel("C", "Kong study", `${kongWorkstreamTotal} gated workstreams`, "Exact options, owners, prerequisites, scenario ranges, and exit gates keep the selected direction reversible; Konnect and non-Kong exit remain explicit benchmarks.", chartMarkup("studyRoadmap", visuals.kongMulticloud || {}, { title: "Kong multicloud study sequence", compact: true }), "is-wide")}
           </div>
           <div class="hero-actions">
             <a class="action-link is-primary" href="${itemHref(industryProblems)}">Open the industry problem study <span aria-hidden="true">↗</span></a>
@@ -279,7 +302,7 @@
         ${referenceCase && failureCasebook ? `
         <section class="content-section" aria-labelledby="depth-title">
           <div class="section-heading">
-            <span class="section-index">03 / Real-world depth</span>
+            <span class="section-index">04 / Real-world depth</span>
             <h2 id="depth-title">Start with difficult behavior—not a feature list.</h2>
             <p>One shared enterprise case gives every option the same workloads, trust boundaries, traffic, failure history, recovery obligations, and migration constraints. Public postmortems then turn real failure mechanisms into mandatory proof.</p>
           </div>
@@ -301,7 +324,7 @@
 
         <section class="content-section" aria-labelledby="streams-title">
           <div class="section-heading">
-            <span class="section-index">04 / Study streams</span>
+            <span class="section-index">05 / Study streams</span>
             <h2 id="streams-title">One repository, six ways into the evidence.</h2>
             <p>Use the curated paths for orientation. Use Library when you need the complete source record.</p>
           </div>
@@ -312,7 +335,7 @@
 
         <section class="content-section" aria-labelledby="method-title">
           <div class="section-heading">
-            <span class="section-index">05 / Method</span>
+            <span class="section-index">06 / Method</span>
             <h2 id="method-title">From claim to decision, without hiding uncertainty.</h2>
             <p>The material is intentionally explicit about what is known, inferred, assumed, tested, and still open.</p>
           </div>
@@ -506,6 +529,17 @@
     targets.forEach((target) => observer.observe(target));
   }
 
+  async function renderKongPlatformArchitecture() {
+    const target = document.querySelector("[data-kong-platform-target]");
+    const model = state.manifest?.visuals?.kongPlatformStrategy?.architecture;
+    if (!target) return;
+    if (!model?.mermaid) {
+      target.innerHTML = '<p class="visual-empty">The canonical KPS-1 model is unavailable.</p>';
+      return;
+    }
+    await mermaidMarkup(model.mermaid, target, "KPS-1 — self-managed control and distributed runtime");
+  }
+
   function renderCompare() {
     const stats = state.manifest.stats;
     const visuals = state.manifest.visuals || {};
@@ -523,6 +557,7 @@
     const industryProblems = findByPath("docs/43-api-management-industry-problems.md");
     const industryPractices = findByPath("docs/45-api-management-industry-practices.md");
     const kongMulticloud = findByPath("docs/44-kong-multicloud-study-roadmap.md");
+    const kongPlatform = findByPath("docs/47-kong-enterprise-platform-strategy.md");
     const platformPaths = [
       "docs/10-kong-deep-dive.md",
       "docs/19-azure-apim-assessment.md",
@@ -540,7 +575,7 @@
             <h1>Compare</h1>
             <p class="lede">Test platform fit against mandatory gates and weighted criteria. The current scorecards stay unscored until evidence is sufficient.</p>
           </div>
-          <p class="intro-note">A named hypothesis is useful only when it can lose. Product conclusions remain provisional until symmetric option resolution, mandatory gates, and stated acceptance tests are met.</p>
+          <p class="intro-note">A selection assumption is useful only when it can lose. Kong receives focused foundation work; production conclusions remain provisional until mandatory gates and stated acceptance tests close.</p>
         </header>
 
         <section class="content-section">
@@ -561,12 +596,26 @@
           </div>
         </section>
 
+        ${kongPlatform ? `
+        <section class="content-section" aria-labelledby="selected-platform-posture-title">
+          <div class="section-heading">
+            <span class="section-index">01 / Selection assumption</span>
+            <h2 id="selected-platform-posture-title">A Kong direction can focus investment without becoming retroactive proof.</h2>
+            <p>Kong is the stakeholder-selected planning direction. The platform strategy shows why it fits the stated custody and multicloud outcomes, what would change that answer, and which evidence gates stop production fit or critical scale.</p>
+          </div>
+          <div class="decision-visual-grid">
+            ${visualPanel("A", "Conditional fit", "Why Kong is better for this scenario", "The comparison remains falsifiable because every fit row keeps its counterfactual and proof before commitment.", chartMarkup("kongPlatformFit", visuals.kongPlatformStrategy?.fit || {}, { title: "Outcome-fit contract", compact: true }), "is-wide")}
+            ${visualPanel("B", "P1–P10", "The selected platform still has to earn every outcome", "Kong responses remain tied to measures and mandatory hold conditions; no problem is marked solved by preference.", chartMarkup("kongPlatformProblems", visuals.kongPlatformStrategy?.problems || {}, { title: "Problem-to-proof traceability", compact: true }), "is-wide")}
+          </div>
+          <a class="action-link is-primary" href="${itemHref(kongPlatform)}">Open the bounded Kong platform strategy <span aria-hidden="true">↗</span></a>
+        </section>` : ""}
+
         ${industryProblems && industryPractices && kongMulticloud ? `
         <section class="content-section" aria-labelledby="problem-comparison-title">
           <div class="section-heading">
-            <span class="section-index">01 / Problem frame</span>
+            <span class="section-index">02 / Problem frame</span>
             <h2 id="problem-comparison-title">Compare how exact options answer the same enduring problems.</h2>
-            <p>The taxonomy is canonical and cross-vendor. Kong is one long-term multicloud hypothesis with its own gates, counter-hypotheses, and non-fit conditions.</p>
+            <p>The taxonomy remains canonical and cross-vendor. Kong is the bounded planning direction; Konnect and alternative platforms remain counterfactual, sensitivity, custody-switch, migration, and true-exit benchmarks.</p>
           </div>
           <div class="decision-visual-grid">
             ${visualPanel("A", "Industry problems", "The comparison denominator", "Vendor features matter only where they change an enterprise outcome under representative conditions.", chartMarkup("problemMatrix", visuals.industryProblems || {}, { title: "Problem → mechanism → decision test", compact: true }))}
@@ -582,12 +631,12 @@
 
         <section class="content-section" aria-labelledby="decision-views-title">
           <div class="section-heading">
-            <span class="section-index">02 / Decision views</span>
+            <span class="section-index">03 / Decision views</span>
             <h2 id="decision-views-title">See what can—and cannot—be concluded.</h2>
             <p>The visual model separates candidate status, evidence confidence, research balance, and gate structure.</p>
           </div>
           <div class="decision-visual-grid">
-            ${visualPanel("A", "Recommendation", "Approve evidence closure—not selection", "The current steering ask is explicit; product selection remains blocked by unmet gates.", chartMarkup("recommendation", visuals.review || {}, { title: "Decision state" }), "is-wide")}
+            ${visualPanel("A", "Recommendation", "Bounded Kong direction, gated scale", "Kong is the strategic platform assumption for reversible foundation work; production fit and critical scale remain blocked until the mandatory gates close.", chartMarkup("recommendation", visuals.review || {}, { title: "Decision state" }), "is-wide")}
             ${visualPanel("B", "Options", "Bounded deployment archetypes", "Family-level scores would hide topology and entitlement differences; each archetype remains unscored until its Gate-1 bill of materials closes.", chartMarkup("statusMatrix", visuals.variants || [], { title: "Option-resolution status", nameHeader: "Option" }), "is-wide")}
             ${visualPanel("C", "Evidence", "Confidence ladder", "Higher confidence requires execution under representative conditions.", chartMarkup("evidenceLadder", visuals.methodology?.evidenceLevels || [], { title: "Evidence levels" }))}
             ${visualPanel("D", "Research", "Registered-source balance", "Volume is visible; criterion-level traceability still determines fitness for scoring.", chartMarkup("sourceBalance", visuals.sources || {}, { title: "Sources by vendor" }))}
@@ -596,7 +645,7 @@
 
         <section class="content-section" aria-labelledby="platforms-title">
           <div class="section-heading">
-            <span class="section-index">03 / Platform lenses</span>
+            <span class="section-index">04 / Platform lenses</span>
             <h2 id="platforms-title">Keep the alternatives explicit.</h2>
             <p>Each platform is assessed in its actual deployment model, with version, licensing, and operational boundaries visible.</p>
           </div>
@@ -618,6 +667,7 @@
     const industryProblems = findByPath("docs/43-api-management-industry-problems.md");
     const industryPractices = findByPath("docs/45-api-management-industry-practices.md");
     const kongMulticloud = findByPath("docs/44-kong-multicloud-study-roadmap.md");
+    const kongPlatform = findByPath("docs/47-kong-enterprise-platform-strategy.md");
     setPageTitle("Architecture");
     setActiveNav("architecture");
     main.innerHTML = `
@@ -630,6 +680,23 @@
           </div>
           <p class="intro-note">Every diagram remains editable Mermaid source. The browser renders it on demand and the source stays available for review.</p>
         </header>
+        ${kongPlatform ? `
+        <section class="content-section" aria-labelledby="kong-platform-architecture-title">
+          <div class="section-heading">
+            <span class="section-index">Selected platform / target and gates</span>
+            <h2 id="kong-platform-architecture-title">Self-managed control is a platform operating model, not an installation topology.</h2>
+            <p>KPS-1 keeps approved configuration authority and PostgreSQL inside an enterprise management boundary while distributing request runtimes and failure containment. The roadmap and P1–P10 response keep recovery, trust, business outcome, staffing, and exit obligations visible.</p>
+          </div>
+          <div class="decision-visual-grid">
+            ${visualPanel("A", "KPS-1 target", "Self-managed control, distributed runtime", "Rendered directly from the canonical doc47 Mermaid figure; exact products, regions, replicas, entitlements, capacity, and achieved availability remain unresolved.", '<div class="kps-architecture-target diagram-frame" data-kong-platform-target><p>Rendering canonical KPS-1…</p></div>', "is-wide")}
+            ${visualPanel("B", "P1–P10", "Architecture remains accountable to outcomes", "Every Kong platform response retains a measure and mandatory hold condition.", chartMarkup("kongPlatformProblems", visuals.kongPlatformStrategy?.problems || {}, { title: "Problem-to-proof traceability", compact: true }), "is-wide")}
+            ${visualPanel("C", "Adoption", "Scale only through recovery and outcome proof", "Six evidence gates preserve stop, replan, Konnect custody-switch, and non-Kong exit paths.", chartMarkup("kongPlatformRoadmap", visuals.kongPlatformStrategy?.roadmap || {}, { title: "0–18 month platform sequence", compact: true }), "is-wide")}
+          </div>
+          <div class="hero-actions">
+            <a class="action-link is-primary" href="${itemHref(kongPlatform)}">Open the canonical platform strategy <span aria-hidden="true">↗</span></a>
+            <a class="action-link" href="#/present/architects/0">Start the architecture briefing <span aria-hidden="true">→</span></a>
+          </div>
+        </section>` : ""}
         ${industryProblems && industryPractices && kongMulticloud ? `
         <section class="content-section" aria-labelledby="multicloud-strategy-title">
           <div class="section-heading">
@@ -640,7 +707,7 @@
           <div class="decision-visual-grid">
             ${visualPanel("A", "Architecture pressure", "What every candidate topology must answer", "The canonical frame prevents a clean control/data-plane picture from hiding consumer, governance, evidence, operating-model, or exit obligations.", chartMarkup("problemMatrix", visuals.industryProblems || {}, { title: "Enduring problem system", compact: true }))}
             ${visualPanel("B", "Failure cases", industryPractices.title, industryPractices.summary, chartMarkup("scenarioMatrix", visuals.industryPractices || {}, { title: "Scenario → failure → operating control", compact: true }))}
-            ${visualPanel("C", "Study sequence", "How the Kong hypothesis earns confidence", "Workstreams advance through prerequisite and exit gates; every card links back to the canonical cross-vendor problem taxonomy.", chartMarkup("studyRoadmap", visuals.kongMulticloud || {}, { title: "Kong multicloud study roadmap", compact: true }), "is-wide")}
+            ${visualPanel("C", "Study sequence", "How the selected Kong direction earns production confidence", "Workstreams advance through prerequisite and exit gates; production fit and critical scale remain blocked until the canonical outcome evidence closes.", chartMarkup("studyRoadmap", visuals.kongMulticloud || {}, { title: "Kong multicloud study roadmap", compact: true }), "is-wide")}
           </div>
           <div class="hero-actions">
             <a class="action-link is-primary" href="${itemHref(industryProblems)}">Open industry problems <span aria-hidden="true">↗</span></a>
@@ -666,6 +733,7 @@
         </section>
       </div>`;
     renderDiagramPreviews();
+    renderKongPlatformArchitecture();
   }
 
   function renderLab() {
@@ -1432,7 +1500,11 @@
       target.innerHTML = window.DOMPurify ? window.DOMPurify.sanitize(textLabelSvg, { USE_PROFILES: { svg: true, svgFilters: true } }) : textLabelSvg;
       const svg = target.querySelector("svg");
       if (svg) {
-        const blankNodes = [...svg.querySelectorAll("g.node")].filter((node) => !node.textContent.trim());
+        // Mermaid uses intentionally unlabelled structural nodes for state
+        // starts/ends, forks, joins, and choices. Those shapes do not create a
+        // label group; only fail when a node that is meant to carry a label
+        // loses its text during SVG normalization or sanitization.
+        const blankNodes = [...svg.querySelectorAll("g.node")].filter((node) => node.querySelector(".label") && !node.textContent.trim());
         if (blankNodes.length) {
           throw new Error(`Rendered diagram is missing ${blankNodes.length} node label${blankNodes.length === 1 ? "" : "s"}.`);
         }
@@ -1519,6 +1591,7 @@
 
   function embedDocumentVisualPlacements(item, prose) {
     const placements = window.ApiStudyCharts?.documentPlacements?.(item, state.manifest.visuals || {}) || [];
+    let inserted = 0;
     placements.forEach((placement) => {
       const heading = prose.querySelector(`#${CSS.escape(placement.headingId || "")}`);
       if (!heading) return;
@@ -1534,7 +1607,9 @@
         cursor = cursor.nextElementSibling;
       }
       anchor.after(visual);
+      inserted += 1;
     });
+    prose.dataset.visualPlacements = `${inserted}/${placements.length}`;
   }
 
   async function renderDocument(id, anchor = "") {
@@ -1594,6 +1669,10 @@
   function presentationVisualMarkup(slide, source) {
     const visuals = state.manifest.visuals || {};
     const options = { presentation: true, compact: true, title: slide.metricLabel };
+    const selected = (rows, idKey = "id") => {
+      const ids = Array.isArray(slide.rowIds) ? new Set(slide.rowIds) : null;
+      return Array.isArray(rows) ? rows.filter((row) => !ids || ids.has(row?.[idKey])) : [];
+    };
     switch (slide.visual) {
       case "composition": return chartMarkup("composition", visuals.library || {}, options);
       case "methodologyFlow": return chartMarkup("methodologyFlow", visuals.methodology?.steps || [], options);
@@ -1618,6 +1697,25 @@
             : [],
         };
         return chartMarkup("studyRoadmap", slicedRoadmap, { ...options, presentation: true });
+      }
+      case "kongPlatformFit": {
+        const fit = visuals.kongPlatformStrategy?.fit || {};
+        return chartMarkup("kongPlatformFit", { ...fit, rows: selected(fit.rows, "projectionId") }, options);
+      }
+      case "kongPlatformArchitecture": {
+        const mermaid = visuals.kongPlatformStrategy?.architecture?.mermaid || "";
+        return mermaid
+          ? `<div class="slide-diagram is-kps-target" data-slide-inline-mermaid="${escapeHtml(mermaid)}"><p>Rendering canonical KPS-1…</p></div>`
+          : '<p class="visual-empty">The canonical KPS-1 model is unavailable.</p>';
+      }
+      case "kongPlatformCases": {
+        const cases = visuals.kongPlatformStrategy?.cases || {};
+        return chartMarkup("kongPlatformCases", { ...cases, rows: selected(cases.rows) }, options);
+      }
+      case "kongPlatformRoadmap": return chartMarkup("kongPlatformRoadmap", visuals.kongPlatformStrategy?.roadmap || {}, options);
+      case "kongPlatformOutcomes": {
+        const outcomes = visuals.kongPlatformStrategy?.outcomes || {};
+        return chartMarkup("kongPlatformOutcomes", { ...outcomes, rows: selected(outcomes.rows) }, options);
       }
       case "governance": return chartMarkup("governance", visuals.governance || {}, options);
       case "recommendation": return chartMarkup("recommendation", visuals.review || {}, options);
@@ -1651,10 +1749,10 @@
   }
 
   async function renderPresentationDiagram() {
-    const target = document.querySelector("[data-slide-diagram]");
+    const target = document.querySelector("[data-slide-diagram], [data-slide-inline-mermaid]");
     if (!target) return;
     try {
-      const text = await fetchText(target.dataset.slideDiagram);
+      const text = target.dataset.slideInlineMermaid || await fetchText(target.dataset.slideDiagram);
       await mermaidMarkup(text, target, document.querySelector(".slide-title")?.textContent || "Presentation architecture diagram");
     } catch (error) {
       target.innerHTML = `<p class="visual-empty">Open the supporting source to inspect this model.</p>`;
@@ -1684,16 +1782,20 @@
     index = Math.min(Math.max(index, 0), slides.length - 1);
     const slide = slides[index];
     const source = state.manifest.items.find((item) => item.id === slide.sourceId);
-    const stageClass = slide.key === "industry-practices" ? " is-industry-practices" : "";
-    const narrativeClass = slide.visual === "architectureDiagram"
+    const stageClass = slide.key === "industry-practices"
+      ? " is-industry-practices"
+      : slide.key.startsWith("kong-platform-")
+        ? " is-kong-platform"
+        : "";
+    const narrativeClass = ["architectureDiagram", "kongPlatformArchitecture"].includes(slide.visual)
       ? " is-diagram"
-      : slide.visual === "roadmap"
+      : ["roadmap", "kongPlatformRoadmap"].includes(slide.visual)
         ? " is-roadmap"
         : slide.visual === "studyRoadmap"
           ? " is-roadmap"
         : slide.visual === "sourceBalance"
           ? " is-matrix is-source-balance"
-        : ["statusMatrix", "recommendation", "governance", "problemMatrix", "practiceFramework", "scenarioMatrix", "maturitySequence"].includes(slide.visual)
+        : ["statusMatrix", "recommendation", "governance", "problemMatrix", "practiceFramework", "scenarioMatrix", "maturitySequence", "kongPlatformFit", "kongPlatformCases", "kongPlatformOutcomes"].includes(slide.visual)
           ? " is-matrix"
           : "";
     document.body.classList.add("is-presenting");

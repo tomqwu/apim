@@ -50,6 +50,7 @@ REPOSITORY_FIXTURES = (
     "AGENTS.md",
     "config/public-content-allowlist.json",
     "docs/46-study-publication-workflow.md",
+    "docs/47-kong-enterprise-platform-strategy.md",
     "templates/study-intake-template.md",
     ".agents/skills/publish-api-study/SKILL.md",
     ".agents/skills/publish-api-study/agents/openai.yaml",

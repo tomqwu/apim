@@ -1,12 +1,12 @@
-# ADR-0002: Keep Kong as a falsifiable sequencing hypothesis without priority
+# ADR-0002: Bound the Kong planning direction to reversible platform proof
 
 - Status: proposed
-- Date: 2026-08-17
+- Date: 2026-08-18
 
 ## Decision
 
-Treat Konnect hybrid and self-managed Kong as named sequencing hypotheses with no execution priority. Subject them to the same E1/E2 screen and Gate-1 option-resolution contract as every bounded archetype. Advance any resolved option to E3 only if the approved common-evidence down-select supports finalist status; preserve APIM, Apigee, and the MuleSoft baseline under symmetric advancement rules.
+Record Kong as the stakeholder-selected planning direction and use self-managed hybrid `KP-SMH1` as the leading deployment target for a bounded, reversible foundation. Treat Konnect as the required same-vendor custody benchmark and preserve a separate non-Kong exit. The governing analysis, responsibilities, measures and stop rules are in the [Kong enterprise platform strategy](../docs/47-kong-enterprise-platform-strategy.md).
 
 ## Conditions
 
-No product selection or automatic finalist status is granted. Kong must pass security/residency, topology/plugin, failure, performance, operations/support, migration, and commercial gates under the same thresholds and evidence standards as every candidate.
+The stakeholder decision supplies sequencing authority, not `E2`–`E4` evidence or permission to scale. The exact option must pass security/residency, named-node trust, topology/plugin, configuration, database recovery, control-plane-loss, performance, telemetry, operations/support, migration, cost, Konnect-switch and true-exit gates. A failed mandatory condition switches custody, narrows scope, reopens the platform choice, or stops the programme; sunk cost is not a waiver.

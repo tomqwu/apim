@@ -272,6 +272,90 @@
     </figure>`;
   }
 
+  function kongPlatformFit(data, options = {}) {
+    const rows = Array.isArray(data) ? data : data?.rows || [];
+    if (!rows.length) return empty();
+    return `<figure class="viz viz-kps-fit ${options.compact ? "is-compact" : ""} ${options.presentation ? "is-presentation" : ""}" aria-label="${escapeHtml(options.title || "Kong platform outcome-fit conditions")}">${heading(options)}
+      <ol class="viz-kps-fit-list">${rows.map((row, index) => `<li>
+        <span class="viz-kps-index">${escapeHtml(row.projectionId || `KPS-FIT-${String(index + 1).padStart(2, "0")}`)}</span>
+        <div class="viz-kps-copy">
+          <strong>${escapeHtml(row.outcome)}</strong>
+          <p class="viz-kps-mechanism" data-label="Kong mechanism">${escapeHtml(row.mechanism)}</p>
+          <p class="viz-kps-reason" data-label="Scenario-relative advantage">${escapeHtml(row.reason)}</p>
+          <p class="viz-kps-counter" data-label="Answer changes when">${escapeHtml(row.counterfactual)}</p>
+          <p class="viz-kps-proof" data-label="Proof before commitment">${escapeHtml(row.proof)}</p>
+        </div>
+      </li>`).join("")}</ol>
+    </figure>`;
+  }
+
+  function kongPlatformProblems(data, options = {}) {
+    const rows = Array.isArray(data) ? data : data?.rows || [];
+    if (!rows.length) return empty();
+    return `<figure class="viz viz-kps-problems ${options.compact ? "is-compact" : ""}" aria-label="${escapeHtml(options.title || "Kong platform response to P1 through P10")}">${heading(options)}
+      <ol class="viz-kps-problem-list">${rows.map((row, index) => `<li>
+        <span class="viz-kps-index">${escapeHtml(row.id || `P${index + 1}`)}</span>
+        <div class="viz-kps-copy">
+          <strong>${escapeHtml(row.problem)}</strong>
+          <p class="viz-kps-response" data-label="Platform response">${escapeHtml(row.response)}</p>
+          <p class="viz-kps-measure" data-label="Outcome measure">${escapeHtml(row.measure)}</p>
+          <p class="viz-kps-hold" data-label="Hold condition">${escapeHtml(row.hold)}</p>
+        </div>
+      </li>`).join("")}</ol>
+    </figure>`;
+  }
+
+  function kongPlatformCases(data, options = {}) {
+    const rows = Array.isArray(data) ? data : data?.rows || [];
+    if (!rows.length) return empty();
+    return `<figure class="viz viz-kps-cases ${options.compact ? "is-compact" : ""} ${options.presentation ? "is-presentation" : ""}" aria-label="${escapeHtml(options.title || "Synthetic Kong platform cases")}">${heading(options)}
+      <ol class="viz-kps-case-list">${rows.map((row, index) => `<li>
+        <span class="viz-kps-index">${escapeHtml(row.id || `KPS-C${index + 1}`)}</span>
+        <div class="viz-kps-copy">
+          <strong>${escapeHtml(row.label)}</strong>
+          <p class="viz-kps-situation" data-label="Situation and trigger">${escapeHtml(row.situation)}</p>
+          <p class="viz-kps-response" data-label="Platform response">${escapeHtml(row.response)}</p>
+          <p class="viz-kps-measure" data-label="Business outcome measure">${escapeHtml(row.measure)}</p>
+          <p class="viz-kps-hold" data-label="Hold / failure signal">${escapeHtml(row.hold)}</p>
+          <p class="viz-kps-owner" data-label="Owner">${escapeHtml(row.owner)}</p>
+        </div>
+      </li>`).join("")}</ol>
+    </figure>`;
+  }
+
+  function kongPlatformRoadmap(data, options = {}) {
+    const phases = Array.isArray(data) ? data : data?.phases || [];
+    if (!phases.length) return empty();
+    return `<figure class="viz viz-kps-roadmap ${options.compact ? "is-compact" : ""} ${options.presentation ? "is-presentation" : ""}" aria-label="${escapeHtml(options.title || "Kong platform roadmap")}">${heading(options)}
+      <ol class="viz-kps-roadmap-list">${phases.map((phase, index) => `<li>
+        <div class="viz-kps-roadmap-meta"><span>${escapeHtml(phase.id || `KP${index}`)}</span><b>${escapeHtml(phase.window)}</b></div>
+        <strong>${escapeHtml(phase.label)}</strong>
+        <p class="viz-kps-outcome" data-label="Outcome unlocked">${escapeHtml(phase.outcome)}</p>
+        <p class="viz-kps-work" data-label="Platform work">${escapeHtml(phase.work)}</p>
+        <p class="viz-kps-exit" data-label="Exit evidence">${escapeHtml(phase.exitEvidence)}</p>
+        <p class="viz-kps-stop" data-label="Stop / replan">${escapeHtml(phase.stopCondition)}</p>
+      </li>`).join("")}</ol>
+    </figure>`;
+  }
+
+  function kongPlatformOutcomes(data, options = {}) {
+    const rows = Array.isArray(data) ? data : data?.rows || [];
+    if (!rows.length) return empty();
+    return `<figure class="viz viz-kps-outcomes ${options.compact ? "is-compact" : ""} ${options.presentation ? "is-presentation" : ""}" aria-label="${escapeHtml(options.title || "Kong platform outcome measures")}">${heading(options)}
+      <ol class="viz-kps-outcome-list">${rows.map((row, index) => `<li>
+        <span class="viz-kps-index">${escapeHtml(row.id || `KO-${index + 1}`)}</span>
+        <div class="viz-kps-copy">
+          <strong>${escapeHtml(row.label)}</strong>
+          <p class="viz-kps-measure" data-label="Measure">${escapeHtml(row.measure)}</p>
+          <p class="viz-kps-target" data-label="Scenario target form">${escapeHtml(row.target)}</p>
+          <p class="viz-kps-artifact" data-label="Evidence artifact">${escapeHtml(row.artifact)}</p>
+          <p class="viz-kps-cadence" data-label="Review cadence">${escapeHtml(row.cadence)}</p>
+          <p class="viz-kps-owner" data-label="Accountable owner">${escapeHtml(row.owner)}</p>
+        </div>
+      </li>`).join("")}</ol>
+    </figure>`;
+  }
+
   function composition(data, options = {}) {
     const sections = data?.bySection || (Array.isArray(data) ? data : []);
     const types = data?.byType || [];
@@ -384,20 +468,32 @@
   }
 
   function documentPlacements(item, visuals = {}) {
-    if (item?.path !== "docs/45-api-management-industry-practices.md") return [];
-    const source = visuals.provenance?.industryPractices;
-    const placement = (headingId, index, title, chart) => ({
+    const placement = (headingId, index, title, chart, source) => ({
       headingId,
       markup: `<section class="document-visual-context is-inline is-placed" aria-label="${escapeHtml(title)}">
         <header><p class="eyebrow">Article figure / ${escapeHtml(index)}</p><h2>${escapeHtml(title)}</h2>${sourceLink(source, "Canonical source")}</header>
         <div class="document-visual-grid"><div class="document-visual is-wide">${chart}</div></div>
       </section>`,
     });
-    return [
-      placement("best-practice-framework-mapped-to-p1-p10", "A", "The ten-practice operating contract", practiceFramework(visuals.industryPractices || {}, { title: "Problem → practice → evidence → hold condition" })),
-      placement("realistic-enterprise-scenarios", "B", "Eight realistic scenarios connect failure to proof", scenarioMatrix(visuals.industryPractices || {}, { title: "Scenario → failure → control → measurable acceptance" })),
-      placement("capability-maturity-and-adoption-sequence", "C", "Adoption advances only through evidence gates", maturitySequence(visuals.industryPractices || {}, { title: "Operating outcome → required evidence → exit gate" })),
-    ];
+    if (item?.path === "docs/45-api-management-industry-practices.md") {
+      const source = visuals.provenance?.industryPractices;
+      return [
+        placement("best-practice-framework-mapped-to-p1-p10", "A", "The ten-practice operating contract", practiceFramework(visuals.industryPractices || {}, { title: "Problem → practice → evidence → hold condition" }), source),
+        placement("realistic-enterprise-scenarios", "B", "Eight realistic scenarios connect failure to proof", scenarioMatrix(visuals.industryPractices || {}, { title: "Scenario → failure → control → measurable acceptance" }), source),
+        placement("capability-maturity-and-adoption-sequence", "C", "Adoption advances only through evidence gates", maturitySequence(visuals.industryPractices || {}, { title: "Operating outcome → required evidence → exit gate" }), source),
+      ];
+    }
+    if (item?.path === "docs/47-kong-enterprise-platform-strategy.md") {
+      const strategy = visuals.kongPlatformStrategy || {};
+      return [
+        placement("why-kong-is-the-better-fit-here", "KPS / A", "Seven conditions make Kong a scenario-relative fit", kongPlatformFit(strategy.fit || {}, { title: "Outcome → mechanism → counterfactual → proof" }), strategy.fit?.provenance),
+        placement("industry-problem-traceability-p1-p10", "KPS / B", "P1–P10 remain outcome and hold gates", kongPlatformProblems(strategy.problems || {}, { title: "Problem → platform response → outcome → hold" }), strategy.problems?.provenance),
+        placement("realistic-synthetic-enterprise-cases", "KPS / C", "Eight synthetic cases connect response to business outcome", kongPlatformCases(strategy.cases || {}, { title: "Trigger → response → business measure → hold" }), strategy.cases?.provenance),
+        placement("0-18-month-platform-roadmap", "KPS / D", "Scale advances only through six evidence gates", kongPlatformRoadmap(strategy.roadmap || {}, { title: "Platform phase → outcome → exit evidence → stop" }), strategy.roadmap?.provenance),
+        placement("outcome-measures-and-acceptance-artifacts", "KPS / E", "Eleven measures make platform outcomes reviewable", kongPlatformOutcomes(strategy.outcomes || {}, { title: "Outcome → target → artifact → cadence → owner" }), strategy.outcomes?.provenance),
+      ];
+    }
+    return [];
   }
 
   function atlas(visuals = {}) {
@@ -417,11 +513,16 @@
     const scenarioTotal = number(visuals.industryPractices?.scenarioTotal);
     const maturityStageTotal = number(visuals.industryPractices?.stageTotal);
     const kongWorkstreamTotal = number(visuals.kongMulticloud?.workstreamTotal);
+    const kongPlatform = visuals.kongPlatformStrategy || {};
+    const kongFitTotal = number(kongPlatform.fit?.rowTotal);
+    const kongCaseTotal = number(kongPlatform.cases?.rowTotal);
+    const kongPhaseTotal = number(kongPlatform.roadmap?.rowTotal);
+    const kongOutcomeTotal = number(kongPlatform.outcomes?.rowTotal);
     const panel = (index, eyebrow, title, note, body, extraClass = "", source = null) => `<article class="visual-panel ${escapeHtml(extraClass)}"><header class="visual-panel-heading"><span class="section-index">${escapeHtml(index)} / ${escapeHtml(eyebrow)}</span><h2>${escapeHtml(title)}</h2><p>${escapeHtml(note)}</p>${sourceLink(source)}</header><div class="visual-panel-body">${body}</div></article>`;
     return `<div class="page-shell visual-atlas">
       <header class="page-intro"><div><p class="eyebrow">Decision evidence, drawn</p><h1>Visual Atlas</h1><p class="lede">Charts, matrices, timelines, and system models generated from the repository’s real assessment data.</p></div><p class="intro-note">These views expose evidence state and study structure. They do not manufacture platform scores where the underlying scorecards remain unknown.</p></header>
       <section class="visual-grid" aria-label="Decision readiness visualizations">
-        ${panel("01", "Recommendation", "Approve evidence closure—not platform selection", "The principal review separates the decision requested now from conditional hypotheses and deferred commitments.", statusMatrix(visuals.review?.decisions || [], { title: "Steering decision state", nameHeader: "Decision", noteHeader: "Exit evidence" }), "is-wide", provenance.review)}
+        ${panel("01", "Recommendation", "Proceed with bounded, reversible Kong foundation work", "The stakeholder direction focuses investment while the evidence contract keeps production fit, critical scale, Konnect custody-switch, and true-exit decisions explicit.", statusMatrix(visuals.review?.decisions || [], { title: "Steering decision state", nameHeader: "Decision", noteHeader: "Exit evidence" }), "is-wide", provenance.review)}
         ${panel("02", "Readiness", `${evidencedCriteria} of ${criteriaTotal} criteria have a recorded evidence state`, "Evidence coverage must be earned before products can be ranked.", donut(criteria.statuses || [], { title: "Criteria evidence state", total: criteria.total, centerLabel: "criteria", tone: "signal" }), "is-compact", provenance.criteria)}
         ${panel("03", "Gate structure", `${number(criteria.mandatory)} mandatory gates stay explicit`, "Mandatory and weighted requirements are visible by decision category.", stackedBars(criteria.categories || [], { title: "Mandatory and weighted criteria", keys: ["mandatory", "weighted"] }), "is-wide", provenance.criteria)}
         ${panel("04", "Option state", `${variantCount} bounded deployment archetypes`, "Each archetype needs a resolved Gate-1 bill of materials before it can receive evidence or a scorecard.", statusMatrix(visuals.variants || [], { title: "Option-resolution state", nameHeader: "Option" }), "is-wide", provenance.variants)}
@@ -436,10 +537,15 @@
         ${panel("13", "Study roadmap", `${repositoryPhases.length} evidence-system phases`, "The repository moves through explicit decision-assurance gates before becoming a continuous study platform.", roadmap(visuals.repositoryRoadmap || {}, { title: "Repository maturity sequence" }), "is-wide", provenance.repositoryRoadmap)}
         ${panel("14", "Library", "The evidence base has shape", "Repository composition shows where the study is deep and where additional evidence will accumulate.", composition(visuals.library || {}, { title: "Resources by study stream" }), "is-wide", provenance.library)}
         ${panel("15", "Industry agenda", `${problemTotal} enduring problem families`, "The canonical taxonomy keeps vendor packaging subordinate to enterprise outcomes and equivalent proof.", problemMatrix(visuals.industryProblems || {}, { title: "Problem and mechanism map", compact: true }), "is-wide", provenance.industryProblems)}
-        ${panel("16", "Kong roadmap", `${kongWorkstreamTotal} gated study workstreams`, "The Kong multicloud hypothesis advances only through exact options, explicit owners, prerequisite gates, and decision evidence.", studyRoadmap(visuals.kongMulticloud || {}, { title: "Kong study sequence", compact: true }), "is-wide", provenance.kongMulticloud)}
+        ${panel("16", "Kong roadmap", `${kongWorkstreamTotal} gated study workstreams`, "The stakeholder-selected Kong direction advances from reversible foundation to production scale only through exact options, explicit owners, prerequisite gates, and decision evidence.", studyRoadmap(visuals.kongMulticloud || {}, { title: "Kong study sequence", compact: true }), "is-wide", provenance.kongMulticloud)}
         ${panel("17", "Industry practices", `${practiceTotal} problem-bound operating practices`, "Each practice connects the required control to its minimum mechanism, acceptance evidence, and an explicit hold condition.", practiceFramework(visuals.industryPractices || {}, { title: "Practice contract", compact: true }), "is-wide", provenance.industryPractices)}
         ${panel("18", "Realistic cases", `${scenarioTotal} synthetic practice scenarios`, "RE-1 and case-local assumptions expose failure mechanisms, accountable controls, measurable acceptance, and named owner roles without pretending to be benchmark results.", scenarioMatrix(visuals.industryPractices || {}, { title: "Scenario-to-proof matrix", compact: true }), "is-wide", provenance.industryPractices)}
         ${panel("19", "Adoption gates", `${maturityStageTotal} evidence-gated maturity stages`, "Capability advances through operating outcomes and exit evidence; ownership and runtime-custody choices remain orthogonal design decisions.", maturitySequence(visuals.industryPractices || {}, { title: "Capability maturity sequence", compact: true }), "is-wide", provenance.industryPractices)}
+        ${panel("20", "Kong platform fit", `${kongFitTotal} scenario-relative fit conditions`, "Every stated advantage remains paired with a counterfactual and proof before commitment; this is not a universal product ranking.", kongPlatformFit(kongPlatform.fit || {}, { title: "Outcome-fit contract", compact: true }), "is-wide", kongPlatform.fit?.provenance)}
+        ${panel("21", "Kong problem response", "P1–P10 stay tied to measurable hold gates", "The selected-platform posture does not mark an industry problem solved; each response remains conditional on outcome evidence.", kongPlatformProblems(kongPlatform.problems || {}, { title: "Problem-to-proof traceability", compact: true }), "is-wide", kongPlatform.problems?.provenance)}
+        ${panel("22", "Kong realistic cases", `${kongCaseTotal} synthetic enterprise cases`, "Management loss, clean-node scale, trust rollover, burst faults, change defects, regional loss, coexistence, and restore remain labelled test scenarios.", kongPlatformCases(kongPlatform.cases || {}, { title: "Case-to-outcome contract", compact: true }), "is-wide", kongPlatform.cases?.provenance)}
+        ${panel("23", "Kong platform roadmap", `${kongPhaseTotal} evidence-gated phases across a 0–18 month scenario`, "Elapsed windows are assumptions; each phase advances through exit evidence and preserves a stop or replan condition.", kongPlatformRoadmap(kongPlatform.roadmap || {}, { title: "Foundation-to-scale sequence", compact: true }), "is-wide", kongPlatform.roadmap?.provenance)}
+        ${panel("24", "Kong outcome system", `${kongOutcomeTotal} outcome and acceptance contracts`, "Active state, business reliability, trust, recovery, change, capacity, evidence, adoption, sustainability, exit, and estate truth each have an artifact, cadence, and owner.", kongPlatformOutcomes(kongPlatform.outcomes || {}, { title: "Outcome review contract", compact: true }), "is-wide", kongPlatform.outcomes?.provenance)}
       </section>
     </div>`;
   }
@@ -468,6 +574,11 @@
     maturitySequence,
     maturity: maturitySequence,
     studyRoadmap,
+    kongPlatformFit,
+    kongPlatformProblems,
+    kongPlatformCases,
+    kongPlatformRoadmap,
+    kongPlatformOutcomes,
     composition,
     sourceBalance,
     sources: sourceBalance,
@@ -514,6 +625,11 @@
       maturitySequence: visuals?.industryPractices,
       maturity: visuals?.industryPractices,
       studyRoadmap: visuals?.kongMulticloud,
+      kongPlatformFit: visuals?.kongPlatformStrategy?.fit,
+      kongPlatformProblems: visuals?.kongPlatformStrategy?.problems,
+      kongPlatformCases: visuals?.kongPlatformStrategy?.cases,
+      kongPlatformRoadmap: visuals?.kongPlatformStrategy?.roadmap,
+      kongPlatformOutcomes: visuals?.kongPlatformStrategy?.outcomes,
     };
     return map[name] ?? visuals?.[name];
   }
@@ -543,6 +659,11 @@
     scenarioMatrix,
     maturitySequence,
     studyRoadmap,
+    kongPlatformFit,
+    kongPlatformProblems,
+    kongPlatformCases,
+    kongPlatformRoadmap,
+    kongPlatformOutcomes,
     composition,
     sourceBalance,
     pocStatus,

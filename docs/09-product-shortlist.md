@@ -14,7 +14,11 @@
 | As-of date | 2026-08-17; all version, tier, region, entitlement and support facts require gate-time revalidation |
 | Next gate | Steering committee approves exact bills of material and an evidence-backed E1/E2 mandatory-gate screen before funding symmetric E3 finalists |
 
-## Provisional answer
+## Current direction overlay — 2026-08-18
+
+Stakeholder sequencing now treats Kong as the bounded, reversible platform direction defined in the [Kong enterprise platform deployment strategy](47-kong-enterprise-platform-strategy.md). That direction does not convert this earlier E1 longlist into comparative proof: the dated provisional answer below remains the historical evidence baseline, while Kong receives implementation priority only through the new strategy's explicit proof, hold and exit gates.
+
+## Historical provisional answer — 2026-08-17
 
 Keep all seven named variants in the **evidence-closure longlist**; do not call any of them selected, preferred or functionally equivalent. Confidence is high that they span the material ownership models and zero that the current evidence supports a winner. First resolve exact tier/edition, control region, data-plane topology, Kubernetes/support matrix, licensed features and commercial terms. Then apply mandatory gates before comparative weighting.
 
@@ -142,7 +146,7 @@ The secondary screen uses the same gate questions and evidence ladder. It cannot
 ## Counterarguments and non-fit conditions
 
 - **“A shortlist must have only two or three products.”** Eventually, to control E3 cost. Prematurely collapsing undefined variants risks choosing the wrong topology. First use low-cost E1/E2 gates; then fund only survivors.
-- **“Kong is already the direction.”** It is a hypothesis to falsify. K-KON is non-fit if control/data/support boundaries or required entitlements fail; K-SM is non-fit if database/control operations are not sustainable.
+- **“Kong is the stakeholder direction.”** Treat that as an authorized planning input, not achieved fit. K-KON is non-fit if control/data/support boundaries or required entitlements fail; K-SM is non-fit if database/control operations are not sustainable. The [Kong platform strategy](47-kong-enterprise-platform-strategy.md) concentrates reversible proof on `KP-SMH1` while retaining Konnect and non-Kong counterfactuals.
 - **“Azure is the obvious choice because workloads are on AKS.”** Azure integration may be valuable. A-MGD remains non-fit if path/region/tier constraints fail; A-SHG remains non-fit if customer runtime/support seams outweigh the value.
 - **“Apigee is enterprise-grade, so it should win.”** Product breadth is not RE-1 fit. G-X is non-fit on mandatory placement/path/contract constraints; G-HYB is non-fit if Cassandra/multi-component operations exceed capability or value.
 - **“Mule can do everything already.”** It may remain the safest home for some integration. It is non-fit as a default target if gateway and stateful integration cannot be governed/sequenced economically or exit risk remains unacceptable.

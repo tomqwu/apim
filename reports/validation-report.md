@@ -10,14 +10,14 @@
 |---|---|
 | OpenAPI semantic validation | Six OpenAPI 3.0.3 documents passed `openapi-spec-validator` |
 | YAML parsing | 22 source YAML files / 32 documents parsed with PyYAML; generated `_site` copies are excluded; rendered Helm YAML parsed with Ruby Psych |
-| Study/protocol contract | 42 principal studies / 165,731 words and three decision-grade protocols / 10,397 words passed structural, depth, evidence, inline-figure and next-gate controls |
+| Study/protocol contract | 43 principal studies / 177,105 words and three decision-grade protocols / 10,397 words passed structural, depth, evidence, inline-figure and next-gate controls |
 | Matrix/question/workflow gates | 120 unique criteria, 180 unique questions and 68 traceable content-remediation recommendations |
-| Markdown relative links | 464 detected local links resolve |
+| Markdown relative links | 523 detected local links resolve |
 | Registered evidence chain | 40 unique sources, 24 findings and 28 source IDs used directly in findings resolve |
-| Citation promotion boundary | 68 article files contain 263 unique external citations: 36 registered and 227 contextual/non-scoring until promoted |
+| Citation promotion boundary | 69 article files contain 271 unique external citations: 36 registered and 235 contextual/non-scoring until promoted |
 | Visual parity | 12 canonical Mermaid mirrors, one canonical alias and three data-backed Markdown charts align |
-| Static research portal | 190 resources built; seven bounded archetypes, seven methodology steps, 28 atomic protocol cases, 10 industry practices, eight realistic scenarios, five evidence-maturity stages and six audiences project from canonical sources into the manifest |
-| Browser/presentation | 75 configured presentation states; the problem, industry-practice and two-part Kong-roadmap slides passed at 1920×1080, 1440×900, 1024×768, 760×820 and 390×844 with decision-critical labels at least 24px, 20px and 16px at room, laptop and compact widths; the 10 practices, eight scenarios, five maturity stages and 13 Kong workstreams remain visible; no painted-content clipping, horizontal overflow or control collision |
+| Static research portal | 191 resources built; seven bounded archetypes, seven methodology steps, 28 atomic protocol cases, 10 industry practices, eight industry-practice scenarios, five evidence-maturity stages, seven Kong fit conditions, 10 Kong problem responses, eight Kong platform cases, six adoption phases, 11 outcome contracts and six audiences project from canonical sources into the manifest |
+| Browser/presentation | 81 configured presentation states; eight Kong-platform strategy states plus tailored audience routes passed at 1920×1080, 1440×900, 1024×768, 760×820 and 390×844. The canonical article renders six Mermaid figures and five data-backed placements; slide projections preserve seven fit conditions, 10 P1–P10 responses, eight cases, six roadmap phases and 11 outcome contracts. Critical labels remain at least 18px at room width and 16px elsewhere; every owner, cadence, proof, hold and exit field is reachable, with no painted-content clipping, hidden field, horizontal overflow, control collision or console error |
 | Shell/Python | ShellCheck passed; Python bytecode compilation passed |
 | Compose | Configuration parsed; images built; services reached healthy state |
 | Kong declarative config | `kong config parse` successful on Kong 3.9.1 |

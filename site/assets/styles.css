@@ -1443,6 +1443,139 @@ a {
   margin-bottom: 0.8rem;
 }
 
+.viz-kps-fit-list,
+.viz-kps-problem-list,
+.viz-kps-case-list,
+.viz-kps-roadmap-list,
+.viz-kps-outcome-list {
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(270px, 1fr));
+  padding: 0;
+  margin: 0;
+  border-top: 1px solid var(--ink);
+  border-left: 1px solid var(--ink);
+  list-style: none;
+}
+
+.viz-kps-case-list,
+.viz-kps-roadmap-list {
+  grid-template-columns: repeat(auto-fit, minmax(310px, 1fr));
+}
+
+.viz-kps-fit-list > li,
+.viz-kps-problem-list > li,
+.viz-kps-case-list > li,
+.viz-kps-outcome-list > li {
+  min-width: 0;
+  display: grid;
+  grid-template-columns: 70px minmax(0, 1fr);
+  gap: 0.8rem;
+  padding: 1rem;
+  border-right: 1px solid var(--ink);
+  border-bottom: 1px solid var(--ink);
+}
+
+.viz-kps-roadmap-list > li {
+  min-width: 0;
+  display: flex;
+  flex-direction: column;
+  padding: 1rem;
+  border-right: 1px solid var(--ink);
+  border-bottom: 1px solid var(--ink);
+}
+
+.viz-kps-index,
+.viz-kps-roadmap-meta {
+  color: var(--signal-dark);
+  font-family: var(--mono);
+  font-size: 0.875rem;
+  letter-spacing: 0.035em;
+}
+
+.viz-kps-copy {
+  min-width: 0;
+  display: grid;
+  gap: 0.7rem;
+  align-content: start;
+  overflow-wrap: anywhere;
+}
+
+.viz-kps-copy > strong,
+.viz-kps-roadmap-list > li > strong {
+  min-width: 0;
+  overflow-wrap: anywhere;
+  font-family: var(--serif);
+  font-size: 1.35rem;
+  font-weight: 400;
+  letter-spacing: -0.02em;
+  line-height: 1.08;
+  text-wrap: balance;
+}
+
+.viz-kps-copy p,
+.viz-kps-roadmap-list p {
+  min-width: 0;
+  overflow-wrap: anywhere;
+  margin: 0;
+  color: var(--muted);
+  font-size: 1rem;
+  line-height: 1.42;
+}
+
+.viz-kps-copy p::before,
+.viz-kps-roadmap-list p::before {
+  display: block;
+  margin-bottom: 0.18rem;
+  color: var(--signal-dark);
+  content: attr(data-label);
+  font-family: var(--mono);
+  font-size: 0.875rem;
+  letter-spacing: 0.035em;
+  text-transform: uppercase;
+}
+
+.viz-kps-proof,
+.viz-kps-hold,
+.viz-kps-stop,
+.viz-kps-target,
+.viz-kps-exit {
+  padding-top: 0.6rem;
+  border-top: 1px solid var(--line);
+}
+
+.viz-kps-roadmap-meta {
+  display: flex;
+  gap: 0.6rem;
+  align-items: baseline;
+  justify-content: space-between;
+  padding-bottom: 0.75rem;
+}
+
+.viz-kps-roadmap-meta b {
+  color: var(--muted);
+  font-weight: 500;
+}
+
+.viz-kps-roadmap-list > li > strong {
+  margin-bottom: 0.8rem;
+}
+
+.viz-kps-roadmap-list .viz-kps-stop {
+  margin-top: auto;
+}
+
+.viz-kps-fit.is-compact .viz-kps-fit-list > li,
+.viz-kps-problems.is-compact .viz-kps-problem-list > li,
+.viz-kps-cases.is-compact .viz-kps-case-list > li,
+.viz-kps-outcomes.is-compact .viz-kps-outcome-list > li,
+.viz-kps-roadmap.is-compact .viz-kps-roadmap-list > li {
+  min-height: 0;
+}
+
+.kps-architecture-target {
+  min-height: 520px;
+}
+
 .viz-composition-grid,
 .viz-poc-grid {
   display: grid;
@@ -3300,6 +3433,96 @@ a {
   white-space: normal;
 }
 
+.presentation-stage .viz-kps-fit-list,
+.presentation-stage .viz-kps-case-list,
+.presentation-stage .viz-kps-outcome-list {
+  grid-template-columns: repeat(2, minmax(0, 1fr));
+  border-color: #5d6159;
+}
+
+.presentation-stage .viz-kps-roadmap-list {
+  grid-template-columns: repeat(3, minmax(0, 1fr));
+  border-color: #5d6159;
+}
+
+.presentation-stage .viz-kps-fit-list > li,
+.presentation-stage .viz-kps-case-list > li,
+.presentation-stage .viz-kps-outcome-list > li {
+  min-height: 0;
+  grid-template-columns: 62px minmax(0, 1fr);
+  gap: 0.65rem;
+  padding: 0.7rem;
+  border-color: #5d6159;
+}
+
+.presentation-stage .viz-kps-roadmap-list > li {
+  min-height: 0;
+  padding: 0.7rem;
+  border-color: #5d6159;
+}
+
+.presentation-stage .viz-kps-index,
+.presentation-stage .viz-kps-roadmap-meta,
+.presentation-stage .viz-kps-copy p::before,
+.presentation-stage .viz-kps-roadmap-list p::before {
+  color: #ff6a4d;
+  font-size: var(--slide-meta);
+}
+
+.presentation-stage .viz-kps-index {
+  overflow-wrap: anywhere;
+}
+
+.presentation-stage .viz-kps-copy {
+  gap: 0.42rem;
+}
+
+.presentation-stage .viz-kps-copy > strong,
+.presentation-stage .viz-kps-roadmap-list > li > strong {
+  color: #f3f0e7;
+  font-size: var(--slide-data);
+  line-height: 1.1;
+}
+
+.presentation-stage .viz-kps-copy p,
+.presentation-stage .viz-kps-roadmap-list p {
+  display: block;
+  overflow: visible;
+  color: #d4d7cf;
+  font-size: var(--slide-meta);
+  line-height: 1.18;
+  -webkit-box-orient: initial;
+  -webkit-line-clamp: unset;
+}
+
+.presentation-stage .viz-kps-copy p::before,
+.presentation-stage .viz-kps-roadmap-list p::before {
+  font-size: max(1rem, 0.75em);
+  line-height: 1.05;
+}
+
+.presentation-stage .viz-kps-proof,
+.presentation-stage .viz-kps-hold,
+.presentation-stage .viz-kps-stop,
+.presentation-stage .viz-kps-target,
+.presentation-stage .viz-kps-exit {
+  border-color: #4b4f47;
+}
+
+.presentation-stage .viz-kps-owner,
+.presentation-stage .viz-kps-cadence,
+.presentation-stage .viz-kps-work {
+  display: block;
+}
+
+.presentation-stage .viz-kps-roadmap-meta b {
+  color: #bdc2b8;
+}
+
+.presentation-stage .slide-diagram.is-kps-target {
+  min-height: 430px;
+}
+
 .slide-aside-content {
   display: contents;
 }
@@ -4127,6 +4350,19 @@ body.is-presenting .site-footer {
     overscroll-behavior: contain;
     padding-bottom: 6rem;
   }
+
+  .presentation-stage.is-kong-platform .slide-main,
+  .presentation-stage.is-kong-platform .slide-aside {
+    min-height: 0;
+    overflow-y: auto;
+    overscroll-behavior: contain;
+    padding-bottom: 6rem;
+  }
+
+  .presentation-stage.is-kong-platform .slide-visual {
+    max-height: none;
+    overflow: visible;
+  }
 }
 
 @media (min-width: 1025px) and (max-width: 1600px) {
@@ -4195,6 +4431,12 @@ body.is-presenting .site-footer {
 }
 
 @media (min-width: 761px) and (max-width: 1024px) {
+  .presentation-stage .viz-bar-row,
+  .presentation-stage .viz-stacked-row {
+    grid-template-columns: minmax(110px, 1.4fr) minmax(36px, 1.6fr) 36px;
+    gap: 0.4rem;
+  }
+
   .presentation-stage.is-industry-practices {
     overflow-y: auto;
     overscroll-behavior: contain;
@@ -4543,6 +4785,28 @@ body.is-presenting .site-footer {
   .viz-study-roadmap-list > li,
   .viz-study-roadmap.is-compact .viz-study-roadmap-list > li {
     min-height: 0;
+  }
+
+  .viz-kps-fit-list,
+  .viz-kps-problem-list,
+  .viz-kps-case-list,
+  .viz-kps-roadmap-list,
+  .viz-kps-outcome-list,
+  .presentation-stage .viz-kps-fit-list,
+  .presentation-stage .viz-kps-case-list,
+  .presentation-stage .viz-kps-roadmap-list,
+  .presentation-stage .viz-kps-outcome-list {
+    grid-template-columns: 1fr;
+  }
+
+  .viz-kps-fit-list > li,
+  .viz-kps-problem-list > li,
+  .viz-kps-case-list > li,
+  .viz-kps-outcome-list > li,
+  .presentation-stage .viz-kps-fit-list > li,
+  .presentation-stage .viz-kps-case-list > li,
+  .presentation-stage .viz-kps-outcome-list > li {
+    grid-template-columns: 52px minmax(0, 1fr);
   }
 
   .viz-ladder-step span {
@@ -4916,6 +5180,24 @@ body.is-presenting .site-footer {
   }
 
   .presentation-stage .viz-study-roadmap-list > li {
+    min-height: 0;
+  }
+
+  .presentation-stage .viz-kps-copy p,
+  .presentation-stage .viz-kps-roadmap-list p {
+    display: block;
+    overflow: visible;
+    font-size: 1rem;
+    -webkit-line-clamp: unset;
+  }
+
+  .presentation-stage .viz-kps-owner,
+  .presentation-stage .viz-kps-cadence,
+  .presentation-stage .viz-kps-work {
+    display: block;
+  }
+
+  .presentation-stage .slide-diagram.is-kps-target {
     min-height: 0;
   }
 
