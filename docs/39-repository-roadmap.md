@@ -24,81 +24,115 @@ It complements the [assessment-to-decommission delivery roadmap](36-implementati
 | Phase | Status | Primary outcome | Core deliverables | Exit gate |
 |---|---|---|---|---|
 | 0. Technical publication baseline | Complete | Searchable, reproducible publication shell | Sanitized public repository, GitHub Pages portal, source manifest, validation workflow, Mermaid gallery, six audience briefings, presentation mode | Main branch and Pages deployment pass technical validation; no editorial or decision-maturity claim is implied |
-| 1. Decision and content contract | Next | Approved decision rules and editorial quality contract | Sponsor and decision owner, confirmed scope/non-goals, approved gates/weights/coverage threshold, content reclassification under the governed PCR-001 taxonomy, required metadata, evidence and inline-figure quality gates, dissent process | Methodology ADR accepted and every published asset has a governed content type and maturity state |
-| 2. Evidence ledger and anchor studies | Planned | Solution-option traceability and substantive public research core | Source-to-criterion-to-solution-option map with component/variant lineage, version/topology fields, evidence owners, freshness and limitations, assumption closure, automated coverage dashboard, anchor studies, canonical inline diagrams/charts with provenance and interpretation | Every criterion and solution option has an evidence plan; anchor studies pass editorial/evidence review; decision-critical assumptions have disposition |
-| 3. Symmetric dossiers and comparative proof | Planned | Equivalent E1–E3 treatment of end-to-end solution options | Symmetric solution-option dossiers and physical views with component/variant lineage, vendor responses, entitlement map, equivalent PoC environments, security/identity/PKI, disconnected-operation, API operations, performance, resilience, observability, developer-journey, and migration experiments | Dossiers meet the same article quality gate; mandatory criteria have comparable option-level evidence; no unmitigated critical test finding |
-| 4. Economics and operating model | Planned | Decision-grade cost and support model | Actual quotes, infrastructure model, staffing/on-call demand, upgrade/support boundaries, migration effort, exit cost, service ownership, RACI, benefits baseline | Commercial, architecture, operations, and program owners approve inputs |
-| 5. Decision assurance and independent review | Planned | Defensible conditional selection and publication | Populated end-to-end solution-option scorecards with component/variant lineage, evidence peer review, coverage report, sensitivity analysis, risk-adjusted TCO, dissent log, conditional recommendation, selection ADR, closed content backlog, and final independent principal review | Mandatory gates pass or have approved exceptions; evidence and article quality thresholds are met; independent review findings are disposed; conditional selection ADR accepted |
-| 6. Living study platform | Planned | Reusable research and learning system | Scheduled source revalidation, version-drift alerts, reusable PoC result archive, comparison history, release notes, contribution workflow, presentation/PDF snapshots | Each release records evidence delta, decision impact, and next review date |
+| 1. Principal content baseline | Implemented; independent acceptance open | Substantive, contract-governed public study corpus | Principal-study standard and template, 39 deep studies, reference case and public failure casebook, symmetric dossiers, point-of-use figures, decision-grade protocols, machine-readable remediation workflow | Repository validators and independent principal review pass; material PCR findings are disposed with committed closure evidence—not merely marked complete |
+| 2. Gate-0 decision contract and calibration | Next | Organization-approved decision rules and representative inputs | Accountable sponsor/decision owner, scope/non-goals, bounded option catalog, Gate-1 resolution fields, mandatory gates, common-evidence/bounds/regret rules, calibrated journeys/inventory, evidence calendar, dissent and exception rights | Gate-0 ADR accepted; owners, capacity, representative inputs, evidence thresholds and stop rules are explicit |
+| 3. Option resolution and symmetric E1/E2 | Planned | Comparable, exact deployable option records | Edition/version/topology/region/entitlement/support bills of materials, source-to-criterion-to-option mapping, equivalent physical views, vendor answers, mandatory dispositions, source promotion/freshness | Every finalist candidate is an exact option; equivalent category coverage and mandatory-gate evidence support a down-select or removal |
+| 4. E3 proof, economics and operating model | Planned | Repeatable comparative behavior and fully allocated decision inputs | Equivalent environments and atomic protocols; security, failure, performance, portal, observability and migration result bundles; actual quotes; staffing/on-call/support/exit model; common-evidence, bounds, regret and sensitivity analysis | Gate 2 selects conditionally, requests targeted evidence or stops; no hard scenario is averaged into a preference score |
+| 5. Foundation, E4 pilots and scale decision | Planned | Production evidence for supported patterns and accountable operations | Reversible foundation, identity/network/PKI, APIops, telemetry, support and recovery; gateway- and integration-dominant pilots; measured SLO, incident, rollback, reconciliation, toil and cost | Gates 3 and 4 accept supported patterns and funded ownership or recycle/stop the affected path |
+| 6. Migration, decommission and living evidence | Planned; publication automation ongoing | Reusable study system tied to accepted responsibility retirement | Pattern waves, dependency-zero/decommission evidence, source revalidation, version drift, result archive, decision history, release notes, comparison deltas and reusable presentations | Each release records evidence delta and decision impact; retirement closes traffic, technical, operational, recovery, records and commercial obligations |
+
+**Figure REPO-ROAD-1 — Repository maturity is an input to, not a substitute for, decision evidence.**
+
+- **Depicted scope:** seven repository/evidence-system phases from technical publication through content acceptance, organization decision gates, E3/E4 proof, migration and living evidence.
+- **Excluded scope:** organization-specific calendar, effort, product result, score, funding, named ownership and proof that a planned phase has started.
+- **Diagram source, evidence state and as-of:** the preceding phased-plan table; repository implementation status plus planned decision work; 2026-08-17.
+- **Accessible equivalent:** Phase 0 is complete; Phase 1 is implemented with independent acceptance open; Phase 2 is next; Phases 3–6 remain planned, with publication automation continuing inside Phase 6.
 
 ```mermaid
 flowchart LR
-  P0["0 · Technical publication baseline<br/>Complete"] --> P1["1 · Decision + content contract<br/>Next"] --> P2["2 · Ledger + anchor studies<br/>Planned"] --> P3["3 · Symmetric dossiers + proof<br/>Planned"] --> P4["4 · Economics + operating model<br/>Planned"] --> P5["5 · Assurance + independent review<br/>Planned"] --> P6["6 · Living study platform<br/>Planned"]
+  P0["0 · Publication baseline<br/>Complete"] --> P1["1 · Principal content baseline<br/>Implemented · review open"] --> P2["2 · Gate-0 contract + calibration<br/>Next"] --> P3["3 · Resolved options + E1/E2<br/>Planned"] --> P4["4 · E3 + economics + operations<br/>Planned"] --> P5["5 · Foundation + E4 pilots<br/>Planned"] --> P6["6 · Migration + living evidence<br/>Planned / ongoing"]
   classDef complete fill:#dce8df,stroke:#315a43,color:#152219
   classDef next fill:#f2dfd8,stroke:#8f341f,color:#35150d
   classDef planned fill:#f1eee5,stroke:#77736a,color:#2a2925
   class P0 complete
-  class P1 next
-  class P2,P3,P4,P5,P6 planned
+  class P2 next
+  class P1,P3,P4,P5,P6 planned
 ```
 
-## Assessment decision gates
+**Figure interpretation:** the publication shell and principal content baseline exist, but independent acceptance and organization evidence remain open. Content volume cannot skip Gate 0, exact-option resolution, E3 proof or E4 pilots; “implemented” describes repository state, not decision confidence.
 
-| Gate | Indicative window | Accountable role | Required exit evidence | Steering decision |
-|---|---:|---|---|---|
-| 0. Decision contract | Days 0–30 | Executive sponsor and decision owner | Scope/non-goals, roles, approved mandatory gates and weights, evidence threshold, public/restricted boundary, exception and dissent process | Authorize evidence closure |
-| 1. Evidence-led down-select | Days 31–60 | Decision owner | E1/E2 screen across the approved end-to-end solution-option catalog, criterion/option evidence plan with component/variant lineage, organization assumptions, comparable topology and entitlement facts, approved finalist set | Fund symmetric finalist proof or remove a solution option |
-| 2. Conditional-selection readiness | Days 61–90 | Decision owner | E3 finalist solution-option PoCs, gate dispositions, TCO/support model, sensitivity, ranked risks, independent evidence review, recommendation conditions and exit path | Select an end-to-end option with conditions and fund foundation, extend targeted evidence, or stop |
+**Figure limitation:** phase order expresses evidence dependencies, not a promise that work is strictly sequential or that any product will advance; actual gates require accountable acceptance and committed artifacts.
 
-The windows start only when accountable roles, vendor access, environments, and organization inputs are available. Use the [assessment action register](../templates/assessment-action-register-template.csv) to add capacity, dependencies, target dates, status, exit evidence, and approver without publishing named-person mappings.
+## Integrated dependency-aware critical path
 
-## First 90 days
+The repository and delivery roadmaps now use one gate sequence. The repository can prepare reusable methods, protocols and evidence structures ahead of organizational mobilization, but it cannot promise a Gate-2 date. **Elapsed time** below is a scenario calendar range after prerequisites are available. **Effort** is tracked separately as role pool × allocation × elapsed time in the capacity-loaded action register; this public roadmap invents no person-week commitment. Parallel work reduces elapsed time only when it has distinct capacity and stable inputs.
 
-The timing below is indicative and starts when owners and environments are available.
+| Gate / release | Earliest start condition | Scenario elapsed range, not effort | Required exit evidence | Steering decision |
+|---|---|---:|---|---|
+| Content baseline acceptance | Principal corpus and validators implemented | Repository release; no organization-clock claim | Independent review disposition, figure/source/link/accessibility checks, committed backlog closure evidence | Accept the reusable evidence system or return specific PCR items |
+| 0. Decision contract | Sponsor, decision owner and decision forum available | 4–6 weeks from mobilization | Scope/non-goals, bounded option schema, calibrated reference inputs, mandatory and uncertainty rules, owners/capacity, public/restricted boundary, exception/dissent process | Authorize organization-specific evidence closure |
+| 1. Evidence-led down-select | Gate 0 plus vendor access and option-resolution owners | 7–10 weeks cumulative in the planning case; external prerequisites may extend it | Equivalent E1/E2 category coverage, exact option bills of materials, physical views, mandatory dispositions, counter-hypotheses and approved finalist set | Fund symmetric E3 proof or remove/hold an option |
+| 2. Conditional selection | Gate 1 plus representative environments, fixtures, commercial and support inputs | 12–20 weeks cumulative in the planning case; not a 90-day promise | Atomic E3 results, hard-gate dispositions, quote-based TCO/support/exit model, common-evidence score, bounds, maximum regret, sensitivity, risks and independent review | Select with enforceable conditions, extend targeted evidence or stop |
+| 3. Pilot readiness | Gate 2 plus production controls and accountable service ownership | 8–16 additional weeks, partly parallel where reversible | Production architecture, identity/network/PKI, APIops/telemetry, runbooks, on-call, recovery/rollback exercise and admission controls | Admit bounded E4 pilots or recycle foundation work |
+| 4. Scale decision | Gate 3 plus representative gateway- and integration-dominant pilots | 8–16 additional weeks | Measured SLO, business correctness, incident, rollback, reconciliation, toil, support and cost outcomes | Accept supported patterns, redesign or stop scale-up |
+| 5. Decommission | Accepted patterns, dependency graph and funded migration waves | 2–6 quarters plus 1–2 quarters after final cutover in the scenario model | Dependency/traffic zero, observation window, owner attestations, records, credentials, support and commercial closure | Retire the bounded legacy responsibility or keep it explicitly open |
 
-### Days 0–30: establish decision control
+These ranges reconcile to the [delivery roadmap](36-implementation-roadmap.md). Its 6–16-week identity/network/environment and golden-corpus prerequisites can extend the critical path; they are not hidden inside a content schedule. Use the [assessment action register](../templates/assessment-action-register-template.csv) to capacity-load work and record dependencies, target dates, status, exit evidence and approver without publishing named-person mappings.
 
-- Accept the [principal content review](../reports/content-research-principal-review.md) as the editorial baseline and triage its [machine-readable backlog](../reports/content-remediation-backlog.csv).
-- Reclassify every asset under the governed PCR-001 taxonomy; add audience, maturity, owner role, evidence date, review date, and canonical-figure metadata.
-- Approve the article quality gate: decision question, evidence-at-point-of-claim, counterargument, limitations, decision implication, and inline canonical figures where they materially support the argument.
-- Assign accountable public roles or anonymized owner IDs for assumptions, risks, open questions, evidence, and acceptance decisions; keep the named-person map restricted.
-- Confirm the organizational context in [current-state assumptions](02-current-state-assumptions.md).
-- Review and approve the 30 mandatory gates, category weights, and evidence-coverage threshold.
-- Confirm the vendor-neutral logical target architecture and build equivalently framed candidate topology views from official evidence.
-- Add an evidence-ledger dataset keyed by criterion ID and end-to-end solution-option ID while preserving component and deployment-variant lineage.
-- Accept or revise the proposed methodology and architecture-principle ADRs.
+**Figure REPO-ROAD-2 — Four independent evidence inputs converge before finalist proof and production authorization.**
 
-### Days 31–60: balance research and prepare proof
+- **Depicted scope:** content/protocol reuse, Gate 0, inventory/calibration, option resolution, fixtures, E3/TCO convergence, conditional selection, foundation, E4 pilots, migration waves and decommission gates.
+- **Excluded scope:** approved dates, effort, candidate count, procurement sequence, detailed infrastructure tasks and any claim that a gate has passed.
+- **Diagram source, evidence state and as-of:** the integrated critical-path table and delivery-roadmap dependencies; planning interpretation with scenario elapsed ranges; 2026-08-17.
+- **Accessible equivalent:** Gate 0 releases inventory, option and fixture work; all feed Gate 1. E3 proof and commercial/operating evidence feed Gate 2. Foundation feeds pilot readiness, E4 evidence feeds scale, and accepted waves feed decommission; hard failures recycle to the responsible earlier gate.
 
-- Complete the anchor studies that define the market landscape and decision archetypes, hybrid deployment alternatives, gateway-versus-integration boundary, and operating/economic model.
-- Rewrite solution-option dossiers to an equivalent structure and depth; preserve component/variant evidence and embed canonical candidate, security, network, observability, API operations, resilience, and migration figures in the articles that interpret them.
-- Map official sources and vendor confirmations to all decision-critical criteria.
-- Close unsupported or stale findings and record product version, tier, topology, and entitlement.
-- Freeze equivalent PoC workloads, policy chains, load profiles, failure scenarios, and evidence templates.
-- Prepare finalist solution-option environments and the organization-specific identity, PKI, network, SIEM/APM, and test-data controls.
-- Establish the TCO and staffing model with quote, infrastructure, support, migration, and exit inputs.
-- Add likelihood, impact, residual exposure, status, and due date to the risk register.
+```mermaid
+flowchart LR
+  R1["Reusable content + protocols"] --> G0{"Gate 0<br/>decision contract"}
+  G0 --> INV["Inventory + journey calibration"]
+  G0 --> OPT["Option BOM + E1/E2"]
+  G0 --> FIX["Fixtures + business oracles"]
+  INV --> G1{"Gate 1<br/>finalists"}
+  OPT --> G1
+  FIX --> G1
+  G1 --> E3["Atomic E3 proof"]
+  G1 --> TCO["Quotes + support + operating model"]
+  E3 --> G2{"Gate 2<br/>conditional selection"}
+  TCO --> G2
+  G2 --> FND["Reversible foundation"] --> G3{"Gate 3<br/>pilot ready"}
+  G3 --> E4["Representative E4 pilots"] --> G4{"Gate 4<br/>scale?"}
+  G4 --> WAV["Pattern waves"] --> G5{"Gate 5<br/>retire?"}
+  E3 -. "hard failure / inconclusive" .-> G1
+  E4 -. "SLO, correctness or ownership failure" .-> FND
+```
 
-### Days 61–90: execute and synthesize
+**Figure interpretation:** inventory, exact-option resolution, test fixtures and commercial/operating evidence have independent owners but converge at explicit gates. The critical path is whichever prerequisite closes last; repository publication is an input, never a shortcut around evidence or service ownership.
 
-- Run equivalent comparative security, disconnected-control-plane, API operations, developer-journey, performance, resilience, observability, and migration experiments for approved finalist solution options.
-- Capture sanitized evidence using the [PoC result template](../templates/poc-result-template.md).
-- Populate end-to-end solution-option scorecards from the ledger, retain component/variant lineage, and conduct independent evidence review.
-- Calculate evidence coverage and run category-weight sensitivity at ±20 percent.
-- Produce the conditional-selection pack: recommendation, alternative, trade-offs, conditions, exceptions, TCO, risks, implementation implications, and explicit steering ask.
-- Run a final independent principal review of the content, evidence chain, comparative integrity, figures, recommendation, and audience narratives; dispose its material findings before publication.
-- Decide whether evidence supports selection, another targeted evidence sprint, or removal of a candidate.
+**Figure limitation:** the dependency view intentionally omits capacity-loaded tasks and organization lead-time distributions; it cannot be converted into a date by summing node labels.
+
+## Next execution packets
+
+### Packet A: accept the reusable content system
+
+- Independently review the principal-study corpus, protocols, figure contracts, source boundaries, navigation and presentations.
+- Dispose material PCR items only with committed closure evidence and independent reviewer acceptance.
+- Keep contextual official citations outside scoring until promoted into the authoritative source/finding chain.
+- Publish a release delta that states what changed, what evidence level moved and what remains unobserved.
+
+### Packet B: mobilize Gate 0
+
+- Name the accountable sponsor, decision owner, evidence reviewers and restricted named-person map.
+- Calibrate RE-1 journeys, traffic, identity, network, data authority, recovery, inventory, staffing and economic inputs against observed organization evidence.
+- Approve bounded options, Gate-1 resolution fields, mandatory gates, category weights, common-evidence/bounds/regret rules, exceptions, dissent and stop conditions.
+- Capacity-load the action register and book vendor access, representative environments and cross-functional reviewers.
+
+### Packet C: close Gate 1 before E3 execution
+
+- Resolve edition, version, topology, region, entitlement, support and commercial boundaries for every candidate that may be scored.
+- Complete equivalent E1/E2 category coverage and mandatory dispositions without transferring evidence between archetypes.
+- Freeze atomic workloads, business oracles, failure injections, validity/abort rules and immutable result bundles.
+- Authorize only the number of E3 finalists that can receive equivalent engineering and independent review.
 
 ## Repository workstreams
 
 | Workstream | Canonical assets | Next capability |
 |---|---|---|
 | Decision governance | `adr/`, assumptions, risks, open questions | Named ownership, due dates, approval state, and decision calendar |
-| Requirements and scoring | `decision-matrix/` | Populated per-solution-option evidence ledger with component/variant lineage, coverage calculation, and sensitivity report |
-| Research | `research/` | Criterion linkage, freshness monitoring, entitlement/version tracking, and archived evidence references |
-| Content architecture and editorial assurance | [Principal content review](../reports/content-research-principal-review.md), [remediation backlog](../reports/content-remediation-backlog.csv), `docs/`, `research/`, `reports/` | Governed content types, anchor studies, article metadata, evidence-at-point-of-claim, canonical inline figures, quality gates, and independent review |
+| Requirements and scoring | `decision-matrix/` | Populated exact-option evidence ledger, common-evidence/category coverage, full-weight bounds, maximum regret, sensitivity and dissent report |
+| Research | `research/` | Decision-bearing source promotion, criterion linkage, freshness monitoring, entitlement/version tracking and archived evidence references |
+| Content architecture and editorial assurance | [Principal content review](../reports/content-research-principal-review.md), [remediation backlog](../reports/content-remediation-backlog.csv), `docs/`, `research/`, `reports/` | Independent acceptance of the implemented principal-study/figure contract and PCR closure with committed evidence |
 | Architecture | `architecture/`, target and transition documents | Vendor-neutral logical model plus candidate physical topologies and verified data flows |
-| PoC and pilots | `poc/`, `templates/poc-result-template.md` | Equivalent multi-candidate execution, durable result artifacts, and automated evidence summaries |
+| PoC and pilots | `poc/`, `templates/poc-result-template.md` | Equivalent execution of the 28 atomic protocol cases, hard-gate dispositions, durable result artifacts and automated evidence summaries |
 | Economics and operating model | operating-model and commercial criteria | Quote-based TCO, resource model, support RACI, benefits, and exit cost |
 | Portal and presentation | `site/`, `scripts/build_site.py`, `docs/40-audience-guide.md` | Decision-readiness visualizations driven by populated scorecards and evidence coverage |
 | Repository engineering | workflows and validation scripts | Schema validation, source freshness checks, accessibility tests, visual regression, and release automation |
@@ -107,26 +141,26 @@ The timing below is indicative and starts when owners and environments are avail
 
 ### Now
 
-- Content reclassification, article metadata schema, and publication quality gate from the [principal content review](../reports/content-research-principal-review.md).
-- Anchor studies and symmetric dossier templates, with canonical diagrams/charts embedded inside the arguments they support.
-- Evidence ledger schema and validator.
-- Accountable-role/due-gate fields for assumptions, questions, risks, and actions, with private named-person mapping.
-- Equivalent candidate topology views with ownership, data flows, persistence, locality, support boundary, assumptions, and required evidence.
-- Approved methodology ADR and coverage threshold.
-- E1/E2 screen across the approved solution-option catalog followed by a symmetric finalist PoC plan with component/variant lineage.
+- Independent principal acceptance of the implemented study corpus, protocols, figure contracts, source boundary, site and presentation; close PCR items only with committed evidence.
+- Gate-0 owner, decision-right, scope, calibrated reference-case, capacity and evidence-calendar approval.
+- Approve the methodology ADR, mandatory/category thresholds, common-evidence, bounds, maximum-regret, exception and dissent rules.
+- Promote every decision-bearing contextual citation into the authoritative source/finding chain; keep unpromoted citations explicitly non-scoring.
+- Resolve exact edition, version, topology, region, entitlement, plugin, support and commercial fields for each option that may reach Gate 1.
+- Reconcile observed journey, workload, identity, network, data-authority, recovery, inventory, staffing and economic inputs with RE-1.
 
 ### Next
 
-- Equivalent multi-candidate experiment contracts and durable comparative result records.
-- Final independent principal content/evidence review before conditional-selection publication.
-- Scorecard coverage and sensitivity automation.
-- TCO/resource-model templates with validation.
-- Evidence freshness and broken-source checks.
+- Equivalent E1/E2 screen and mandatory dispositions across resolved options.
+- Execute the hard-gated 28-case E3 protocol set for approved finalists and preserve immutable comparative result bundles.
+- Automate common-evidence/category coverage, bounds, maximum-regret and sensitivity views without making missing values look observed.
+- Populate quote-based TCO, staffing/on-call, support, migration and exit models.
+- Run source freshness/liveness checks and independent result review before conditional-selection publication.
 - Risk heatmap using approved likelihood and impact scales.
 - Decision-deck scenes driven by scorecard, TCO, and risk data.
 
 ### Later
 
+- Production foundation and representative E4 pilot evidence after Gate 2.
 - Versioned assessment releases and evidence-delta reports.
 - Archived PoC/pilot result catalog with sanitized artifacts.
 - Automated static exports for offline presentation and review.

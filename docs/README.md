@@ -1,16 +1,20 @@
 # Assessment documents
 
+Substantive studies follow the [principal study standard](STUDY-STANDARD.md). It requires an explicit decision chain, bounded archetype and Gate-1 option-resolution boundaries, a realistic scenario, mechanism and failure analysis, point-of-use evidence, inline figure contracts, falsification tests, and limitations. Article length alone is not a quality gate.
+
 | Sequence | Document | Decision use |
 |---:|---|---|
 | 00–04 | Executive framing, problem, assumptions, method, hypothesis | Agree scope and prevent solution bias |
 | 05–09 | Target vision, hybrid needs, capability boundary, Mule decomposition, shortlist | Establish requirements before scoring |
-| 10–18 | Kong dossier | Test low-confidence priority-validation hypotheses under the same evidence rules |
+| 10–18 | Kong dossier | Test named low-confidence sequencing hypotheses under the same evidence and advancement rules as every alternative |
 | 19–24 | APIM, Apigee, MuleSoft, and secondary-product dossiers | Apply equivalent comparison rigor |
 | 25–32 | Cross-product security, network, hybrid, Kubernetes, API operations, portal, observability, resilience | Generate comparable evidence |
 | 33–38 | Operating model, PCF/AKS transition, migration, assessment-to-decommission roadmap, risks, questions | Turn the decision and product direction into an accountable delivery programme |
 | 39 | Repository roadmap | Mature the evidence system from discovery baseline to decision assurance and continuous study |
 | 40 | Audience guide | Use one fact model to lead role-specific reviews, briefings, and decisions |
+| 41 | Synthetic enterprise reference case | Exercise every study against one complex, public-safe workload, topology, operations, migration, and failure scenario |
+| 42 | Public failure casebook | Convert documented production incidents into architecture controls and symmetric proof scenarios without treating them as candidate evidence |
 
-Cross-cutting assurance outputs are maintained in the [principal content and research review](../reports/content-research-principal-review.md), its [machine-readable remediation backlog](../reports/content-remediation-backlog.csv), the [decision-assurance methodology review](../reports/methodology-review.md), and the [evidence-state snapshot](../reports/evidence-state.md). A rendered portal page is not automatically a mature study; content type, evidence depth, comparative integrity, inline figures, metadata, and independent review are separate gates.
+Cross-cutting assurance outputs are maintained in the [baseline principal review](../reports/content-research-principal-review.md), [post-remediation release review](../reports/content-depth-wave-1.md), [machine-readable remediation backlog](../reports/content-remediation-backlog.csv), [decision-assurance methodology review](../reports/methodology-review.md), [evidence-state snapshot](../reports/evidence-state.md), and [source-coverage report](../reports/source-coverage.md). A rendered portal page is not automatically a mature study; content type, evidence depth, comparative integrity, inline figures, metadata, and independent review are separate gates.
 
 Documents use explicit evidence labels. Unknown organization-specific inputs are never inferred from generic industry practices.

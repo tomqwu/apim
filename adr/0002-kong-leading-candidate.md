@@ -1,11 +1,11 @@
-# ADR-0002: Screen Kong as a priority-validation hypothesis
+# ADR-0002: Keep Kong as a falsifiable sequencing hypothesis without priority
 
 - Status: proposed
 - Date: 2026-08-17
 
 ## Decision
 
-Subject Konnect hybrid and self-managed Kong to the same E1/E2 screen as every exact variant. Advance them to E3 only if the approved Gate 1 down-select supports finalist status; preserve approved APIM and Apigee variants as symmetric comparative finalists.
+Treat Konnect hybrid and self-managed Kong as named sequencing hypotheses with no execution priority. Subject them to the same E1/E2 screen and Gate-1 option-resolution contract as every bounded archetype. Advance any resolved option to E3 only if the approved common-evidence down-select supports finalist status; preserve APIM, Apigee, and the MuleSoft baseline under symmetric advancement rules.
 
 ## Conditions
 

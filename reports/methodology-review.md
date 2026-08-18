@@ -3,7 +3,7 @@
 - Review date: 2026-08-17
 - Scope: repository structure, assessment method, evidence chain, documents, architecture, PoC material, audience briefings, charts, and presentation
 - Evidence basis: committed repository content only; no stakeholder interviews, vendor briefings, commercial quotes, or organization validation were available
-- Review stance: independent decision-assurance challenge; no platform selection is approved by this report
+- Review stance: principal decision-assurance challenge of the repository evidence; no platform selection is approved by this report and organizational acceptance remains external
 
 ## Executive verdict
 
@@ -12,8 +12,8 @@ The repository is a strong assessment scaffold and early evidence baseline. It i
 | Dimension | Maturity | Finding |
 |---|---|---|
 | Assessment framework | Strong scaffold | Strong gates, evidence levels, variant separation, unknown handling, falsification discipline, and a defined public/restricted evidence boundary |
-| Evidence completion | Initial | All 120 criteria remain unknown and no exact deployment variant has a populated criterion-level scorecard |
-| Comparative integrity | Developing | The comparison model is sound, but research, candidate architecture, and executable proof remain asymmetric |
+| Evidence completion | Initial | All 120 criteria remain unknown; no bounded archetype has a resolved Gate-1 bill of materials or populated criterion-level scorecard |
+| Comparative integrity | Developing | Deep symmetric dossiers and protocols now exist, but bounded archetypes are not yet resolved options and no equivalent E3 result exists |
 | Governance readiness | Developing | Assumptions, risks, questions, weights, thresholds, and ADRs are visible but not operationally closed |
 | Roadmap readiness | Strong scaffold | Repository and organization-delivery roadmaps now have explicit gates and decision rights; named assignments, capacity, dependencies, and dates remain to be mobilized |
 | Audience communication | Strong scaffold | Six role-specific briefings sequence the same canonical evidence for executives, directors, architects, developers, DevOps/SRE, and platform teams |
@@ -27,9 +27,9 @@ Current maturity is **structured assessment / evidence collection**. The appropr
 
 | Decision | Principal recommendation | Status | Exit evidence |
 |---|---|---|---|
-| Evidence-closure programme | Approve the indicative 90-day, stage-gated programme and the capacity to execute it | Approve now | Decision contract, accountable roles, approved environments/vendor access, and action register |
-| Conditional product/platform selection | Defer any vendor selection, purchase, or migration commitment | Not ready | Gate 2: mandatory gates disposed, approved evidence threshold met, exact-variant ledger reviewed, symmetric E3 proof, TCO/support and sensitivity complete |
-| Priority validation | Treat Kong Konnect hybrid and self-managed Kong as low-confidence hypotheses, subject first to the same E1/E2 screen as every variant | Conditional | Official topology/entitlement screen supports finalist status; no disqualifying gate emerges |
+| Evidence-closure programme | Approve the prerequisite-driven, stage-gated programme and the capacity to execute it; do not promise Gate 2 in 90 days | Approve Gate 0 only | Decision contract, accountable roles, calibrated inputs, approved environments/vendor access, capacity-loaded action register and evidence calendar |
+| Conditional product/platform selection | Defer any vendor selection, purchase, or migration commitment | Not ready | Gate 2: mandatory gates disposed, approved evidence/category threshold met, resolved-option ledger reviewed, symmetric E3 proof, TCO/support, bounds, maximum regret and sensitivity complete |
+| Sequencing hypotheses | Keep Kong and every alternative as falsifiable hypotheses; confer no execution priority before the common E1/E2 screen and option-resolution gate | Conditional | Exact bill of materials, equivalent category coverage and mandatory dispositions support finalist status |
 | Comparative benchmarks | Retain Azure APIM managed/self-hosted and Apigee X/Hybrid through the approved down-select | Required | Equivalent claims, candidate views, vendor confirmations, and symmetric finalist tests |
 | Current-state baseline | Retain MuleSoft as the comparison and migration baseline, not the default target | Required | Workload inventory, capability decomposition, run-cost, migration effort, and dependency evidence |
 
@@ -44,7 +44,7 @@ Explicitly excluded from this approval are vendor award, production platform bui
 
 ```mermaid
 flowchart TB
-  G0{"Gate 0<br/>approve decision contract"} --> S["E1/E2 screen<br/>all seven exact variants"] --> G1{"Gate 1<br/>approve finalists"}
+  G0{"Gate 0<br/>approve decision contract"} --> S["E1/E2 screen<br/>seven bounded archetypes"] --> O["Resolve edition · version<br/>topology · entitlement · support"] --> G1{"Gate 1<br/>approve finalists"}
   G1 --> P["Symmetric E3 PoC + TCO<br/>approved finalists"] --> G2{"Gate 2<br/>conditional selection-ready?"}
   G2 -->|"yes"| R["Conditional selection ADR<br/>conditions, dissent, exit path"] --> F["Platform foundation"] --> G3{"Gate 3<br/>production-pilot ready?"}
   G3 -->|"yes"| E4["Representative E4 production pilots"] --> G4{"Gate 4<br/>scale-ready?"}
@@ -73,41 +73,44 @@ A conclusion remains provisional whenever one of those links is missing.
 
 ## What is strong
 
-- Exact deployment variants are evaluated separately in the [decision matrix](../decision-matrix/README.md).
+- Bounded deployment archetypes are kept separate, and the [assessment methodology](../docs/03-assessment-methodology.md) prohibits scoring until each Gate-1 option definition is exact.
 - Mandatory gates cannot be averaged away, and unknown evidence is never treated as pass in the [scoring guide](../decision-matrix/scoring-guide.md).
 - Evidence confidence progresses from assertion to official documentation, vendor confirmation, repeatable lab, and representative pilot in the [assessment methodology](../docs/03-assessment-methodology.md).
-- The [Kong-first hypothesis](../docs/04-kong-first-hypothesis.md) is explicitly low-confidence, includes counter-hypotheses, and has falsification conditions.
-- The [executive summary](../docs/00-executive-summary.md) distinguishes evidence closure, priority validation, and product selection.
+- The [Kong-first hypothesis](../docs/04-kong-first-hypothesis.md) now states that current evidence does not justify execution priority, includes counter-hypotheses, and has falsification conditions.
+- The [executive summary](../docs/00-executive-summary.md) distinguishes evidence closure, named sequencing hypotheses, finalist proof, and product selection.
 - The [architecture catalog](../architecture/README.md) designates one vendor-neutral logical target and makes candidate-specific views visibly provisional.
 - The [audience guide](../docs/40-audience-guide.md) gives six roles different decisions, reading sequences, visuals, and meeting closes without duplicating the underlying evidence.
-- The PoC documentation separates executed Docker evidence, static/configured assets, unexecuted Kubernetes proof, and not-run enterprise scenarios in [poc/README.md](../poc/README.md).
+- The PoC documentation separates 16 aggregate status-register items from 28 atomic decision-grade real-world, portal and observability cases, and does not count protocol depth as execution in [poc/README.md](../poc/README.md).
+- Thirty-nine principal studies now enforce answer-first framing, mechanism/failure depth, counter-evidence, proof plans and inline interpreted figures; this is content maturity, not candidate evidence.
+- The [citation-coverage report](source-coverage.md) keeps contextual official links visibly outside the score-capable source/finding chain until promoted.
 
 ## Priority findings
 
 | Priority | Finding | Required disposition |
 |---|---|---|
 | P0 | The 120 current `acceptance_test` cells are discovery prompts rather than measurable acceptance conditions | Refine the 30 mandatory gates first with measure, threshold, scenario, evidence level, decision owner, and exception rule before scoring |
-| P0 | Seven exact variants do not yet have a canonical criterion-by-variant evidence ledger | Populate the [ledger template](../decision-matrix/evidence-ledger-template.csv) and generate scorecards/charts from it |
-| P0 | The Kong priority-validation inference remains supported by deeper material than its alternatives | Complete an equivalent E1/E2 screen and candidate view for every variant before approving finalists; run E3 tests symmetrically |
+| P0 | Seven bounded archetypes do not yet have resolved Gate-1 bills of materials or a canonical criterion-by-option evidence ledger | Resolve the option fields, populate the [ledger template](../decision-matrix/evidence-ledger-template.csv), and generate scorecards/charts from it |
+| P0 | No candidate has equivalent observed E3 evidence, despite deep symmetric E1 research and protocols | Complete the common E1/E2 screen, approve finalists without brand priority, and execute the 28 atomic E3 cases symmetrically |
 | P0 | Organization-specific inputs, TCO, support, staffing, migration, and exit evidence are absent | Keep selection deferred and complete the restricted evidence workstream before Gate 2 |
 | P1 | The roadmaps define roles and gates but not actual capacity, dependencies, dates, or accepted exit artifacts | Mobilize the [action register](../templates/assessment-action-register-template.csv) under an accountable decision owner |
-| P1 | Risks are identified but not rated; assumptions, ADRs, and open questions remain unclosed | Add approved risk scales and named private ownership; publish no heatmap until values exist |
+| P1 | Twenty RE-1 risks have scenario ratings and 36 questions carry owner/due-gate/impact fields, but organization likelihood/impact acceptance, assumptions, ADRs and questions remain unclosed | Calibrate and approve risk scales and private named ownership; publish no organization heatmap until observed inputs exist |
+| P1 | The corpus contains 176 unique contextual external citations outside the authoritative source register | Promote only decision-bearing claims into `sources.csv` plus a mapped finding; keep the generated coverage ledger current and contextual links non-scoring |
 
 ## Material gaps
 
 ### 1. Decision evidence and acceptance conditions are incomplete
 
-All 120 criteria are currently `unknown`, including 30 mandatory gates. No exact deployment variant has a populated criterion-level scorecard. The existing acceptance text restates each criterion and is not yet a measurable pass/fail condition. A candidate ranking must not be published until the gates are operational and the agreed evidence-coverage threshold is met.
+All 120 criteria are currently `unknown`, including 30 mandatory gates. No bounded archetype has closed its option-resolution record or has a populated criterion-level scorecard. The existing acceptance text restates each criterion and is not yet a measurable pass/fail condition. A candidate ranking must not be published until the gates are operational and the agreed evidence/category threshold, common-evidence, bounds and maximum-regret rules are met.
 
-### 2. The exact-variant evidence model is not populated
+### 2. The resolved-option evidence model is not populated
 
-The method requires seven separately evaluated deployment variants, but the current Markdown scorecards are family-level placeholders. Use a canonical ledger keyed by `criterion_id + variant_id`; preserve outcome, claim, source/version, topology, entitlement, test, artifact, reviewer role, limitation, freshness, implication, exception, and decision state.
+The method keeps seven bounded archetypes separate, but they are not exact until edition, version, topology, region, entitlement, plugin and support fields close. The current Markdown scorecards remain unscored placeholders. Use a canonical ledger keyed by `criterion_id + option_id`; preserve outcome, claim, source/version, topology, entitlement, test, artifact, reviewer role, limitation, freshness, implication, exception, and decision state.
 
-### 3. Comparative architecture and proof remain asymmetric
+### 3. Comparative research is deep; decision proof is still absent
 
-The logical target is now vendor-neutral, but only Kong has detailed candidate control/data-plane views. Equivalent APIM, Apigee, and retained-Mule physical views must use the same frame: ownership, request path, configuration, telemetry/metadata, persistence, locality, support boundary, assumptions, and required evidence.
+The logical target is vendor-neutral, and Kong, APIM, Apigee, MuleSoft and secondary-product studies now use deep, mechanism-level dossiers, bounded archetypes, failure analysis, inline figures and Gate-1 blockers. That symmetry is E1 research design, not comparative execution. Exact physical bills of materials, organization topology, entitlement/support facts and E3 result bundles remain open.
 
-The repository contains 27 official sources, of which 12 are Kong sources. Fifteen source IDs are cited in the claim register and twelve are not yet used there. Five of fourteen PoC scenarios have automated baseline evidence; nine remain not run. Equivalent decision-critical scenarios must be executed across the approved finalist variants.
+The authoritative register contains 40 official sources: 28 source IDs are used directly by 24 findings and 12 remain unused there. The wider article corpus contains 211 unique external citations; 35 resolve to registered URLs and 176 remain explicitly contextual under the generated coverage ledger. Five of 16 aggregate PoC register items have automated baseline evidence and 11 remain not run. The 28 atomic real-world, portal and observability protocol cases are designs, not observed results; they must be executed across approved finalist options.
 
 ### 4. Organizational facts remain assumptions
 
@@ -118,8 +121,8 @@ All ten entries in the [assumption register](../docs/02-current-state-assumption
 - Category weights remain workshop defaults rather than approved decision weights.
 - The steering committee has not approved an evidence-coverage threshold.
 - Five ADRs remain proposed.
-- Risks lack approved likelihood, impact, residual exposure, due date, status, and trend.
-- Open questions and assumptions identify functional owners at best, not accepted deadlines and decision consequences.
+- Twenty risks carry RE-1 scenario likelihood/impact/exposure and owner fields, but organization calibration, acceptance, due dates and trend remain unapproved.
+- Thirty-six open questions carry functional owners, due gates and decision consequences; accountable named ownership, target dates and closure evidence remain unaccepted.
 
 ### 6. Economics and deliverability remain open
 
@@ -137,10 +140,10 @@ The [repository roadmap](../docs/39-repository-roadmap.md) and [delivery roadmap
 
 1. Approve the decision contract: sponsor, decision owner, scope, non-goals, gates, weights, coverage threshold, review calendar, public/restricted boundary, dissent, and exception process.
 2. Make the 30 mandatory gates observable and testable before refining lower-priority weighted criteria.
-3. Populate the criterion-by-variant evidence ledger and generate all scorecards and coverage charts from it.
+3. Resolve Gate-1 option definitions, populate the criterion-by-option evidence ledger, and generate common-evidence/category coverage, bounds, maximum-regret and sensitivity views from it.
 4. Confirm organization inputs and convert assumptions into evidenced facts or explicit constraints.
-5. Produce equivalent candidate physical views and complete the E1/E2 screen before selecting finalists.
-6. Run symmetric finalist PoCs using equivalent workloads, policy chains, identity/PKI controls, failure modes, and evidence capture.
+5. Complete exact candidate physical bills of materials and the equivalent E1/E2 screen before selecting finalists.
+6. Run the hard-gated 28-case finalist protocols using equivalent workloads, policy chains, identity/PKI controls, failure modes, validity rules and evidence capture.
 7. Complete TCO, staffing, support, contract, migration, benefits, and exit analysis with organization-specific restricted inputs.
 8. Rate and treat risks using approved scales; peer-review evidence and record dissent, conditions, and exceptions.
 9. Populate role/owner ID, capacity, dependency, date/gate, status, exit evidence, approver, and decision impact in the action register.
@@ -153,8 +156,9 @@ The [repository roadmap](../docs/39-repository-roadmap.md) and [delivery roadmap
 A conditional selection recommendation is decision-ready only when:
 
 - every mandatory gate is pass, fail, or supported by an approved time-bounded exception;
-- the approved weighted-evidence threshold is reached for every finalist;
-- exact deployment variants have independently reviewed scorecards generated from the canonical ledger;
+- the approved weighted-evidence and category thresholds are reached for every finalist;
+- exact resolved options have independently reviewed scorecards generated from the canonical ledger;
+- common-evidence comparison, full-weight bounds and maximum regret do not expose an unresolved rank reversal;
 - representative E3 security, failure, performance, API operations, observability, and migration-pattern tests have execution artifacts;
 - TCO and support assumptions use actual quotes and a documented resource model;
 - sensitivity testing identifies any unstable ranking;

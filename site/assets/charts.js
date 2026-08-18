@@ -280,7 +280,7 @@
     }
     if (path.startsWith("decision-matrix/") || path === "docs/09-product-shortlist.md") {
       add("Gate distribution", "stackedBars", visuals.criteria?.categories || [], { title: "Mandatory and weighted", keys: ["mandatory", "weighted"] }, "criteria");
-      add("Variant state", "statusMatrix", visuals.variants || [], { title: "Exact variants", nameHeader: "Variant" }, "variants");
+      add("Option state", "statusMatrix", visuals.variants || [], { title: "Bounded archetypes", nameHeader: "Option" }, "variants");
     }
     if (path.startsWith("research/") || path === "docs/04-kong-first-hypothesis.md") {
       add("Research balance", "sourceBalance", visuals.sources || {}, { title: "Sources by vendor" }, "sources");
@@ -313,7 +313,7 @@
         ${panel("01", "Recommendation", "Approve evidence closure—not platform selection", "The principal review separates the decision requested now from conditional hypotheses and deferred commitments.", statusMatrix(visuals.review?.decisions || [], { title: "Steering decision state", nameHeader: "Decision", noteHeader: "Exit evidence" }), "is-wide", provenance.review)}
         ${panel("02", "Readiness", `${evidencedCriteria} of ${criteriaTotal} criteria have a recorded evidence state`, "Evidence coverage must be earned before products can be ranked.", donut(criteria.statuses || [], { title: "Criteria evidence state", total: criteria.total, centerLabel: "criteria", tone: "signal" }), "is-compact", provenance.criteria)}
         ${panel("03", "Gate structure", `${number(criteria.mandatory)} mandatory gates stay explicit`, "Mandatory and weighted requirements are visible by decision category.", stackedBars(criteria.categories || [], { title: "Mandatory and weighted criteria", keys: ["mandatory", "weighted"] }), "is-wide", provenance.criteria)}
-        ${panel("04", "Candidate state", `${variantCount} exact deployment variants`, "Each variant needs its own topology, entitlement, evidence, and scorecard.", statusMatrix(visuals.variants || [], { title: "Variant decision state", nameHeader: "Variant" }), "is-wide", provenance.variants)}
+        ${panel("04", "Option state", `${variantCount} bounded deployment archetypes`, "Each archetype needs a resolved Gate-1 bill of materials before it can receive evidence or a scorecard.", statusMatrix(visuals.variants || [], { title: "Option-resolution state", nameHeader: "Option" }), "is-wide", provenance.variants)}
         ${panel("05", "Research balance", `${number(sources.total)} registered official sources`, "Official-source volume is not the same as criterion coverage, but imbalance is an important review signal.", sourceBalance(sources, { title: "Official sources by vendor" }), "", provenance.sources)}
         ${panel("06", "Finding state", `${number(visuals.findings?.total)} tracked claims and interpretations`, "The claim register distinguishes confirmed findings, interpretations, and risks.", bars(visuals.findings?.byState || [], { title: "Findings by state" }), "", provenance.findings)}
         ${panel("07", "Source use", `${number(sources.usedInFindings)} source IDs are used in findings`, "A registered source is not decision evidence until it is tied to a claim or criterion.", donut([{ label: "Used in findings", value: sources.usedInFindings || 0 }, { label: "Not yet used", value: sources.unusedInFindings || 0 }], { title: "Source use in findings", centerLabel: "sources" }), "", provenance.sources)}

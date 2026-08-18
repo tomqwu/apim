@@ -34,7 +34,7 @@ Recommended evidence path:
 9. [Delivery roadmap](36-implementation-roadmap.md)
 10. [Repository roadmap](39-repository-roadmap.md)
 
-The briefing should answer: what is known, what remains unknown, what can disqualify the priority-validation hypotheses, what investment is requested now, and who owns the next gate.
+The briefing should answer: what is known, what remains unknown, what can disqualify each named sequencing hypothesis, what investment is requested now, and who owns the next gate.
 
 ## 2. Directors: mobilize
 
@@ -55,7 +55,7 @@ The briefing should produce accountable public roles or owner IDs, a restricted 
 
 ## 3. Architects: design
 
-Keep the logical architecture vendor-neutral and maintain separate physical views for exact deployment variants. Make assumptions and unresolved data flows visible rather than smoothing them into a reference diagram.
+Keep the logical architecture vendor-neutral and maintain separate physical views for bounded archetypes; label them exact only after Gate-1 option resolution. Make assumptions and unresolved data flows visible rather than smoothing them into a reference diagram.
 
 Recommended evidence path:
 
@@ -113,10 +113,10 @@ Recommended evidence path:
 1. [Operating model](33-operating-model.md)
 2. [API operations governance](29-apiops-governance.md)
 3. [API operations architecture](../architecture/apiops-architecture.md)
-4. [Kong on AKS reference architecture](../architecture/kong-aks-architecture.md)
-5. [Konnect and self-managed comparison](12-kong-konnect-vs-self-managed.md)
-6. [Decision matrix](../decision-matrix/README.md)
-7. [API operations tests](../poc/apiops-tests.md)
+4. [Product shortlist and bounded option set](09-product-shortlist.md)
+5. [Symmetric platform dossiers: Kong](10-kong-deep-dive.md), [Azure API Management](19-azure-apim-assessment.md), [Apigee](21-apigee-assessment.md), and [MuleSoft baseline](23-mulesoft-current-state-baseline.md)
+6. [Candidate-neutral target architecture](../architecture/target-state.md)
+7. [Decision matrix](../decision-matrix/README.md)
 8. [Repository roadmap](39-repository-roadmap.md)
 
 The briefing should define the service catalogue, paved road, tenancy model, standard and exception ownership, onboarding SLO, support tiers, upgrade responsibility, staffing, and unit economics.

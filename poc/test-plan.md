@@ -16,3 +16,5 @@
 | POC-106 | Representative performance and soak | Not run | Reproducible result set |
 | POC-107 | Pod/node/zone/region and dependency failures | Not run | RTO/SLO evidence |
 | POC-108 | Mule facade and PCF-to-AKS cutover | Not run | Golden/canary/reconciliation evidence |
+| POC-109 | Full portal/product lifecycle, credential, runtime-truth, outage and exit protocol | Not run | `portal-tests.md` evidence bundle and independent gate review |
+| POC-110 | Signal completeness, redaction, backpressure, configuration truth and incident-use protocol | Not run | `observability-tests.md` evidence bundle and independent gate review |

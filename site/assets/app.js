@@ -180,8 +180,10 @@
     const visuals = state.manifest.visuals || {};
     const audiences = state.manifest.audiences || [];
     const variantTotal = Array.isArray(visuals.variants) ? visuals.variants.length : 0;
-    const variantScope = variantTotal ? `all ${variantTotal} exact variants` : "all exact variants";
+    const variantScope = variantTotal ? `all ${variantTotal} bounded archetypes` : "all bounded archetypes";
     const review = findByPath("reports/methodology-review.md");
+    const referenceCase = findByPath("docs/41-enterprise-reference-case.md");
+    const failureCasebook = findByPath("docs/42-public-failure-casebook.md");
     const generated = new Date(generatedAt);
     const dateLabel = Number.isNaN(generated.getTime())
       ? "current repository state"
@@ -213,7 +215,7 @@
           <div class="section-heading">
             <span class="section-index">01 / Principal recommendation</span>
             <h2 id="overview-decision-title">Approve evidence closure—not platform selection.</h2>
-            <p>Run an equivalent E1/E2 screen across ${escapeHtml(variantScope)}, then fund symmetric proof only for the approved finalists. Kong remains a low-confidence priority-validation hypothesis.</p>
+            <p>Run an equivalent E1/E2 screen across ${escapeHtml(variantScope)}, resolve each deployable option before scoring, then fund symmetric proof only for approved finalists. Named sequencing hypotheses confer no priority.</p>
           </div>
           <div class="decision-visual-grid">
             ${visualPanel("A", "Steering state", "The decision requested now", "The recommendation separates approval, conditional hypotheses, required benchmarks, and deferred commitments.", chartMarkup("recommendation", visuals.review || {}, { title: "Decision state", compact: true }), "is-wide")}
@@ -227,9 +229,10 @@
           ${metricMarkup(stats.studies, "assessment chapters")}
           ${metricMarkup(stats.diagrams, "architecture diagrams")}
           ${metricMarkup(stats.criteria, "decision criteria")}
-          ${metricMarkup(stats.sources, "official sources")}
+          ${metricMarkup(stats.sources, "registered sources")}
           ${metricMarkup(stats.questions, "workshop questions")}
           ${metricMarkup(stats.apiContracts, "API contracts")}
+          ${metricMarkup(stats.pocProtocolCases, "decision-grade experiment cases")}
         </section>
 
         <section class="overview-visuals" aria-label="Assessment state at a glance">
@@ -247,9 +250,32 @@
           </div>
         </section>
 
+        ${referenceCase && failureCasebook ? `
+        <section class="content-section" aria-labelledby="depth-title">
+          <div class="section-heading">
+            <span class="section-index">02 / Real-world depth</span>
+            <h2 id="depth-title">Start with difficult behavior—not a feature list.</h2>
+            <p>One shared enterprise case gives every option the same workloads, trust boundaries, traffic, failure history, recovery obligations, and migration constraints. Public postmortems then turn real failure mechanisms into mandatory proof.</p>
+          </div>
+          <div class="study-grid is-depth">
+            <a class="study-card" href="${itemHref(referenceCase)}">
+              <span class="card-label">01 / Synthetic reference case</span>
+              <span class="card-count">RE-1</span>
+              <h3>${escapeHtml(referenceCase.title)}</h3>
+              <p>Six critical journeys, eight compound incidents, mixed Mule/PCF/AKS coexistence, stateful money movement, PKI, capacity, SLO, and rollback constraints.</p>
+            </a>
+            <a class="study-card" href="${itemHref(failureCasebook)}">
+              <span class="card-label">02 / Documented incidents</span>
+              <span class="card-count">${String(Number(stats.publicFailureCases || 0)).padStart(2, "0")}</span>
+              <h3>${escapeHtml(failureCasebook.title)}</h3>
+              <p>Configuration blast radius, latent software defects, state divergence, trust-chain compatibility, and generated-artifact failure converted into symmetric tests.</p>
+            </a>
+          </div>
+        </section>` : ""}
+
         <section class="content-section" aria-labelledby="streams-title">
           <div class="section-heading">
-            <span class="section-index">02 / Study streams</span>
+            <span class="section-index">03 / Study streams</span>
             <h2 id="streams-title">One repository, six ways into the evidence.</h2>
             <p>Use the curated paths for orientation. Use Library when you need the complete source record.</p>
           </div>
@@ -260,7 +286,7 @@
 
         <section class="content-section" aria-labelledby="method-title">
           <div class="section-heading">
-            <span class="section-index">03 / Method</span>
+            <span class="section-index">04 / Method</span>
             <h2 id="method-title">From claim to decision, without hiding uncertainty.</h2>
             <p>The material is intentionally explicit about what is known, inferred, assumed, tested, and still open.</p>
           </div>
@@ -485,7 +511,7 @@
             <h1>Compare</h1>
             <p class="lede">Test platform fit against mandatory gates and weighted criteria. The current scorecards stay unscored until evidence is sufficient.</p>
           </div>
-          <p class="intro-note">A leading hypothesis is useful. A hidden assumption is not. Product conclusions remain provisional until the stated acceptance tests are met.</p>
+          <p class="intro-note">A named hypothesis is useful only when it can lose. Product conclusions remain provisional until symmetric option resolution, mandatory gates, and stated acceptance tests are met.</p>
         </header>
 
         <section class="content-section">
@@ -514,9 +540,9 @@
           </div>
           <div class="decision-visual-grid">
             ${visualPanel("A", "Recommendation", "Approve evidence closure—not selection", "The current steering ask is explicit; product selection remains blocked by unmet gates.", chartMarkup("recommendation", visuals.review || {}, { title: "Decision state" }), "is-wide")}
-            ${visualPanel("B", "Variants", "Exact deployment models", "Family-level scores would hide topology and entitlement differences.", chartMarkup("statusMatrix", visuals.variants || [], { title: "Variant status", nameHeader: "Variant" }), "is-wide")}
+            ${visualPanel("B", "Options", "Bounded deployment archetypes", "Family-level scores would hide topology and entitlement differences; each archetype remains unscored until its Gate-1 bill of materials closes.", chartMarkup("statusMatrix", visuals.variants || [], { title: "Option-resolution status", nameHeader: "Option" }), "is-wide")}
             ${visualPanel("C", "Evidence", "Confidence ladder", "Higher confidence requires execution under representative conditions.", chartMarkup("evidenceLadder", visuals.methodology?.evidenceLevels || [], { title: "Evidence levels" }))}
-            ${visualPanel("D", "Research", "Official-source balance", "Volume is visible; criterion-level traceability still determines fitness for scoring.", chartMarkup("sourceBalance", visuals.sources || {}, { title: "Sources by vendor" }))}
+            ${visualPanel("D", "Research", "Registered-source balance", "Volume is visible; criterion-level traceability still determines fitness for scoring.", chartMarkup("sourceBalance", visuals.sources || {}, { title: "Sources by vendor" }))}
           </div>
         </section>
 
@@ -601,7 +627,7 @@
           <div class="lab-sequence">
             <div class="lab-step"><span class="card-label">01 / Define</span><strong>${stats.apiContracts} contracts</strong><p>Synthetic API surfaces establish stable, inspectable test inputs.</p></div>
             <div class="lab-step"><span class="card-label">02 / Configure</span><strong>Two runtime paths</strong><p>Docker provides the thin baseline; Kubernetes models the target direction.</p></div>
-            <div class="lab-step"><span class="card-label">03 / Exercise</span><strong>${stats.pocScenarios} scenarios</strong><p>Security, failure, performance, hybrid, API operations, and migration tests.</p></div>
+            <div class="lab-step"><span class="card-label">03 / Exercise</span><strong>${stats.pocProtocolCases} atomic cases</strong><p>Real-world, portal, and observability protocols are distinct from ${stats.pocScenarios} aggregate status-register items.</p></div>
             <div class="lab-step"><span class="card-label">04 / Record</span><strong>Evidence first</strong><p>Acceptance criteria distinguish execution proof from product documentation.</p></div>
           </div>
           <div class="lab-visuals">
@@ -694,9 +720,13 @@
         }
         return;
       }
+      const fragmentIndex = href.indexOf("#");
+      const fragment = fragmentIndex >= 0 ? href.slice(fragmentIndex + 1) : "";
       const repoPath = normalizeRepoPath(item.path, href);
       const target = findByPath(repoPath);
-      link.href = target ? itemHref(target) : `content/${repoPath}`;
+      link.href = target
+        ? `${itemHref(target)}${fragment ? `?anchor=${encodeURIComponent(fragment)}` : ""}`
+        : `content/${repoPath}${fragment ? `#${fragment}` : ""}`;
     });
 
     container.querySelectorAll("img[src]").forEach((image) => {
@@ -711,6 +741,23 @@
       wrapper.className = "table-wrap";
       table.parentNode.insertBefore(wrapper, table);
       wrapper.appendChild(table);
+    });
+  }
+
+  function focusDocumentAnchor(anchor) {
+    if (!anchor) return;
+    let id = anchor;
+    try {
+      id = decodeURIComponent(anchor);
+    } catch (error) {
+      // Keep a malformed-but-literal fragment usable instead of failing the route.
+    }
+    const destination = document.getElementById(id);
+    if (!destination) return;
+    destination.setAttribute("tabindex", "-1");
+    requestAnimationFrame(() => {
+      destination.scrollIntoView({ behavior: "auto", block: "start" });
+      destination.focus({ preventScroll: true });
     });
   }
 
@@ -850,6 +897,20 @@
     return new XMLSerializer().serializeToString(documentNode.documentElement);
   }
 
+  function padSvgViewBox(svg, padding = {}) {
+    const values = (svg.getAttribute("viewBox") || "").trim().split(/\s+/).map(Number);
+    if (values.length !== 4 || values.some((value) => !Number.isFinite(value))) return;
+    const [x, y, width, height] = values;
+    if (width <= 0 || height <= 0) return;
+    const left = Math.max(0, Number(padding.left) || 0);
+    const right = Math.max(0, Number(padding.right) || 0);
+    const top = Math.max(0, Number(padding.top) || 0);
+    const bottom = Math.max(0, Number(padding.bottom) || 0);
+    svg.setAttribute("viewBox", `${x - left} ${y - top} ${width + left + right} ${height + top + bottom}`);
+    svg.style.overflow = "visible";
+    svg.dataset.viewBoxPadded = "true";
+  }
+
   function medianNumber(values, fallback) {
     if (!values.length) return fallback;
     const ordered = [...values].sort((left, right) => left - right);
@@ -985,6 +1046,13 @@
       target.innerHTML = window.DOMPurify ? window.DOMPurify.sanitize(textLabelSvg, { USE_PROFILES: { svg: true, svgFilters: true } }) : textLabelSvg;
       const svg = target.querySelector("svg");
       if (svg) {
+        // Mermaid's xychart renderer positions the rotated y-axis title just
+        // outside its own root viewBox. Give that chart family a real canvas
+        // margin so the label remains visible in scroll containers, screenshots,
+        // and print output instead of relying on overflow leaking from the SVG.
+        if (/^\s*xychart-beta\b/m.test(text)) {
+          padSvgViewBox(svg, { left: 44, right: 12, top: 12, bottom: 18 });
+        }
         const namespace = "http://www.w3.org/2000/svg";
         const titleId = `${id}-title`;
         const descriptionId = `${id}-description`;
@@ -1055,7 +1123,7 @@
     else prose.prepend(context);
   }
 
-  async function renderDocument(id) {
+  async function renderDocument(id, anchor = "") {
     const item = state.manifest.items.find((candidate) => candidate.id === id);
     if (!item) return renderNotFound("That resource is not in the generated index.");
     const token = ++state.renderToken;
@@ -1101,6 +1169,7 @@
         target.innerHTML = `<pre class="code-view"><code>${escapeHtml(text)}</code></pre>`;
         document.querySelector("[data-document-rail]").innerHTML = `<span>${escapeHtml(formatType(item.type))} source</span>`;
       }
+      if (token === state.renderToken) focusDocumentAnchor(anchor);
     } catch (error) {
       target.innerHTML = `<div class="error-state"><h1>Source unavailable.</h1><p>${escapeHtml(error.message)}</p></div>`;
     }
@@ -1138,6 +1207,13 @@
       return `<figure class="slide-system-map is-transition" role="img" aria-label="Release control and health evidence govern per-route allocation between legacy Mule or PCF services and AKS targets behind a stable enterprise gateway.">
         <div class="slide-system-lane"><b>Control</b><div class="slide-system-row is-control" aria-hidden="true">${node("Release controls")}${arrow}${node("Health + reconciliation evidence", "is-accent")}${arrow}${node("Adjust weights or rollback")}</div></div>
         <div class="slide-system-lane"><b>Traffic</b><div class="slide-system-row" aria-hidden="true">${node("Consumers + edge")}${arrow}${node("Enterprise gateway")}${arrow}${node("Per-route allocation", "is-accent")}${arrow}${node("Mule / PCF coexistence or AKS target")}${arrow}${node("Integration capabilities")}</div></div>
+      </figure>`;
+    }
+    if (slide.key === "lessons") {
+      return `<figure class="slide-system-map is-lessons" role="img" aria-label="Public incident patterns connect policy, configuration, network, trust, and state changes to shared runtime failures, then to containment, reconciliation, and independent recovery controls.">
+        <div class="slide-system-lane"><b>Triggers</b><div class="slide-system-row" aria-hidden="true">${node("Policy + code")}${node("Generated configuration")}${node("Network + state")}${node("Certificate trust")}</div></div>
+        <div class="slide-system-lane"><b>Failures</b><div class="slide-system-row" aria-hidden="true">${node("Fleet resource exhaustion", "is-accent")}${node("Latent defect activated", "is-accent")}${node("Divergence + backlog", "is-accent")}${node("Client incompatibility", "is-accent")}</div></div>
+        <div class="slide-system-lane"><b>Controls</b><div class="slide-system-row is-control" aria-hidden="true">${node("Bound + canary")}${node("Fail small")}${node("Reconcile state")}${node("Independent recovery access")}</div></div>
       </figure>`;
     }
     return source ? `<div class="slide-diagram" data-slide-diagram="${escapeHtml(source.contentUrl)}"><p>Rendering system model…</p></div>` : "";
@@ -1181,7 +1257,9 @@
       ? " is-diagram"
       : slide.visual === "roadmap"
         ? " is-roadmap"
-        : slide.visual === "statusMatrix"
+        : slide.visual === "sourceBalance"
+          ? " is-matrix is-source-balance"
+        : ["statusMatrix", "recommendation", "governance"].includes(slide.visual)
           ? " is-matrix"
           : "";
     document.body.classList.add("is-presenting");
@@ -1267,7 +1345,7 @@
       case "compare": renderCompare(); break;
       case "architecture": renderArchitecture(); break;
       case "lab": renderLab(); break;
-      case "doc": renderDocument(current.parts[0]); break;
+      case "doc": renderDocument(current.parts[0], current.params.get("anchor") || ""); break;
       case "present": current.parts.length > 1 ? renderPresentation(current.parts[1], current.parts[0]) : renderPresentation(current.parts[0]); break;
       default: renderNotFound();
     }

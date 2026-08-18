@@ -5,10 +5,10 @@
 
 ## Decision
 
-Define requirements and mandatory gates before vendor scoring; score exact deployment variants; use `unknown` for missing evidence; and preserve the following approval sequence:
+Define requirements and mandatory gates before vendor scoring; treat the seven entries as bounded archetypes until Gate-1 option resolution; score only exact resolved options; use `unknown` for missing evidence; compare with common evidence, category coverage, full-weight bounds and maximum regret; and preserve the following approval sequence:
 
 1. Gate 0 approves the decision contract.
-2. Gate 1 down-selects finalists only after an equivalent E1/E2 screen of all seven variants.
+2. Gate 1 down-selects finalists only after an equivalent E1/E2 screen of all seven bounded archetypes and closure of each surviving option's edition/version/topology/entitlement/support record.
 3. Gate 2 may make a conditional selection only after symmetric E3 proof, TCO/support analysis, sensitivity, and evidence review.
 4. Gate 3 admits representative E4 production pilots only after the selected platform foundation is production-pilot ready.
 5. Gate 4 authorizes migration at scale only after representative pilot evidence meets approved thresholds.
@@ -18,4 +18,4 @@ The conditional selection ADR must record dissent, exceptions, conditions, exit 
 
 ## Consequences
 
-The process takes longer than feature-checklist selection but makes bias, uncertainty, variant limitations, and the distinction between selection and production-scale approval visible.
+The process takes longer than feature-checklist selection but makes bias, selective missing evidence, option limitations, and the distinction between selection and production-scale approval visible. An observed-evidence normalized score cannot rank options that have different evidence sets.

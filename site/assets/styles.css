@@ -22,8 +22,8 @@
   --viz-meta: 0.875rem;
   --viz-label: 0.875rem;
   --viz-copy: 0.9375rem;
-  --slide-meta: clamp(1rem, 0.95vw, 1.2rem);
-  --slide-data: clamp(1.05rem, 1vw, 1.25rem);
+  --slide-meta: clamp(1.25rem, 1.25vw, 1.5rem);
+  --slide-data: clamp(1.35rem, 1.35vw, 1.65rem);
   --slide-body: clamp(1.5rem, 1.5vw, 1.8rem);
 }
 
@@ -427,6 +427,10 @@ a {
   grid-template-columns: repeat(3, minmax(0, 1fr));
   border-top: 1px solid var(--line-dark);
   border-left: 1px solid var(--line-dark);
+}
+
+.study-grid.is-depth {
+  grid-template-columns: repeat(2, minmax(0, 1fr));
 }
 
 .study-card {
@@ -1701,6 +1705,12 @@ a {
   font-size: 18px;
 }
 
+.diagram-frame .sequenceNumber,
+.architecture-preview .sequenceNumber,
+.slide-diagram .sequenceNumber {
+  font-size: 16px !important;
+}
+
 .inline-diagram {
   margin: 2.5rem 0;
 }
@@ -1984,21 +1994,35 @@ a {
 }
 
 .slide-narrative.is-diagram,
-.slide-narrative.is-roadmap {
+.slide-narrative.is-roadmap,
+.slide-narrative.is-matrix {
   grid-template-columns: 1fr;
   gap: 1.25rem;
   align-items: start;
 }
 
 .slide-narrative.is-diagram .slide-title,
-.slide-narrative.is-roadmap .slide-title {
+.slide-narrative.is-roadmap .slide-title,
+.slide-narrative.is-matrix .slide-title {
   max-width: 18ch;
   font-size: clamp(2.6rem, 4.4vw, 4.8rem);
 }
 
 .slide-narrative.is-diagram .slide-visual,
-.slide-narrative.is-roadmap .slide-visual {
+.slide-narrative.is-roadmap .slide-visual,
+.slide-narrative.is-matrix .slide-visual {
   max-height: none;
+}
+
+.slide-narrative.is-matrix .slide-title {
+  max-width: 19ch;
+  font-size: clamp(2.35rem, 3.6vw, 4.1rem);
+  line-height: 0.94;
+}
+
+.slide-narrative.is-source-balance .viz-bar-list {
+  grid-template-columns: repeat(2, minmax(0, 1fr));
+  gap: 0.55rem 2rem;
 }
 
 .slide-visual {
@@ -2064,7 +2088,7 @@ a {
   padding: 0.65rem;
   border: 1px solid #72776d;
   color: #f3f0e7;
-  font-size: clamp(1.05rem, 1.15vw, 1.35rem);
+  font-size: clamp(1.25rem, 1.3vw, 1.5rem);
   line-height: 1.25;
   text-align: center;
   text-wrap: balance;
@@ -2184,7 +2208,7 @@ a {
 
 .presentation-stage .viz-matrix-row,
 .presentation-stage .viz-matrix.is-compact .viz-matrix-row {
-  grid-template-columns: 28px minmax(0, 1fr) minmax(110px, max-content);
+  grid-template-columns: 38px minmax(0, 1fr) minmax(110px, max-content);
 }
 
 .presentation-stage .viz-matrix-header {
@@ -2198,17 +2222,24 @@ a {
 }
 
 .presentation-stage .viz-roadmap-list {
-  grid-template-columns: repeat(var(--phase-count, 6), minmax(0, 1fr));
-  gap: 0.35rem;
+  grid-template-columns: repeat(4, minmax(0, 1fr));
+  gap: 0.65rem 0.9rem;
   overflow: visible;
+  padding-top: 0;
 }
 
 .presentation-stage .viz-roadmap-list li {
-  padding-right: 0.2rem;
+  display: grid;
+  grid-template-columns: 38px minmax(0, 1fr);
+  gap: 0.55rem;
+  align-items: start;
+  padding: 0.55rem 0.7rem 0.55rem 0;
+  border-top: 1px solid #4b4f47;
 }
 
 .presentation-stage .viz-roadmap-list li > div {
   min-width: 0;
+  padding-top: 0;
 }
 
 .presentation-stage .viz-roadmap-marker {
@@ -2218,13 +2249,13 @@ a {
 }
 
 .presentation-stage .viz-roadmap-list::before {
-  top: 22px;
+  display: none;
 }
 
 .presentation-stage .viz-roadmap-list strong {
   font-size: var(--slide-data);
   line-height: 1.1;
-  overflow-wrap: normal;
+  overflow-wrap: anywhere;
   word-break: normal;
 }
 
@@ -3304,6 +3335,7 @@ body.is-presenting .site-footer {
   }
 
   .study-grid,
+  .study-grid.is-depth,
   .architecture-grid,
   .lab-grid {
     grid-template-columns: 1fr;
@@ -3392,12 +3424,14 @@ body.is-presenting .site-footer {
   }
 
   .presentation-stage {
+    --mobile-control-rail: 4.25rem;
     overflow-y: auto;
     overscroll-behavior: contain;
   }
 
   .slide-main {
     min-height: 58dvh;
+    margin-right: var(--mobile-control-rail);
     padding: 1.15rem;
     border-right: 0;
     border-bottom: 1px solid #454840;
@@ -3429,27 +3463,70 @@ body.is-presenting .site-footer {
 
   .presentation-stage .viz-matrix-row,
   .presentation-stage .viz-matrix.is-compact .viz-matrix-row {
+    grid-template-columns: 38px minmax(0, 1fr);
+    grid-template-rows: auto auto;
     gap: 0.45rem;
-    padding: 0.2rem 0;
+    padding: 0.45rem 0;
+  }
+
+  .presentation-stage .viz-matrix-index {
+    grid-row: 1 / span 2;
+    align-self: start;
+  }
+
+  .presentation-stage .viz-matrix-row > strong,
+  .presentation-stage .viz-status {
+    grid-column: 2;
+  }
+
+  .presentation-stage .viz-status {
+    margin-top: 0.1rem;
   }
 
   .presentation-stage .viz-matrix-row > strong {
-    font-size: 1rem;
+    font-size: 1.125rem;
     line-height: 1.15;
   }
 
   .presentation-stage .viz-status,
   .presentation-stage .viz-matrix-index {
-    font-size: 0.875rem;
+    font-size: 1rem;
   }
 
   .presentation-stage .viz-bar-list {
     gap: 0.32rem;
   }
 
+  .presentation-stage .viz-bar-row,
+  .presentation-stage .viz-stacked-row {
+    grid-template-columns: minmax(0, 1fr) auto;
+    grid-template-rows: auto auto;
+    gap: 0.3rem 0.55rem;
+  }
+
+  .presentation-stage .viz-bar-label {
+    grid-column: 1;
+    grid-row: 1;
+  }
+
+  .presentation-stage .viz-bar-track,
+  .presentation-stage .viz-stacked-track {
+    grid-column: 1 / -1;
+    grid-row: 2;
+  }
+
+  .presentation-stage .viz-bar-value {
+    grid-column: 2;
+    grid-row: 1;
+  }
+
+  .slide-narrative.is-source-balance .viz-bar-list {
+    grid-template-columns: 1fr;
+  }
+
   .presentation-stage .viz-roadmap-list {
-    grid-template-columns: repeat(3, minmax(0, 1fr));
-    gap: 0.65rem 0.9rem;
+    grid-template-columns: 1fr;
+    gap: 0.45rem;
     padding-top: 0;
   }
 
@@ -3480,7 +3557,8 @@ body.is-presenting .site-footer {
   }
 
   .slide-narrative.is-diagram .slide-title,
-  .slide-narrative.is-roadmap .slide-title {
+  .slide-narrative.is-roadmap .slide-title,
+  .slide-narrative.is-matrix .slide-title {
     font-size: clamp(2rem, 6vw, 3rem);
   }
 
@@ -3517,7 +3595,7 @@ body.is-presenting .site-footer {
     grid-template-rows: auto auto auto;
     gap: 0.7rem 1rem;
     overflow: visible;
-    margin-right: 4rem;
+    margin-right: var(--mobile-control-rail);
     padding: 0.85rem 1rem 4.25rem;
   }
 
@@ -3629,8 +3707,8 @@ body.is-presenting .site-footer {
 
 @media (max-width: 520px) {
   .presentation-stage .viz-roadmap-list {
-    grid-template-columns: repeat(2, minmax(0, 1fr));
-    gap: 0.45rem 0.7rem;
+    grid-template-columns: 1fr;
+    gap: 0.45rem;
     padding-top: 0;
   }
 

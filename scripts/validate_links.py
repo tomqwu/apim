@@ -9,9 +9,10 @@ root = pathlib.Path(__file__).resolve().parents[1]
 pattern = re.compile(r"!?\[[^\]]*\]\(([^)]+)\)")
 errors = []
 checked = 0
+excluded_directories = {".git", "_site", "node_modules", ".venv", "venv"}
 
 for document in root.rglob("*.md"):
-    if ".git" in document.parts:
+    if excluded_directories.intersection(document.relative_to(root).parts):
         continue
     text = document.read_text(encoding="utf-8")
     for raw_target in pattern.findall(text):

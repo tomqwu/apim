@@ -1,12 +1,12 @@
 # API Management Studies
 
-A living collection of API management studies, research, architecture, platform comparisons, proofs of concept, migration material, workshops, templates, and presentation-ready evidence. Kong hybrid variants are low-confidence priority-validation hypotheses; Azure API Management and Apigee remain required hybrid benchmarks, and MuleSoft remains the current-state baseline rather than a one-for-one migration target.
+A living collection of API management studies, research, architecture, platform comparisons, proofs of concept, migration material, workshops, templates, and presentation-ready evidence. Kong hybrid options are named low-confidence sequencing hypotheses with no execution priority; Azure API Management, Apigee, and the MuleSoft baseline receive the same option-resolution, evidence, and advancement rules.
 
 > **Assessment status:** approve evidence closure, not a purchase recommendation. All organization-specific topology, volume, SLO, inventory, regulatory, data-residency, identity, and commercial inputs remain to be confirmed. No customer data, credentials, private topology, commercial quotes, NDA material, raw security evidence, or named-person mapping belongs in this public repository.
 
-> **Study maturity:** the repository and public portal have a working technical publication baseline. That proves the material can be validated, rendered, searched, and presented; it does **not** mean the articles are editorially complete, comparatively balanced, or decision-grade. The [principal content review](reports/content-research-principal-review.md) and [remediation backlog](reports/content-remediation-backlog.csv) govern that closure work.
+> **Study maturity:** the repository now has an implemented principal-content baseline—39 contract-enforced studies, deep symmetric dossiers, a reference case, a public failure casebook, three decision-grade protocols, and point-of-use figure contracts. Independent content acceptance remains open, and no protocol depth substitutes for observed candidate evidence. The [principal content review](reports/content-research-principal-review.md), [remediation backlog](reports/content-remediation-backlog.csv), [source-coverage report](reports/source-coverage.md), and [repository roadmap](docs/39-repository-roadmap.md) govern closure.
 
-**Live portal:** [API Management Studies](https://tomqwu.github.io/apim/) · [Audience briefings](https://tomqwu.github.io/apim/#/audiences) · [Visual Atlas](https://tomqwu.github.io/apim/#/visuals) · [Principal content review](reports/content-research-principal-review.md) · [Content backlog](reports/content-remediation-backlog.csv) · [Decision-assurance review](reports/methodology-review.md) · [Evidence state](reports/evidence-state.md) · [Repository roadmap](docs/39-repository-roadmap.md)
+**Live portal:** [API Management Studies](https://tomqwu.github.io/apim/) · [Enterprise reference case](docs/41-enterprise-reference-case.md) · [Public failure casebook](docs/42-public-failure-casebook.md) · [Audience briefings](https://tomqwu.github.io/apim/#/audiences) · [Visual Atlas](https://tomqwu.github.io/apim/#/visuals) · [Baseline principal review](reports/content-research-principal-review.md) · [Post-remediation review](reports/content-depth-wave-1.md) · [Content backlog](reports/content-remediation-backlog.csv) · [Decision-assurance review](reports/methodology-review.md) · [Evidence state](reports/evidence-state.md) · [Repository roadmap](docs/39-repository-roadmap.md)
 
 ## Decision statement
 
@@ -28,7 +28,7 @@ Select the API management and gateway architecture that best supports a Kubernet
 |---|---|
 | [`docs/`](docs/README.md) | Assessment narrative, architecture, security, operations, roadmap, risks, and open questions |
 | [`architecture/`](architecture/README.md) | Current, transition, target, security, network, API operations, observability, and DR views |
-| [`decision-matrix/`](decision-matrix/README.md) | 120 gated and weighted criteria, scoring method, exact-variant evidence-ledger schema, and scorecard projections |
+| [`decision-matrix/`](decision-matrix/README.md) | 120 gated and weighted criteria, bounded option IDs, option-resolution requirements, evidence-ledger schema, and unscored projections |
 | [`workshops/`](workshops/README.md) | Nine workshop plans, a 180-question bank, and vendor-specific validation prompts |
 | [`poc/`](poc/README.md) | Executable Docker baseline plus Kubernetes/Kong manifests, tests, and evidence capture |
 | [`mule-migration/`](mule-migration/README.md) | Inventory, classification, routing patterns, wave planning, and decommission controls |
@@ -36,6 +36,8 @@ Select the API management and gateway architecture that best supports a Kubernet
 | [`adr/`](adr/README.md) | Architecture decision records; hypotheses are not silently promoted to decisions |
 | [`templates/`](templates/README.md) | Reusable collection and governance templates |
 | [`reports/`](reports/content-research-principal-review.md) | Principal content review and backlog, decision-assurance review, evidence state, delivery inventory, and reproducible validation record |
+
+Substantive articles use the [principal study standard](docs/STUDY-STANDARD.md) and [study template](templates/principal-study-template.md). The standard requires a real decision chain, bounded option scope with Gate-1 resolution blockers, mechanism and failure analysis, point-of-use evidence, scenario depth, inline figure contracts, falsification, and limitations; longer prose alone does not satisfy it.
 
 ## Quick start
 
@@ -93,15 +95,13 @@ It does **not** prove Konnect, Kong Enterprise plugins, OIDC, production PKI/mTL
 
 ## Assessment workflow
 
-1. Use the [principal content review](reports/content-research-principal-review.md) and [remediation backlog](reports/content-remediation-backlog.csv) to classify every asset under the governed PCR-001 taxonomy and apply its metadata and quality gates.
-2. Confirm scope and inputs in [`docs/02-current-state-assumptions.md`](docs/02-current-state-assumptions.md).
-3. Complete the anchor studies, symmetric candidate dossiers, and inline canonical figures before treating the portal as a comparative study publication.
-4. Run stakeholder workshops and capture evidence rather than opinions.
-5. Populate the Mule inventory and derive responsibility destinations.
-6. Execute equivalent comparative experiments, beginning with the thin functional harness and continuing through security, resilience, scale, observability, migration, and disconnected-control-plane tests.
-7. Score pass/fail gates first, then weighted criteria, using `unknown` rather than optimistic values.
-8. Review commercial and contractual facts under separate approval.
-9. Run a final independent principal review and publish a recommendation only after content, evidence coverage, comparative integrity, and sensitivity gates are met.
+1. Independently accept or return the implemented content baseline against the [principal review](reports/content-research-principal-review.md), strict study/figure contract, [source boundary](reports/source-coverage.md), and machine-readable backlog; no author self-closes a PCR item.
+2. Approve Gate 0: sponsor, decision owner, scope/non-goals, calibrated organization inputs, bounded option catalog, option-resolution fields, mandatory/category thresholds, common-evidence/bounds/maximum-regret rules, capacity and evidence calendar.
+3. Resolve edition, version, topology, region, entitlement, plugin, support and commercial fields before an archetype becomes an exact scoreable option.
+4. Complete an equivalent E1/E2 screen, promote decision-bearing contextual citations into the source/finding chain, and select E3 finalists without brand priority.
+5. Execute the 28 atomic real-world, portal and observability cases with identical validity, abort, reconciliation, artifact and independent-review rules; any applicable fail or indeterminate result blocks preference scoring.
+6. Populate quote-based TCO, staffing/on-call, support, migration and exit evidence, then compare only with mandatory gates, common evidence, category coverage, full-weight bounds, maximum regret and sensitivity visible together.
+7. Admit production pilots only after Gate 3; scale only after representative gateway- and integration-dominant E4 evidence; retire legacy responsibilities only after dependency-zero and commercial closure.
 
 ## Cross-session remediation workflow
 
@@ -117,7 +117,7 @@ Repository validation requires every backlog ID to appear in the principal revie
 
 ## Current hypothesis
 
-Kong hybrid variants are low-confidence priority-validation hypotheses because their control/data-plane separation, workload-local data planes, Kubernetes integration, and declarative automation align with the target intent. All seven variants receive an equivalent E1/E2 screen before finalists are approved for symmetric E3 proof. The Kong hypothesis fails if the PoC, operating model, support model, security review, total cost, or required enterprise capabilities do not meet decision gates.
+Kong hybrid options are named low-confidence sequencing hypotheses because their documented control/data-plane separation, workload-local data planes, Kubernetes integration, and declarative automation align with the target intent. That observation confers no priority. All seven bounded archetypes receive an equivalent E1/E2 screen and must close their Gate-1 bills of materials before any finalist is approved for symmetric E3 proof. Any hypothesis fails if mandatory gates, common evidence, PoC, operating/support model, security review, total cost, or required enterprise capabilities do not support it.
 
 Azure APIM is an important Azure-native benchmark. Its self-hosted gateway supports hybrid placement, but current documented feature and support boundaries—including the inability to associate APIM workspaces with self-hosted gateways—must be tested against the target federation model. Apigee Hybrid is an important enterprise-lifecycle benchmark, but its customer-managed runtime components and Google-hosted management plane must be justified in a hybrid Kubernetes estate.
 
