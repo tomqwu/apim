@@ -115,18 +115,18 @@ Every packet occupies exactly one state. A status describes the release, not the
 | `CANDIDATE` | Local gates pass; candidate is committed, pushed, and represented by a draft PR head SHA | Dirty scope, unsafe scan, or failed local gate | `REVIEWED` or `REWORK` |
 | `REVIEWED` | Independent content and visual acceptance names the candidate head SHA | Unresolved material defect or changed SHA | `VALIDATED` or `REWORK` |
 | `VALIDATED` | Required PR checks pass on the same reviewed head SHA | Any failing/pending check or changed SHA | `MERGED` or `REWORK` |
-| `MERGED` | Approved PR head is reachable from GitHub `main`; intake branches are safely cleaned | Merge state or scope differs | `PUBLISHED`; a defect uses a superseding intake while this record remains `MERGED` |
-| `PUBLISHED` | Main checks and Pages deployment are green; live routes/manifests match | Failed or stale deployment | `CLOSED` only; correction uses a superseding intake |
-| `CLOSED` | Closure record captures artifacts, SHAs, runs, live proof, residual limits, and next gate | Any required record or live assertion missing | Immutable terminal state; a new change gets a new intake |
+| `MERGED` | Approved PR head is reachable from GitHub `main`; intake branches are safely cleaned | Merge state, required workflow, or live scope differs | `PUBLISHED` only; otherwise remain `MERGED` pending source-preserving retry or owner-coordinated external recovery |
+| `PUBLISHED` | Main checks and Pages deployment are green; live routes/manifests match | Failed or stale deployment | `CLOSED` only; a post-closure content change uses a new intake |
+| `CLOSED` | Successful live proof, residual limits, and next gate are recorded | Any required live assertion is missing | Immutable terminal state; a new change gets a new intake |
 | `REWORK` | Defect, responsible stage, owner, and required evidence are recorded | Remediation not complete | Earliest affected nonterminal state |
 | `BLOCKED` | Reason, owner role, required evidence/authority, and decision impact are recorded | Unsafe or unavailable prerequisite | `INTAKE`, `FRAMED`, `RESEARCHED`, or terminal blocked disposition |
 
 **Figure SPW-2 — Publication advances through evidence-producing gates, with rework returning to the canonical source.**
 
-- **Depicted scope:** intake, framing, research, docs-first authoring, article figures, site/presentation projection, independent review, deterministic validation, pull-request merge, Pages verification, and corrective loops.
+- **Depicted scope:** intake, framing, research, docs-first authoring, article figures, site/presentation projection, independent review, deterministic validation, pull-request merge, Pages verification, and failure/rework loops.
 - **Excluded scope:** product-selection gates, organization-specific approval forums, elapsed-time promises, staffing levels, and platform evidence maturity.
 - **Diagram source, evidence state and as-of:** workflow states and gates in the preceding table; proposed repository publication control; 2026-08-18.
-- **Accessible equivalent:** authorized and sanitized input becomes a framed research packet, then canonical Markdown and figures. Only after the document schema is stable is it projected into the site and presentations. Local and public-safety gates create a pushed draft-PR candidate; independent review and required PR checks must accept that exact head SHA before merge. GitHub Pages must deploy and pass live checks before closure. Content, projection, check, or live failures return to the responsible earlier state.
+- **Accessible equivalent:** authorized and sanitized input becomes a framed research packet, then canonical Markdown and figures. Only after the document schema is stable is it projected into the site and presentations. Local and public-safety gates create a pushed draft-PR candidate; independent review and required PR checks must accept that exact head SHA before merge. GitHub Pages and live checks must pass before closure. Content, projection, or premerge check failures return to the responsible earlier state; a post-merge publication failure remains visibly open at `MERGED` and cannot be papered over by another checkpoint state.
 
 ```mermaid
 flowchart LR
@@ -144,8 +144,7 @@ flowchart LR
   T -->|"fail / new SHA"| D
   T -->|"pass"| M["PR merge<br/>accepted scope"]
   M --> G{"Pages deploy +<br/>live verification"}
-  G -->|"fail or stale"| C["Superseding<br/>corrective intake"]
-  C --> I
+  G -->|"fail or stale"| H["MERGED remains open<br/>retry or owner recovery"]
   G -->|"pass"| U["PUBLISHED<br/>verified live release"]
   U --> Z["CLOSED<br/>release evidence + next gate"]
 ```
@@ -292,6 +291,8 @@ Apply these presentation controls:
 
 ## Stage 6 — Project the canon into site and presentation
 
+Every file-like `derivedPath` must be a regular tracked blob (`100644` or `100755`) in the reviewed candidate commit. Generated `_site/` output, `evidence/raw/`, workflow-local state, ignored paths, symlinks, gitlinks, and untracked local files can never serve as candidate artifacts; generated publication proof is represented by manifest-backed routes and later live assertions instead.
+
 Only begin projection after the author freezes the relevant headings, identifiers, and table schemas.
 
 1. Extend `scripts/build_site.py` to parse the canonical source and emit explicitly named manifest data with source path, source heading/table, IDs, counts, and evidence boundary.
@@ -424,7 +425,9 @@ Do not force-push after review, merge around a failed or pending required check,
 
 ## Stage 10 — Pages and live verification
 
-The [Pages workflow](../.github/workflows/pages.yml) rebuilds `_site/` only from `main` and deploys only when `PAGES_ENABLED` is `true`; manual dispatch on a feature ref is gated before either job. After merge, this intake holds the repository publication lock through `CLOSED`; no later study publication may merge while this exact deployment is being proven:
+The [Pages workflow](../.github/workflows/pages.yml) rebuilds `_site/` only from `main` and deploys only when `PAGES_ENABLED` is `true`; manual dispatch on a feature ref is gated before either job. After merge, apply an explicit fail-closed publication-policy limit through `CLOSED`: no later study publication may merge while this record remains open. No executable cross-intake lock service currently enforces, transfers, or releases this policy. While proving this exact deployment:
+
+The published gate does not trust the squash result alone. It re-fetches the authenticated GitHub pull-request head after branch cleanup, proves the immutable base is its ancestor, rescans every base-to-candidate commit, recomputes the validated source-tree digest from raw Git blobs, and rechecks canonical and derived artifact modes plus committed ignore rules. A deleted sensitive intermediate, rewritten checkpoint, generated/private artifact claim, or mismatched pull-request ref therefore blocks closure even when the final squash tree looks clean.
 
 1. wait for the `validate` workflow on the merge SHA;
 2. wait for both build and deploy jobs in the `pages` workflow on the same main state;
@@ -438,7 +441,7 @@ A green `validate` run proves repository controls. A green Pages build proves si
 
 Record machine-checkable publication evidence, not prose placeholders: the three manifest assertions must be exactly `sourceRevision=<merge-SHA>`, `manifestSha256=<deployed-manifest-SHA-256>`, and `sourceDirty=false`; route assertions must be the exact `#/...` routes already declared in `derivedPaths`. The published gate feeds every asserted route to the merge-SHA Pages verifier and rejects missing, extra, or unknown routes.
 
-If Pages fails, keep this record at `MERGED`, inspect the exact job, and open a superseding reviewed corrective intake. If the live site is stale after a successful deployment, check the deployed run, manifest, cache behavior, and route before changing source. If a merged release is materially wrong, use a corrective pull request or an approved `git revert`; do not rewrite shared history or reset `main`. Do not release the publication lock until live parity is proved and the exact `CLOSED` checkpoint block is in the PR body.
+If main validation, Pages, or exact live parity fails, keep the record at `MERGED`, set `publicationStatus=corrective-change-required`, preserve the failing run/live evidence, and stop. Rerun or repair deployment controls that do not change reviewed source. If source must change after merge, the automated workflow deliberately has no self-authorized lock-release or second merge path: report the open merged release and request repository-owner direction for an externally coordinated recovery. Do not rewrite shared history, reset `main`, fabricate closure, or merge another study publication while this record is open. This fail-closed limitation is intentional until the repository has an authoritative cross-intake lock/ruleset service.
 
 **Publication exit:** GitHub checks, Pages deployment, live manifest, article, visuals, and presentations agree with the reviewed canonical source.
 
@@ -500,7 +503,7 @@ The canonical workflow state is the 13-value state model in this document. User-
 
 All other nonterminal states return an in-progress update with the exact canonical state rather than one of these terminal handoff dispositions.
 
-Resume is idempotent. Resolve an existing intake by intake ID before creating a packet, branch, or PR. Verify that its repository, base, branch ownership, PR head, and recorded SHAs still match authoritative GitHub state. Reuse the existing branch/PR when safe; do not duplicate them. A changed candidate SHA returns the packet to `CANDIDATE` or `REWORK` and invalidates affected acceptance/checks. A merged PR whose durable payload reached `VALIDATED` resumes at `MERGED` only after the actual merge commit, accepted review/check evidence, and absence of both intake branches are verified. If deployment finished after the last PR-body checkpoint, reconstruct its Actions, manifest, closure-comment, and live-route evidence from GitHub, record `PUBLISHED`, rerender the exact PR-body block, and rerun live parity before `CLOSED`; rerender it again for immutable closure. Do not infer publication from merge alone. Read-only checks may be retried; commits, pushes, merges, cleanup, and corrective actions occur only when the checkpoint proves they have not already completed for that intake.
+Resume is idempotent. Resolve an existing intake by intake ID before creating a packet, branch, or PR. Verify that its repository, base, branch ownership, PR head, and recorded SHAs still match authoritative GitHub state. Reuse the existing branch/PR when safe; do not duplicate them. A changed candidate SHA returns the packet to `CANDIDATE` or `REWORK` and invalidates affected acceptance/checks. A merged PR whose durable payload reached `VALIDATED` resumes at `MERGED` only after the actual merge commit, accepted review/check evidence, and absence of both intake branches are verified. If deployment finished after the last PR-body checkpoint, reconstruct its Actions, manifest, closure-comment, and live-route evidence from GitHub, record `PUBLISHED`, rerender the exact PR-body block, and rerun live parity before `CLOSED`; rerender it again for immutable closure. A failed publication remains `MERGED` across sessions until the same merge passes or repository-owner recovery is explicitly coordinated. Do not infer publication from merge alone. Read-only checks and source-preserving deployment controls may be retried only when the checkpoint proves they have not already completed for that intake; source-changing recovery requires repository-owner direction.
 
 The agent records blockers and recommendations in repository artifacts or the pull-request workflow, not solely in chat. It asks for user direction only when authority, sensitive-data handling, a decision-changing choice, or a materially broader mutation cannot be resolved from the repository and current request. It never invents organization facts, silently changes canonical identifiers, edits generated `_site/` output, weakens a gate, deletes unrelated branches, or reports a release complete before live verification.
 

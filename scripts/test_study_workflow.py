@@ -258,6 +258,17 @@ class TemporaryWorkflowRepository:
         self.git("commit", "-q", "-m", message)
         return self.git("rev-parse", "HEAD").stdout.strip()
 
+    def publish_pull_head(self, number: int, candidate: str) -> None:
+        result = self._run(
+            (
+                "git", "--git-dir", str(self.origin), "update-ref",
+                f"refs/pull/{number}/head", candidate,
+            ),
+            cwd=self.container,
+        )
+        if result.returncode:
+            raise AssertionError(result.stdout + result.stderr)
+
     def new_checkpoint(
         self,
         *,
@@ -385,6 +396,7 @@ class TemporaryWorkflowRepository:
     def prepare_release(self) -> tuple[Path, dict[str, Any], str]:
         checkpoint, data, head = self.prepare_draft()
         self.git("push", "-q", "origin", f"{head}:refs/heads/{data['branch']}")
+        self.publish_pull_head(17, head)
         data.update(
             {
                 "canonicalState": "VALIDATED",
@@ -736,6 +748,9 @@ class CanonicalContractTests(WorkflowTestCase):
         app = (SOURCE_ROOT / "site/assets/app.js").read_text(encoding="utf-8")
         self.assertIn('template.content.querySelector("svg")', app)
         self.assertIn('.toLowerCase() === "foreignobject"', app)
+        self.assertIn('new Set(["br", "div", "p", "li", "section"])', app)
+        self.assertIn("htmlSvgLabelText(foreignObject)", app)
+        self.assertNotIn("wrapSvgLabel(foreignObject.textContent", app)
         self.assertIn('svg.querySelectorAll("g.node")', app)
         self.assertIn("Rendered diagram is missing", app)
 
@@ -2773,6 +2788,48 @@ class ImmutableSpecTests(WorkflowTestCase):
 
 
 class DraftGateTests(WorkflowTestCase):
+    def test_candidate_rejects_ignored_or_generated_nonroute_derived_files(self) -> None:
+        repository = self.repository(local_origin=True)
+        checkpoint, valid, _ = repository.prepare_candidate()
+        fixtures = {
+            "generated output": "_site/content-manifest.json",
+            "ignored evidence": "evidence/raw/local-only-proof.md",
+        }
+        for label, relative in fixtures.items():
+            with self.subTest(case=label):
+                repository.write_text(relative, "Local-only derived fixture.\n")
+                candidate = dict(valid)
+                candidate["derivedPaths"] = [*valid["derivedPaths"], relative]
+                candidate["candidateEnvelopeSha256"] = repository.load_module(
+                    "scripts/study_workflow.py"
+                ).candidate_envelope_digest(candidate)
+                repository.replace_checkpoint(checkpoint, candidate)
+                pr = repository.with_current_checkpoint_body(
+                    repository.valid_pr_json(candidate["candidateSha"], draft=True), checkpoint
+                )
+                observed = repository.cli(
+                    "check", "--checkpoint", str(checkpoint), "--phase", "draft",
+                    "--base", repository.base_sha,
+                    environment=repository.fake_github_environment(pr, candidate["candidateSha"]),
+                )
+                self.assert_deterministic_error(
+                    observed,
+                    contains="candidate derived path is",
+                )
+
+    def test_force_tracked_ignored_generated_file_is_not_a_candidate_artifact(self) -> None:
+        repository = self.repository(local_origin=True)
+        _, data, _ = repository.prepare_candidate()
+        relative = "_site/content-manifest.json"
+        repository.write_text(relative, '{"local": true}\n')
+        repository.git("add", "-f", relative)
+        repository.git("commit", "-q", "-m", "Force-track generated output fixture")
+        data["candidateSha"] = repository.git("rev-parse", "HEAD").stdout.strip()
+        data["derivedPaths"] = [*data["derivedPaths"], relative]
+        workflow = repository.load_module("scripts/study_workflow.py")
+        with self.assertRaisesRegex(workflow.WorkflowError, "generated, private, or workflow-local"):
+            workflow.verify_candidate_derived_files(data)
+
     def test_projected_publication_requires_a_manifest_backed_route_and_canonical_path(self) -> None:
         repository = self.repository(local_origin=True)
         checkpoint, data, _ = repository.prepare_draft()
@@ -3146,6 +3203,29 @@ class DraftGateTests(WorkflowTestCase):
         self.assert_deterministic_error(
             drifted,
             contains="draft gate candidate, PR head, and HEAD SHAs must be identical",
+        )
+
+    def test_candidate_draft_gate_requires_commit_push_and_pr_authority(self) -> None:
+        repository = self.repository(local_origin=True)
+        checkpoint, data, candidate = repository.prepare_candidate()
+        data["requestedActions"] = ["edit", "branch"]
+        repository.replace_checkpoint(checkpoint, data)
+        pr = repository.with_current_checkpoint_body(
+            repository.valid_pr_json(candidate, draft=True), checkpoint
+        )
+        observed = repository.cli(
+            "check",
+            "--checkpoint",
+            str(checkpoint),
+            "--phase",
+            "draft",
+            "--base",
+            repository.base_sha,
+            environment=repository.fake_github_environment(pr, candidate),
+        )
+        self.assert_deterministic_error(
+            observed,
+            contains="draft gate lacks explicit authority for: commit, pull-request, push",
         )
 
     def test_candidate_draft_gate_requires_the_actual_pr_and_exact_checkpoint_block(self) -> None:
@@ -3633,12 +3713,52 @@ class PagesDeadlineTests(unittest.TestCase):
 
 class PublishedGateTests(WorkflowTestCase):
     def prepare_published(
-        self, repository: TemporaryWorkflowRepository, *, clean_branch: bool = True
+        self,
+        repository: TemporaryWorkflowRepository,
+        *,
+        clean_branch: bool = True,
+        deleted_sensitive_history: bool = False,
+        force_tracked_ignored_artifact: bool = False,
     ) -> tuple[Path, dict[str, Any], str, str]:
         checkpoint, data, candidate = repository.prepare_release()
+        if deleted_sensitive_history:
+            repository.write_text(
+                "docs/deleted-sensitive.md",
+                "Authorization: Bearer " + "q" * 24 + "\n",
+            )
+            repository.commit_all("Add temporary sensitive history fixture")
+            (repository.root / "docs" / "deleted-sensitive.md").unlink()
+            candidate = repository.commit_all("Delete temporary sensitive history fixture")
+        if force_tracked_ignored_artifact:
+            ignore_path = repository.root / ".gitignore"
+            repository.write_text(
+                ".gitignore",
+                ignore_path.read_text(encoding="utf-8") + "\nprivate-artifact.txt\n",
+            )
+            repository.write_text("private-artifact.txt", "safe ignored artifact fixture\n")
+            repository.git("add", ".gitignore")
+            repository.git("add", "-f", "private-artifact.txt")
+            repository.git("commit", "-q", "-m", "Add force-tracked ignored artifact fixture")
+            candidate = repository.git("rev-parse", "HEAD").stdout.strip()
+        if deleted_sensitive_history or force_tracked_ignored_artifact:
+            module = repository.load_module("scripts/study_workflow.py")
+            data.update(
+                {
+                    "candidateSha": candidate,
+                    "prHeadSha": candidate,
+                    "acceptedSha": candidate,
+                    "checkedSha": candidate,
+                    "localValidationDigest": module.source_tree_digest(),
+                }
+            )
+            data["candidateEnvelopeSha256"] = module.candidate_envelope_digest(data)
+            repository.replace_checkpoint(checkpoint, data)
+            repository.git("push", "-q", "origin", f"{candidate}:refs/heads/{data['branch']}")
+            repository.publish_pull_head(17, candidate)
         repository.git("switch", "-q", "main")
-        repository.git("merge", "-q", "--ff-only", candidate)
-        merge_sha = repository.git("rev-parse", "HEAD").stdout.strip()
+        repository.git("merge", "-q", "--squash", candidate)
+        merge_sha = repository.commit_all("Squash the accepted publication candidate")
+        self.assertNotEqual(candidate, merge_sha)
         repository.git("push", "-q", "origin", "main")
         if clean_branch:
             repository.git("update-ref", "-d", "refs/heads/study/workflow-test")
@@ -3748,6 +3868,27 @@ class PublishedGateTests(WorkflowTestCase):
         self.assertEqual(0, observed.returncode, observed.stdout + observed.stderr)
         self.assertEqual(later_main, repository.git("rev-parse", "HEAD").stdout.strip())
 
+    def test_failed_merged_publication_remains_open_until_successful_live_proof(self) -> None:
+        repository = self.repository(local_origin=True)
+        checkpoint, data, _, _ = self.prepare_published(repository)
+        data.update(
+            {
+                "canonicalState": "MERGED",
+                "publicationStatus": "corrective-change-required",
+                "statusReason": "The merge-SHA publication requires external recovery or a successful rerun.",
+                "nextGate": "Rerun the failed publication controls; do not claim closure or merge another publication.",
+            }
+        )
+        repository.replace_checkpoint(checkpoint, data)
+        before = checkpoint.read_bytes()
+        observed = repository.cli(
+            "record", "--checkpoint", str(checkpoint), "--state", "CLOSED"
+        )
+        self.assert_deterministic_error(
+            observed,
+            contains="invalid workflow transition: MERGED -> CLOSED",
+        )
+        self.assertEqual(before, checkpoint.read_bytes())
     def test_published_gate_rejects_an_intake_branch_that_was_not_cleaned(self) -> None:
         repository = self.repository(local_origin=True)
         checkpoint, _, candidate, merge_sha = self.prepare_published(repository, clean_branch=False)
@@ -3797,9 +3938,9 @@ class PublishedGateTests(WorkflowTestCase):
                         "sourceDirty=false",
                     ],
                 },
-                "validate run did not execute the merge SHA",
+                "mergeSha is not reachable from origin/main",
             ),
-            "wrong state": ({"canonicalState": "MERGED"}, "state PUBLISHED or CLOSED"),
+            "wrong state": ({"canonicalState": "MERGED"}, "published gate requires state PUBLISHED or CLOSED"),
             "pending publication": ({"publicationStatus": "pending"}, "publicationStatus must be published"),
             "missing main validation": (
                 {"mainValidationUrl": None},
@@ -3941,6 +4082,93 @@ class PublishedGateTests(WorkflowTestCase):
                     environment=environment,
                 )
                 self.assert_deterministic_error(observed, contains=expected)
+
+    def test_published_gate_reauthenticates_the_raw_candidate_tree_after_squash(self) -> None:
+        repository = self.repository(local_origin=True)
+        checkpoint, original, candidate, merge_sha = self.prepare_published(repository)
+        module = repository.load_module("scripts/study_workflow.py")
+
+        cases = {
+            "forged validation digest": (
+                {"localValidationDigest": "f" * 64},
+                "accepted candidate tree differs from the recorded local-validation digest",
+            ),
+            "generated derived artifact": (
+                {"derivedPaths": [*original["derivedPaths"], "_site/content-manifest.json"]},
+                "accepted derived path is generated, private, or workflow-local",
+            ),
+        }
+        for label, (changes, expected) in cases.items():
+            with self.subTest(case=label):
+                rewritten = dict(original)
+                rewritten.update(changes)
+                rewritten["candidateEnvelopeSha256"] = module.candidate_envelope_digest(rewritten)
+                repository.replace_checkpoint(checkpoint, rewritten)
+                pr = repository.with_current_checkpoint_body(
+                    repository.valid_pr_json(candidate, merged=True, merge_sha=merge_sha), checkpoint
+                )
+                observed = repository.cli(
+                    "check", "--checkpoint", str(checkpoint), "--phase", "published",
+                    "--base", repository.base_sha,
+                    environment=repository.fake_github_environment(pr, candidate),
+                )
+                self.assert_deterministic_error(observed, contains=expected)
+
+    def test_published_gate_rescans_deleted_candidate_history(self) -> None:
+        repository = self.repository(local_origin=True)
+        checkpoint, _, candidate, merge_sha = self.prepare_published(
+            repository,
+            deleted_sensitive_history=True,
+        )
+        pr = repository.with_current_checkpoint_body(
+            repository.valid_pr_json(candidate, merged=True, merge_sha=merge_sha), checkpoint
+        )
+        observed = repository.cli(
+            "check", "--checkpoint", str(checkpoint), "--phase", "published",
+            "--base", repository.base_sha,
+            environment=repository.fake_github_environment(pr, candidate),
+        )
+        self.assert_deterministic_error(observed, contains="PS009")
+
+    def test_published_gate_rejects_a_force_tracked_ignored_candidate_artifact(self) -> None:
+        repository = self.repository(local_origin=True)
+        checkpoint, data, candidate, merge_sha = self.prepare_published(
+            repository,
+            force_tracked_ignored_artifact=True,
+        )
+        data["derivedPaths"] = [*data["derivedPaths"], "private-artifact.txt"]
+        module = repository.load_module("scripts/study_workflow.py")
+        data["candidateEnvelopeSha256"] = module.candidate_envelope_digest(data)
+        repository.replace_checkpoint(checkpoint, data)
+        pr = repository.with_current_checkpoint_body(
+            repository.valid_pr_json(candidate, merged=True, merge_sha=merge_sha), checkpoint
+        )
+        observed = repository.cli(
+            "check", "--checkpoint", str(checkpoint), "--phase", "published",
+            "--base", repository.base_sha,
+            environment=repository.fake_github_environment(pr, candidate),
+        )
+        self.assert_deterministic_error(
+            observed,
+            contains="accepted derived path is ignored or private",
+        )
+
+    def test_published_gate_rejects_a_pull_ref_that_differs_from_the_pr_head(self) -> None:
+        repository = self.repository(local_origin=True)
+        checkpoint, _, candidate, merge_sha = self.prepare_published(repository)
+        repository.publish_pull_head(17, repository.base_sha)
+        pr = repository.with_current_checkpoint_body(
+            repository.valid_pr_json(candidate, merged=True, merge_sha=merge_sha), checkpoint
+        )
+        observed = repository.cli(
+            "check", "--checkpoint", str(checkpoint), "--phase", "published",
+            "--base", repository.base_sha,
+            environment=repository.fake_github_environment(pr, candidate),
+        )
+        self.assert_deterministic_error(
+            observed,
+            contains="fetched merged-PR candidate differs from the authenticated PR head",
+        )
 
     def test_published_gate_rejects_rewritten_candidate_envelope_metadata(self) -> None:
         repository = self.repository(local_origin=True)

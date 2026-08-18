@@ -141,7 +141,7 @@ git diff --check
 ```
 
 Do not record `pass` when required dependencies are missing or a validator reports a fallback/skip. The pinned Python 3.12 environment is part of the local release evidence.
-The validators use the Git candidate inventory: tracked and non-ignored untracked regular files are checked, ignored local evidence is not traversed, and percent/control paths, symlinks, gitlinks/submodules, and every other non-regular tracked mode fail before content is read.
+The validators use the Git candidate inventory: tracked and non-ignored untracked regular files are checked, ignored local evidence is not traversed, and percent/control paths, symlinks, gitlinks/submodules, and every other non-regular tracked mode fail before content is read. Every non-route `derivedPath` must additionally be a regular tracked blob in the reviewed candidate; never declare `_site/`, `evidence/raw/`, workflow-local, ignored, symlinked, or untracked files as derived artifacts.
 Recording `--local-validation pass` stores a deterministic digest of the candidate source tree. The draft and release gates reject any later byte or executable-mode change until validation is rerun and a new digest is recorded.
 The draft gate reruns `make validate`; do not replace that gate with a manually asserted checkpoint value.
 
@@ -187,7 +187,11 @@ Use the short-lived branch created at intake and a reviewed PR. This workflow ha
 
 Do not use an unbounded force-push, rewrite a reviewed/shared head, bypass failed checks, or merge unrelated working-tree changes. `gh pr checks <number> --repo github.com/<owner>/<repo> --watch` is the canonical wait command.
 
-Only one publication intake may occupy the merge-to-`CLOSED` interval. Do not merge another study publication while the prior intake is verifying main, Pages, and live parity; this prevents a later deployment from making the earlier release unverifiable. A post-merge defect leaves the intake at `MERGED` and is corrected by a new, superseding reviewed intake. `CLOSED` is immutable.
+Treat one open merge-to-`CLOSED` interval as a fail-closed publication-policy limit. Do not merge another study publication while the prior intake is verifying main, Pages, and live parity. There is currently no executable cross-intake lock service, automated transfer, or automated release mechanism, so operators must enforce this limit explicitly.
+
+At the published gate, re-fetch the authenticated pull-request head even after branch deletion. Rescan its immutable base-to-head history, recompute the locally validated digest from raw Git blobs, and recheck canonical/derived blob modes and committed ignore rules. Never infer candidate safety from the clean squash tree alone.
+
+If main validation, Pages, or exact live parity fails, keep the intake at `MERGED`, set `publicationStatus=corrective-change-required`, and preserve the failing run and live evidence. Retry or repair deployment controls only when they do not change the reviewed source. If source must change, stop and request repository-owner direction for an externally coordinated recovery; do not merge another study publication or record `CLOSED`. The only normal terminal path is `MERGED` -> `PUBLISHED` -> `CLOSED`, and `CLOSED` is immutable proof of a successful live publication.
 
 ## Verify the live release
 

@@ -301,14 +301,15 @@ Add one block for each decision-bearing diagram or chart. Decorative art does no
 - **Push result:**
 - **Draft pull request URL/number:**
 - **PR scope summary:**
-- **Rollback/corrective plan:**
+- **Failure/recovery plan (source changes after merge require repository-owner coordination):**
 
 ### Candidate decision
 
 - [ ] Only intake-owned paths are staged.
 - [ ] The local gates pass before commit and push.
 - [ ] The draft PR head equals the recorded candidate SHA.
-- [ ] The PR links the sanitized intake, canonical/derived artifacts, evidence boundary, local checks, expected browser matrix, and rollback plan.
+- [ ] The PR links the sanitized intake, canonical/derived artifacts, evidence boundary, local checks, expected browser matrix, and failure/recovery plan.
+- [ ] Every non-route derived path is a regular tracked blob in the candidate; no generated `_site/`, ignored/private, workflow-local, symlinked, gitlink, or untracked file is declared as an artifact.
 
 **Candidate status:** `CANDIDATE` / `REWORK` / `BLOCKED`
 
@@ -417,7 +418,12 @@ Review disposition: pass
 - [ ] Deployed desktop and mobile checks show no clipping, overlap, overflow, small labels, or unreachable controls.
 - [ ] The live release is distinguishable from the prior cached version.
 
-**Publication status:** published / merged but deployment open / corrective change required
+**Publication status:** `pending` (including a merge whose deployment is still open) / `corrective-change-required` / `published`
+
+- **Failed main/Pages/live evidence (required for `corrective-change-required`):**
+- **Source-preserving deployment retry or repair:**
+- **Repository-owner coordination required for any source-changing recovery:** yes / no / not applicable
+- **Fail-closed publication-policy limit:** while this record remains open at `MERGED`, do not merge another study publication. No executable cross-intake lock service currently transfers or releases this policy.
 
 ## 14. Closure record
 
@@ -440,3 +446,5 @@ Review disposition: pass
 - **Agent disposition when handing off:** `RETURN_FOR_AUTHORITY` / `BLOCK_PUBLICATION` / `READY_TO_AUTHOR` / `READY_FOR_REVIEW` / `READY_TO_MERGE` / `PUBLISHED` / in progress
 - **Last transition time/reason:**
 - **Next safe action:**
+
+- [ ] `CLOSED` is recorded only after successful main validation, Pages deployment, exact live parity, and durable published proof; a failed publication remains `MERGED` with `publicationStatus=corrective-change-required`.

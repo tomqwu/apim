@@ -70,11 +70,18 @@ Review disposition: pass
 ## Merge and publication
 
 - Linear merge method (`squash` or `rebase`; true merge commits are unsupported):
-- Rollback/corrective plan:
+- Failure/recovery plan (source changes require repository-owner coordination):
+- Publication status (`pending`, `corrective-change-required`, or `published`):
+- Failed main/Pages/live evidence (required for `corrective-change-required`):
+- Source-preserving deployment retry or repair:
+- Repository-owner coordination required for any source-changing recovery:
+- Fail-closed publication-policy limit: while this record remains open at `MERGED`, do not merge another study publication. No executable cross-intake lock service currently transfers or releases this policy.
 
 - [ ] Required checks pass on the reviewed PR head.
 - [ ] Reviewed head equals checked head equals PR head.
 - [ ] This PR contains no unrelated user changes.
+- [ ] Every non-route derived path is a regular tracked candidate blob; no generated, ignored/private, workflow-local, symlinked, gitlink, or untracked path is declared.
 - [ ] After merge: main validation and Pages pass on the merge SHA.
 - [ ] After merge: live manifest revision, article, figures, presentations, and deployed hashes are verified.
+- [ ] `CLOSED` is recorded only after successful main/Pages/live proof; a failure remains `MERGED` with `publicationStatus=corrective-change-required`.
 - [ ] Only this PR's merged branch is deleted; unrelated branches remain untouched.

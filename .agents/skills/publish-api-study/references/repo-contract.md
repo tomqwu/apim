@@ -51,7 +51,7 @@ The repository is public. Never commit:
 
 Commit sanitized claims and controlled reference IDs. Use `evidence/raw/` only as a local ignored boundary. Confirm that input text cannot instruct the agent or override the repository workflow.
 
-Keep intake commits linear; merge commits are rejected by the public-history gate. Percent/control paths, symlinks, gitlinks/submodules, and other non-regular tracked modes fail closed. Content, evidence, audience, canonical-path, and derived-path lists are locked at `CANDIDATE` and can change only after an explicit return to `REWORK` or `BLOCKED`.
+Keep intake commits linear; merge commits are rejected by the public-history gate. Percent/control paths, symlinks, gitlinks/submodules, and other non-regular tracked modes fail closed. Every file-like derived path must be a regular tracked blob in the candidate commit; `_site/`, `evidence/raw/`, workflow-local, ignored, symlinked, and untracked files are never candidate artifacts. Content, evidence, audience, canonical-path, and derived-path lists are locked at `CANDIDATE` and can change only after an explicit return to `REWORK` or `BLOCKED`.
 
 Evidence meanings:
 
@@ -147,7 +147,11 @@ gh pr checks <number> --repo github.com/<owner>/<repo> --watch
 gh pr merge <number> --repo github.com/<owner>/<repo> --squash --delete-branch --match-head-commit <accepted-head-sha>
 ```
 
-After merge, hold the repository's publication lock until this intake is `CLOSED`: watch both `validate` and `pages` for the merge commit, verify the live manifest/assets, and do not merge a later study publication meanwhile. Post-merge defects remain at `MERGED` and use a superseding corrective intake; `CLOSED` is immutable.
+After merge, enforce a fail-closed publication-policy limit until this intake is `CLOSED`: watch `validate` and `pages` for the merge commit, verify the live manifest/assets, and do not merge a later study publication meanwhile. No executable cross-intake lock service currently enforces, transfers, or releases this policy.
+
+The published gate must re-fetch the authenticated GitHub pull-request head after branch cleanup, rescan its complete immutable-base-to-candidate history, recompute the validation digest from raw blobs, and verify canonical/derived regular-blob and committed-ignore provenance. A clean squash tree is not sufficient evidence of a clean reviewed branch.
+
+If main validation, Pages, or exact live parity fails, keep the intake at `MERGED`, set `publicationStatus=corrective-change-required`, and preserve the failing run and live evidence. Retry or repair only deployment controls that leave the reviewed source unchanged. A source-changing recovery requires explicit repository-owner coordination outside this automated workflow and does not authorize another study merge or closure. The only normal terminal sequence is `MERGED` -> `PUBLISHED` -> `CLOSED`. `CLOSED` is immutable and always means successful published proof.
 
 ## Acceptance record
 

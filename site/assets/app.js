@@ -1202,6 +1202,24 @@
     return lines.length ? lines : ["Diagram node"];
   }
 
+  function htmlSvgLabelText(root) {
+    const chunks = [];
+    const boundaries = new Set(["br", "div", "p", "li", "section"]);
+    const visit = (node) => {
+      if (node.nodeType === Node.TEXT_NODE) {
+        chunks.push(node.nodeValue || "");
+        return;
+      }
+      const name = String(node.localName || node.nodeName || "").toLowerCase();
+      const boundary = boundaries.has(name);
+      if (boundary) chunks.push(" ");
+      [...node.childNodes].forEach(visit);
+      if (boundary) chunks.push(" ");
+    };
+    visit(root);
+    return chunks.join("").replace(/\s+/g, " ").trim();
+  }
+
   function replaceHtmlSvgLabels(svgMarkup) {
     const namespace = "http://www.w3.org/2000/svg";
     const template = document.createElement("template");
@@ -1218,7 +1236,7 @@
       .forEach((foreignObject) => {
         const width = Number.parseFloat(foreignObject.getAttribute("width")) || 200;
         const height = Number.parseFloat(foreignObject.getAttribute("height")) || 48;
-        const lines = wrapSvgLabel(foreignObject.textContent, Math.max(12, Math.floor(width / 7.2)));
+        const lines = wrapSvgLabel(htmlSvgLabelText(foreignObject), Math.max(12, Math.floor(width / 7.2)));
         const text = document.createElementNS(namespace, "text");
         text.setAttribute("class", "mermaid-svg-label");
         text.setAttribute("x", String(width / 2));

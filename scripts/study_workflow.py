@@ -758,6 +758,107 @@ def source_tree_digest() -> str:
     return digest.hexdigest()
 
 
+def commit_tree_entries(revision: str) -> dict[str, tuple[str, str, str]]:
+    """Return raw Git tree metadata without applying worktree filters."""
+    result = subprocess.run(
+        ("git", "ls-tree", "-r", "-z", revision),
+        cwd=ROOT,
+        env=git_environment(),
+        check=False,
+        stdout=subprocess.PIPE,
+        stderr=subprocess.PIPE,
+    )
+    fail_unless(result.returncode == 0, "unable to inspect the accepted candidate tree")
+    entries: dict[str, tuple[str, str, str]] = {}
+    try:
+        for entry in (value for value in result.stdout.split(b"\0") if value):
+            metadata, encoded_name = entry.split(b"\t", 1)
+            mode, kind, object_id = metadata.decode("ascii").split(" ", 2)
+            name = encoded_name.decode("utf-8")
+            entries[name] = (mode, kind, object_id)
+    except (UnicodeDecodeError, ValueError) as exc:
+        raise WorkflowError("accepted candidate tree contains an invalid entry") from exc
+    return entries
+
+
+def source_tree_digest_at_commit(revision: str) -> str:
+    """Recompute the local-validation digest from immutable Git blobs."""
+    digest = hashlib.sha256()
+    entries = commit_tree_entries(revision)
+    for name in sorted(entries):
+        if name.startswith((".git/", ".study-workflow/", "_site/")):
+            continue
+        mode, kind, object_id = entries[name]
+        fail_unless(
+            (mode, kind) in {("100644", "blob"), ("100755", "blob")},
+            f"accepted candidate contains a non-regular source path: {safe_location(name)}",
+        )
+        encoded = name.encode("utf-8")
+        digest.update(len(encoded).to_bytes(8, "big"))
+        digest.update(encoded)
+        digest.update(b"x" if mode == "100755" else b"-")
+        blob = subprocess.Popen(
+            ("git", "cat-file", "blob", object_id),
+            cwd=ROOT,
+            env=git_environment(),
+            stdout=subprocess.PIPE,
+            stderr=subprocess.DEVNULL,
+        )
+        file_digest = hashlib.sha256()
+        assert blob.stdout is not None
+        for chunk in iter(lambda: blob.stdout.read(1024 * 1024), b""):
+            file_digest.update(chunk)
+        blob.stdout.close()
+        fail_unless(blob.wait() == 0, "unable to read an accepted candidate source blob")
+        digest.update(file_digest.digest())
+    return digest.hexdigest()
+
+
+def ignored_paths_at_commit(
+    entries: dict[str, tuple[str, str, str]],
+    paths: set[str],
+) -> set[str]:
+    """Evaluate committed ignore rules without checking out or filtering content."""
+    if not paths:
+        return set()
+    with tempfile.TemporaryDirectory(prefix="study-candidate-ignore-") as temporary:
+        worktree = Path(temporary)
+        for name, (mode, kind, object_id) in entries.items():
+            if not (name == ".gitignore" or name.endswith("/.gitignore")):
+                continue
+            fail_unless((mode, kind) in {("100644", "blob"), ("100755", "blob")}, "candidate ignore rules are not regular Git blobs")
+            result = subprocess.run(
+                ("git", "cat-file", "blob", object_id),
+                cwd=ROOT,
+                env=git_environment(),
+                check=False,
+                stdout=subprocess.PIPE,
+                stderr=subprocess.DEVNULL,
+            )
+            fail_unless(result.returncode == 0 and len(result.stdout) <= 1024 * 1024, "candidate ignore rules are unavailable or oversized")
+            target = worktree / name
+            target.parent.mkdir(parents=True, exist_ok=True)
+            target.write_bytes(result.stdout)
+        git_dir = git("rev-parse", "--absolute-git-dir")
+        ignored: set[str] = set()
+        for value in sorted(paths):
+            result = subprocess.run(
+                (
+                    "git", f"--git-dir={git_dir}", f"--work-tree={worktree}",
+                    "check-ignore", "-q", "--no-index", "--", value,
+                ),
+                cwd=worktree,
+                env=git_environment(),
+                check=False,
+                stdout=subprocess.DEVNULL,
+                stderr=subprocess.DEVNULL,
+            )
+            fail_unless(result.returncode in {0, 1}, "unable to evaluate accepted candidate ignore rules")
+            if result.returncode == 0:
+                ignored.add(value)
+        return ignored
+
+
 def working_tree_clean_at(revision: str) -> bool:
     return not git("status", "--porcelain", "--untracked-files=all") and raw_tracked_bytes_match(revision)
 
@@ -839,6 +940,51 @@ def derived_reference(value: str) -> str:
     fail_unless((ROOT / value).resolve().is_relative_to(ROOT.resolve()), f"derived reference escapes the repository: {value}")
     fail_unless(not has_symlink_component(ROOT / value), f"derived reference contains a symlink: {value}")
     return value
+
+
+def verify_candidate_derived_files(data: dict[str, Any]) -> None:
+    """Require every file-like derived artifact to exist in the reviewed commit."""
+    derived_files = {value for value in data["derivedPaths"] if not value.startswith("#/")}
+    if not derived_files:
+        return
+    for value in sorted(derived_files):
+        fail_unless(
+            not value.startswith(("_site/", "evidence/raw/", ".study-workflow/")),
+            f"candidate derived path is generated, private, or workflow-local: {safe_location(value)}",
+        )
+        ignored = subprocess.run(
+            ("git", "check-ignore", "-q", "--no-index", "--", value),
+            cwd=ROOT,
+            env=git_environment(),
+            check=False,
+            stdout=subprocess.DEVNULL,
+            stderr=subprocess.DEVNULL,
+        )
+        fail_unless(ignored.returncode in {0, 1}, "unable to inspect candidate derived-path ignore rules")
+        fail_unless(ignored.returncode == 1, f"candidate derived path is ignored or private: {safe_location(value)}")
+    candidate = full_sha("candidateSha", data["candidateSha"])
+    tree = subprocess.run(
+        ("git", "ls-tree", "-r", "-z", candidate),
+        cwd=ROOT,
+        env=git_environment(),
+        check=False,
+        stdout=subprocess.PIPE,
+        stderr=subprocess.PIPE,
+    )
+    fail_unless(tree.returncode == 0, "unable to inspect candidate derived artifacts")
+    entries: dict[str, tuple[str, str]] = {}
+    try:
+        for entry in (value for value in tree.stdout.split(b"\0") if value):
+            metadata, encoded_name = entry.split(b"\t", 1)
+            mode, kind, _ = metadata.decode("ascii").split(" ", 2)
+            entries[encoded_name.decode("utf-8")] = (mode, kind)
+    except (UnicodeDecodeError, ValueError) as exc:
+        raise WorkflowError("candidate tree contains an invalid derived-artifact entry") from exc
+    for value in sorted(derived_files):
+        fail_unless(
+            entries.get(value) in {("100644", "blob"), ("100755", "blob")},
+            f"candidate derived path is not a tracked regular blob: {safe_location(value)}",
+        )
 
 
 def candidate_envelope_digest(data: dict[str, Any]) -> str:
@@ -1221,6 +1367,7 @@ def command_record(args: argparse.Namespace) -> int:
         fail_unless(next_state in TRANSITIONS[previous_state], f"invalid workflow transition: {previous_state} -> {next_state}")
     validate_checkpoint_shape(data, path)
     if data["canonicalState"] in {"CANDIDATE", "REVIEWED", "VALIDATED"}:
+        verify_candidate_derived_files(data)
         fail_unless(data["localValidationDigest"] == source_tree_digest(), "candidate bytes differ from the locally validated source-tree digest")
     atomic_json(path, data)
     print(f"OK: {data['intakeId']} recorded state {data['canonicalState']}")
@@ -1514,6 +1661,7 @@ def command_resume(args: argparse.Namespace) -> int:
         fail_unless(data["canonicalState"] in {"VALIDATED", "MERGED", "PUBLISHED", "CLOSED"}, "merged PR durable state was not release-validated")
         fail_unless({"merge", "branch-cleanup"}.issubset(set(data["requestedActions"])), "merged intake resume lacks merge/branch-cleanup authority")
         verify_candidate_acceptance(data, pr)
+        verify_accepted_candidate_tree(data, pr)
         fail_unless(not git("show-ref", "--verify", f"refs/heads/{data['branch']}", check=False), "remove the exact local intake branch before resuming the merged PR")
         fail_unless(github_ref_sha(f"heads/{data['branch']}", required=False) is None, "GitHub intake branch still exists; complete its authorized cleanup before resume")
         fail_unless(not git("ls-remote", "--heads", "origin", data["branch"]), "remote intake branch still exists; complete its authorized cleanup before resume")
@@ -1546,6 +1694,8 @@ def command_resume(args: argparse.Namespace) -> int:
     if state == "OPEN":
         fail_unless(working_tree_clean_at(data["prHeadSha"]), "resumed PR branch raw bytes differ from its recorded head")
         fail_unless(data["localValidationDigest"] == source_tree_digest(), "resumed PR branch differs from its locally validated source-tree digest")
+        if data["canonicalState"] in {"CANDIDATE", "REVIEWED", "VALIDATED"}:
+            verify_candidate_derived_files(data)
     atomic_json(checkpoint, data)
     print(json.dumps({"checkpoint": checkpoint.relative_to(ROOT).as_posix(), "branch": git("branch", "--show-current"), "prNumber": args.pr_number, "state": data["canonicalState"]}))
     return 0
@@ -1642,7 +1792,60 @@ def verify_candidate_acceptance(data: dict[str, Any], pr: dict[str, Any]) -> Non
     fail_unless(set(data["checkUrls"]) == authenticated, "recorded check URLs differ from the authenticated required runs")
 
 
-def verify_closure_evidence(url: str, pr_number: int, merge_sha: str, manifest_sha: str) -> None:
+def verify_accepted_candidate_tree(data: dict[str, Any], pr: dict[str, Any]) -> None:
+    """Re-authenticate reviewed source and artifact claims after branch cleanup."""
+    candidate = full_sha("candidateSha", data["candidateSha"])
+    number = data.get("prNumber")
+    fail_unless(type(number) is int and pr.get("number") == number, "accepted candidate PR identity is invalid")
+    fail_unless(pr.get("headRefOid") == candidate, "merged PR no longer identifies the accepted candidate")
+    remote_ref = f"refs/remotes/pull/{number}/head"
+    fetched = run(
+        (
+            "git", "fetch", "--force", "origin",
+            f"refs/pull/{number}/head:{remote_ref}",
+        ),
+        check=False,
+    )
+    fail_unless(fetched.returncode == 0, "unable to fetch the authenticated merged-PR candidate tree")
+    fail_unless(git("rev-parse", remote_ref) == candidate, "fetched merged-PR candidate differs from the authenticated PR head")
+    base = full_sha("baseSha", data["baseSha"])
+    fail_unless(
+        run(("git", "merge-base", "--is-ancestor", base, candidate), check=False).returncode == 0,
+        "immutable base is not an ancestor of the accepted candidate",
+    )
+    history_errors = public_content_errors(base, candidate, include_generated=False)
+    if history_errors:
+        raise WorkflowError(history_errors[0])
+    fail_unless(
+        data["localValidationDigest"] == source_tree_digest_at_commit(candidate),
+        "accepted candidate tree differs from the recorded local-validation digest",
+    )
+    entries = commit_tree_entries(candidate)
+    for value in data["canonicalPaths"]:
+        fail_unless(
+            entries.get(value, (None, None, None))[:2] in {("100644", "blob"), ("100755", "blob")},
+            f"accepted canonical path is not a tracked regular blob: {safe_location(value)}",
+        )
+    derived_files = {item for item in data["derivedPaths"] if not item.startswith("#/")}
+    ignored = ignored_paths_at_commit(entries, derived_files)
+    for value in sorted(derived_files):
+        fail_unless(
+            not value.startswith(("_site/", "evidence/raw/", ".study-workflow/")),
+            f"accepted derived path is generated, private, or workflow-local: {safe_location(value)}",
+        )
+        fail_unless(value not in ignored, f"accepted derived path is ignored or private: {safe_location(value)}")
+        fail_unless(
+            entries.get(value, (None, None, None))[:2] in {("100644", "blob"), ("100755", "blob")},
+            f"accepted derived path is not a tracked regular blob: {safe_location(value)}",
+        )
+
+
+def verify_closure_evidence(
+    url: str,
+    pr_number: int,
+    merge_sha: str,
+    manifest_sha: str,
+) -> None:
     body = fetch_same_pr_comment(url, pr_number)
     fail_unless(bool(re.search(r"(?im)^Publication status:\s*published\s*$", body)), "closure comment must record published status")
     fail_unless(bool(re.search(rf"(?im)^Merge SHA:\s*{re.escape(merge_sha)}\s*$", body)), "closure comment must name the merge SHA")
@@ -1713,7 +1916,10 @@ def command_check(args: argparse.Namespace) -> int:
     _, data = load_checkpoint(args.checkpoint)
     base = verify_base(data, args.base)
     verify_history_repository()
-    missing_authority = PHASE_REQUIRED_ACTIONS[args.phase] - set(data["requestedActions"])
+    required_authority = set(PHASE_REQUIRED_ACTIONS[args.phase])
+    if args.phase == "draft" and data["canonicalState"] in {"CANDIDATE", "REVIEWED", "VALIDATED"}:
+        required_authority.update({"commit", "push", "pull-request"})
+    missing_authority = required_authority - set(data["requestedActions"])
     fail_unless(not missing_authority, f"{args.phase} gate lacks explicit authority for: {', '.join(sorted(missing_authority))}")
     history_end = data["mergeSha"] if args.phase == "published" and data["mergeSha"] else "HEAD"
     history_errors = public_content_errors(base, history_end)
@@ -1733,6 +1939,7 @@ def command_check(args: argparse.Namespace) -> int:
         fail_unless(data["candidateSha"] == head and data["prHeadSha"] == head, "draft gate candidate, PR head, and HEAD SHAs must be identical")
         fail_unless(data["prNumber"] is not None, "candidate-or-later draft gate requires a PR number")
         verify_actual_pr_checkpoint(data, actual_pr(data["prNumber"]), head)
+        verify_candidate_derived_files(data)
     if args.phase == "draft":
         fail_unless(run_make_validate(), "make validate failed during draft gate")
         verify_local_derived_routes(data)
@@ -1747,6 +1954,7 @@ def command_check(args: argparse.Namespace) -> int:
         verify_actual_pr_checkpoint(data, pr, head)
         fail_unless(data["prDraft"] is False, "release gate requires a non-draft PR checkpoint")
         verify_candidate_acceptance(data, pr)
+        verify_candidate_derived_files(data)
         fail_unless(data["canonicalState"] == "VALIDATED", "release gate requires canonicalState VALIDATED")
         fail_unless(run_make_validate(), "make validate failed during release gate")
         verify_local_derived_routes(data)
@@ -1761,6 +1969,7 @@ def command_check(args: argparse.Namespace) -> int:
         pr = actual_pr(data["prNumber"])
         verify_merged_pr_checkpoint(data, pr, merge)
         verify_candidate_acceptance(data, pr)
+        verify_accepted_candidate_tree(data, pr)
         fail_unless(not git("show-ref", "--verify", f"refs/heads/{data['branch']}", check=False), "local intake branch still exists")
         fail_unless(github_ref_sha(f"heads/{data['branch']}", required=False) is None, "GitHub intake branch still exists")
         fail_unless(not git("ls-remote", "--heads", "origin", data["branch"]), "remote intake branch still exists")
