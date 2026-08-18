@@ -19,6 +19,7 @@ It complements the [assessment-to-decommission delivery roadmap](36-implementati
 9. Place canonical diagrams and charts inside the studies whose arguments they support; the Visual Atlas remains a secondary index.
 10. Apply the [principal content review](../reports/content-research-principal-review.md) and [remediation backlog](../reports/content-remediation-backlog.csv) as release-governance inputs.
 11. Organize new research around durable problems and common proof before creating candidate-specific roadmaps; a vendor roadmap may sequence evidence but cannot change symmetric gates or confer priority.
+12. Route new chat, file, research, incident, and PoC input through the [study publication workflow](46-study-publication-workflow.md), preserving a sanitized docs-first canon, independent reviewed-SHA acceptance, and live-release evidence.
 
 ## Problem-led and candidate-specific study roadmaps
 
@@ -27,6 +28,8 @@ The [top-ten API-management industry-problem study](43-api-management-industry-p
 The [industry-practices study](45-api-management-industry-practices.md) turns that taxonomy into a vendor-neutral operating and proof system. It separates organization ownership from runtime custody, walks realistic synthetic cases through failure, recovery and review, and defines measurable practices and adoption gates. Its scenario values remain assumptions until Gate 0; its cited mechanisms and public examples do not establish local fit or observed candidate evidence.
 
 The [Kong long-term multicloud study roadmap](44-kong-multicloud-study-roadmap.md) is the first candidate-specific projection of that taxonomy. It separates Konnect with customer-hosted data planes, Dedicated Cloud Gateways, self-managed hybrid, KIC/Operator and bounded edge patterns; assigns workstreams, evidence owners, gates, stop rules and comparative counterfactuals; and remains a falsifiable sequencing hypothesis. Its K0–K4 labels are local checkpoints within the repository's Gate 0–4 assurance path. They cannot bypass exact-option resolution, equivalent alternative evidence, mandatory failures, independent review or the broader steering decision.
+
+The [study publication workflow](46-study-publication-workflow.md) governs how every future evidence delta reaches this system. Its reusable skill and deterministic gates separate untrusted input from authorized instruction, keep Markdown canonical, require article-owned figures and traceable projections, bind review and CI to the same commit, and verify the merged revision on GitHub Pages. This is publication assurance, not product evidence or a substitute for Gates 0–5.
 
 ## Phased plan
 
@@ -145,13 +148,14 @@ flowchart LR
 | PoC and pilots | `poc/`, `templates/poc-result-template.md` | Equivalent execution of the 28 atomic protocol cases, hard-gate dispositions, durable result artifacts and automated evidence summaries |
 | Economics and operating model | operating-model and commercial criteria | Quote-based TCO, resource model, support RACI, benefits, and exit cost |
 | Portal and presentation | `site/`, `scripts/build_site.py`, `docs/40-audience-guide.md` | Decision-readiness visualizations driven by populated scorecards and evidence coverage |
-| Repository engineering | workflows and validation scripts | Schema validation, source freshness checks, accessibility tests, visual regression, and release automation |
+| Repository engineering | [study publication workflow](46-study-publication-workflow.md), `.agents/skills/publish-api-study/`, workflow/checkpoint template, workflows and validation scripts | Resumable sanitized intake, immutable-base and reviewed-SHA controls, manifest provenance, schema/source freshness checks, accessibility and visual regression, pull-request release automation, and live Pages parity |
 
 ## Prioritized product backlog
 
 ### Now
 
 - Independent principal acceptance of the implemented study corpus, protocols, figure contracts, source boundary, site and presentation; close PCR items only with committed evidence.
+- Use the publication workflow and `$publish-api-study` skill for every new evidence delta; retain the PR checkpoint, exact reviewed SHA, required checks, merge, Pages and live-parity evidence.
 - Gate-0 owner, decision-right, scope, calibrated reference-case, capacity and evidence-calendar approval.
 - Approve the methodology ADR, mandatory/category thresholds, common-evidence, bounds, maximum-regret, exception and dissent rules.
 - Promote every decision-bearing contextual citation into the authoritative source/finding chain; keep unpromoted citations explicitly non-scoring.
@@ -175,6 +179,7 @@ flowchart LR
 - Archived PoC/pilot result catalog with sanitized artifacts.
 - Automated static exports for offline presentation and review.
 - Contributor guidance for adding new products without weakening comparative rigor.
+- Publication-flow telemetry for review returns, SHA drift, visual regressions, first-pass checks, live staleness and evidence-state movement.
 - Historical comparison views that show why conclusions changed over time.
 
 ## Roadmap governance

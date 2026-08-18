@@ -1,22 +1,22 @@
-SHELL := /bin/sh
-COMPOSE := docker compose -f poc/docker-compose.yaml
+override SHELL := /bin/sh
+override COMPOSE := docker compose -f poc/docker-compose.yaml
 
-SITE_OUTPUT := _site
-SITE_PORT ?= 8008
+override SITE_OUTPUT := _site
+override SITE_PORT := 8008
 
-.PHONY: help validate validate-openapi validate-yaml validate-counts validate-links validate-sources validate-source-coverage validate-visuals validate-studies validate-site lint-shell site site-serve poc-up poc-down smoke rate-limit-test kind-up kind-down k8s-smoke
+.PHONY: help validate validate-openapi validate-yaml validate-counts validate-links validate-sources validate-source-coverage validate-visuals validate-studies validate-workflow validate-public-content validate-site validate-site-manifest lint-shell site site-serve poc-up poc-down smoke rate-limit-test kind-up kind-down k8s-smoke
 
 help:
 	@sed -n 's/^## //p' Makefile
 
 ## validate: Run all repository checks that do not require a live cluster.
-validate: validate-openapi validate-yaml validate-counts validate-links validate-sources validate-source-coverage validate-visuals validate-studies validate-site lint-shell
+validate: validate-public-content validate-openapi validate-yaml validate-counts validate-links validate-sources validate-source-coverage validate-visuals validate-studies validate-workflow validate-site lint-shell
 
 ## validate-openapi: Parse every OpenAPI document and enforce key fields.
 validate-openapi:
 	@python3 scripts/validate_openapi.py poc/apis
 
-## validate-yaml: Parse YAML when PyYAML is installed; otherwise report the skipped optional check.
+## validate-yaml: Parse all YAML with required pinned PyYAML; fail closed when unavailable.
 validate-yaml:
 	@python3 scripts/validate_yaml.py
 
@@ -44,12 +44,26 @@ validate-visuals:
 validate-studies:
 	@python3 scripts/validate_studies.py
 
+## validate-workflow: Validate the publication workflow, reusable skill, intake template, and committed packets.
+validate-workflow: site
+	@python3 scripts/study_workflow.py validate-repo
+	@python3 scripts/test_study_workflow.py
+
+## validate-public-content: Reject high-confidence secrets, local paths, and prohibited legacy branding.
+validate-public-content: site
+	@python3 scripts/study_workflow.py validate-public-content
+
 ## validate-site: Build the static research portal and verify its required entry points.
 validate-site: site
 	@test -s $(SITE_OUTPUT)/index.html
 	@test -s $(SITE_OUTPUT)/404.html
 	@test -s $(SITE_OUTPUT)/content-manifest.json
 	@python3 -m json.tool $(SITE_OUTPUT)/content-manifest.json >/dev/null
+	@python3 scripts/validate_site_manifest.py --output $(SITE_OUTPUT)
+
+## validate-site-manifest: Validate site provenance, routes, audiences, hashes, and source mirrors.
+validate-site-manifest: site
+	@python3 scripts/validate_site_manifest.py --output $(SITE_OUTPUT)
 
 ## site: Generate the API Management Studies site in _site/.
 site:

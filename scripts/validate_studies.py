@@ -7,8 +7,15 @@ import pathlib
 import re
 import sys
 
+from repository_inventory import InventoryError, candidate_files
+
 
 ROOT = pathlib.Path(__file__).resolve().parents[1]
+try:
+    CANDIDATE_FILES = candidate_files(ROOT)
+except InventoryError as exc:
+    print(f"ERROR: {exc}", file=sys.stderr)
+    raise SystemExit(1)
 MARKER = "<!-- study-contract: principal -->"
 PROTOCOL_MARKER = "<!-- protocol-contract: decision-grade -->"
 MIN_WORDS = 900
@@ -205,7 +212,10 @@ def main() -> None:
     studies: list[tuple[pathlib.Path, int]] = []
     protocols: list[tuple[pathlib.Path, int]] = []
     figure_ids: dict[str, str] = {}
-    document_paths = sorted((ROOT / "docs").glob("*.md"))
+    document_paths = sorted(
+        path for path in CANDIDATE_FILES
+        if path.parent == ROOT / "docs" and path.suffix.lower() == ".md"
+    )
     for prefix in sorted(REQUIRED_STUDY_PREFIXES):
         matches = [path for path in document_paths if path.name.startswith(prefix)]
         if len(matches) != 1:
@@ -296,7 +306,10 @@ def main() -> None:
             if len(links) < 3:
                 errors.append(f"{relative}: {artifact_type} requires at least three point-of-use primary-source links")
 
-    for path in sorted((ROOT / "poc").glob("*.md")):
+    for path in sorted(
+        path for path in CANDIDATE_FILES
+        if path.parent == ROOT / "poc" and path.suffix.lower() == ".md"
+    ):
         text = path.read_text(encoding="utf-8")
         if not has_contract_marker(text, PROTOCOL_MARKER):
             continue

@@ -2,23 +2,21 @@
 import pathlib
 import sys
 
+from repository_inventory import InventoryError, files_with_suffixes
+
 
 try:
     import yaml  # type: ignore
 except ImportError:
-    print("SKIP: PyYAML unavailable; CI installs it and performs full YAML parsing")
-    raise SystemExit(0)
+    print("ERROR: PyYAML is required; install requirements-validation.txt in Python 3.12", file=sys.stderr)
+    raise SystemExit(1)
 
 root = pathlib.Path(__file__).resolve().parents[1]
-ignored_directories = {".git", "_site"}
-files = sorted(
-    {
-        path
-        for pattern in ("*.yaml", "*.yml")
-        for path in root.rglob(pattern)
-        if not ignored_directories.intersection(path.relative_to(root).parts)
-    }
-)
+try:
+    files = files_with_suffixes(root, {".yaml", ".yml"})
+except InventoryError as exc:
+    print(f"ERROR: {exc}", file=sys.stderr)
+    raise SystemExit(1)
 errors = []
 document_count = 0
 for path in files:
@@ -26,7 +24,9 @@ for path in files:
         documents = list(yaml.safe_load_all(path.read_text(encoding="utf-8")))
         document_count += len(documents)
     except Exception as exc:
-        errors.append(f"{path.relative_to(root)}: {exc}")
+        mark = getattr(exc, "problem_mark", None)
+        location = f" at line {mark.line + 1}, column {mark.column + 1}" if mark is not None else ""
+        errors.append(f"{path.relative_to(root)}: invalid YAML{location}")
 if errors:
     print("ERROR:\n" + "\n".join(errors), file=sys.stderr)
     raise SystemExit(1)

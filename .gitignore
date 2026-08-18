@@ -14,5 +14,7 @@ poc/load-testing/results/*.html
 coverage/
 dist/
 _site/
+.study-workflow/
 __pycache__/
 .pytest_cache/
+.venv/

@@ -13,7 +13,7 @@ This report is generated from the article corpus by `scripts/validate_source_cov
 
 | Measure | Count |
 |---|---:|
-| Article files scanned | 67 |
+| Article files scanned | 68 |
 | Article files containing external citations | 47 |
 | Unique external citations | 263 |
 | Unique registered citations used by articles | 36 |
