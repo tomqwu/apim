@@ -441,7 +441,7 @@ def safe_location(name: str) -> str:
     return f"path-sha256:{hashlib.sha256(name.encode('utf-8', errors='surrogatepass')).hexdigest()[:16]}" if validate_public_name(name) else name
 
 
-def public_files() -> list[tuple[str, Path]]:
+def public_files(include_generated: bool = True) -> list[tuple[str, Path]]:
     hidden = subprocess.run(
         ("git", "ls-files", "-v", "-z"), cwd=ROOT, check=False,
         stdout=subprocess.PIPE, stderr=subprocess.PIPE,
@@ -452,7 +452,7 @@ def public_files() -> list[tuple[str, Path]]:
         raise WorkflowError("PS023 Git index visibility flags hide worktree state")
     names = set(git_path_names("ls-files", "-co", "--exclude-standard"))
     site = ROOT / "_site"
-    if site.exists():
+    if include_generated and site.exists():
         names.update(path.relative_to(ROOT).as_posix() for path in site.rglob("*") if path.is_file())
     files: list[tuple[str, Path]] = []
     for name in sorted(names):
@@ -466,10 +466,14 @@ def public_files() -> list[tuple[str, Path]]:
     return files
 
 
-def public_content_errors(base: str | None = None, history_end: str = "HEAD") -> list[str]:
+def public_content_errors(
+    base: str | None = None,
+    history_end: str = "HEAD",
+    include_generated: bool = True,
+) -> list[str]:
     errors: list[str] = []
     allowed_binaries = load_binary_allowlist()
-    for name, path in public_files():
+    for name, path in public_files(include_generated):
         name_errors = validate_public_name(name)
         errors.extend(name_errors)
         errors.extend(scan_public_file(path, name, allowed_binaries, safe_location(name)))
@@ -1366,9 +1370,16 @@ def run_pages_verifier(data: dict[str, Any], merge: str) -> bool:
                 verifier.extend(("--study-path", value))
             for value in data["routeAssertions"]:
                 verifier.extend(("--expected-route", value))
-            return subprocess.run(
-                tuple(verifier), cwd=worktree, check=False, env=validation_environment()
-            ).returncode == 0
+            try:
+                return subprocess.run(
+                    tuple(verifier),
+                    cwd=worktree,
+                    check=False,
+                    env=validation_environment(),
+                    timeout=660,
+                ).returncode == 0
+            except subprocess.TimeoutExpired:
+                return False
         finally:
             run(("git", "worktree", "remove", "--force", str(worktree)), check=False)
 
@@ -1464,13 +1475,15 @@ def command_validate_repo(_: argparse.Namespace) -> int:
     return 0
 
 
-def command_validate_public(_: argparse.Namespace) -> int:
-    errors = public_content_errors()
+def command_validate_public(args: argparse.Namespace) -> int:
+    errors = public_content_errors(include_generated=not args.source_only)
     if errors:
         for error in errors:
             print(f"ERROR: {error}", file=sys.stderr)
         return 1
-    print(f"OK: {len(public_files())} public/generated files pass versioned safety and branding rules")
+    files = public_files(include_generated=not args.source_only)
+    scope = "public source files" if args.source_only else "public/generated files"
+    print(f"OK: {len(files)} {scope} pass versioned safety and branding rules")
     return 0
 
 
@@ -1559,6 +1572,7 @@ def build_parser() -> argparse.ArgumentParser:
     validate_repo = commands.add_parser("validate-repo", help="validate workflow controls and immutable specs")
     validate_repo.set_defaults(handler=command_validate_repo)
     validate_public = commands.add_parser("validate-public-content", help="scan public and generated text without echoing matched values")
+    validate_public.add_argument("--source-only", action="store_true", help="scan candidate source before any parser or generator runs")
     validate_public.set_defaults(handler=command_validate_public)
     return root
 

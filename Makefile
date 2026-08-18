@@ -4,7 +4,7 @@ override COMPOSE := docker compose -f poc/docker-compose.yaml
 override SITE_OUTPUT := _site
 override SITE_PORT := 8008
 
-.PHONY: help validate validate-openapi validate-yaml validate-counts validate-links validate-sources validate-source-coverage validate-visuals validate-studies validate-workflow validate-public-content validate-site validate-site-manifest lint-shell site site-serve poc-up poc-down smoke rate-limit-test kind-up kind-down k8s-smoke
+.PHONY: help validate validate-public-source validate-openapi validate-yaml validate-counts validate-links validate-sources validate-source-coverage validate-visuals validate-studies validate-workflow validate-public-content validate-site validate-site-manifest lint-shell site site-serve poc-up poc-down smoke rate-limit-test kind-up kind-down k8s-smoke
 
 help:
 	@sed -n 's/^## //p' Makefile
@@ -15,6 +15,10 @@ validate: validate-public-content validate-openapi validate-yaml validate-counts
 ## validate-openapi: Parse every OpenAPI document and enforce key fields.
 validate-openapi:
 	@python3 scripts/validate_openapi.py poc/apis
+
+## validate-public-source: Reject unsafe source bytes before any parser or generator reads them.
+validate-public-source:
+	@python3 scripts/study_workflow.py validate-public-content --source-only
 
 ## validate-yaml: Parse all YAML with required pinned PyYAML; fail closed when unavailable.
 validate-yaml:
@@ -49,7 +53,7 @@ validate-workflow: site
 	@python3 scripts/study_workflow.py validate-repo
 	@python3 scripts/test_study_workflow.py
 
-## validate-public-content: Reject high-confidence secrets, local paths, and prohibited legacy branding.
+## validate-public-content: Rescan source plus generated output after the site build.
 validate-public-content: site
 	@python3 scripts/study_workflow.py validate-public-content
 
@@ -66,7 +70,7 @@ validate-site-manifest: site
 	@python3 scripts/validate_site_manifest.py --output $(SITE_OUTPUT)
 
 ## site: Generate the API Management Studies site in _site/.
-site:
+site: validate-public-source
 	@python3 scripts/build_site.py --output $(SITE_OUTPUT)
 
 ## site-serve: Build and preview the site at http://localhost:8008.

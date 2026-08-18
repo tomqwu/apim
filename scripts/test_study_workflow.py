@@ -17,13 +17,17 @@ import stat
 import subprocess
 import sys
 import tempfile
+import time
 import unittest
 from pathlib import Path
+from types import SimpleNamespace
 from typing import Any
+from unittest import mock
 
 
 SOURCE_ROOT = Path(__file__).resolve().parents[1]
 PRODUCTION_CLI = SOURCE_ROOT / "scripts" / "study_workflow.py"
+PAGES_VERIFIER = SOURCE_ROOT / "scripts" / "verify_pages.py"
 
 EXPECTED_STATES = (
     "INTAKE",
@@ -80,6 +84,19 @@ def load_production_module() -> Any:
     if spec is None or spec.loader is None:
         raise RuntimeError(f"cannot load {PRODUCTION_CLI}")
     module = importlib.util.module_from_spec(spec)
+    spec.loader.exec_module(module)
+    return module
+
+
+def load_pages_verifier_module() -> Any:
+    """Load the Pages verifier so deadline behavior can be tested without HTTP."""
+
+    name = f"verify_pages_under_test_{os.getpid()}_{id(object())}"
+    spec = importlib.util.spec_from_file_location(name, PAGES_VERIFIER)
+    if spec is None or spec.loader is None:
+        raise RuntimeError(f"cannot load {PAGES_VERIFIER}")
+    module = importlib.util.module_from_spec(spec)
+    sys.modules[name] = module
     spec.loader.exec_module(module)
     return module
 
@@ -507,6 +524,15 @@ class WorkflowTestCase(unittest.TestCase):
 
 
 class CanonicalContractTests(WorkflowTestCase):
+    def test_source_safety_precedes_build_and_generated_safety_follows_it(self) -> None:
+        makefile = (SOURCE_ROOT / "Makefile").read_text(encoding="utf-8")
+        workflow = (SOURCE_ROOT / "docs/46-study-publication-workflow.md").read_text(encoding="utf-8")
+        self.assertRegex(makefile, r"(?m)^site: validate-public-source$")
+        self.assertRegex(makefile, r"(?m)^validate-public-source:\n\t@python3 scripts/study_workflow.py validate-public-content --source-only$")
+        self.assertRegex(makefile, r"(?m)^validate-public-content: site$")
+        self.assertIn("scans source before any content parser or generator runs", workflow)
+        self.assertIn("rescans source plus generated output", workflow)
+
     def test_mermaid_runtime_converts_and_rejects_blank_node_labels(self) -> None:
         app = (SOURCE_ROOT / "site/assets/app.js").read_text(encoding="utf-8")
         self.assertIn('template.content.querySelector("svg")', app)
@@ -1696,6 +1722,8 @@ class PublicContentScannerTests(WorkflowTestCase):
         self.assertEqual(0, private_only.returncode, private_only.stdout + private_only.stderr)
 
         repository.write_text("_site/generated.html", f"<p>{secret}</p>\n")
+        source_only = repository.cli("validate-public-content", "--source-only")
+        self.assertEqual(0, source_only.returncode, source_only.stdout + source_only.stderr)
         generated = repository.cli("validate-public-content")
         output = generated.stdout + generated.stderr
         self.assertEqual(1, generated.returncode, output)
@@ -2899,6 +2927,59 @@ class ReleaseGateTests(WorkflowTestCase):
             wrong_sha,
             contains="not authenticated required GitHub Actions jobs",
         )
+
+
+class PagesDeadlineTests(unittest.TestCase):
+    def test_queued_targets_cannot_extend_the_overall_deadline(self) -> None:
+        verifier = load_pages_verifier_module()
+        started: list[str] = []
+
+        def slow_target(
+            _base_url: str,
+            target: Any,
+            _token: str,
+            _timeout: float,
+            _deadline: float,
+        ) -> None:
+            started.append(target.label)
+            time.sleep(0.2)
+
+        targets = [
+            verifier.Target(f"content/{index}.md", "0" * 64, 1, f"target {index}")
+            for index in range(20)
+        ]
+        began = time.monotonic()
+        with mock.patch.object(verifier, "verify_target", side_effect=slow_target):
+            with self.assertRaisesRegex(verifier.VerificationError, "overall verification deadline expired"):
+                verifier.verify_targets(
+                    "https://example.invalid/studies/",
+                    targets,
+                    "deadline-test",
+                    30.0,
+                    1,
+                    time.monotonic() + 0.03,
+                )
+        elapsed = time.monotonic() - began
+        self.assertLess(elapsed, 0.15)
+        self.assertLessEqual(len(started), 1)
+        # Let the one already-running daemon-independent worker finish before the
+        # temporary module is released; the assertion above measures gate latency.
+        time.sleep(0.22)
+
+    def test_published_gate_bounds_the_verifier_subprocess(self) -> None:
+        workflow = load_production_module()
+        data = {
+            "liveBaseUrl": "https://example.invalid/studies/",
+            "manifestSha256": "0" * 64,
+            "canonicalPaths": ["docs/workflow-test.md"],
+            "routeAssertions": ["#/doc/workflow-test"],
+        }
+        timeout_error = subprocess.TimeoutExpired(("python", "verify_pages.py"), 660)
+        with mock.patch.object(workflow, "run", return_value=SimpleNamespace(returncode=0)), mock.patch.object(
+            workflow.subprocess, "run", side_effect=timeout_error
+        ) as invoked:
+            self.assertFalse(workflow.run_pages_verifier(data, "1" * 40))
+        self.assertEqual(660, invoked.call_args.kwargs["timeout"])
 
 
 class PublishedGateTests(WorkflowTestCase):

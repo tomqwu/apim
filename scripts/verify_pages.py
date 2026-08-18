@@ -11,7 +11,7 @@ import re
 import subprocess
 import sys
 import time
-from concurrent.futures import ThreadPoolExecutor, as_completed
+from concurrent.futures import FIRST_COMPLETED, ThreadPoolExecutor, wait
 from dataclasses import dataclass
 from datetime import datetime, timezone
 from pathlib import Path
@@ -111,7 +111,14 @@ def request_url(base_url: str, relative: str, token: str) -> str:
     return urlunsplit((split.scheme, split.netloc, split.path, query, ""))
 
 
-def read_limited(response: Any, limit: int, label: str) -> bytes:
+def remaining_timeout(deadline: float, requested_timeout: float) -> float:
+    """Return a per-operation timeout that cannot outlive the global deadline."""
+    remaining = deadline - time.monotonic()
+    require(remaining > 0, "overall verification deadline expired")
+    return min(requested_timeout, remaining)
+
+
+def read_limited(response: Any, limit: int, label: str, deadline: float, timeout: float) -> bytes:
     length = response.headers.get("Content-Length")
     if length is not None:
         try:
@@ -120,8 +127,11 @@ def read_limited(response: Any, limit: int, label: str) -> bytes:
             raise VerificationError(f"{label} has an invalid Content-Length") from exc
     chunks: list[bytes] = []
     total = 0
+    read_chunk = getattr(response, "read1", response.read)
     while True:
-        chunk = response.read(min(1024 * 1024, limit - total + 1))
+        remaining_timeout(deadline, timeout)
+        chunk = read_chunk(min(1024 * 1024, limit - total + 1))
+        remaining_timeout(deadline, timeout)
         if not chunk:
             break
         total += len(chunk)
@@ -130,7 +140,14 @@ def read_limited(response: Any, limit: int, label: str) -> bytes:
     return b"".join(chunks)
 
 
-def fetch(base_url: str, relative: str, token: str, timeout: float, max_bytes: int = MAX_METADATA_BYTES) -> tuple[int, bytes]:
+def fetch(
+    base_url: str,
+    relative: str,
+    token: str,
+    timeout: float,
+    deadline: float,
+    max_bytes: int = MAX_METADATA_BYTES,
+) -> tuple[int, bytes]:
     url = request_url(base_url, relative, token)
     request = Request(
         url,
@@ -142,16 +159,19 @@ def fetch(base_url: str, relative: str, token: str, timeout: float, max_bytes: i
         },
     )
     try:
-        with urlopen(request, timeout=timeout) as response:
-            return response.status, read_limited(response, max_bytes, relative or "site root")
+        with urlopen(request, timeout=remaining_timeout(deadline, timeout)) as response:
+            return response.status, read_limited(response, max_bytes, relative or "site root", deadline, timeout)
     except HTTPError as exc:
-        return exc.code, read_limited(exc, max_bytes, relative or "site root")
+        try:
+            return exc.code, read_limited(exc, max_bytes, relative or "site root", deadline, timeout)
+        finally:
+            exc.close()
     except (URLError, TimeoutError, OSError) as exc:
         raise VerificationError(f"request failed for {relative}: {exc}") from exc
 
 
-def load_manifest(base_url: str, token: str, timeout: float) -> tuple[dict[str, Any], bytes]:
-    status, raw = fetch(base_url, "content-manifest.json", token, timeout)
+def load_manifest(base_url: str, token: str, timeout: float, deadline: float) -> tuple[dict[str, Any], bytes]:
+    status, raw = fetch(base_url, "content-manifest.json", token, timeout, deadline)
     require(status == 200, f"content-manifest.json returned HTTP {status}")
     try:
         manifest = json.loads(raw.decode("utf-8"))
@@ -268,7 +288,13 @@ def validate_manifest_shape(
     return targets
 
 
-def fetch_target_digest(base_url: str, target: Target, token: str, timeout: float) -> tuple[int, int, str]:
+def fetch_target_digest(
+    base_url: str,
+    target: Target,
+    token: str,
+    timeout: float,
+    deadline: float,
+) -> tuple[int, int, str]:
     require(target.size <= MAX_TARGET_BYTES, f"{target.label} exceeds the public artifact size limit")
     url = request_url(base_url, target.relative, token)
     request = Request(
@@ -281,7 +307,7 @@ def fetch_target_digest(base_url: str, target: Target, token: str, timeout: floa
         },
     )
     try:
-        response = urlopen(request, timeout=timeout)
+        response = urlopen(request, timeout=remaining_timeout(deadline, timeout))
     except HTTPError as exc:
         try:
             return exc.code, 0, digest(b"")
@@ -298,8 +324,11 @@ def fetch_target_digest(base_url: str, target: Target, token: str, timeout: floa
                 raise VerificationError(f"{target.label} has an invalid Content-Length") from exc
         file_digest = hashlib.sha256()
         size = 0
+        read_chunk = getattr(response, "read1", response.read)
         while True:
-            chunk = response.read(min(1024 * 1024, target.size - size + 1))
+            remaining_timeout(deadline, timeout)
+            chunk = read_chunk(min(1024 * 1024, target.size - size + 1))
+            remaining_timeout(deadline, timeout)
             if not chunk:
                 break
             size += len(chunk)
@@ -308,11 +337,52 @@ def fetch_target_digest(base_url: str, target: Target, token: str, timeout: floa
         return response.status, size, file_digest.hexdigest()
 
 
-def verify_target(base_url: str, target: Target, token: str, timeout: float) -> None:
-    status, size, target_digest = fetch_target_digest(base_url, target, token, timeout)
+def verify_target(base_url: str, target: Target, token: str, timeout: float, deadline: float) -> None:
+    status, size, target_digest = fetch_target_digest(base_url, target, token, timeout, deadline)
     require(status == 200, f"{target.label} returned HTTP {status}")
     require(size == target.size, f"{target.label} size differs from the manifest")
     require(target_digest == target.sha256, f"{target.label} SHA-256 differs from the manifest")
+
+
+def verify_targets(
+    base_url: str,
+    targets: list[Target],
+    token: str,
+    timeout: float,
+    workers: int,
+    deadline: float,
+) -> None:
+    """Verify the target set without letting queued futures extend the deadline."""
+    failures: list[str] = []
+    executor = ThreadPoolExecutor(max_workers=workers)
+    future_targets = {
+        executor.submit(verify_target, base_url, target, f"{token}-{index}", timeout, deadline): target
+        for index, target in enumerate(targets)
+    }
+    pending = set(future_targets)
+    timed_out = False
+    try:
+        while pending:
+            remaining = deadline - time.monotonic()
+            if remaining <= 0:
+                timed_out = True
+                raise VerificationError("overall verification deadline expired")
+            done, not_done = wait(pending, timeout=remaining, return_when=FIRST_COMPLETED)
+            if not done:
+                timed_out = True
+                raise VerificationError("overall verification deadline expired")
+            pending = set(not_done)
+            for future in done:
+                target = future_targets[future]
+                try:
+                    future.result()
+                except Exception as exc:  # Report every concurrently observed mismatch together.
+                    failures.append(f"{target.label}: {exc}")
+    finally:
+        for future in pending:
+            future.cancel()
+        executor.shutdown(wait=not timed_out, cancel_futures=True)
+    require(not failures, "; ".join(sorted(failures)))
 
 
 def verify_once(
@@ -324,38 +394,29 @@ def verify_once(
     workers: int,
     expected_manifest_sha256: str | None,
     expected_routes: list[str],
+    deadline: float,
 ) -> tuple[int, int]:
     token = f"{expected_revision}-{attempt}"
-    manifest, manifest_bytes = load_manifest(base_url, token, timeout)
+    manifest, manifest_bytes = load_manifest(base_url, token, timeout, deadline)
     if expected_manifest_sha256:
         require(digest(manifest_bytes) == expected_manifest_sha256, "deployed manifest SHA-256 differs from the build artifact")
     targets = validate_manifest_shape(manifest, expected_revision, study_paths, expected_routes)
     assets = manifest["assets"]
 
-    root_status, root = fetch(base_url, "", token, timeout, assets["index.html"]["size"] + 1)
+    root_status, root = fetch(base_url, "", token, timeout, deadline, assets["index.html"]["size"] + 1)
     require(root_status == 200, f"site root returned HTTP {root_status}")
     require(len(root) == assets["index.html"]["size"], "site root size differs from index.html provenance")
     require(digest(root) == assets["index.html"]["sha256"], "site root does not match index.html provenance")
 
     missing_path = f"__pages_provenance_{expected_revision}_{attempt}.html"
-    missing_status, missing = fetch(base_url, missing_path, token, timeout, assets["404.html"]["size"] + 1)
+    missing_status, missing = fetch(
+        base_url, missing_path, token, timeout, deadline, assets["404.html"]["size"] + 1
+    )
     require(missing_status == 404, f"unknown Pages path returned HTTP {missing_status}, expected 404")
     require(len(missing) == assets["404.html"]["size"], "404 response size differs from 404.html provenance")
     require(digest(missing) == assets["404.html"]["sha256"], "404 response does not match 404.html provenance")
 
-    failures: list[str] = []
-    with ThreadPoolExecutor(max_workers=workers) as executor:
-        futures = {
-            executor.submit(verify_target, base_url, target, f"{token}-{index}", timeout): target
-            for index, target in enumerate(targets)
-        }
-        for future in as_completed(futures):
-            target = futures[future]
-            try:
-                future.result()
-            except Exception as exc:  # Report every concurrently observed mismatch together.
-                failures.append(f"{target.label}: {exc}")
-    require(not failures, "; ".join(sorted(failures)))
+    verify_targets(base_url, targets, token, timeout, workers, deadline)
     return len(manifest["items"]), len(manifest["assets"])
 
 
@@ -412,6 +473,7 @@ def main() -> int:
                 args.workers,
                 args.expected_manifest_sha256,
                 args.expected_route,
+                deadline,
             )
             print(
                 f"OK: Pages serves clean revision {expected_revision}; "
