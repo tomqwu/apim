@@ -10,9 +10,9 @@
 |---|---|
 | OpenAPI semantic validation | Six OpenAPI 3.0.3 documents passed `openapi-spec-validator` |
 | YAML parsing | 22 source YAML files / 32 documents parsed with PyYAML; generated `_site` copies are excluded; rendered Helm YAML parsed with Ruby Psych |
-| Study/protocol contract | 43 principal studies / 176,981 words and three decision-grade protocols / 10,397 words passed structural, depth, evidence, inline-figure and next-gate controls |
+| Study/protocol contract | 43 principal studies / 177,105 words and three decision-grade protocols / 10,397 words passed structural, depth, evidence, inline-figure and next-gate controls |
 | Matrix/question/workflow gates | 120 unique criteria, 180 unique questions and 68 traceable content-remediation recommendations |
-| Markdown relative links | 521 detected local links resolve |
+| Markdown relative links | 523 detected local links resolve |
 | Registered evidence chain | 40 unique sources, 24 findings and 28 source IDs used directly in findings resolve |
 | Citation promotion boundary | 69 article files contain 271 unique external citations: 36 registered and 235 contextual/non-scoring until promoted |
 | Visual parity | 12 canonical Mermaid mirrors, one canonical alias and three data-backed Markdown charts align |

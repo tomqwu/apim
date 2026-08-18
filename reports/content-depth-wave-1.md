@@ -9,7 +9,7 @@
 
 ## Principal verdict
 
-The repository has moved from an outline-heavy publication shell to a substantive, governed content baseline. The baseline review found a median numbered-document length of 148 words, 32 of 41 numbered documents below 300 words, no inline figures or point-of-claim external sources in docs 10–32, 647 words across the eight comparison pages, and 35–39-word vendor research stubs. The release candidate now contains 43 contract-enforced principal studies with 176,981 words, three decision-grade protocols with 10,397 words, deep symmetric dossiers, a synthetic enterprise case, public failure cases, a canonical top-ten industry-problem taxonomy, a vendor-neutral industry-practice and realistic-case system, a Kong multicloud study roadmap, a bounded Kong enterprise-platform deployment strategy, and one visible figure contract for every inline Mermaid.
+The repository has moved from an outline-heavy publication shell to a substantive, governed content baseline. The baseline review found a median numbered-document length of 148 words, 32 of 41 numbered documents below 300 words, no inline figures or point-of-claim external sources in docs 10–32, 647 words across the eight comparison pages, and 35–39-word vendor research stubs. The release candidate now contains 43 contract-enforced principal studies with 177,105 words, three decision-grade protocols with 10,397 words, deep symmetric dossiers, a synthetic enterprise case, public failure cases, a canonical top-ten industry-problem taxonomy, a vendor-neutral industry-practice and realistic-case system, a Kong multicloud study roadmap, a bounded Kong enterprise-platform deployment strategy, and one visible figure contract for every inline Mermaid.
 
 That is a material editorial and methodological improvement. It is **not** product evidence. All 120 criteria remain unknown, the seven entries remain bounded archetypes rather than exact purchasable options, and no finalist has completed the 28 atomic E3 protocol cases. Stakeholders have separately chosen Kong as the planning direction. The defensible repository decision is therefore to accept the evidence system, fund a bounded and reversible Kong foundation, and withhold claims of demonstrated production fit or permission to scale until the recorded Kong gates pass.
 
@@ -17,7 +17,7 @@ That is a material editorial and methodological improvement. It is **not** produ
 
 | Measure | Baseline | Release candidate | Decision interpretation |
 |---|---:|---:|---|
-| Principal-study contract | absent | 43 studies / 176,981 words | structural and editorial depth is now enforceable; word count alone is not evidence |
+| Principal-study contract | absent | 43 studies / 177,105 words | structural and editorial depth is now enforceable; word count alone is not evidence |
 | Numbered-document depth | median 148 words; 32/41 below 300 | every marked principal study ≥900 words; current total above | outline-level publication risk materially reduced |
 | Decision-grade protocols | absent | 3 protocols / 10,397 words | executable design exists; all candidate × atomic-case states still begin not run |
 | Atomic comparative cases | implicit/aggregate | 12 real-world + 7 portal + 9 observability = 28 | protocol count must never be reported as execution progress |

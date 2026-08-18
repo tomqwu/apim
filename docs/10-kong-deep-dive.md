@@ -14,7 +14,11 @@
 | As-of date | 2026-08-17 |
 | Next gate | Gate-1 option-resolution review; architecture evidence review follows only after a reproducible variant, E2 terms and the KONG-P01 through KONG-P05 proof bundle are complete |
 
-## Provisional answer
+## Current direction overlay — 2026-08-18
+
+Stakeholder direction now advances the bounded self-managed Kong foundation described in the [Kong enterprise platform deployment strategy](47-kong-enterprise-platform-strategy.md). The earlier E1 conclusion below remains a historical evidence ceiling—not the current sequencing decision—and production fit, critical scale and comparative superiority remain unproved until the strategy's mandatory proof and hold gates close.
+
+## Historical provisional answer — 2026-08-17
 
 **Evidence state:** `E1 — current official documentation`, reviewed 2026-08-17. The evidence supports keeping several Kong variants available for testing, but supports no product score, rank, or selection. There is no contractual evidence (`E2`), reproducible execution (`E3`), or representative pilot evidence (`E4`) in this repository.
 

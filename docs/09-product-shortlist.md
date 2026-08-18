@@ -14,7 +14,11 @@
 | As-of date | 2026-08-17; all version, tier, region, entitlement and support facts require gate-time revalidation |
 | Next gate | Steering committee approves exact bills of material and an evidence-backed E1/E2 mandatory-gate screen before funding symmetric E3 finalists |
 
-## Provisional answer
+## Current direction overlay — 2026-08-18
+
+Stakeholder sequencing now treats Kong as the bounded, reversible platform direction defined in the [Kong enterprise platform deployment strategy](47-kong-enterprise-platform-strategy.md). That direction does not convert this earlier E1 longlist into comparative proof: the dated provisional answer below remains the historical evidence baseline, while Kong receives implementation priority only through the new strategy's explicit proof, hold and exit gates.
+
+## Historical provisional answer — 2026-08-17
 
 Keep all seven named variants in the **evidence-closure longlist**; do not call any of them selected, preferred or functionally equivalent. Confidence is high that they span the material ownership models and zero that the current evidence supports a winner. First resolve exact tier/edition, control region, data-plane topology, Kubernetes/support matrix, licensed features and commercial terms. Then apply mandatory gates before comparative weighting.
 
