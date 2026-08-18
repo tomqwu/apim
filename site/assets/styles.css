@@ -4431,6 +4431,12 @@ body.is-presenting .site-footer {
 }
 
 @media (min-width: 761px) and (max-width: 1024px) {
+  .presentation-stage .viz-bar-row,
+  .presentation-stage .viz-stacked-row {
+    grid-template-columns: minmax(110px, 1.4fr) minmax(36px, 1.6fr) 36px;
+    gap: 0.4rem;
+  }
+
   .presentation-stage.is-industry-practices {
     overflow-y: auto;
     overscroll-behavior: contain;
