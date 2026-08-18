@@ -12,6 +12,7 @@ import ipaddress
 import json
 import os
 import re
+import shutil
 import subprocess
 import sys
 import tempfile
@@ -308,7 +309,7 @@ def validation_environment() -> dict[str, str]:
     # Keep the virtualenv's lexical bin path. Resolving the Python symlink can
     # jump to a framework bin directory that does not provide `python3`.
     interpreter_dir = str(Path(sys.executable).absolute().parent)
-    environment["PATH"] = interpreter_dir + os.pathsep + environment.get("PATH", "")
+    environment["PATH"] = interpreter_dir + os.pathsep + os.defpath
     for key in (
         "MAKEFLAGS", "GNUMAKEFLAGS", "MFLAGS", "MAKEFILES", "MAKELEVEL",
         "PYTHONPATH", "PYTHONHOME", "PYTHONSTARTUP", "PYTHONINSPECT", "PYTHONUSERBASE",
@@ -319,8 +320,10 @@ def validation_environment() -> dict[str, str]:
 
 
 def run_make_validate() -> bool:
+    make = shutil.which("make", path=os.defpath)
+    fail_unless(make is not None, "trusted system make executable is unavailable")
     return subprocess.run(
-        ("make", "--no-print-directory", "validate"),
+        (make, "--no-print-directory", "validate"),
         cwd=ROOT,
         check=False,
         env=validation_environment(),

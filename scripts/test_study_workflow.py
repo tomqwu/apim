@@ -118,6 +118,7 @@ class TemporaryWorkflowRepository:
         self.environment = os.environ.copy()
         for variable in OUTER_PROVENANCE_ENVIRONMENT:
             self.environment.pop(variable, None)
+        self.environment.pop("GIT_NO_REPLACE_OBJECTS", None)
         self.environment.update(
             {
                 "GIT_TERMINAL_PROMPT": "0",
@@ -143,6 +144,14 @@ class TemporaryWorkflowRepository:
             destination = self.root / relative
             destination.parent.mkdir(parents=True, exist_ok=True)
             shutil.copy2(source, destination)
+
+        if not full:
+            (self.root / "Makefile").write_text(
+                "validate:\n"
+                "\t@if [ \"$${FAKE_MAKE_RC:-0}\" -ne 0 ]; then exit \"$${FAKE_MAKE_RC}\"; fi\n"
+                "\t@if [ -n \"$$EXPECTED_PYTHON_BIN\" ]; then case \":$$PATH:\" in *\":$$EXPECTED_PYTHON_BIN:\"*) ;; *) exit 41 ;; esac; fi\n",
+                encoding="utf-8",
+            )
 
         self.git("init", "-q")
         self.git("branch", "-M", "main")
@@ -3204,6 +3213,39 @@ class DraftGateTests(WorkflowTestCase):
 
 
 class ValidationEnvironmentTests(WorkflowTestCase):
+    def test_draft_gate_does_not_execute_an_ambient_path_make(self) -> None:
+        repository = self.repository(local_origin=True)
+        checkpoint, _, _ = repository.prepare_draft()
+        hostile_bin = repository.container / "hostile-bin"
+        hostile_bin.mkdir()
+        marker = repository.container / "ambient-make-was-executed"
+        hostile_make = hostile_bin / "make"
+        hostile_make.write_text(
+            f"#!/bin/sh\n: > {marker}\nexit 0\n",
+            encoding="utf-8",
+        )
+        hostile_make.chmod(hostile_make.stat().st_mode | stat.S_IXUSR)
+        observed = repository.cli(
+            "check",
+            "--checkpoint",
+            str(checkpoint),
+            "--phase",
+            "draft",
+            "--base",
+            repository.base_sha,
+            environment={
+                "PATH": os.pathsep.join(
+                    (str(hostile_bin), str(repository.tool_bin), repository.environment.get("PATH", ""))
+                ),
+                "FAKE_MAKE_RC": "7",
+            },
+        )
+        self.assert_deterministic_error(
+            observed,
+            contains="make validate failed during draft gate",
+        )
+        self.assertFalse(marker.exists(), "draft gate executed ambient PATH make")
+
     def test_publication_commands_ignore_repository_make_gh_and_python_redirectors(self) -> None:
         repository = self.repository(local_origin=True)
         hostile_python = repository.container / "hostile-python"
