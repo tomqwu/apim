@@ -35,7 +35,7 @@ Select the API management and gateway architecture that best supports a Kubernet
 | [`research/`](research/README.md) | Official-source log, claim register, assumptions, and glossary |
 | [`adr/`](adr/README.md) | Architecture decision records; hypotheses are not silently promoted to decisions |
 | [`templates/`](templates/README.md) | Reusable collection and governance templates |
-| [`reports/`](reports/content-research-principal-review.md) | Principal content review and backlog, decision-assurance review, evidence state, delivery inventory, and reproducible validation record |
+| [`reports/`](reports/content-research-principal-review.md) | Principal content review and backlog, decision-assurance review, evidence state, table-experience review, delivery inventory, and reproducible validation record |
 
 Substantive articles use the [principal study standard](docs/STUDY-STANDARD.md) and [study template](templates/principal-study-template.md). The standard requires a real decision chain, bounded option scope with Gate-1 resolution blockers, mechanism and failure analysis, point-of-use evidence, scenario depth, inline figure contracts, falsification, and limitations; longer prose alone does not satisfy it.
 

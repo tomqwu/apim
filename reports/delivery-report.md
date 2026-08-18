@@ -12,7 +12,7 @@
 - ADR and collection/evidence templates.
 - A formal principal recommendation, data-backed evidence-state report, two gated roadmaps, a criterion/variant evidence-ledger template, and an accountable action-register template.
 - Twelve architecture Mermaid sources mirrored into companion Markdown notes with automated parity validation and the same rendered views in the site.
-- A commit-scoped [principal content and research baseline review](content-research-principal-review.md), [post-remediation release-candidate review](content-depth-wave-1.md), machine-readable [content-remediation backlog](content-remediation-backlog.csv), strict study/figure validators, and generated [external-citation coverage](source-coverage.md) covering content classification, symmetric dossiers, inline evidence, contextual-source promotion debt, comparative experiments, and independent acceptance.
+- A commit-scoped [principal content and research baseline review](content-research-principal-review.md), [post-remediation release-candidate review](content-depth-wave-1.md), machine-readable [content-remediation backlog](content-remediation-backlog.csv), [table-experience review](table-experience-review.md), strict study/figure validators, and generated [external-citation coverage](source-coverage.md) covering content classification, symmetric dossiers, inline evidence, contextual-source promotion debt, comparative experiments, and independent acceptance.
 
 ## Content maturity boundary
 

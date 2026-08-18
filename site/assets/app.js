@@ -736,11 +736,27 @@
       image.loading = "lazy";
     });
 
-    container.querySelectorAll("table").forEach((table) => {
+    container.querySelectorAll("table").forEach((table, index) => {
+      table.classList.add("editorial-table");
+      sizeTableColumns(table);
+
+      const region = document.createElement("figure");
+      region.className = "table-region article-table";
+      const viewport = document.createElement("div");
+      viewport.className = "table-viewport";
       const wrapper = document.createElement("div");
       wrapper.className = "table-wrap";
-      table.parentNode.insertBefore(wrapper, table);
+      wrapper.setAttribute("role", "region");
+      wrapper.setAttribute("aria-label", `Table ${index + 1} in ${item.title}`);
+      const hint = document.createElement("figcaption");
+      hint.className = "table-scroll-hint";
+      hint.innerHTML = '<span aria-hidden="true">↔</span> Scroll to compare every field';
+
+      table.parentNode.insertBefore(region, table);
+      region.append(viewport, hint);
+      viewport.appendChild(wrapper);
       wrapper.appendChild(table);
+      activateTableRegion(region);
     });
   }
 
@@ -820,18 +836,263 @@
     return rows;
   }
 
-  function csvMarkup(text) {
+  const fieldAcronyms = new Map([
+    ["api", "API"],
+    ["id", "ID"],
+    ["rpo", "RPO"],
+    ["rps", "RPS"],
+    ["rto", "RTO"],
+    ["slo", "SLO"],
+    ["url", "URL"],
+  ]);
+
+  function humanizeFieldName(value) {
+    return String(value || "Field")
+      .trim()
+      .split(/[_\s-]+/)
+      .filter(Boolean)
+      .map((word, index) => fieldAcronyms.get(word.toLowerCase())
+        || (index === 0 ? `${word.charAt(0).toUpperCase()}${word.slice(1).toLowerCase()}` : word.toLowerCase()))
+      .join(" ");
+  }
+
+  function percentileLength(values, percentile = 0.85) {
+    const lengths = values
+      .map((value) => String(value || "").replace(/\s+/g, " ").trim().length)
+      .filter(Boolean)
+      .sort((left, right) => left - right);
+    if (!lengths.length) return 0;
+    return lengths[Math.min(lengths.length - 1, Math.floor((lengths.length - 1) * percentile))];
+  }
+
+  function tableColumnProfile(header, values) {
+    const key = String(header || "").toLowerCase().replace(/[^a-z0-9]+/g, "_");
+    const sampleLength = Math.max(key.length, percentileLength(values));
+    const isNumeric = /(^|_)(score|weight|count|rps|size|duration|priority|capacity)($|_)/.test(key)
+      && values.every((value) => !String(value).trim() || Number.isFinite(Number(value)));
+    if (isNumeric) return { kind: "number", width: 8 };
+    if (/(^|_)(url)($|_)/.test(key)) return { kind: "url", width: 28 };
+    if (/(^|_)(date|access_date|review_date|target_date|fresh_until)($|_)/.test(key)) return { kind: "date", width: 11 };
+    if (/(^|_)(id)($|_)/.test(key)) return { kind: "identifier", width: Math.min(15, Math.max(10, Math.ceil(sampleLength * 0.58))) };
+    if (/(^|_)(status|state|level|type|category|vendor|product|wave|criticality|environment|classification)($|_)/.test(key)) {
+      return { kind: "compact", width: Math.min(15, Math.max(10, Math.ceil(sampleLength * 0.52))) };
+    }
+    if (/(claim|criterion|requirement|evidence|acceptance|test|description|problem|remediation|implication|limitation|assumption|dependency|mitigation|outcome|notes|scope|responsibilit|rollback|reconciliation|decommission)/.test(key)) {
+      return { kind: "narrative", width: Math.min(27, Math.max(19, Math.ceil(sampleLength * 0.42))) };
+    }
+    return { kind: "standard", width: Math.min(20, Math.max(10, Math.ceil(sampleLength * 0.5))) };
+  }
+
+  function sizeTableColumns(table, suppliedHeaders = null) {
+    if (!table) return;
+    const headers = suppliedHeaders || [...table.querySelectorAll("thead th")].map((cell) => cell.dataset.field || cell.textContent.trim());
+    if (!headers.length) return;
+    const bodyRows = [...table.querySelectorAll("tbody tr:not(.data-detail-row)")];
+    const profiles = headers.map((header, index) => tableColumnProfile(
+      header,
+      bodyRows.map((row) => row.children[index]?.textContent || ""),
+    ));
+    const group = document.createElement("colgroup");
+    profiles.forEach((profile) => {
+      const column = document.createElement("col");
+      column.className = `table-column table-column--${profile.kind}`;
+      column.style.width = `${profile.width}rem`;
+      group.appendChild(column);
+    });
+    table.querySelector("colgroup")?.remove();
+    const caption = table.querySelector(":scope > caption");
+    if (caption) caption.after(group);
+    else table.prepend(group);
+    table.style.setProperty("--table-min-width", `${profiles.reduce((total, profile) => total + profile.width, 0)}rem`);
+    table.querySelectorAll("tr").forEach((row) => {
+      [...row.children].forEach((cell, index) => {
+        if (profiles[index]) cell.dataset.columnKind = profiles[index].kind;
+      });
+    });
+  }
+
+  function updateTableRegion(region) {
+    const wrappers = [...(region?.querySelectorAll(".table-wrap") || [])];
+    const wrapper = wrappers.find((candidate) => candidate.offsetParent !== null) || wrappers[0];
+    if (!wrapper) return;
+    const hasHorizontalOverflow = wrapper.scrollWidth > wrapper.clientWidth + 2;
+    const hasVerticalOverflow = wrapper.scrollHeight > wrapper.clientHeight + 2;
+    region.classList.toggle("has-horizontal-overflow", hasHorizontalOverflow);
+    region.classList.toggle("can-scroll-left", hasHorizontalOverflow && wrapper.scrollLeft > 2);
+    region.classList.toggle("can-scroll-right", hasHorizontalOverflow && wrapper.scrollLeft < wrapper.scrollWidth - wrapper.clientWidth - 2);
+    wrapper.tabIndex = hasHorizontalOverflow || hasVerticalOverflow ? 0 : -1;
+  }
+
+  function activateTableRegion(region) {
+    const wrappers = [...(region?.querySelectorAll(".table-wrap") || [])];
+    if (!wrappers.length) return;
+    wrappers.forEach((wrapper) => wrapper.addEventListener("scroll", () => updateTableRegion(region), { passive: true }));
+    requestAnimationFrame(() => updateTableRegion(region));
+  }
+
+  let tableResizeFrame = null;
+  window.addEventListener("resize", () => {
+    cancelAnimationFrame(tableResizeFrame);
+    tableResizeFrame = requestAnimationFrame(() => {
+      document.querySelectorAll(".table-region").forEach((region) => updateTableRegion(region));
+    });
+  });
+
+  function activateDataGrid(container) {
+    const grid = container.querySelector(".data-grid");
+    const tables = [...(grid?.querySelectorAll(".data-table") || [])];
+    if (!grid || !tables.length) return;
+    tables.forEach((table) => sizeTableColumns(table, [...table.querySelectorAll("thead th")].map((cell) => cell.dataset.field || "")));
+    activateTableRegion(grid);
+
+    grid.querySelectorAll("[data-grid-mode]").forEach((button) => {
+      button.addEventListener("click", () => {
+        const mode = button.dataset.gridMode;
+        grid.querySelectorAll("[data-grid-mode]").forEach((candidate) => candidate.setAttribute("aria-pressed", String(candidate === button)));
+        grid.querySelectorAll("[data-grid-view]").forEach((view) => {
+          view.hidden = view.dataset.gridView !== mode;
+        });
+        requestAnimationFrame(() => updateTableRegion(grid));
+      });
+    });
+
+    const filter = grid.querySelector("[data-grid-filter]");
+    const output = grid.querySelector("[data-grid-count]");
+    const empty = grid.querySelector("[data-grid-empty]");
+    const sourceRows = [...(grid.querySelectorAll(".data-table--full tbody tr[data-record-index]").length
+      ? grid.querySelectorAll(".data-table--full tbody tr[data-record-index]")
+      : grid.querySelectorAll("tbody tr[data-record-row]"))];
+    if (!filter || !output) return;
+    const update = () => {
+      const query = filter.value.trim().toLocaleLowerCase();
+      let visible = 0;
+      sourceRows.forEach((row) => {
+        const matches = !query || row.textContent.toLocaleLowerCase().includes(query);
+        grid.querySelectorAll(`[data-record-index="${row.dataset.recordIndex}"]`).forEach((candidate) => {
+          candidate.hidden = !matches;
+        });
+        if (matches) visible += 1;
+      });
+      output.textContent = `Showing ${visible} of ${sourceRows.length} ${sourceRows.length === 1 ? "record" : "records"}`;
+      if (empty) empty.hidden = visible !== 0;
+      updateTableRegion(grid);
+    };
+    filter.addEventListener("input", update);
+  }
+
+  function findHeaderIndexes(headers, names) {
+    const normalized = headers.map((header) => String(header).trim().toLowerCase());
+    return names.map((name) => normalized.indexOf(name)).filter((index, position, indexes) => index >= 0 && indexes.indexOf(index) === position);
+  }
+
+  function datasetColumnViews(headers, item) {
+    const path = item?.path || "";
+    let primary = [];
+    if (path === "decision-matrix/criteria.csv") {
+      primary = findHeaderIndexes(headers, ["criterion_id", "criterion", "category", "requirement_type", "default_weight", "status"]);
+    } else if (path === "reports/content-remediation-backlog.csv") {
+      primary = findHeaderIndexes(headers, ["recommendation_id", "priority", "workstream", "status", "owner_role", "target_gate"]);
+    } else if (path === "research/sources.csv") {
+      primary = findHeaderIndexes(headers, ["source_id", "vendor", "product", "title", "access_date"]);
+    } else if (path === "reports/source-coverage.csv") {
+      primary = findHeaderIndexes(headers, ["document_path", "registry_state", "source_id", "host"]);
+    } else if (headers.length > 8) {
+      const preferred = [
+        /(^|_)id$/,
+        /(^|_)(name|title|criterion|recommendation|claim)($|_)/,
+        /(^|_)priority($|_)/,
+        /(^|_)(category|workstream|type)($|_)/,
+        /(^|_)(status|state)($|_)/,
+        /(^|_)(owner|owner_role|gate|score)($|_)/,
+      ];
+      primary.push(0);
+      preferred.forEach((pattern) => {
+        const index = headers.findIndex((header, candidate) => !primary.includes(candidate) && pattern.test(String(header).toLowerCase()));
+        if (index >= 0 && primary.length < 6) primary.push(index);
+      });
+      for (let index = 0; index < headers.length && primary.length < 6; index += 1) {
+        if (!primary.includes(index)) primary.push(index);
+      }
+    }
+    const details = headers.map((_, index) => index).filter((index) => !primary.includes(index));
+    return { primary, details, usesDisclosure: primary.length > 0 && details.length > 0 };
+  }
+
+  function csvHeaderMarkup(headers, indexes) {
+    return indexes.map((index) => `<th scope="col" data-field="${escapeHtml(headers[index])}"><abbr title="Source field: ${escapeHtml(headers[index])}">${escapeHtml(humanizeFieldName(headers[index]))}</abbr></th>`).join("");
+  }
+
+  function csvRecordCells(row, indexes) {
+    return indexes.map((index, position) => position === 0
+      ? `<th scope="row" class="data-row-key">${escapeHtml(row[index])}</th>`
+      : `<td>${escapeHtml(row[index])}</td>`).join("");
+  }
+
+  function csvTableMarkup(headers, records, indexes, title, modifier = "full") {
+    return `<table class="data-table editorial-table data-table--${modifier}">
+      <caption>${escapeHtml(title)}: ${records.length} ${records.length === 1 ? "record" : "records"} across ${indexes.length} visible ${indexes.length === 1 ? "field" : "fields"}.</caption>
+      <thead><tr>${csvHeaderMarkup(headers, indexes)}</tr></thead>
+      <tbody>${records.map((row, recordIndex) => `<tr data-record-row data-record-index="${recordIndex}">${csvRecordCells(row, indexes)}</tr>`).join("")}</tbody>
+    </table>`;
+  }
+
+  function csvReadingTableMarkup(headers, records, primary, details, title) {
+    return `<table class="data-table editorial-table data-table--reading">
+      <caption>${escapeHtml(title)} reading view. Each record exposes ${primary.length} primary fields and ${details.length} additional fields in an expandable disclosure.</caption>
+      <thead><tr>${csvHeaderMarkup(headers, primary)}</tr></thead>
+      <tbody>${records.map((row, recordIndex) => `<tr data-record-row data-record-index="${recordIndex}">${csvRecordCells(row, primary)}</tr>
+        <tr class="data-detail-row" data-record-index="${recordIndex}"><td colspan="${primary.length}">
+          <details class="data-record-details"><summary><span>Supporting fields</span><small>${details.length} ${details.length === 1 ? "field" : "fields"}</small></summary>
+            <dl>${details.map((index) => `<div><dt>${escapeHtml(humanizeFieldName(headers[index]))}</dt><dd>${row[index] ? escapeHtml(row[index]) : '<span class="data-empty-value">Not supplied</span>'}</dd></div>`).join("")}</dl>
+          </details>
+        </td></tr>`).join("")}</tbody>
+    </table>`;
+  }
+
+  function csvSchemaMarkup(headers, gridId) {
+    return `<section class="schema-dictionary" aria-labelledby="${gridId}-schema-title">
+      <header><span class="data-grid-kicker">Reusable schema</span><h3 id="${gridId}-schema-title">Field dictionary</h3><p>This template has no sample records. The complete schema is shown below instead of as an empty wide grid.</p></header>
+      <dl>${headers.map((header, index) => {
+        const profile = tableColumnProfile(header, []);
+        return `<div><dt><span>${String(index + 1).padStart(2, "0")}</span>${escapeHtml(humanizeFieldName(header))}</dt><dd><code>${escapeHtml(header)}</code><span>${escapeHtml(profile.kind === "narrative" ? "Narrative field" : profile.kind === "identifier" ? "Identifier" : profile.kind === "date" ? "Date" : profile.kind === "number" ? "Number" : "Structured field")}</span></dd></div>`;
+      }).join("")}</dl>
+    </section>`;
+  }
+
+  function csvMarkup(text, item) {
     const rows = parseCsv(text);
     if (!rows.length) return "<p>The dataset is empty.</p>";
     const width = Math.max(...rows.map((row) => row.length));
     const normalized = rows.map((row) => [...row, ...Array(Math.max(0, width - row.length)).fill("")]);
+    const headers = normalized[0];
+    const records = normalized.slice(1);
+    const gridId = `dataset-${slug(item?.id || item?.title || "records")}`;
+    const title = item?.title || "Dataset";
+    const views = datasetColumnViews(headers, item);
+    const guide = views.usesDisclosure
+      ? "Start with the primary fields. Scroll the grid to compare them, expand a record for supporting fields, or open the full grid."
+      : "Scroll rows and compare every field in the bounded grid.";
     return `
-      <div class="table-wrap">
-        <table class="data-table">
-          <thead><tr>${normalized[0].map((cell) => `<th scope="col">${escapeHtml(cell)}</th>`).join("")}</tr></thead>
-          <tbody>${normalized.slice(1).map((row) => `<tr>${row.map((cell) => `<td>${escapeHtml(cell)}</td>`).join("")}</tr>`).join("")}</tbody>
-        </table>
-      </div>`;
+      <section class="table-region data-grid" aria-labelledby="${gridId}-title">
+        <header class="data-grid-heading">
+          <div>
+            <span class="data-grid-kicker">Structured dataset</span>
+            <h2 id="${gridId}-title">${escapeHtml(title)}</h2>
+          </div>
+          <p class="data-grid-summary"><strong>${records.length}</strong> ${records.length === 1 ? "record" : "records"}<span aria-hidden="true">/</span><strong>${headers.length}</strong> ${headers.length === 1 ? "field" : "fields"}</p>
+          <p class="data-grid-guide" id="${gridId}-guide">${escapeHtml(guide)}</p>
+        </header>
+        ${records.length ? `<div class="data-grid-tools">
+          <label class="data-grid-filter" for="${gridId}-filter"><span>Find in dataset</span><input id="${gridId}-filter" type="search" placeholder="Filter all records" autocomplete="off" data-grid-filter></label>
+          <output class="data-grid-count" for="${gridId}-filter" aria-live="polite" data-grid-count>Showing ${records.length} of ${records.length} ${records.length === 1 ? "record" : "records"}</output>
+          ${views.usesDisclosure ? `<div class="data-grid-modes" role="group" aria-label="Dataset view"><button type="button" aria-pressed="true" data-grid-mode="reading">Reading view</button><button type="button" aria-pressed="false" data-grid-mode="full">Full grid</button></div>` : ""}
+        </div>` : ""}
+        ${records.length ? `${views.usesDisclosure ? `<div class="table-viewport" data-grid-view="reading"><div class="table-wrap" role="region" aria-labelledby="${gridId}-title" aria-describedby="${gridId}-guide">${csvReadingTableMarkup(headers, records, views.primary, views.details, title)}</div></div>
+          <div class="table-viewport" data-grid-view="full" hidden><div class="table-wrap" role="region" aria-labelledby="${gridId}-title" aria-describedby="${gridId}-guide">${csvTableMarkup(headers, records, headers.map((_, index) => index), title)}</div></div>`
+          : `<div class="table-viewport" data-grid-view="full"><div class="table-wrap" role="region" aria-labelledby="${gridId}-title" aria-describedby="${gridId}-guide">${csvTableMarkup(headers, records, headers.map((_, index) => index), title)}</div></div>`}
+        <p class="table-scroll-hint"><span aria-hidden="true">↔</span> Scroll inside the grid to reach every visible field</p>` : csvSchemaMarkup(headers, gridId)}
+        <p class="data-grid-empty" data-grid-empty hidden>No records match this filter.</p>
+      </section>`;
   }
 
   function openApiMarkup(text, item) {
@@ -1076,7 +1337,7 @@
 
   function documentScaffold(item) {
     return `
-      <article class="document-shell">
+      <article class="document-shell${item.type === "csv" ? " is-dataset" : ""}">
         <header class="document-header">
           <div>
             <nav class="breadcrumb" aria-label="Breadcrumb"><a href="#/library">Library</a> / ${escapeHtml(item.section)}</nav>
@@ -1149,8 +1410,9 @@
         await renderInlineMermaid(prose, item.title);
         embedDocumentVisualContext(item, prose);
       } else if (item.type === "csv") {
-        target.innerHTML = `${documentVisualContext(item)}${csvMarkup(text)}`;
-        document.querySelector("[data-document-rail]").innerHTML = "<span>Filterable dataset</span>";
+        target.innerHTML = `${csvMarkup(text, item)}${documentVisualContext(item)}`;
+        activateDataGrid(target);
+        document.querySelector("[data-document-rail]").innerHTML = "<span>Structured dataset</span>";
       } else if (item.type === "mermaid") {
         target.innerHTML = `<div class="diagram-frame" data-diagram-frame><p>Rendering diagram…</p></div><h2>Mermaid source</h2><pre class="code-view"><code>${escapeHtml(text)}</code></pre>`;
         document.querySelector("[data-document-rail]").innerHTML = "<span>Rendered model</span><a href=\"#diagram-source\">Source</a>";
