@@ -59,6 +59,17 @@ REPOSITORY_FIXTURES = (
     "scripts/verify_pages.py",
 )
 
+# Hermetic repositories must resolve provenance from their own Git history.
+# GitHub Actions exports the synthetic pull-request merge revision to every
+# child process; that object does not exist in these independently initialized
+# fixture repositories and must not override their local HEAD.
+OUTER_PROVENANCE_ENVIRONMENT = (
+    "GITHUB_SHA",
+    "SOURCE_REVISION",
+    "SOURCE_DATE_EPOCH",
+    "EXPECTED_MANIFEST_SHA256",
+)
+
 
 def load_production_module() -> Any:
     """Load constants/functions without executing the CLI entry point."""
@@ -87,6 +98,8 @@ class TemporaryWorkflowRepository:
         self.python_executable = self.python_bin / "python"
         self.python_executable.symlink_to(sys.executable)
         self.environment = os.environ.copy()
+        for variable in OUTER_PROVENANCE_ENVIRONMENT:
+            self.environment.pop(variable, None)
         self.environment.update(
             {
                 "GIT_TERMINAL_PROMPT": "0",
@@ -219,6 +232,7 @@ class TemporaryWorkflowRepository:
         title: str = "Workflow test",
         request_summary: str = "Validate a sanitized workflow fixture.",
         decision_question: str = "Does the workflow enforce its publication contract?",
+        environment: dict[str, str] | None = None,
     ) -> tuple[Path, dict[str, Any], subprocess.CompletedProcess[str]]:
         arguments = [
             "new",
@@ -241,7 +255,7 @@ class TemporaryWorkflowRepository:
         ]
         if write_spec:
             arguments.append("--write-spec")
-        result = self.cli(*arguments)
+        result = self.cli(*arguments, environment=environment)
         if result.returncode:
             return Path(), {}, result
         payload = json.loads(result.stdout)
@@ -337,6 +351,8 @@ class TemporaryWorkflowRepository:
             "args = sys.argv[1:]\n"
             "if args[:2] == ['pr', 'view']:\n"
             "    key = 'FAKE_PR_JSON'\n"
+            "elif args[:2] == ['pr', 'list']:\n"
+            "    key = 'FAKE_PR_LIST_JSON'\n"
             "elif args[:2] == ['repo', 'view']:\n"
             "    key = 'FAKE_REPO_JSON'\n"
             "elif args[:1] == ['api']:\n"
@@ -490,6 +506,37 @@ class WorkflowTestCase(unittest.TestCase):
 
 
 class CanonicalContractTests(WorkflowTestCase):
+    def test_temporary_repositories_drop_outer_publication_provenance(self) -> None:
+        original = {
+            variable: os.environ.get(variable)
+            for variable in OUTER_PROVENANCE_ENVIRONMENT
+        }
+        try:
+            for variable in OUTER_PROVENANCE_ENVIRONMENT:
+                os.environ[variable] = "outer-publication-value"
+            repository = self.repository()
+        finally:
+            for variable, value in original.items():
+                if value is None:
+                    os.environ.pop(variable, None)
+                else:
+                    os.environ[variable] = value
+
+        for variable in OUTER_PROVENANCE_ENVIRONMENT:
+            self.assertNotIn(variable, repository.environment)
+
+    def test_pages_manual_dispatch_cannot_deploy_a_feature_ref(self) -> None:
+        workflow = (SOURCE_ROOT / ".github/workflows/pages.yml").read_text(encoding="utf-8")
+        self.assertIn("workflow_dispatch:", workflow)
+        self.assertRegex(
+            workflow,
+            r"(?ms)^  build:\n    if: \$\{\{ github\.ref == 'refs/heads/main' \}\}",
+        )
+        self.assertRegex(
+            workflow,
+            r"(?ms)^  deploy:\n    if: \$\{\{ github\.ref == 'refs/heads/main' && vars\.PAGES_ENABLED == 'true' \}\}",
+        )
+
     def test_script_document_and_template_share_the_exact_13_state_model(self) -> None:
         module = load_production_module()
         workflow = (SOURCE_ROOT / "docs/46-study-publication-workflow.md").read_text(encoding="utf-8")
@@ -594,7 +641,7 @@ class CheckpointSchemaTests(WorkflowTestCase):
             "mainValidationUrl": "http://private.invalid/main",
             "pagesRunUrl": 7,
             "closureEvidenceUrl": "http://private.invalid/closure",
-            "liveBaseUrl": "https://user:password@example.invalid/",
+            "liveBaseUrl": "https://user:" + "password@example.invalid/",
             "localValidationDigest": "not-a-sha256-digest",
         }
 
@@ -1052,6 +1099,68 @@ class CheckpointRecoveryTests(WorkflowTestCase):
 
 
 class NewIntakeSynchronizationTests(WorkflowTestCase):
+    def test_new_rejects_an_intake_already_present_in_pr_history(self) -> None:
+        repository = self.repository()
+        repository.install_fake_release_tools()
+        repository.git("remote", "set-url", "origin", "git@github.com:owner/repo.git")
+        checkpoint, _, observed = repository.new_checkpoint(
+            slug="durable-intake",
+            environment={
+                "FAKE_PR_LIST_JSON": json.dumps(
+                    [
+                        {
+                            "number": 42,
+                            "state": "MERGED",
+                            "url": "https://github.com/owner/repo/pull/42",
+                            "headRefName": "study/durable-intake",
+                        }
+                    ]
+                )
+            },
+        )
+        self.assertEqual(Path(), checkpoint)
+        self.assert_deterministic_error(
+            observed,
+            contains="intake ID already exists in pull-request history",
+        )
+        self.assertEqual("main", repository.git("branch", "--show-current").stdout.strip())
+        self.assertNotEqual(
+            0,
+            repository._run(
+                ("git", "show-ref", "--verify", "refs/heads/study/durable-intake")
+            ).returncode,
+        )
+
+    def test_new_rejects_credential_remote_without_persisting_or_echoing_it(self) -> None:
+        repository = self.repository()
+        cases = (
+            ("basic-auth", "https://alice:" + "plainpassword-for-regression@github.com/owner/repo.git", "plainpassword-for-regression"),
+            ("query", "https://github.com/owner/repo.git?credential=query-secret", "query-secret"),
+            ("userinfo-canonical", "github.com/alice:canonical-secret@owner/repo", "canonical-secret"),
+        )
+        for slug, remote, secret in cases:
+            with self.subTest(case=slug):
+                repository.git("remote", "set-url", "origin", remote)
+                checkpoint, _, observed = repository.new_checkpoint(
+                    slug=f"credential-{slug}",
+                    write_spec=True,
+                )
+                self.assertEqual(Path(), checkpoint)
+                self.assert_deterministic_error(
+                    observed,
+                    contains="origin remote must be a credential-free GitHub repository identity",
+                )
+                combined = observed.stdout + observed.stderr
+                self.assertNotIn(secret, combined)
+                self.assertEqual("main", repository.git("branch", "--show-current").stdout.strip())
+                intake = f"intake-20300102-credential-{slug}"
+                self.assertFalse(
+                    (repository.root / ".study-workflow" / "checkpoints" / f"{intake}.json").exists()
+                )
+                self.assertFalse(
+                    (repository.root / "workflow" / "intakes" / f"{intake}.md").exists()
+                )
+
     def test_new_write_spec_without_edit_authority_fails_before_branch_mutation(self) -> None:
         repository = self.repository()
         original_branch = repository.git("branch", "--show-current").stdout.strip()
@@ -1169,6 +1278,46 @@ class NewIntakeSynchronizationTests(WorkflowTestCase):
 
 
 class InputAndControlInjectionTests(WorkflowTestCase):
+    def test_new_rejects_credential_urls_and_local_linux_paths_without_echoing_values(self) -> None:
+        cases = (
+            (
+                "credential-url",
+                "https://alice:" + "plainpassword@example.com/private",
+                "PS025",
+                "plainpassword",
+            ),
+            (
+                "linux-path",
+                "/" + "home/alice/projects/private/file.txt",
+                "PS026",
+                "/home/alice",
+            ),
+        )
+        for slug, reference, rule, private_value in cases:
+            with self.subTest(case=slug):
+                repository = self.repository()
+                result = repository.cli(
+                    "new",
+                    "--slug",
+                    slug,
+                    "--title",
+                    "Public safety fixture",
+                    "--source-kind",
+                    "chat",
+                    "--requested-actions",
+                    "research,branch",
+                    "--request-summary",
+                    "Validate checkpoint public-safety handling.",
+                    "--input-reference",
+                    reference,
+                    "--decision-question",
+                    "Does the intake reject private values before persistence?",
+                )
+                self.assert_deterministic_error(result, contains=rule)
+                combined = result.stdout + result.stderr
+                self.assertNotIn(private_value, combined)
+                self.assertFalse((repository.root / ".study-workflow").exists())
+
     def test_new_rejects_newline_field_injection_before_writing_records(self) -> None:
         repository = self.repository()
         result = repository.cli(
@@ -1684,6 +1833,22 @@ class BuildInputBoundaryTests(WorkflowTestCase):
         default_output = repository.root / "_site"
         self.assertEqual(default_output.resolve(), builder.validated_output_path(default_output))
 
+        default_output.mkdir()
+        default_sentinel = default_output / builder.OUTPUT_SENTINEL
+        default_sentinel.write_bytes(b"\xffnot-utf8\n")
+        with self.assertRaisesRegex(SystemExit, "existing unowned output directory"):
+            builder.validated_output_path(default_output)
+        default_sentinel.unlink()
+        sentinel_target = repository.container / "sentinel-target"
+        sentinel_target.write_text(builder.OUTPUT_SENTINEL_VALUE, encoding="utf-8")
+        default_sentinel.symlink_to(sentinel_target)
+        with self.assertRaisesRegex(SystemExit, "existing unowned output directory"):
+            builder.validated_output_path(default_output)
+        default_sentinel.unlink()
+        default_sentinel.write_text(builder.OUTPUT_SENTINEL_VALUE, encoding="utf-8")
+        self.assertEqual(default_output.resolve(), builder.validated_output_path(default_output))
+        shutil.rmtree(default_output)
+
         unowned = repository.container / "unowned-output"
         unowned.mkdir()
         with self.assertRaisesRegex(SystemExit, "existing unowned output directory"):
@@ -1705,6 +1870,87 @@ class BuildInputBoundaryTests(WorkflowTestCase):
 
 
 class ManifestRuntimeDependencyTests(WorkflowTestCase):
+    def test_built_manifest_rejects_every_undeclared_or_unsafe_output(self) -> None:
+        repository = self.repository(full=True)
+        builder = repository.root / "scripts" / "build_site.py"
+        validator = repository.root / "scripts" / "validate_site_manifest.py"
+        output = repository.root / "_site"
+
+        def rebuild() -> None:
+            built = repository._run((str(repository.python_executable), str(builder)))
+            self.assertEqual(0, built.returncode, built.stdout + built.stderr)
+
+        def validate() -> subprocess.CompletedProcess[str]:
+            return repository._run(
+                (
+                    str(repository.python_executable),
+                    str(validator),
+                    "--output",
+                    str(output),
+                    "--require-clean",
+                )
+            )
+
+        rebuild()
+        baseline = validate()
+        self.assertEqual(0, baseline.returncode, baseline.stdout + baseline.stderr)
+
+        undeclared = (
+            output / "rogue.html",
+            output / "assets" / "rogue.js",
+            output / ".hidden-extra",
+        )
+        for rogue in undeclared:
+            with self.subTest(case=rogue.name):
+                rebuild()
+                rogue.parent.mkdir(parents=True, exist_ok=True)
+                rogue.write_text("undeclared\n", encoding="utf-8")
+                result = validate()
+                self.assert_deterministic_error(
+                    result,
+                    returncode=1,
+                    contains="generated output contains undeclared or missing files",
+                )
+
+        target = repository.container / "private-target"
+        target.write_text("must not be read\n", encoding="utf-8")
+        for relative, directory in (("rogue-link", False), ("rogue-directory", True)):
+            with self.subTest(case=relative):
+                rebuild()
+                link = output / relative
+                link.symlink_to(
+                    repository.container if directory else target,
+                    target_is_directory=directory,
+                )
+                result = validate()
+                self.assert_deterministic_error(
+                    result,
+                    returncode=1,
+                    contains="generated output contains a symlink",
+                )
+
+        rebuild()
+        (output / ".api-management-studies-generated-output").write_bytes(b"\xffinvalid owner\n")
+        corrupt_sentinel = validate()
+        self.assert_deterministic_error(
+            corrupt_sentinel,
+            returncode=1,
+            contains="generated output ownership sentinel is invalid",
+        )
+
+        (output / ".api-management-studies-generated-output").write_text(
+            "Generated by scripts/build_site.py; safe to replace.\n",
+            encoding="utf-8",
+        )
+        rebuild()
+        (output / ".nojekyll").write_text("unexpected\n", encoding="utf-8")
+        nonempty_nojekyll = validate()
+        self.assert_deterministic_error(
+            nonempty_nojekyll,
+            returncode=1,
+            contains=".nojekyll must be empty",
+        )
+
     def test_built_manifest_rejects_quoted_unquoted_and_duplicate_script_bypasses(self) -> None:
         repository = self.repository(full=True)
         builder = repository.root / "scripts" / "build_site.py"
@@ -1830,6 +2076,23 @@ class StatePrerequisiteTests(WorkflowTestCase):
         persisted = json.loads(checkpoint.read_text(encoding="utf-8"))
         self.assert_deterministic_error(observed)
         self.assertEqual("INTAKE", persisted["canonicalState"])
+
+    def test_projected_state_requires_non_route_derived_files_to_exist(self) -> None:
+        repository = self.repository()
+        checkpoint, data, _ = repository.prepare_draft()
+        data["derivedPaths"] = ["site/missing-projection.json"]
+        repository.replace_checkpoint(checkpoint, data)
+
+        missing = repository.cli("render", "--checkpoint", str(checkpoint))
+        self.assert_deterministic_error(
+            missing,
+            contains="derived path does not exist as a regular file",
+        )
+
+        data["derivedPaths"] = ["#/doc/workflow-test"]
+        repository.replace_checkpoint(checkpoint, data)
+        route_only = repository.cli("render", "--checkpoint", str(checkpoint))
+        self.assertEqual(0, route_only.returncode, route_only.stdout + route_only.stderr)
 
     def test_each_structured_state_rejects_its_missing_prerequisite(self) -> None:
         repository = self.repository(local_origin=True)
@@ -2153,6 +2416,7 @@ class DraftGateTests(WorkflowTestCase):
         repository.git("switch", "-q", "main")
         branch_candidate = dict(valid)
         branch_candidate["canonicalPaths"] = ["docs/46-study-publication-workflow.md"]
+        branch_candidate["derivedPaths"] = ["#/doc/workflow-test"]
         repository.replace_checkpoint(checkpoint, branch_candidate)
         branch = repository.cli(
             "check",
@@ -2335,6 +2599,33 @@ class ReleaseGateTests(WorkflowTestCase):
             environment=environment,
         )
         self.assertEqual(0, observed.returncode, observed.stdout + observed.stderr)
+
+    def test_release_gate_rejects_candidate_behind_current_origin_main(self) -> None:
+        repository = self.repository(local_origin=True)
+        checkpoint, data, head = repository.prepare_release()
+        repository.git("switch", "-q", "main")
+        repository.write_text("docs/concurrent-main.md", "# Concurrent main update\n")
+        repository.commit_all("Advance origin main after candidate validation")
+        repository.git("push", "-q", "origin", "main")
+        repository.git("switch", "-q", data["branch"])
+
+        pr = repository.with_current_checkpoint_body(
+            repository.valid_pr_json(head), checkpoint
+        )
+        observed = repository.cli(
+            "check",
+            "--checkpoint",
+            str(checkpoint),
+            "--phase",
+            "release",
+            "--base",
+            repository.base_sha,
+            environment=repository.fake_github_environment(pr, head),
+        )
+        self.assert_deterministic_error(
+            observed,
+            contains="release candidate must be rebased onto the current origin/main",
+        )
 
     def test_release_gate_rejects_dirty_review_check_sha_pr_state_and_validation_failures(self) -> None:
         repository = self.repository(local_origin=True)

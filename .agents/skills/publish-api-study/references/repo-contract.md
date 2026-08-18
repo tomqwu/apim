@@ -124,6 +124,8 @@ make validate
 git diff --check
 ```
 
+The release gate also requires the accepted candidate to contain the current `origin/main`; any base advance forces a rebase and fresh validation, review, and required checks on the new SHA.
+
 Typical Git publication:
 
 ```sh

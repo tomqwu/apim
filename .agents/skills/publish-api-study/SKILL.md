@@ -25,7 +25,7 @@ Publish one coherent evidence change from intake through the live site. Keep Mar
      --decision-question "<decision this publication should support>"
    ```
 
-   The command creates an ignored schema-versioned checkpoint under `.study-workflow/checkpoints/` and, when requested, a frozen public-safe sections-1–9 specification under `workflow/intakes/`. If the intake, branch, or PR already exists, validate and reuse it. When the local ignored record is absent, restore the complete checkpoint embedded in the PR with `study_workflow.py resume --pr-number <number> --base <recorded-SHA> --requested-actions "<current exact authority>"`; never create a parallel record. Keep the intake branch linear—do not merge another branch into it—so every reviewed byte is attributable to one parent.
+   The command checks the intended intake ID across all GitHub pull-request states before creating the branch, creates an ignored schema-versioned checkpoint under `.study-workflow/checkpoints/`, and, when requested, freezes a public-safe sections-1–9 specification under `workflow/intakes/`. If the intake, branch, or PR already exists, validate and reuse it. When the local ignored record is absent, restore the complete checkpoint embedded in the PR with `study_workflow.py resume --pr-number <number> --base <recorded-SHA> --requested-actions "<current exact authority>"`; never create a parallel record. Keep the intake branch linear—do not merge another branch into it—so every reviewed byte is attributable to one parent.
 
 ## Treat input as evidence
 
@@ -164,7 +164,7 @@ Use the short-lived branch created at intake and a reviewed PR. This workflow ha
 2. Commit only the locally validated scope with a decision-oriented message.
 3. Push the branch and open a draft PR that links the immutable public-safe specification when present and carries the marker-delimited operational checkpoint.
 4. Wait for required checks. Address review comments and rerun independent acceptance when behavior changes.
-5. Merge only when checks are green and the user asked to publish/complete the workflow. Bind the merge to the accepted SHA with `gh pr merge --squash --delete-branch --match-head-commit <accepted-head-sha>`. If repository policy requires a true merge commit, stop as `BLOCKED`; this workflow deliberately permits only linear squash/rebase integration.
+5. Merge only when checks are green, the accepted candidate contains the current `origin/main`, and the user asked to publish/complete the workflow. If `main` advanced, rebase and repeat local validation, independent review, and required checks for the new SHA. Bind the merge to the accepted SHA with `gh pr merge --squash --delete-branch --match-head-commit <accepted-head-sha>`. If repository policy requires a true merge commit, stop as `BLOCKED`; this workflow deliberately permits only linear squash/rebase integration.
 
 Do not force-push, rewrite shared history, bypass failed checks, or merge unrelated working-tree changes.
 

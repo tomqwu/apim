@@ -181,11 +181,13 @@ Before research or editing:
 
 1. Confirm the target repository, remote, public visibility, default branch, current upstream state, branch protection, open pull request scope, and Pages URL.
 2. Inspect working-tree and branch state. Preserve unrelated user changes. Do not reset, overwrite, stash, or include them in the release without explicit authority; use an isolated worktree or return the conflict when safe separation is impossible.
-3. Assign a public-safe intake ID such as `INTAKE-20260818-multicloud-resilience`. The ID must not encode a customer, person, incident, secret, or confidential project.
+3. Assign a public-safe intake ID such as `INTAKE-20260818-multicloud-resilience`. The ID must not encode a customer, person, incident, secret, or confidential project. Before branch creation, resolve that exact ID across all pull-request states; `study_workflow.py new` fails closed when GitHub PR history already contains it, even after both intake branches were cleaned.
 4. Record which actions are authorized: read/research, edit, create branch, push, open/update a pull request, merge, branch cleanup, and live verification. Repository work does not imply permission to contact vendors, upload private evidence, change production services, or modify unrelated GitHub settings.
 5. Use a short-lived feature branch and reviewed pull request. This publication workflow has no direct-to-main transition; a direct-main request must use a separately approved emergency/change workflow and cannot be reported as completion of this one.
 6. For the normal path, fetch current `origin/main`, fast-forward local `main`, create `study/<public-safe-slug>` from the recorded base SHA, and do all authoring on that branch. Create it before the first change so the later candidate, review, and PR represent one lineage.
 7. Keep the intake branch linear. Rebase a stale candidate when necessary; merge commits are rejected because merge-resolution-only bytes cannot be safely attributed to one reviewed parent.
+
+Repository branch protection and rulesets are external controls, not authority inferred by this workflow. When `main` is not protected, record that condition as a residual limitation and separate next gate; the CLI still rejects its own direct-main path, but it cannot prevent an unrelated writer from bypassing the process through repository settings.
 
 **Preflight exit:** the target and allowed mutations are unambiguous, the intake can be processed without persisting unsafe material, and the intended change can be isolated from unrelated work.
 
@@ -382,7 +384,7 @@ python3 scripts/study_workflow.py render --checkpoint <checkpoint-path>
 python3 scripts/study_workflow.py check --checkpoint <public-safe-checkpoint-path> --phase release --base <recorded-40-character-base-SHA>
 ```
 
-The workflow tool verifies that the recorded base is a full commit, remains an ancestor of the candidate, and matches the checkpoint; it does not silently replace it with a moving remote reference.
+The workflow tool verifies that the recorded base is a full commit, remains an ancestor of the candidate, and matches the checkpoint; it does not silently replace it with a moving remote reference. The release candidate must also contain the current `origin/main`. If `main` advances after validation, rebase the intake branch, rerun affected local checks and independent review, push the new candidate SHA, and wait for its required checks; acceptance attached to the former SHA cannot be carried forward.
 
 **Review/validation exit:** no unresolved publication-critical defect remains, conditional items are visible and non-decision-bearing, the independent reviewer names the accepted head SHA, every required PR check is green on that exact SHA, and the PR head still matches it.
 
@@ -402,7 +404,7 @@ Do not force-push after review, merge around a failed or pending required check,
 
 ## Stage 10 — Pages and live verification
 
-The [Pages workflow](../.github/workflows/pages.yml) rebuilds `_site/` from `main` and deploys only when `PAGES_ENABLED` is `true`. After merge:
+The [Pages workflow](../.github/workflows/pages.yml) rebuilds `_site/` only from `main` and deploys only when `PAGES_ENABLED` is `true`; manual dispatch on a feature ref is gated before either job. After merge:
 
 1. wait for the `validate` workflow on the merge SHA;
 2. wait for both build and deploy jobs in the `pages` workflow on the same main state;

@@ -1471,24 +1471,32 @@ def make_presentation(items: list[dict[str, object]], stats: dict[str, int], vis
 
 def validated_output_path(output: Path) -> Path:
     """Return a safe output path before any recursive replacement occurs."""
+    def is_owned_directory(path: Path) -> bool:
+        if not path.is_dir():
+            return False
+        sentinel = path / OUTPUT_SENTINEL
+        if sentinel.is_symlink() or not sentinel.is_file():
+            return False
+        try:
+            return sentinel.read_bytes() == OUTPUT_SENTINEL_VALUE.encode("utf-8")
+        except OSError:
+            return False
+
     lexical = output if output.is_absolute() else ROOT / output
     if lexical.is_symlink():
         raise SystemExit(f"Refusing symlinked site output: {lexical}")
     resolved = lexical.resolve()
     default = DEFAULT_OUTPUT.resolve()
     if resolved == default:
-        if resolved.exists():
-            sentinel = resolved / OUTPUT_SENTINEL
-            if not resolved.is_dir() or not sentinel.is_file() or sentinel.read_text(encoding="utf-8") != OUTPUT_SENTINEL_VALUE:
-                raise SystemExit(f"Refusing to replace an existing unowned output directory: {resolved}")
+        if resolved.exists() and not is_owned_directory(resolved):
+            raise SystemExit(f"Refusing to replace an existing unowned output directory: {resolved}")
         return resolved
     if resolved == Path(resolved.anchor) or ROOT.is_relative_to(resolved):
         raise SystemExit(f"Refusing site output that contains the repository: {resolved}")
     if resolved.is_relative_to(ROOT):
         raise SystemExit(f"Only {DEFAULT_OUTPUT} may be replaced inside the repository: {resolved}")
     if resolved.exists():
-        sentinel = resolved / OUTPUT_SENTINEL
-        if not resolved.is_dir() or not sentinel.is_file() or sentinel.read_text(encoding="utf-8") != OUTPUT_SENTINEL_VALUE:
+        if not is_owned_directory(resolved):
             raise SystemExit(f"Refusing to replace an existing unowned output directory: {resolved}")
     return resolved
 

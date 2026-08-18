@@ -135,6 +135,8 @@ PUBLIC_RULES = (
     ("PS012", "credential-bearing connection string", re.compile(r"(?i)\b(?:postgres(?:ql)?|mysql|mongodb(?:\+srv)?|redis)://[^/\s:@]+:[^@\s]+@")),
     ("PS013", "JWT-shaped credential", re.compile(r"\beyJ[A-Za-z0-9_-]{10,}\.[A-Za-z0-9_-]{10,}\.[A-Za-z0-9_-]{10,}\b")),
     ("PS021", "bidirectional text control", re.compile(r"[\u202a-\u202e\u2066-\u2069]")),
+    ("PS025", "HTTP URL with embedded credentials", re.compile(r"(?i)\bhttps?://[^\s/@:]+:[^\s/@]+@")),
+    ("PS026", "local Linux home path", re.compile(r"(?<![A-Za-z0-9_])/home/[A-Za-z0-9._-]+/")),
 )
 
 
@@ -157,24 +159,64 @@ def gh(*args: str, check: bool = True) -> str:
     return run(("gh", *args), check=check).stdout.strip()
 
 
+def reject_existing_intake_history(intake_id: str, repository_remote: str) -> None:
+    """Prevent a cleaned branch from hiding a durable intake in GitHub PR history."""
+    if not repository_remote.startswith("github.com/"):
+        return
+    result = run(
+        (
+            "gh", "pr", "list", "--state", "all", "--limit", "100",
+            "--search", f'"{intake_id}" in:body',
+            "--json", "number,state,url,headRefName",
+        ),
+        check=False,
+    )
+    fail_unless(result.returncode == 0, "unable to verify existing intake history on GitHub")
+    try:
+        matches = json.loads(result.stdout)
+    except json.JSONDecodeError as exc:
+        raise WorkflowError("GitHub intake-history response is not valid JSON") from exc
+    fail_unless(isinstance(matches, list), "GitHub intake-history response is not a list")
+    fail_unless(
+        not matches,
+        "intake ID already exists in pull-request history; resume the existing intake",
+    )
+
+
 def repository_identity(value: str) -> str:
     """Normalize equivalent SSH/HTTPS GitHub remotes without weakening repo identity."""
     value = value.strip().rstrip("/")
+    owner = r"(?P<owner>[A-Za-z0-9](?:[A-Za-z0-9-]{0,38}))"
+    repo = r"(?P<repo>[A-Za-z0-9._-]+?)(?:\.git)?"
     patterns = (
-        r"git@github\.com:(?P<owner>[^/]+)/(?P<repo>[^/]+)",
-        r"ssh://git@github\.com/(?P<owner>[^/]+)/(?P<repo>[^/]+)",
-        r"https://github\.com/(?P<owner>[^/]+)/(?P<repo>[^/]+)",
+        rf"github\.com/{owner}/{repo}",
+        rf"git@github\.com:{owner}/{repo}",
+        rf"ssh://git@github\.com/{owner}/{repo}",
+        rf"https://github\.com/{owner}/{repo}",
     )
     for pattern in patterns:
         match = re.fullmatch(pattern, value, re.I)
         if match:
-            repo = re.sub(r"\.git$", "", match.group("repo"), flags=re.I)
-            return f"github.com/{match.group('owner').lower()}/{repo.lower()}"
-    return value
+            return f"github.com/{match.group('owner').lower()}/{match.group('repo').lower()}"
+    if re.fullmatch(r"(?:\.\.?/)+[A-Za-z0-9._/-]+\.git", value):
+        return value
+    return ""
+
+
+def public_repository_identity(value: str) -> str:
+    """Return a credential-free durable repository identity or fail closed."""
+    identity = repository_identity(value)
+    fail_unless(
+        bool(identity),
+        "origin remote must be a credential-free GitHub repository identity",
+    )
+    return identity
 
 
 def same_repository(left: str, right: str) -> bool:
-    return repository_identity(left) == repository_identity(right)
+    left_identity = repository_identity(left)
+    right_identity = repository_identity(right)
+    return bool(left_identity and right_identity and left_identity == right_identity)
 
 
 def validation_environment() -> dict[str, str]:
@@ -636,6 +678,15 @@ def state_evidence_errors(data: dict[str, Any], *, verify_artifacts: bool = True
                 require((ROOT / value).is_file(), f"canonical path does not exist: {value}")
     if state in projected:
         require(bool(data["derivedPaths"]), "at least one derived path or route is required")
+        if verify_artifacts:
+            for value in data["derivedPaths"]:
+                if value.startswith("#/"):
+                    continue
+                path = ROOT / value
+                require(
+                    path.is_file() and not has_symlink_component(path),
+                    f"derived path does not exist as a regular file: {value}",
+                )
     if state in candidate:
         require(data["localValidation"] == "pass", "localValidation must be pass")
         require(bool(data["localValidationDigest"]), "localValidationDigest is required")
@@ -704,6 +755,10 @@ def validate_checkpoint_shape(data: Any, path: Path | None = None, *, verify_art
     safe_line("checkpoint statusReason", data["statusReason"], 500)
     safe_line("checkpoint nextGate", data["nextGate"], 500)
     safe_line("checkpoint repositoryRemote", data["repositoryRemote"], 500)
+    fail_unless(
+        bool(repository_identity(data["repositoryRemote"])),
+        f"{label} repositoryRemote must be a credential-free repository identity",
+    )
     fail_unless(data["baseBranch"] == "main", f"{label} baseBranch must be main")
     full_sha("baseSha", data["baseSha"])
     fail_unless(data["branch"] == f"study/{slug}", f"{label} branch must be study/{slug}")
@@ -758,7 +813,12 @@ def markdown_text(value: str) -> str:
     return escaped
 
 
-def immutable_spec(args: argparse.Namespace, intake_id: str, checkpoint: Path) -> str:
+def immutable_spec(
+    args: argparse.Namespace,
+    intake_id: str,
+    checkpoint: Path,
+    repository_remote: str,
+) -> str:
     text = TEMPLATE.read_text(encoding="utf-8")
     text = text.split("\n## 10. Local validation and PR candidate", 1)[0].rstrip() + "\n"
     text = text.replace("# Study publication intake", f"# Study publication intake: {markdown_text(args.title)}", 1)
@@ -768,7 +828,7 @@ def immutable_spec(args: argparse.Namespace, intake_id: str, checkpoint: Path) -
         "Checkpoint location": f"local ignored checkpoint `{checkpoint.relative_to(ROOT)}`; mirror to the draft PR",
         "Requested outcome": f"Publish a reviewed repository change for “{markdown_text(args.title)}” following the canonical workflow.",
         "Current authorized instruction": markdown_text(args.request_summary),
-        "Target repository and remote": markdown_text(safe_line("origin remote", git("remote", "get-url", "origin"), 500)),
+        "Target repository and remote": markdown_text(repository_remote),
         "Repository visibility": args.visibility, "Default branch": "main",
         "Requested actions": ", ".join(parse_actions(args.requested_actions)),
         "Public-safe title": markdown_text(args.title), "Type": args.source_kind,
@@ -805,6 +865,8 @@ def command_new(args: argparse.Namespace) -> int:
         ensure_local_root(SPEC_ROOT, "intake specification")
         fail_unless(not spec.exists(), f"intake specification already exists: {spec.relative_to(ROOT)}")
 
+    repository_remote = public_repository_identity(git("remote", "get-url", "origin"))
+    reject_existing_intake_history(intake_id, repository_remote)
     git("fetch", "origin", "main")
     git("merge", "--ff-only", "origin/main")
     base = git("rev-parse", "origin/main")
@@ -812,7 +874,6 @@ def command_new(args: argparse.Namespace) -> int:
     fail_unless(not git("show-ref", "--verify", f"refs/heads/{branch}", check=False), f"branch already exists: {branch}; resume its existing checkpoint instead")
     fail_unless(not git("show-ref", "--verify", f"refs/remotes/origin/{branch}", check=False), f"remote branch already exists: {branch}; resume its existing checkpoint instead")
     timestamp = now()
-    repository_remote = safe_line("origin remote", git("remote", "get-url", "origin"), 500)
     data: dict[str, Any] = {
         "schemaVersion": SCHEMA_VERSION, "intakeId": intake_id, "slug": slug, "title": args.title,
         "sourceKind": args.source_kind, "requestSummary": args.request_summary,
@@ -832,7 +893,7 @@ def command_new(args: argparse.Namespace) -> int:
         "blockerOwnerRole": None, "responsibleStage": None,
     }
     validate_checkpoint_shape(data)
-    spec_text = immutable_spec(args, intake_id, checkpoint) if spec is not None else None
+    spec_text = immutable_spec(args, intake_id, checkpoint, repository_remote) if spec is not None else None
     branch_created = False
     try:
         git("switch", "-c", branch, base)
@@ -1342,6 +1403,10 @@ def command_check(args: argparse.Namespace) -> int:
     if args.phase == "draft":
         fail_unless(run_make_validate(), "make validate failed during draft gate")
     if args.phase == "release":
+        fail_unless(
+            run(("git", "merge-base", "--is-ancestor", "origin/main", head), check=False).returncode == 0,
+            "release candidate must be rebased onto the current origin/main",
+        )
         fail_unless(working_tree_clean_at(head), "release gate requires a clean working tree whose raw bytes match HEAD")
         fail_unless(data["reviewDisposition"] == "pass", "independent review disposition must be pass")
         fail_unless(data["checkDisposition"] == "green", "required check disposition must be green")
