@@ -589,6 +589,10 @@ a {
   grid-column: span 8;
 }
 
+.decision-visual-grid > .visual-panel.is-only-panel {
+  grid-column: 1 / -1;
+}
+
 .is-kong-platform-grid > .visual-panel.is-wide {
   grid-column: 1 / -1;
 }
@@ -2142,6 +2146,10 @@ a {
 
 .article-table .table-wrap {
   max-height: min(68vh, 44rem);
+}
+
+.document-shell.is-methodology-review .article-table .table-wrap {
+  max-height: none;
 }
 
 .table-wrap:focus-visible {
@@ -5405,6 +5413,154 @@ body.is-presenting .site-footer {
 @media (min-width: 560px) and (max-width: 760px) and (max-height: 760px) {
   .slide-title {
     font-size: 3.25rem;
+  }
+}
+
+/* The methodology review mixes readable prose with decision artifacts that
+   need a wider comparison surface. Keep the prose measure intact and widen
+   only the artifacts that otherwise hide decision evidence. */
+@media (min-width: 1401px) {
+  .document-shell.is-methodology-review .prose > .article-table.is-wide-comparison,
+  .document-shell.is-methodology-review .prose .document-visual.is-roadmap {
+    position: relative;
+    left: auto;
+    width: min(calc(100vw - (2 * var(--gutter))), 1500px);
+    max-width: none;
+    margin-right: 0;
+    margin-left: calc((100% - min(calc(100vw - (2 * var(--gutter))), 1500px)) / 2);
+    transform: none;
+  }
+
+  .document-shell.is-methodology-review .article-table.is-wide-comparison .table-wrap {
+    overflow: visible;
+    scrollbar-gutter: auto;
+  }
+
+  .document-shell.is-methodology-review .article-table.is-wide-comparison .editorial-table {
+    width: 100% !important;
+    min-width: 0;
+    --table-min-width: 100% !important;
+  }
+
+  .document-shell.is-methodology-review .article-table.is-wide-comparison col:nth-child(1) {
+    width: 22% !important;
+  }
+
+  .document-shell.is-methodology-review .article-table.is-wide-comparison col:nth-child(2) {
+    width: 36% !important;
+  }
+
+  .document-shell.is-methodology-review .article-table.is-wide-comparison col:nth-child(3) {
+    width: 18% !important;
+  }
+
+  .document-shell.is-methodology-review .article-table.is-wide-comparison col:nth-child(4) {
+    width: 24% !important;
+  }
+
+  .document-shell.is-methodology-review .document-visual.is-roadmap .viz-roadmap-list {
+    grid-template-columns: repeat(var(--phase-count, 7), minmax(0, 1fr));
+    overflow: visible;
+  }
+}
+
+@media (min-width: 761px) and (max-width: 1400px) {
+  .document-shell.is-methodology-review .document-visual.is-roadmap .viz-roadmap-list {
+    grid-template-columns: repeat(4, minmax(0, 1fr));
+    gap: 1rem 0;
+    overflow: visible;
+    padding-top: 0;
+  }
+
+  .document-shell.is-methodology-review .document-visual.is-roadmap .viz-roadmap-list::before {
+    display: none;
+  }
+
+  .document-shell.is-methodology-review .document-visual.is-roadmap .viz-roadmap-list li {
+    padding: 1rem 1rem 1.5rem 0;
+    border-top: 1px solid var(--line-dark);
+  }
+}
+
+@media (max-width: 1400px) {
+  .document-shell.is-methodology-review .article-table.is-wide-comparison,
+  .document-shell.is-methodology-review .article-table.is-wide-comparison .table-viewport,
+  .document-shell.is-methodology-review .article-table.is-wide-comparison .table-wrap {
+    max-width: 100%;
+    overflow: visible;
+  }
+
+  .document-shell.is-methodology-review .article-table.is-wide-comparison .table-wrap {
+    border: 0;
+    scrollbar-gutter: auto;
+  }
+
+  .document-shell.is-methodology-review .article-table.is-wide-comparison .table-viewport::before,
+  .document-shell.is-methodology-review .article-table.is-wide-comparison .table-viewport::after,
+  .document-shell.is-methodology-review .article-table.is-wide-comparison .table-scroll-hint,
+  .document-shell.is-methodology-review .article-table.is-wide-comparison colgroup {
+    display: none;
+  }
+
+  .document-shell.is-methodology-review .article-table.is-wide-comparison thead {
+    position: absolute;
+    width: 1px;
+    height: 1px;
+    overflow: hidden;
+    clip: rect(0 0 0 0);
+    clip-path: inset(50%);
+    white-space: nowrap;
+  }
+
+  .document-shell.is-methodology-review .article-table.is-wide-comparison .editorial-table,
+  .document-shell.is-methodology-review .article-table.is-wide-comparison tbody {
+    width: 100% !important;
+    min-width: 0;
+    display: block;
+    --table-min-width: 100% !important;
+  }
+
+  .document-shell.is-methodology-review .article-table.is-wide-comparison tbody tr {
+    width: 100% !important;
+    min-width: 0;
+    display: block;
+    margin-bottom: 1rem;
+    border: 1px solid var(--ink);
+    background: var(--paper-bright);
+  }
+
+  .document-shell.is-methodology-review .article-table.is-wide-comparison tbody td {
+    display: grid;
+    grid-template-columns: minmax(9rem, 0.8fr) minmax(0, 2fr);
+    gap: 1rem;
+    width: 100%;
+    padding: 0.9rem 1rem;
+    border-right: 0;
+  }
+
+  .document-shell.is-methodology-review .article-table.is-wide-comparison tbody td:last-child {
+    border-bottom: 0;
+  }
+
+  .document-shell.is-methodology-review .article-table.is-wide-comparison tbody td::before {
+    color: var(--signal-dark);
+    font-family: var(--mono);
+    font-size: 0.875rem;
+    font-weight: 650;
+    letter-spacing: 0.035em;
+    text-transform: uppercase;
+    content: attr(data-column-label);
+  }
+
+  .document-shell.is-methodology-review .article-table.is-wide-comparison .table-card-value {
+    min-width: 0;
+  }
+}
+
+@media (max-width: 520px) {
+  .document-shell.is-methodology-review .article-table.is-wide-comparison tbody td {
+    grid-template-columns: 1fr;
+    gap: 0.35rem;
   }
 }
 
