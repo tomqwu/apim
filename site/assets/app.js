@@ -230,7 +230,7 @@
             <p>Treat Kong as the stakeholder-selected direction, freeze the exact self-managed hybrid option, and fund accountable foundation proof. Production fit, critical scale, support, recovery, and economics remain gated by representative evidence and explicit stop rules.</p>
           </div>
           <div class="decision-visual-grid">
-            ${visualPanel("A", "Steering state", "The decision requested now", "The recommendation separates the stakeholder-selected direction, required benchmarks, production gates, and deferred scale commitments.", chartMarkup("recommendation", visuals.review || {}, { title: "Decision state", compact: true }), "is-wide")}
+            ${visualPanel("A", "Steering state", "The decision requested now", "The recommendation separates the stakeholder-selected direction, required benchmarks, production gates, and deferred scale commitments.", chartMarkup("recommendation", visuals.review || {}, { title: "Decision state", compact: true }), "is-wide is-only-panel")}
           </div>
           ${review ? `<a class="action-link" href="${itemHref(review)}">Open the principal review <span aria-hidden="true">↗</span></a>` : ""}
         </section>
@@ -879,8 +879,31 @@
       table.classList.add("editorial-table");
       sizeTableColumns(table);
 
+      const headerCells = [...table.querySelectorAll("thead th")];
+      const headers = headerCells.map((cell, columnIndex) => {
+        cell.scope = "col";
+        cell.id = `${item.id}-table-${index + 1}-column-${columnIndex + 1}`;
+        return cell.textContent.trim();
+      });
+      const isWideComparison = item.path === "reports/methodology-review.md" && headers.includes("Exit evidence");
+      table.querySelectorAll("tbody tr").forEach((row) => {
+        [...row.children].forEach((cell, columnIndex) => {
+          if (headers[columnIndex]) {
+            cell.dataset.columnLabel = headers[columnIndex];
+            cell.setAttribute("headers", headerCells[columnIndex].id);
+          }
+          if (isWideComparison) {
+            const value = document.createElement("span");
+            value.className = "table-card-value";
+            while (cell.firstChild) value.appendChild(cell.firstChild);
+            cell.appendChild(value);
+          }
+        });
+      });
+
       const region = document.createElement("figure");
       region.className = "table-region article-table";
+      if (isWideComparison) region.classList.add("is-wide-comparison");
       const viewport = document.createElement("div");
       viewport.className = "table-viewport";
       const wrapper = document.createElement("div");
@@ -892,7 +915,8 @@
       hint.innerHTML = '<span aria-hidden="true">↔</span> Scroll to compare every field';
 
       table.parentNode.insertBefore(region, table);
-      region.append(viewport, hint);
+      region.append(viewport);
+      if (!isWideComparison) region.append(hint);
       viewport.appendChild(wrapper);
       wrapper.appendChild(table);
       activateTableRegion(region);
@@ -1545,8 +1569,9 @@
   }
 
   function documentScaffold(item) {
+    const isMethodologyReview = item.path === "reports/methodology-review.md";
     return `
-      <article class="document-shell${item.type === "csv" ? " is-dataset" : ""}">
+      <article class="document-shell${item.type === "csv" ? " is-dataset" : ""}${isMethodologyReview ? " is-methodology-review" : ""}">
         <header class="document-header">
           <div>
             <nav class="breadcrumb" aria-label="Breadcrumb"><a href="#/library">Library</a> / ${escapeHtml(item.section)}</nav>
