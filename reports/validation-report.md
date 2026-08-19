@@ -1,6 +1,6 @@
 # Validation report
 
-- Date: 2026-08-18
+- Date: 2026-08-19
 - Revision evidence: use the GitHub Actions run attached to the reviewed commit; this file records the local baseline environment and scope rather than claiming an immutable run ID
 - Environment: local macOS host; Docker through temporary Colima runtime
 
@@ -12,12 +12,12 @@
 | YAML parsing | 22 source YAML files / 32 documents parsed with PyYAML; generated `_site` copies are excluded; rendered Helm YAML parsed with Ruby Psych |
 | Study/protocol contract | 43 principal studies / 177,105 words and three decision-grade protocols / 10,397 words passed structural, depth, evidence, inline-figure and next-gate controls |
 | Matrix/question/workflow gates | 120 unique criteria, 180 unique questions and 68 traceable content-remediation recommendations |
-| Markdown relative links | 523 detected local links resolve |
+| Markdown relative links | 526 detected local links resolve |
 | Registered evidence chain | 40 unique sources, 24 findings and 28 source IDs used directly in findings resolve |
 | Citation promotion boundary | 69 article files contain 271 unique external citations: 36 registered and 235 contextual/non-scoring until promoted |
 | Visual parity | 12 canonical Mermaid mirrors, one canonical alias and three data-backed Markdown charts align |
 | Static research portal | 191 resources built; seven bounded archetypes, seven methodology steps, 28 atomic protocol cases, 10 industry practices, eight industry-practice scenarios, five evidence-maturity stages, seven Kong fit conditions, 10 Kong problem responses, eight Kong platform cases, six adoption phases, 11 outcome contracts, six canonical Kong platform figures, six audiences and one named technical deck project from canonical sources into the manifest |
-| Browser/presentation | 99 configured presentation states: 28 generic, 58 tailored audience and 13 named Kong technical-deep-dive states. All 13 named-deck states passed at 1920×1080, 1440×900, 1024×768, 760×820 and 390×844, including KPS-1 through KPS-6, bounded fit, failure cases and outcome gates. The canonical article still renders six Mermaid figures and five data-backed placements; slide projections preserve seven fit conditions, 10 P1–P10 responses, eight cases, six roadmap phases and 11 outcome contracts. Critical labels remain at least 18px at room width and 16px elsewhere; every owner, cadence, proof, hold and exit field is reachable, diagrams expose readable local scrolling where needed, and no painted-content clipping, hidden field, page-level horizontal overflow, control collision or console error was observed |
+| Browser/presentation | 108 configured presentation states: 30 generic, 63 tailored audience and 15 named Kong technical-deep-dive states. All 15 named-deck states passed at 1920×1080, 1440×900, 1024×768, 760×820 and 390×844, including KPS-1 through KPS-6, bounded fit, failure cases and outcome gates. The seven fit conditions are now four finite 2/2/2/1 decision frames: mechanism, scenario advantage, counterfactual and proof remain simultaneously visible with no nested vertical scrolling at room or tablet widths, while narrow screens use one unclipped reading surface. Fit-frame core decision copy measures 24px at the 1920×1080 room viewport, 18px at 1440×900 and 1024×768, and at least 16px on the narrow reading surfaces; its metadata measures at least 24px, 20px, 16px, 16px and 16px respectively. The canonical article still renders six Mermaid figures and five data-backed placements; slide projections preserve seven fit conditions, 10 P1–P10 responses, eight cases, six roadmap phases and 11 outcome contracts. Every owner, cadence, proof, hold and exit field is reachable, diagrams expose readable local scrolling where needed, and no painted-content clipping, hidden field, page-level horizontal overflow, control collision or console error was observed |
 | Shell/Python | ShellCheck passed; Python bytecode compilation passed |
 | Compose | Configuration parsed; images built; services reached healthy state |
 | Kong declarative config | `kong config parse` successful on Kong 3.9.1 |

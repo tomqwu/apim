@@ -286,7 +286,8 @@
   function kongPlatformFit(data, options = {}) {
     const rows = Array.isArray(data) ? data : data?.rows || [];
     if (!rows.length) return empty();
-    return `<figure class="viz viz-kps-fit ${options.compact ? "is-compact" : ""} ${options.presentation ? "is-presentation" : ""}" aria-label="${escapeHtml(options.title || "Kong platform outcome-fit conditions")}">${heading(options)}
+    const mode = options.mode || (options.presentation ? "presentation" : "evidence");
+    return `<figure class="viz viz-kps-fit ${options.compact ? "is-compact" : ""} ${options.presentation ? "is-presentation" : ""} is-${escapeHtml(mode)}" aria-label="${escapeHtml(options.title || "Kong platform outcome-fit conditions")}">${heading(options)}
       <ol class="viz-kps-fit-list">${rows.map((row, index) => {
         const id = row.projectionId || `KPS-FIT-${String(index + 1).padStart(2, "0")}`;
         const body = `
@@ -294,9 +295,21 @@
           <p class="viz-kps-reason" data-label="Scenario-relative advantage">${escapeHtml(row.reason)}</p>
           <p class="viz-kps-counter" data-label="Answer changes when">${escapeHtml(row.counterfactual)}</p>
           <p class="viz-kps-proof" data-label="Proof before commitment">${escapeHtml(row.proof)}</p>`;
-        return options.presentation
-          ? `<li class="has-presentation-detail">${presentationEvidence(id, row.outcome, body)}</li>`
-          : `<li><span class="viz-kps-index">${escapeHtml(id)}</span><div class="viz-kps-copy"><strong>${escapeHtml(row.outcome)}</strong>${body}</div></li>`;
+        if (mode === "synopsis") {
+          return `<li class="has-fit-synopsis"><details class="viz-kps-fit-contract" name="kong-fit-contract">
+            <summary>
+              <span class="viz-kps-index">${escapeHtml(id)}</span>
+              <span class="viz-kps-fit-summary"><strong>${escapeHtml(row.outcome)}</strong><small data-label="Kong mechanism">${escapeHtml(row.mechanism)}</small></span>
+              <span class="viz-kps-fit-action" aria-hidden="true"><span class="when-closed">Inspect condition</span><span class="when-open">Close condition</span></span>
+            </summary>
+            <div class="viz-kps-copy viz-kps-fit-contract-body">
+              <p class="viz-kps-reason" data-label="Scenario-relative advantage">${escapeHtml(row.reason)}</p>
+              <p class="viz-kps-counter" data-label="Answer changes when">${escapeHtml(row.counterfactual)}</p>
+              <p class="viz-kps-proof" data-label="Proof before commitment">${escapeHtml(row.proof)}</p>
+            </div>
+          </details></li>`;
+        }
+        return `<li class="${mode === "presentation" ? "is-fit-contract" : ""}"><span class="viz-kps-index">${escapeHtml(id)}</span><div class="viz-kps-copy"><strong>${escapeHtml(row.outcome)}</strong>${body}</div></li>`;
       }).join("")}</ol>
     </figure>`;
   }
@@ -565,7 +578,7 @@
         ${panel("17", "Industry practices", `${practiceTotal} problem-bound operating practices`, "Each practice connects the required control to its minimum mechanism, acceptance evidence, and an explicit hold condition.", practiceFramework(visuals.industryPractices || {}, { title: "Practice contract", compact: true }), "is-wide", provenance.industryPractices)}
         ${panel("18", "Realistic cases", `${scenarioTotal} synthetic practice scenarios`, "RE-1 and case-local assumptions expose failure mechanisms, accountable controls, measurable acceptance, and named owner roles without pretending to be benchmark results.", scenarioMatrix(visuals.industryPractices || {}, { title: "Scenario-to-proof matrix", compact: true }), "is-wide", provenance.industryPractices)}
         ${panel("19", "Adoption gates", `${maturityStageTotal} evidence-gated maturity stages`, "Capability advances through operating outcomes and exit evidence; ownership and runtime-custody choices remain orthogonal design decisions.", maturitySequence(visuals.industryPractices || {}, { title: "Capability maturity sequence", compact: true }), "is-wide", provenance.industryPractices)}
-        ${panel("20", "Kong platform fit", `${kongFitTotal} scenario-relative fit conditions`, "Every stated advantage remains paired with a counterfactual and proof before commitment; this is not a universal product ranking.", kongPlatformFit(kongPlatform.fit || {}, { title: "Outcome-fit contract", compact: true }), "is-wide", kongPlatform.fit?.provenance)}
+        ${panel("20", "Kong platform fit", `${kongFitTotal} scenario-relative fit conditions`, "Scan the outcome and mechanism pairs, then inspect the counterfactual and proof for the condition under review; this is not a universal product ranking.", kongPlatformFit(kongPlatform.fit || {}, { title: "Outcome-fit contract", compact: true, mode: "synopsis" }), "is-wide", kongPlatform.fit?.provenance)}
         ${panel("21", "Kong problem response", "P1–P10 stay tied to measurable hold gates", "The selected-platform posture does not mark an industry problem solved; each response remains conditional on outcome evidence.", kongPlatformProblems(kongPlatform.problems || {}, { title: "Problem-to-proof traceability", compact: true }), "is-wide", kongPlatform.problems?.provenance)}
         ${panel("22", "Kong realistic cases", `${kongCaseTotal} synthetic enterprise cases`, "Management loss, clean-node scale, trust rollover, burst faults, change defects, regional loss, coexistence, and restore remain labelled test scenarios.", kongPlatformCases(kongPlatform.cases || {}, { title: "Case-to-outcome contract", compact: true }), "is-wide", kongPlatform.cases?.provenance)}
         ${panel("23", "Kong platform roadmap", `${kongPhaseTotal} evidence-gated phases across a 0–18 month scenario`, "Elapsed windows are assumptions; each phase advances through exit evidence and preserves a stop or replan condition.", kongPlatformRoadmap(kongPlatform.roadmap || {}, { title: "Foundation-to-scale sequence", compact: true }), "is-wide", kongPlatform.roadmap?.provenance)}

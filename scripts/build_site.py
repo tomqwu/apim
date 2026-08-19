@@ -1522,7 +1522,7 @@ def build_audiences(
             source_paths=("docs/00-executive-summary.md", "docs/43-api-management-industry-problems.md", "docs/45-api-management-industry-practices.md", "docs/44-kong-multicloud-study-roadmap.md", "docs/47-kong-enterprise-platform-strategy.md", "reports/methodology-review.md", "reports/evidence-state.md", "decision-matrix/findings.md", "docs/42-public-failure-casebook.md", "docs/37-risks.md", "docs/36-implementation-roadmap.md", "docs/39-repository-roadmap.md"),
             recommended_route="#/compare",
             visual="executive",
-            presentation_slides=("decision", "kong-platform-fit-1", "kong-platform-fit-2", "kong-platform-roadmap", "kong-platform-outcomes-1", "kong-platform-outcomes-2", "industry-problems", "landscape", "evidence", "next"),
+            presentation_slides=("decision", "kong-platform-fit-boundary", "kong-platform-fit-runtime", "kong-platform-fit-change", "kong-platform-fit-fallback", "kong-platform-roadmap", "kong-platform-outcomes-1", "kong-platform-outcomes-2", "industry-problems", "landscape", "evidence", "next"),
         ),
         audience(
             audience_id="directors",
@@ -1538,7 +1538,7 @@ def build_audiences(
             source_paths=("docs/02-current-state-assumptions.md", "docs/43-api-management-industry-problems.md", "docs/45-api-management-industry-practices.md", "docs/44-kong-multicloud-study-roadmap.md", "docs/47-kong-enterprise-platform-strategy.md", "docs/33-operating-model.md", "docs/36-implementation-roadmap.md", "docs/37-risks.md", "docs/38-open-questions.md", "docs/42-public-failure-casebook.md", "docs/39-repository-roadmap.md", "mule-migration/migration-factory.md"),
             recommended_route="#/doc/docs-33-operating-model",
             visual="directors",
-            presentation_slides=("decision", "kong-platform-fit-1", "kong-platform-roadmap", "kong-platform-outcomes-1", "kong-platform-outcomes-2", "kong-platform-cases-2", "evidence", "proof", "next"),
+            presentation_slides=("decision", "kong-platform-fit-boundary", "kong-platform-fit-runtime", "kong-platform-roadmap", "kong-platform-outcomes-1", "kong-platform-outcomes-2", "kong-platform-cases-2", "evidence", "proof", "next"),
         ),
         audience(
             audience_id="architects",
@@ -1602,7 +1602,7 @@ def build_audiences(
             source_paths=("docs/33-operating-model.md", "docs/43-api-management-industry-problems.md", "docs/45-api-management-industry-practices.md", "docs/44-kong-multicloud-study-roadmap.md", "docs/47-kong-enterprise-platform-strategy.md", "docs/29-apiops-governance.md", "architecture/apiops-architecture.md", "docs/09-product-shortlist.md", "docs/10-kong-deep-dive.md", "docs/19-azure-apim-assessment.md", "docs/21-apigee-assessment.md", "docs/23-mulesoft-current-state-baseline.md"),
             recommended_route="#/doc/docs-33-operating-model",
             visual="platform-teams",
-            presentation_slides=("kong-platform-fit-1", "kong-platform-fit-2", "kong-platform-architecture", "kong-platform-cases-1", "kong-platform-cases-2", "kong-platform-roadmap", "kong-platform-outcomes-1", "kong-platform-outcomes-2", "target-state", "proof"),
+            presentation_slides=("kong-platform-fit-boundary", "kong-platform-fit-runtime", "kong-platform-fit-change", "kong-platform-fit-fallback", "kong-platform-architecture", "kong-platform-cases-1", "kong-platform-cases-2", "kong-platform-roadmap", "kong-platform-outcomes-1", "kong-platform-outcomes-2", "target-state", "proof"),
         ),
     ]
 
@@ -1681,8 +1681,10 @@ def make_presentation(items: list[dict[str, object]], stats: dict[str, int], vis
         ("industry-practices", "Industry practices", "Prove the operating system in realistic cases", "The canonical study maps eight synthetic practice scenarios to named best-practice controls, measurable acceptance, and accountable owners. Every RE-1 or case-local value remains an assumption until execution produces evidence.", "docs/45-api-management-industry-practices.md", industry_scenario_total, "synthetic practice scenarios", "scenarioMatrix"),
         ("kong-multicloud-foundations", "Kong study roadmap · 1/2", "Calibrate topology, trust, change, and resilience", "WS-01 through WS-07 turn the stakeholder-selected Kong direction into a bounded option: resolve the comparative contract, map plane and trust boundaries, prove configuration authority, and test runtime resilience before production adoption.", "docs/44-kong-multicloud-study-roadmap.md", kong_foundation_total, "foundation workstreams", "studyRoadmap"),
         ("kong-multicloud-proof", "Kong study roadmap · 2/2", "Prove operations, adoption, exit, and estate truth", "WS-08 through WS-13 close observability, consumer lifecycle, operating economics, migration, emerging-protocol boundaries, and estate ownership before critical scale; Konnect and non-Kong exit remain explicit benchmarks.", "docs/44-kong-multicloud-study-roadmap.md", kong_proof_total, "proof workstreams", "studyRoadmap"),
-        ("kong-platform-fit-1", "Kong platform · fit 1/2", "Custody and distributed runtime create the strategic fit", "The first four canonical outcome rows keep custody, placement, continuity, and runtime consistency conditional on explicit counterfactuals and proof.", "docs/47-kong-enterprise-platform-strategy.md", min(4, len(kong_fit_rows)), "fit conditions", "kongPlatformFit"),
-        ("kong-platform-fit-2", "Kong platform · fit 2/2", "APIOps, bounded extension, and fallback keep the choice reversible", "The remaining fit conditions require evidence-producing change, disciplined policy boundaries, and an equivalent Konnect custody benchmark.", "docs/47-kong-enterprise-platform-strategy.md", max(len(kong_fit_rows) - 4, 0), "fit conditions", "kongPlatformFit"),
+        ("kong-platform-fit-boundary", "Kong platform · fit 1/4", "Custody and distributed runtime create the strategic fit", "Customer-operated management state and database-free data planes match the stated custody and multicloud placement priorities; both remain conditional on recovery, topology, failure, and cost proof.", "docs/47-kong-enterprise-platform-strategy.md", min(2, len(kong_fit_rows)), "fit conditions", "kongPlatformFit"),
+        ("kong-platform-fit-runtime", "Kong platform · fit 2/4", "Continuity and one operating pattern keep runtime coherent", "Cached data-plane configuration and a bounded cross-runtime operating pattern can isolate request service from management loss and reduce runtime variation; admission, revocation, conformance, lifecycle, and support still require proof.", "docs/47-kong-enterprise-platform-strategy.md", min(2, max(len(kong_fit_rows) - 2, 0)), "fit conditions", "kongPlatformFit"),
+        ("kong-platform-fit-change", "Kong platform · fit 3/4", "APIOps and bounded extension make platform control auditable", "Evidence-producing change and transport-facing extension points fit the desired platform boundary only while deletion, rollback, performance, security, entitlement, upgrade, and route-back behavior remain controlled.", "docs/47-kong-enterprise-platform-strategy.md", min(2, max(len(kong_fit_rows) - 4, 0)), "fit conditions", "kongPlatformFit"),
+        ("kong-platform-fit-fallback", "Kong platform · fit 4/4", "A Konnect custody switch keeps the choice reversible", "The same-vendor managed fallback can preserve customer-hosted data-plane investment if self-managed toil fails, but it remains subject to equivalent outcome, support, cost, service-boundary, and true-exit proof.", "docs/47-kong-enterprise-platform-strategy.md", max(len(kong_fit_rows) - 6, 0), "fit condition", "kongPlatformFit"),
         ("kong-platform-architecture", "Kong platform · target", "Self-managed control, multicloud data-plane cells", "KPS-1 is the canonical target synthesis: one reviewed configuration authority reaches an enterprise management cell while request runtimes and evidence stay close to workloads.", "docs/47-kong-enterprise-platform-strategy.md", "KPS-1", "canonical target figure", "kongPlatformArchitecture"),
         ("kong-platform-cases-1", "Kong platform · cases 1/2", "Prove management loss, scale, trust, and burst behavior", "Four synthetic cases expose how cached state, clean-node admission, trust rollover, counters, and telemetry can change a business outcome.", "docs/47-kong-enterprise-platform-strategy.md", min(4, len(kong_cases)), "synthetic cases", "kongPlatformCases"),
         ("kong-platform-cases-2", "Kong platform · cases 2/2", "Prove configuration, failover, coexistence, and restore", "Four further cases make blast radius, business-data readiness, migration state, and irreversible management recovery testable.", "docs/47-kong-enterprise-platform-strategy.md", max(len(kong_cases) - 4, 0), "synthetic cases", "kongPlatformCases"),
@@ -1723,8 +1725,10 @@ def make_presentation(items: list[dict[str, object]], stats: dict[str, int], vis
         "kong-multicloud-proof": [str(workstream.get("id", "")) for workstream in kong_workstreams[kong_split_index:]],
     }
     row_ids = {
-        "kong-platform-fit-1": [str(row.get("projectionId", "")) for row in kong_fit_rows[:4]],
-        "kong-platform-fit-2": [str(row.get("projectionId", "")) for row in kong_fit_rows[4:]],
+        "kong-platform-fit-boundary": [str(row.get("projectionId", "")) for row in kong_fit_rows[:2]],
+        "kong-platform-fit-runtime": [str(row.get("projectionId", "")) for row in kong_fit_rows[2:4]],
+        "kong-platform-fit-change": [str(row.get("projectionId", "")) for row in kong_fit_rows[4:6]],
+        "kong-platform-fit-fallback": [str(row.get("projectionId", "")) for row in kong_fit_rows[6:]],
         "kong-platform-cases-1": [str(row.get("id", "")) for row in kong_cases[:4]],
         "kong-platform-cases-2": [str(row.get("id", "")) for row in kong_cases[4:]],
         "kong-platform-outcomes-1": [str(row.get("id", "")) for row in kong_outcomes[:5]],
@@ -1805,8 +1809,10 @@ def make_presentation_decks(
             audience_role_ids=("architects", "devops-sre", "platform-teams"),
             slide_keys=(
                 "decision",
-                "kong-platform-fit-1",
-                "kong-platform-fit-2",
+                "kong-platform-fit-boundary",
+                "kong-platform-fit-runtime",
+                "kong-platform-fit-change",
+                "kong-platform-fit-fallback",
                 "kong-platform-architecture",
                 "kong-technical-state-trust",
                 "kong-technical-operating-model",

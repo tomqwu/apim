@@ -42,6 +42,20 @@ STATIC_ROUTES = {
     "#/overview", "#/library", "#/compare", "#/architecture", "#/lab",
     "#/visuals", "#/audiences",
 }
+KONG_PLATFORM_FIT_SLIDE_KEYS = (
+    "kong-platform-fit-boundary",
+    "kong-platform-fit-runtime",
+    "kong-platform-fit-change",
+    "kong-platform-fit-fallback",
+)
+KONG_PLATFORM_FIT_IDS = tuple(f"KPS-FIT-{index:02d}" for index in range(1, 8))
+KONG_PLATFORM_FIT_SLIDE_ROWS = {
+    "kong-platform-fit-boundary": ("KPS-FIT-01", "KPS-FIT-02"),
+    "kong-platform-fit-runtime": ("KPS-FIT-03", "KPS-FIT-04"),
+    "kong-platform-fit-change": ("KPS-FIT-05", "KPS-FIT-06"),
+    "kong-platform-fit-fallback": ("KPS-FIT-07",),
+}
+REMOVED_KONG_PLATFORM_FIT_SLIDE_KEYS = frozenset({"kong-platform-fit-1", "kong-platform-fit-2"})
 ROOT = Path(__file__).resolve().parents[1]
 
 
@@ -72,6 +86,92 @@ def sha256_file(path: Path) -> str:
         for chunk in iter(lambda: handle.read(1024 * 1024), b""):
             file_digest.update(chunk)
     return file_digest.hexdigest()
+
+
+def validate_kong_platform_fit_slides(
+    manifest: dict[str, Any],
+    presentation: list[dict[str, Any]],
+) -> None:
+    """Bind every deployed Kong fit slide to the canonical seven-row projection."""
+    visuals = manifest.get("visuals")
+    require(isinstance(visuals, dict), "manifest visuals must be an object")
+    strategy = visuals.get("kongPlatformStrategy")
+    require(isinstance(strategy, dict), "manifest visuals.kongPlatformStrategy must be an object")
+    fit = strategy.get("fit")
+    require(isinstance(fit, dict), "manifest visuals.kongPlatformStrategy.fit must be an object")
+    rows = fit.get("rows")
+    require(isinstance(rows, list) and bool(rows), "manifest canonical Kong platform fit rows must be a non-empty list")
+    require(all(isinstance(row, dict) for row in rows), "manifest canonical Kong platform fit rows must be objects")
+    canonical_ids = [row.get("projectionId") for row in rows]
+    require(
+        all(isinstance(row_id, str) and row_id for row_id in canonical_ids),
+        "manifest canonical Kong platform fit IDs must be non-empty strings",
+    )
+    require(
+        len(canonical_ids) == len(set(canonical_ids)),
+        "manifest canonical Kong platform fit IDs must be unique",
+    )
+    require(
+        len(canonical_ids) == len(KONG_PLATFORM_FIT_IDS)
+        and set(canonical_ids) == set(KONG_PLATFORM_FIT_IDS),
+        "manifest canonical Kong platform fit IDs must be exactly KPS-FIT-01 through KPS-FIT-07",
+    )
+
+    slides_by_key = {slide["key"]: slide for slide in presentation}
+    require(
+        not REMOVED_KONG_PLATFORM_FIT_SLIDE_KEYS.intersection(slides_by_key),
+        "manifest presentation retains a removed Kong platform fit slide",
+    )
+    fit_slide_keys = {
+        slide["key"]
+        for slide in presentation
+        if slide.get("visual") == "kongPlatformFit"
+    }
+    require(
+        fit_slide_keys == set(KONG_PLATFORM_FIT_SLIDE_KEYS),
+        "manifest Kong platform fit slides must be exactly the four semantic fit slide keys",
+    )
+    require(
+        all(key in slides_by_key for key in KONG_PLATFORM_FIT_SLIDE_KEYS),
+        "manifest presentation must contain the four semantic Kong platform fit slides",
+    )
+    for key in KONG_PLATFORM_FIT_SLIDE_KEYS:
+        require(
+            slides_by_key[key].get("visual") == "kongPlatformFit",
+            f"manifest slide {key} must use the kongPlatformFit visual",
+        )
+        require(
+            tuple(slides_by_key[key].get("rowIds", ())) == KONG_PLATFORM_FIT_SLIDE_ROWS[key],
+            f"manifest slide {key} rowIds do not match its bounded Kong fit contract",
+        )
+
+    canonical_id_set = set(canonical_ids)
+    for slide in presentation:
+        if slide.get("visual") != "kongPlatformFit":
+            continue
+        key = slide["key"]
+        row_ids = slide.get("rowIds")
+        require(isinstance(row_ids, list) and bool(row_ids), f"manifest slide {key} rowIds must be a non-empty list")
+        require(
+            all(isinstance(row_id, str) and row_id for row_id in row_ids),
+            f"manifest slide {key} rowIds must be non-empty strings",
+        )
+        require(len(row_ids) == len(set(row_ids)), f"manifest slide {key} rowIds must be unique")
+        require(
+            set(row_ids).issubset(canonical_id_set),
+            f"manifest slide {key} rowIds reference an unknown canonical Kong platform fit ID",
+        )
+
+    semantic_row_ids = [
+        row_id
+        for key in KONG_PLATFORM_FIT_SLIDE_KEYS
+        for row_id in slides_by_key[key]["rowIds"]
+    ]
+    require(
+        len(semantic_row_ids) == len(KONG_PLATFORM_FIT_IDS)
+        and set(semantic_row_ids) == set(KONG_PLATFORM_FIT_IDS),
+        "manifest semantic Kong platform fit slides must cover KPS-FIT-01 through KPS-FIT-07 exactly once",
+    )
 
 
 def run_git(*args: str) -> str:
@@ -129,6 +229,7 @@ def validated_route_inventory(manifest: dict[str, Any], items: list[dict[str, An
         all(slide.get("sourceId") in item_ids for slide in presentation),
         "manifest presentation references an unknown sourceId",
     )
+    validate_kong_platform_fit_slides(manifest, presentation)
 
     content_routes = set(STATIC_ROUTES).union(item_routes)
     routes = set(STATIC_ROUTES)
@@ -165,7 +266,12 @@ def validated_route_inventory(manifest: dict[str, Any], items: list[dict[str, An
         validate_sources(audience, f"manifest audience {audience_id}")
         selected = audience.get("presentationSlides")
         require(isinstance(selected, list) and bool(selected), f"manifest audience {audience_id} has no presentation slides")
-        require(all(isinstance(key, str) and key in slide_keys for key in selected), f"manifest audience {audience_id} references an unknown slide")
+        require(all(isinstance(key, str) for key in selected), f"manifest audience {audience_id} presentation slides are invalid")
+        require(
+            not any(key in REMOVED_KONG_PLATFORM_FIT_SLIDE_KEYS for key in selected),
+            f"manifest audience {audience_id} retains a removed Kong platform fit slide",
+        )
+        require(all(key in slide_keys for key in selected), f"manifest audience {audience_id} references an unknown slide")
         require(len(selected) == len(set(selected)), f"manifest audience {audience_id} presentation slides must be unique")
         require(audience.get("presentationRoute") == f"#/present/{audience_id}/0", f"manifest audience {audience_id} presentationRoute is invalid")
         audience_routes = {f"#/present/{audience_id}/{index}" for index in range(len(selected))}
@@ -189,8 +295,17 @@ def validated_route_inventory(manifest: dict[str, Any], items: list[dict[str, An
         source_ids = validate_sources(deck, f"manifest presentation deck {deck_id}", require_nonempty=True)
         selected = deck.get("presentationSlides")
         require(isinstance(selected, list) and bool(selected), f"manifest presentation deck {deck_id} has no presentation slides")
-        require(all(isinstance(key, str) and key in slide_keys for key in selected), f"manifest presentation deck {deck_id} references an unknown slide")
+        require(all(isinstance(key, str) for key in selected), f"manifest presentation deck {deck_id} presentation slides are invalid")
+        require(
+            not any(key in REMOVED_KONG_PLATFORM_FIT_SLIDE_KEYS for key in selected),
+            f"manifest presentation deck {deck_id} retains a removed Kong platform fit slide",
+        )
+        require(all(key in slide_keys for key in selected), f"manifest presentation deck {deck_id} references an unknown slide")
         require(len(selected) == len(set(selected)), f"manifest presentation deck {deck_id} presentation slides must be unique")
+        require(
+            type(deck.get("slideTotal")) is int and deck["slideTotal"] == len(selected),
+            f"manifest presentation deck {deck_id} slideTotal must equal its presentation slide count",
+        )
         selected_source_ids = {
             slide["sourceId"] for slide in presentation if slide["key"] in selected
         }

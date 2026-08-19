@@ -727,12 +727,12 @@ a {
   text-transform: uppercase;
 }
 
-.atlas-panel .when-open,
-.atlas-panel[open] .when-closed {
+.atlas-panel > summary .when-open,
+.atlas-panel[open] > summary .when-closed {
   display: none;
 }
 
-.atlas-panel[open] .when-open {
+.atlas-panel[open] > summary .when-open {
   display: inline;
 }
 
@@ -791,12 +791,12 @@ a {
   text-transform: uppercase;
 }
 
-.visual-disclosure .when-open,
-.visual-disclosure[open] .when-closed {
+.visual-disclosure > summary .when-open,
+.visual-disclosure[open] > summary .when-closed {
   display: none;
 }
 
-.visual-disclosure[open] .when-open {
+.visual-disclosure[open] > summary .when-open {
   display: inline;
 }
 
@@ -1797,6 +1797,135 @@ a {
 .viz-kps-outcomes.is-compact .viz-kps-outcome-list > li,
 .viz-kps-roadmap.is-compact .viz-kps-roadmap-list > li {
   min-height: 0;
+}
+
+.viz-kps-fit.is-synopsis .viz-kps-fit-list {
+  grid-template-columns: repeat(4, minmax(0, 1fr));
+}
+
+.viz-kps-fit.is-synopsis .viz-kps-fit-list > li.has-fit-synopsis {
+  min-height: 0;
+  display: block;
+  padding: 0;
+}
+
+.viz-kps-fit-contract {
+  height: auto;
+}
+
+.viz-kps-fit-contract:not([open]) {
+  height: 100%;
+}
+
+.viz-kps-fit-contract > summary {
+  min-height: 0;
+  display: grid;
+  grid-template-columns: 62px minmax(0, 1fr);
+  gap: 0.65rem;
+  align-content: start;
+  padding: 1rem;
+  cursor: pointer;
+  list-style: none;
+}
+
+.viz-kps-fit-contract:not([open]) > summary {
+  min-height: 100%;
+}
+
+.viz-kps-fit.is-synopsis .viz-kps-fit-list > li.has-fit-synopsis:has(.viz-kps-fit-contract[open]) {
+  grid-column: 1 / -1;
+}
+
+.viz-kps-fit-contract > summary::-webkit-details-marker {
+  display: none;
+}
+
+.viz-kps-fit-contract > summary:focus-visible {
+  outline: 3px solid var(--signal-dark);
+  outline-offset: -4px;
+}
+
+.viz-kps-fit-summary {
+  min-width: 0;
+  display: grid;
+  gap: 0.65rem;
+}
+
+.viz-kps-fit-summary strong {
+  overflow-wrap: anywhere;
+  font-family: var(--serif);
+  font-size: clamp(1.25rem, 1.7vw, 1.75rem);
+  font-weight: 400;
+  letter-spacing: -0.02em;
+  line-height: 1.08;
+  text-wrap: balance;
+}
+
+.viz-kps-fit-summary small {
+  color: var(--muted);
+  font-size: 1rem;
+  line-height: 1.35;
+  overflow-wrap: anywhere;
+}
+
+.viz-kps-fit-summary small::before {
+  display: block;
+  margin-bottom: 0.18rem;
+  color: var(--signal-dark);
+  content: attr(data-label);
+  font-family: var(--mono);
+  font-size: 0.875rem;
+  letter-spacing: 0.035em;
+  text-transform: uppercase;
+}
+
+.viz-kps-fit-action {
+  grid-column: 2;
+  justify-self: start;
+  padding: 0.35rem 0.5rem;
+  border: 1px solid var(--signal-dark);
+  color: var(--signal-dark);
+  font-family: var(--mono);
+  font-size: 0.875rem;
+  letter-spacing: 0.035em;
+  text-transform: uppercase;
+}
+
+.viz-kps-fit-contract .when-open,
+.viz-kps-fit-contract[open] .when-closed {
+  display: none;
+}
+
+.viz-kps-fit-contract[open] .when-open {
+  display: inline;
+}
+
+.viz-kps-fit-contract-body {
+  display: grid;
+  grid-template-columns: repeat(3, minmax(0, 1fr));
+  gap: 1rem;
+  padding: 1rem;
+  border-top: 1px solid var(--line);
+}
+
+.viz-kps-fit-contract:not([open]) > .viz-kps-fit-contract-body {
+  display: none;
+}
+
+@media (max-width: 1199px) {
+  .viz-kps-fit.is-synopsis .viz-kps-fit-list {
+    grid-template-columns: repeat(2, minmax(0, 1fr));
+  }
+
+  .viz-kps-fit-contract-body {
+    grid-template-columns: 1fr;
+  }
+}
+
+@media (max-width: 760px) {
+  .viz-kps-fit.is-synopsis .viz-kps-fit-list {
+    grid-template-columns: 1fr;
+  }
 }
 
 .kps-architecture-target {
@@ -3932,6 +4061,41 @@ body.has-expanded-diagram {
   border-color: #5d6159;
 }
 
+.presentation-stage .viz-kps-fit.is-presentation .viz-kps-fit-list > li.is-fit-contract {
+  min-height: 0;
+  grid-template-columns: 58px minmax(0, 1fr);
+  gap: 0.75rem;
+  align-content: start;
+  padding: 0.85rem;
+}
+
+.presentation-stage .viz-kps-fit.is-presentation .viz-kps-fit-list > li.is-fit-contract:only-child {
+  grid-column: 1 / -1;
+}
+
+.presentation-stage .viz-kps-fit.is-presentation .is-fit-contract .viz-kps-copy {
+  grid-template-columns: repeat(2, minmax(0, 1fr));
+  gap: 0.7rem 0.85rem;
+}
+
+.presentation-stage .viz-kps-fit.is-presentation .is-fit-contract .viz-kps-copy > strong {
+  grid-column: 1 / -1;
+  font-size: clamp(1.45rem, 1.7vw, 2rem);
+}
+
+.presentation-stage .viz-kps-fit.is-presentation .is-fit-contract .viz-kps-copy p {
+  min-width: 0;
+  padding-top: 0.45rem;
+  border-top: 1px solid #4b4f47;
+  font-size: clamp(1.125rem, 1.25vw, 1.5rem);
+  line-height: 1.22;
+}
+
+.presentation-stage .viz-kps-fit.is-presentation .is-fit-contract .viz-kps-copy p::before {
+  margin-bottom: 0.28rem;
+  font-size: max(0.875rem, var(--slide-meta));
+}
+
 .presentation-stage .viz-kps-fit-list > li.has-presentation-detail,
 .presentation-stage .viz-kps-case-list > li.has-presentation-detail,
 .presentation-stage .viz-kps-outcome-list > li.has-presentation-detail,
@@ -4888,6 +5052,93 @@ body.is-presenting .site-footer {
 }
 
 @media (min-width: 1025px) {
+  .presentation-slide:has(.slide-audience-cue) .slide-aside {
+    min-height: 0;
+    height: 100dvh;
+    max-height: 100dvh;
+    display: grid;
+    grid-template-rows: minmax(0, 1fr) auto;
+    gap: 0.75rem;
+    overflow: hidden;
+    padding: clamp(1.25rem, 2vw, 2rem);
+    padding-bottom: 5rem;
+  }
+
+  .presentation-slide:has(.slide-audience-cue) .slide-aside-content {
+    min-height: 0;
+    display: flex;
+    flex-direction: column;
+    gap: 0.75rem;
+    overflow: visible;
+  }
+
+  .presentation-slide:has(.slide-audience-cue) .slide-metric strong {
+    font-size: clamp(5rem, 6vw, 7rem);
+  }
+
+  .presentation-slide:has(.slide-audience-cue) .slide-body,
+  .presentation-slide:has(.slide-audience-cue) .slide-audience-cue p {
+    font-size: clamp(1.125rem, 1.25vw, 1.5rem);
+    line-height: 1.3;
+  }
+
+  .presentation-slide:has(.slide-audience-cue) .slide-source {
+    margin: 0;
+    font-size: clamp(1rem, 1.05vw, 1.125rem);
+  }
+
+  .presentation-stage .viz-kps-fit.is-presentation > .viz-heading {
+    display: none;
+  }
+
+  .presentation-slide:has(.viz-kps-fit.is-presentation) {
+    grid-template-columns: minmax(0, 9fr) minmax(280px, 3fr);
+  }
+
+  .presentation-stage.is-kong-platform .slide-main:has(.viz-kps-fit.is-presentation) {
+    gap: 0.45rem;
+    justify-content: flex-start;
+    overflow: hidden;
+    padding: clamp(1.25rem, 2vw, 2rem);
+  }
+
+  .presentation-stage.is-kong-platform .slide-main:has(.viz-kps-fit.is-presentation) .slide-narrative {
+    min-height: 0;
+    flex: 1;
+    grid-template-rows: auto minmax(0, 1fr);
+    gap: 0.55rem;
+    margin: 0;
+  }
+
+  .presentation-stage.is-kong-platform .slide-main:has(.viz-kps-fit.is-presentation) .slide-title {
+    max-width: 24ch;
+    font-size: clamp(2.25rem, 3vw, 3.5rem);
+    line-height: 0.92;
+  }
+
+  .presentation-stage.is-kong-platform .slide-main:has(.viz-kps-fit.is-presentation) .slide-visual {
+    min-height: 0;
+    padding: 0.45rem;
+  }
+
+  .presentation-slide:has(.viz-kps-fit.is-presentation) .slide-aside {
+    overflow: hidden;
+    padding: 1.5rem;
+  }
+
+  .presentation-slide:has(.viz-kps-fit.is-presentation) .slide-metric strong {
+    font-size: clamp(4.5rem, 7vw, 7rem);
+  }
+
+  .presentation-slide:has(.viz-kps-fit.is-presentation) .slide-metric span {
+    margin-top: 0.65rem;
+  }
+
+  .presentation-slide:has(.viz-kps-fit.is-presentation) .slide-body {
+    font-size: clamp(1.125rem, 1.25vw, 1.5rem);
+    line-height: 1.35;
+  }
+
   .presentation-stage.is-industry-practices .presentation-slide {
     grid-template-rows: minmax(0, 1fr);
   }
@@ -4983,6 +5234,30 @@ body.is-presenting .site-footer {
 }
 
 @media (min-width: 761px) and (max-width: 1024px) {
+  .presentation-stage.is-kong-platform .slide-aside-content {
+    gap: 0.75rem;
+  }
+
+  .presentation-stage.is-kong-platform .slide-body,
+  .presentation-stage.is-kong-platform .slide-audience-cue p {
+    font-size: 1.125rem;
+    line-height: 1.35;
+  }
+
+  .presentation-stage.is-kong-platform .slide-source,
+  .presentation-stage.is-kong-platform .slide-metric span,
+  .presentation-stage.is-kong-platform .slide-audience-cue span {
+    font-size: 1rem;
+  }
+
+  .presentation-stage.is-kong-platform .slide-metric strong {
+    font-size: 4rem;
+  }
+
+  .presentation-stage .viz-kps-fit.is-presentation > .viz-heading {
+    display: none;
+  }
+
   .presentation-stage.is-kong-platform .slide-main {
     padding: 1.5rem;
   }
@@ -5000,6 +5275,151 @@ body.is-presenting .site-footer {
 
   .presentation-stage .viz-kps-fit-list {
     grid-template-columns: 1fr;
+  }
+
+  .presentation-slide:has(.viz-kps-fit.is-presentation) {
+    grid-template-columns: minmax(0, 1fr);
+    grid-template-rows: minmax(0, 1fr) auto;
+  }
+
+  .presentation-stage.is-kong-platform .slide-main:has(.viz-kps-fit.is-presentation) {
+    gap: 0.25rem;
+    justify-content: flex-start;
+    overflow: hidden;
+    padding: 0.75rem;
+    border-right: 0;
+    border-bottom: 1px solid #454840;
+  }
+
+  .presentation-stage.is-kong-platform .slide-main:has(.viz-kps-fit.is-presentation) .slide-narrative {
+    min-height: 0;
+    flex: 1;
+    grid-template-rows: auto minmax(0, 1fr);
+    gap: 0.3rem;
+    margin: 0;
+  }
+
+  .presentation-stage.is-kong-platform .slide-main:has(.viz-kps-fit.is-presentation) .slide-title {
+    max-width: 24ch;
+    font-size: clamp(2rem, 4vw, 2.75rem);
+    line-height: 0.92;
+  }
+
+  .presentation-stage.is-kong-platform .slide-main:has(.viz-kps-fit.is-presentation) .slide-visual {
+    min-height: 0;
+    padding: 0.25rem;
+  }
+
+  .presentation-stage .viz-kps-fit.is-presentation .viz-kps-fit-list {
+    grid-template-columns: repeat(2, minmax(0, 1fr));
+  }
+
+  .presentation-stage .viz-kps-fit.is-presentation .viz-kps-fit-list > li.is-fit-contract {
+    grid-template-columns: 46px minmax(0, 1fr);
+    gap: 0.45rem;
+    padding: 0.45rem;
+  }
+
+  .presentation-stage .viz-kps-fit.is-presentation .is-fit-contract .viz-kps-copy {
+    gap: 0.35rem 0.5rem;
+  }
+
+  .presentation-stage .viz-kps-fit.is-presentation .is-fit-contract .viz-kps-copy > strong {
+    font-size: 1.35rem;
+  }
+
+  .presentation-stage .viz-kps-fit.is-presentation .is-fit-contract .viz-kps-copy p {
+    font-size: 1.125rem;
+    line-height: 1.2;
+  }
+
+  .presentation-slide:has(.viz-kps-fit.is-presentation) .slide-aside {
+    min-height: 0;
+    height: auto;
+    max-height: none;
+    grid-template-columns: minmax(0, 1fr) auto;
+    grid-template-rows: auto;
+    gap: 0.75rem;
+    align-items: center;
+    overflow: visible;
+    padding: 0.7rem 13rem 0.7rem 1rem;
+  }
+
+  .presentation-slide:has(.viz-kps-fit.is-presentation) .slide-aside-content {
+    min-height: 0;
+    display: grid;
+    grid-template-columns: auto minmax(0, 1fr) minmax(0, 1fr);
+    gap: 0.8rem;
+    align-items: center;
+    overflow: visible;
+    padding: 0;
+  }
+
+  .presentation-slide:has(.viz-kps-fit.is-presentation) .slide-aside-content:not(:has(.slide-audience-cue)) {
+    grid-template-columns: auto minmax(0, 1fr);
+  }
+
+  .presentation-slide:has(.viz-kps-fit.is-presentation):has(.slide-audience-cue) .slide-aside {
+    grid-template-columns: minmax(0, 1fr) minmax(0, 1fr) minmax(130px, 0.55fr);
+    grid-template-rows: auto auto;
+  }
+
+  .presentation-slide:has(.viz-kps-fit.is-presentation):has(.slide-audience-cue) .slide-aside-content {
+    display: contents;
+  }
+
+  .presentation-slide:has(.viz-kps-fit.is-presentation):has(.slide-audience-cue) .slide-audience-cue {
+    grid-column: 1;
+    grid-row: 1 / 3;
+  }
+
+  .presentation-slide:has(.viz-kps-fit.is-presentation):has(.slide-audience-cue) .slide-body {
+    grid-column: 2;
+    grid-row: 1 / 3;
+  }
+
+  .presentation-slide:has(.viz-kps-fit.is-presentation):has(.slide-audience-cue) .slide-metric {
+    grid-column: 3;
+    grid-row: 1;
+    align-self: start;
+  }
+
+  .presentation-slide:has(.viz-kps-fit.is-presentation):has(.slide-audience-cue) .slide-source {
+    grid-column: 3;
+    grid-row: 2;
+    align-self: end;
+  }
+
+  .presentation-slide:has(.viz-kps-fit.is-presentation) .slide-metric {
+    display: flex;
+    gap: 0.55rem;
+    align-items: center;
+  }
+
+  .presentation-slide:has(.viz-kps-fit.is-presentation) .slide-metric strong {
+    font-size: 3rem;
+  }
+
+  .presentation-slide:has(.viz-kps-fit.is-presentation) .slide-metric span,
+  .presentation-slide:has(.viz-kps-fit.is-presentation) .slide-audience-cue span,
+  .presentation-slide:has(.viz-kps-fit.is-presentation) .slide-source {
+    margin: 0;
+    font-size: 1rem;
+  }
+
+  .presentation-slide:has(.viz-kps-fit.is-presentation) .slide-audience-cue {
+    padding: 0;
+  }
+
+  .presentation-slide:has(.viz-kps-fit.is-presentation) .slide-audience-cue p,
+  .presentation-slide:has(.viz-kps-fit.is-presentation) .slide-body {
+    margin: 0.2rem 0 0;
+    font-size: 1.125rem;
+    line-height: 1.25;
+  }
+
+  .presentation-slide:has(.viz-kps-fit.is-presentation) .slide-source {
+    max-width: 15ch;
   }
 
   .presentation-stage .viz-kps-fit-list .viz-presentation-detail > summary {
@@ -5277,7 +5697,8 @@ body.is-presenting .site-footer {
     grid-column: auto;
   }
 
-  .atlas-panel-action {
+  .atlas-panel-action,
+  .visual-disclosure-action {
     grid-column: auto;
   }
 
@@ -5777,6 +6198,14 @@ body.is-presenting .site-footer {
     grid-template-columns: 1fr;
   }
 
+  .presentation-stage .viz-kps-fit.is-presentation .is-fit-contract .viz-kps-copy {
+    grid-template-columns: 1fr;
+  }
+
+  .presentation-stage .viz-kps-fit.is-presentation .is-fit-contract .viz-kps-copy > strong {
+    grid-column: auto;
+  }
+
   .viz-presentation-detail > summary {
     min-height: 64px;
     grid-template-columns: 42px minmax(0, 1fr);
@@ -6247,7 +6676,8 @@ body.is-presenting .site-footer {
   .atlas-panel-action,
   .visual-disclosure-action,
   .document-evidence-action,
-  .viz-presentation-action {
+  .viz-presentation-action,
+  .viz-kps-fit-action {
     display: none !important;
   }
 
@@ -6312,8 +6742,23 @@ body.is-presenting .site-footer {
 
   .visual-disclosure > .visual-panel-body,
   .document-evidence-panel > .document-evidence-body,
-  .viz-presentation-detail > .viz-presentation-detail-body {
+  .viz-presentation-detail > .viz-presentation-detail-body,
+  .viz-kps-fit-contract > .viz-kps-fit-contract-body {
     display: grid !important;
+  }
+
+  .viz-kps-fit.is-synopsis .viz-kps-fit-list {
+    grid-template-columns: 1fr !important;
+  }
+
+  .viz-kps-fit-contract,
+  .viz-kps-fit-contract:not([open]) {
+    height: auto !important;
+  }
+
+  .viz-kps-fit-contract > summary,
+  .viz-kps-fit-contract:not([open]) > summary {
+    min-height: 0 !important;
   }
 
   .diagram-frame .diagram-summary {

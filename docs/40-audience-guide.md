@@ -19,6 +19,8 @@ Use the [audience briefings](https://tomqwu.github.io/apim/#/audiences) to open 
 
 The stakeholder direction is now to proceed with Kong. Every briefing therefore includes the [Kong enterprise platform deployment strategy](47-kong-enterprise-platform-strategy.md), but it must preserve the distinction between a planning choice, a reversible foundation, demonstrated production fit, and permission to scale.
 
+The seven canonical Kong fit conditions are presented as four bounded decision frames: control boundary and multicloud locality; management-loss continuity and portable runtime; evidence-producing change and bounded extension; and the Konnect custody fallback. Executive and platform-team briefings retain all four frames. The director briefing retains the first two frames, preserving its focus on the original first four conditions. Each technical frame must keep the mechanism, scenario-relative advantage, counterfactual, and proof visible; overview and comparison surfaces may use a concise synopsis with the complete contract available for deliberate inspection.
+
 ## 1. Executives and VPs: decide
 
 Lead with the decision state, not the volume of work completed. Separate the current working hypothesis from an approval-ready recommendation.

@@ -797,9 +797,22 @@ class CanonicalContractTests(WorkflowTestCase):
         self.assertIn('event.stopPropagation()', app)
         self.assertIn('const scrollSurface = event.target', app)
         self.assertIn('function preparePrintArtifacts', app)
+        self.assertIn('document.querySelectorAll(".viz-kps-fit-contract[name]")', app)
+        self.assertIn('detail.removeAttribute("name")', app)
+        self.assertIn('detail.setAttribute("name", name)', app)
         self.assertIn('window.addEventListener("afterprint", restorePrintArtifacts)', app)
         self.assertIn("previewHeight / geometry.height", app)
         self.assertIn('function visualDisclosurePanel', app)
+        self.assertGreaterEqual(app.count('mode: "synopsis"'), 2)
+        self.assertIn('is-kong-platform-grid', app)
+        self.assertIn('index < 0 || index >= slides.length', app)
+        self.assertIn('That presentation slide is outside the configured story.', app)
+        self.assertNotIn('index = Math.min(Math.max(index, 0), slides.length - 1)', app)
+
+        self.assertIn('const mode = options.mode || (options.presentation ? "presentation" : "evidence")', charts)
+        self.assertIn('<details class="viz-kps-fit-contract"', charts)
+        self.assertIn('mode === "presentation" ? "is-fit-contract"', charts)
+        self.assertNotIn('presentationEvidence(id, row.outcome, body)', charts)
 
         self.assertIn(".document-shell .prose > .artifact-shell", styles)
         self.assertIn(".article-table.is-reading-mode tbody td", styles)
@@ -832,6 +845,32 @@ class CanonicalContractTests(WorkflowTestCase):
         self.assertIn(".viz-presentation-detail", styles)
         self.assertIn(".diagram-frame .diagram-scroll[hidden]", styles)
         self.assertIn(".visual-disclosure > .visual-panel-body", styles)
+        self.assertIn(".viz-kps-fit.is-synopsis", styles)
+        self.assertIn(".viz-kps-fit.is-presentation .is-fit-contract", styles)
+        self.assertRegex(
+            styles,
+            r"(?s)\.presentation-stage \.viz-kps-fit\.is-presentation \.is-fit-contract \.viz-kps-copy p\s*\{.*?font-size: clamp\(1\.125rem, 1\.25vw, 1\.5rem\);",
+        )
+        self.assertRegex(
+            styles,
+            r"(?s)@media \(min-width: 761px\) and \(max-width: 1024px\).*?\.presentation-stage \.viz-kps-fit\.is-presentation \.is-fit-contract \.viz-kps-copy p\s*\{.*?font-size: 1\.125rem;",
+        )
+        self.assertRegex(
+            styles,
+            r"(?s)@media \(min-width: 761px\) and \(max-width: 1024px\).*?\.presentation-slide:has\(\.viz-kps-fit\.is-presentation\) \.slide-metric span,.*?\.slide-source\s*\{.*?font-size: 1rem;",
+        )
+        self.assertRegex(
+            styles,
+            r"(?s)@media print.*?\.viz-kps-fit-action\s*\{\s*display: none !important;",
+        )
+        self.assertRegex(
+            styles,
+            r"(?s)@media print.*?\.viz-kps-fit-contract > \.viz-kps-fit-contract-body\s*\{\s*display: grid !important;",
+        )
+        self.assertRegex(
+            styles,
+            r"(?s)@media print.*?\.viz-kps-fit-contract:not\(\[open\]\)\s*\{\s*height: auto !important;",
+        )
         self.assertNotIn(".is-methodology-review .article-table", styles)
         self.assertIn('<details class="visual-panel atlas-panel', charts)
         self.assertIn('<details class="document-visual document-evidence-panel', charts)
@@ -851,6 +890,69 @@ class CanonicalContractTests(WorkflowTestCase):
         self.assertIn('H4 -. re-enter pilot extension .-> S4', mermaid)
         self.assertNotRegex(mermaid, r"(?m)^\s*X\s*(?:-->|-\.)")
         self.assertNotIn("HOLD / REWORK / STOP", mermaid)
+
+    def test_kong_fit_projection_is_four_bounded_complete_story_frames(self) -> None:
+        fit_keys = (
+            "kong-platform-fit-boundary",
+            "kong-platform-fit-runtime",
+            "kong-platform-fit-change",
+            "kong-platform-fit-fallback",
+        )
+        expected_row_ids = tuple(f"KPS-FIT-{index:02d}" for index in range(1, 8))
+
+        with tempfile.TemporaryDirectory(prefix="kong-fit-projection-") as temporary:
+            output = Path(temporary) / "site"
+            result = subprocess.run(
+                (
+                    sys.executable,
+                    "-I",
+                    str(SOURCE_ROOT / "scripts" / "build_site.py"),
+                    "--output",
+                    str(output),
+                ),
+                cwd=SOURCE_ROOT,
+                capture_output=True,
+                text=True,
+                check=False,
+            )
+            self.assertEqual(0, result.returncode, result.stdout + result.stderr)
+            manifest = json.loads((output / "content-manifest.json").read_text(encoding="utf-8"))
+
+        slide_by_key = {slide["key"]: slide for slide in manifest["presentation"]}
+        fit_slides = [slide_by_key[key] for key in fit_keys]
+        projected_row_ids = tuple(
+            row_id
+            for slide in fit_slides
+            for row_id in slide["rowIds"]
+        )
+
+        self.assertEqual([2, 2, 2, 1], [len(slide["rowIds"]) for slide in fit_slides])
+        self.assertTrue(all(len(slide["rowIds"]) <= 2 for slide in fit_slides))
+        self.assertEqual(expected_row_ids, projected_row_ids)
+        self.assertEqual(len(projected_row_ids), len(set(projected_row_ids)))
+
+        canonical_rows = manifest["visuals"]["kongPlatformStrategy"]["fit"]["rows"]
+        self.assertEqual(expected_row_ids, tuple(row["projectionId"] for row in canonical_rows))
+        for row in canonical_rows:
+            with self.subTest(row=row["projectionId"]):
+                for field in ("outcome", "mechanism", "reason", "counterfactual", "proof"):
+                    self.assertTrue(str(row[field]).strip(), field)
+
+        deck = next(
+            candidate
+            for candidate in manifest["presentationDecks"]
+            if candidate["id"] == "kong-technical-deep-dive"
+        )
+        self.assertEqual(list(fit_keys), deck["presentationSlides"][1:5])
+        self.assertEqual(len(deck["presentationSlides"]), deck["slideTotal"])
+
+        audience_slides = {
+            audience["id"]: tuple(audience["presentationSlides"])
+            for audience in manifest["audiences"]
+        }
+        self.assertEqual(fit_keys, audience_slides["vp-executive"][1:5])
+        self.assertEqual(fit_keys[:2], audience_slides["directors"][1:3])
+        self.assertEqual(fit_keys, audience_slides["platform-teams"][:4])
 
     def test_temporary_repositories_drop_outer_publication_provenance(self) -> None:
         original = {
@@ -2482,11 +2584,47 @@ class ManifestRuntimeDependencyTests(WorkflowTestCase):
                 "route": "#/doc/source",
             }
         ]
+        fit_rows = [
+            {"projectionId": f"KPS-FIT-{index:02d}"}
+            for index in range(1, 8)
+        ]
+        fit_slides = [
+            {
+                "index": 1,
+                "key": "kong-platform-fit-boundary",
+                "sourceId": "source",
+                "visual": "kongPlatformFit",
+                "rowIds": ["KPS-FIT-01", "KPS-FIT-02"],
+            },
+            {
+                "index": 2,
+                "key": "kong-platform-fit-runtime",
+                "sourceId": "source",
+                "visual": "kongPlatformFit",
+                "rowIds": ["KPS-FIT-03", "KPS-FIT-04"],
+            },
+            {
+                "index": 3,
+                "key": "kong-platform-fit-change",
+                "sourceId": "source",
+                "visual": "kongPlatformFit",
+                "rowIds": ["KPS-FIT-05", "KPS-FIT-06"],
+            },
+            {
+                "index": 4,
+                "key": "kong-platform-fit-fallback",
+                "sourceId": "source",
+                "visual": "kongPlatformFit",
+                "rowIds": ["KPS-FIT-07"],
+            },
+        ]
         manifest = {
             "presentation": [
                 {"index": 0, "key": "decision", "sourceId": "source"},
-                {"index": 1, "key": "technical", "sourceId": "source"},
+                *fit_slides,
+                {"index": 5, "key": "technical", "sourceId": "source"},
             ],
+            "visuals": {"kongPlatformStrategy": {"fit": {"rows": fit_rows}}},
             "audiences": [
                 {
                     "id": "architects",
@@ -2503,7 +2641,12 @@ class ManifestRuntimeDependencyTests(WorkflowTestCase):
                     "sourcePaths": ["docs/source.md"],
                     "sourceIds": ["source"],
                     "audienceRoleIds": ["architects"],
-                    "presentationSlides": ["decision", "technical"],
+                    "presentationSlides": [
+                        "decision",
+                        *(slide["key"] for slide in fit_slides),
+                        "technical",
+                    ],
+                    "slideTotal": 6,
                     "presentationRoute": "#/present/kong-technical-deep-dive/0",
                     "exitRoute": "#/architecture",
                 }
@@ -2514,12 +2657,16 @@ class ManifestRuntimeDependencyTests(WorkflowTestCase):
         validator.validate_routes_and_audiences(manifest, by_id, {"#/doc/source"})
         routes = verifier.validated_route_inventory(manifest, items)
         self.assertIn("#/present/kong-technical-deep-dive/0", routes)
-        self.assertIn("#/present/kong-technical-deep-dive/1", routes)
+        self.assertIn("#/present/kong-technical-deep-dive/5", routes)
 
         invalid_cases = (
             ("unknown slide", "unknown slide"),
             ("audience ID collision", "collide"),
             ("invalid entry route", "presentationRoute is invalid"),
+            ("wrong slide total", "slideTotal"),
+            ("wrong bounded rows", "bounded Kong fit contract"),
+            ("removed fit slide", "removed Kong platform fit slide"),
+            ("extra fit slide", "exactly the four semantic fit slide keys"),
         )
         for case, expected in invalid_cases:
             with self.subTest(case=case):
@@ -2530,8 +2677,24 @@ class ManifestRuntimeDependencyTests(WorkflowTestCase):
                 elif case == "audience ID collision":
                     deck["id"] = "architects"
                     deck["presentationRoute"] = "#/present/architects/0"
-                else:
+                elif case == "invalid entry route":
                     deck["presentationRoute"] = "#/present/not-the-deck/0"
+                elif case == "wrong slide total":
+                    deck["slideTotal"] = 5
+                elif case == "wrong bounded rows":
+                    invalid["presentation"][1]["rowIds"] = ["KPS-FIT-01"]
+                elif case == "removed fit slide":
+                    invalid["presentation"][1]["key"] = "kong-platform-fit-1"
+                else:
+                    invalid["presentation"].append(
+                        {
+                            "index": len(invalid["presentation"]),
+                            "key": "kong-platform-fit-unreferenced",
+                            "sourceId": "source",
+                            "visual": "kongPlatformFit",
+                            "rowIds": ["KPS-FIT-01"],
+                        }
+                    )
                 with self.assertRaisesRegex(validator.ValidationError, expected):
                     validator.validate_routes_and_audiences(
                         invalid, by_id, {"#/doc/source"}
