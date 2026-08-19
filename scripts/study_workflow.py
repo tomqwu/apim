@@ -347,7 +347,14 @@ def verify_local_derived_routes(data: dict[str, Any]) -> None:
     items = manifest.get("items")
     presentations = manifest.get("presentation")
     audiences = manifest.get("audiences")
-    fail_unless(isinstance(items, list) and isinstance(presentations, list) and isinstance(audiences, list), "generated site route inventory is invalid")
+    presentation_decks = manifest.get("presentationDecks")
+    fail_unless(
+        isinstance(items, list)
+        and isinstance(presentations, list)
+        and isinstance(audiences, list)
+        and isinstance(presentation_decks, list),
+        "generated site route inventory is invalid",
+    )
     item_routes = {
         item.get("path"): item.get("route")
         for item in items
@@ -366,11 +373,56 @@ def verify_local_derived_routes(data: dict[str, Any]) -> None:
         )
     available.update(item.get("route") for item in items if isinstance(item, dict) and isinstance(item.get("route"), str))
     available.update(f"#/present/{index}" for index in range(len(presentations)))
+    slide_keys = [slide.get("key") for slide in presentations if isinstance(slide, dict)]
+    fail_unless(
+        len(slide_keys) == len(presentations)
+        and all(isinstance(key, str) and key for key in slide_keys)
+        and len(slide_keys) == len(set(slide_keys)),
+        "generated presentation route inventory is invalid",
+    )
+    audience_ids: list[str] = []
     for audience in audiences:
         fail_unless(isinstance(audience, dict) and isinstance(audience.get("id"), str) and isinstance(audience.get("presentationSlides"), list), "generated audience route inventory is invalid")
         audience_id = audience["id"]
+        audience_ids.append(audience_id)
         available.add(f"#/audiences/{audience_id}")
         available.update(f"#/present/{audience_id}/{index}" for index in range(len(audience["presentationSlides"])))
+    fail_unless(len(audience_ids) == len(set(audience_ids)), "generated audience route inventory is invalid")
+    deck_ids: list[str] = []
+    for deck in presentation_decks:
+        fail_unless(
+            isinstance(deck, dict)
+            and isinstance(deck.get("id"), str)
+            and bool(deck["id"])
+            and isinstance(deck.get("presentationSlides"), list)
+            and bool(deck["presentationSlides"]),
+            "generated presentation deck route inventory is invalid",
+        )
+        deck_id = deck["id"]
+        selected = deck["presentationSlides"]
+        fail_unless(
+            all(isinstance(key, str) and key in slide_keys for key in selected)
+            and len(selected) == len(set(selected)),
+            "generated presentation deck route inventory is invalid",
+        )
+        fail_unless(
+            deck.get("presentationRoute") == f"#/present/{deck_id}/0",
+            "generated presentation deck entry route is invalid",
+        )
+        role_ids = deck.get("audienceRoleIds")
+        fail_unless(
+            isinstance(role_ids, list)
+            and bool(role_ids)
+            and all(isinstance(role_id, str) and role_id in audience_ids for role_id in role_ids)
+            and len(role_ids) == len(set(role_ids)),
+            "generated presentation deck audience roles are invalid",
+        )
+        deck_ids.append(deck_id)
+        available.update(f"#/present/{deck_id}/{index}" for index in range(len(selected)))
+    fail_unless(
+        len(deck_ids) == len(set(deck_ids)) and not set(deck_ids).intersection(audience_ids),
+        "generated presentation deck IDs collide with another route context",
+    )
     missing = sorted(expected - available)
     if missing:
         raise WorkflowError(f"declared derived route is absent from the generated site manifest: {missing[0]}")

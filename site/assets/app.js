@@ -276,6 +276,7 @@
           <div class="hero-actions">
             <a class="action-link is-primary" href="${itemHref(kongPlatform)}">Open the Kong platform strategy <span aria-hidden="true">↗</span></a>
             <a class="action-link" href="#/architecture">Inspect the target architecture <span aria-hidden="true">→</span></a>
+            <a class="action-link" href="#/present/kong-technical-deep-dive/0">Start the technical deep dive <span aria-hidden="true">→</span></a>
             <a class="action-link" href="#/present/platform-teams/0">Start the platform-team briefing <span aria-hidden="true">→</span></a>
           </div>
         </section>` : ""}
@@ -694,7 +695,7 @@
           </div>
           <div class="hero-actions">
             <a class="action-link is-primary" href="${itemHref(kongPlatform)}">Open the canonical platform strategy <span aria-hidden="true">↗</span></a>
-            <a class="action-link" href="#/present/architects/0">Start the architecture briefing <span aria-hidden="true">→</span></a>
+            <a class="action-link" href="#/present/kong-technical-deep-dive/0">Start the Kong technical deep dive <span aria-hidden="true">→</span></a>
           </div>
         </section>` : ""}
         ${industryProblems && industryPractices && kongMulticloud ? `
@@ -1711,6 +1712,13 @@
           ? `<div class="slide-diagram is-kps-target" data-slide-inline-mermaid="${escapeHtml(mermaid)}"><p>Rendering canonical KPS-1…</p></div>`
           : '<p class="visual-empty">The canonical KPS-1 model is unavailable.</p>';
       }
+      case "kongTechnicalFigure": {
+        const figure = (visuals.kongPlatformStrategy?.figures || []).find((item) => item.figureId === slide.figureId);
+        const mermaid = figure?.mermaid || "";
+        return mermaid
+          ? `<div class="slide-diagram is-kps-target" data-slide-inline-mermaid="${escapeHtml(mermaid)}"><p>Rendering canonical ${escapeHtml(slide.figureId)}…</p></div>`
+          : `<p class="visual-empty">The canonical ${escapeHtml(slide.figureId || "KPS figure")} model is unavailable.</p>`;
+      }
       case "kongPlatformCases": {
         const cases = visuals.kongPlatformStrategy?.cases || {};
         return chartMarkup("kongPlatformCases", { ...cases, rows: selected(cases.rows) }, options);
@@ -1757,29 +1765,49 @@
     try {
       const text = target.dataset.slideInlineMermaid || await fetchText(target.dataset.slideDiagram);
       await mermaidMarkup(text, target, document.querySelector(".slide-title")?.textContent || "Presentation architecture diagram");
+      if (window.matchMedia("(max-width: 760px)").matches) {
+        const firstLabeledNode = [...target.querySelectorAll("svg g.node")]
+          .find((node) => node.textContent.trim());
+        if (firstLabeledNode) {
+          const viewport = target.getBoundingClientRect();
+          const node = firstLabeledNode.getBoundingClientRect();
+          target.scrollLeft = Math.max(0, target.scrollLeft + node.left - viewport.left - 12);
+          target.scrollTop = Math.max(0, target.scrollTop + node.top - viewport.top - 12);
+        }
+      }
     } catch (error) {
       target.innerHTML = `<p class="visual-empty">Open the supporting source to inspect this model.</p>`;
     }
   }
 
-  function presentationContext(audienceId = "") {
+  function presentationContext(contextId = "") {
     const allSlides = state.manifest.presentation || [];
-    const audience = audienceId
-      ? window.ApiStudyAudiences?.getById?.(state.manifest.audiences || [], audienceId)
+    const audience = contextId
+      ? window.ApiStudyAudiences?.getById?.(state.manifest.audiences || [], contextId)
       : null;
+    const deck = contextId
+      ? (state.manifest.presentationDecks || []).find((item) => item.id === contextId) || null
+      : null;
+    const context = audience || deck;
+    if (contextId && !context) return { audience: null, deck: null, context: null, slides: [] };
     const slides = window.ApiStudyAudiences?.presentationSlides
-      ? window.ApiStudyAudiences.presentationSlides(audience, allSlides)
+      ? window.ApiStudyAudiences.presentationSlides(context, allSlides)
       : allSlides;
-    return { audience, slides };
+    return { audience, deck, context, slides };
   }
 
-  function presentationExitHref(audience) {
-    return audience ? `#/audiences/${encodeURIComponent(audience.id)}` : "#/overview";
+  function presentationExitHref(audience, deck) {
+    if (audience) return `#/audiences/${encodeURIComponent(audience.id)}`;
+    if (deck?.exitRoute) return deck.exitRoute;
+    return "#/overview";
   }
 
-  function renderPresentation(rawIndex, audienceId = "") {
-    const { audience, slides } = presentationContext(audienceId);
-    if (!slides.length) return renderNotFound("No presentation story is configured.");
+  function renderPresentation(rawIndex, contextId = "") {
+    const { audience, deck, context, slides } = presentationContext(contextId);
+    if (!slides.length) {
+      document.body.classList.remove("is-presenting");
+      return renderNotFound("No presentation story is configured.");
+    }
     let index = Number.parseInt(rawIndex, 10);
     if (Number.isNaN(index)) index = 0;
     index = Math.min(Math.max(index, 0), slides.length - 1);
@@ -1787,10 +1815,10 @@
     const source = state.manifest.items.find((item) => item.id === slide.sourceId);
     const stageClass = slide.key === "industry-practices"
       ? " is-industry-practices"
-      : slide.key.startsWith("kong-platform-")
+      : deck?.id === "kong-technical-deep-dive" || slide.key.startsWith("kong-platform-") || slide.key.startsWith("kong-technical-")
         ? " is-kong-platform"
         : "";
-    const narrativeClass = ["architectureDiagram", "kongPlatformArchitecture"].includes(slide.visual)
+    const narrativeClass = ["architectureDiagram", "kongPlatformArchitecture", "kongTechnicalFigure"].includes(slide.visual)
       ? " is-diagram"
       : ["roadmap", "kongPlatformRoadmap"].includes(slide.visual)
         ? " is-roadmap"
@@ -1802,18 +1830,19 @@
           ? " is-matrix"
           : "";
     document.body.classList.add("is-presenting");
-    setPageTitle(`${index + 1}. ${slide.title}${audience ? ` — ${audience.shortLabel}` : ""}`);
+    const contextLabel = context?.shortLabel || "";
+    setPageTitle(`${index + 1}. ${slide.title}${contextLabel ? ` — ${contextLabel}` : ""}`);
     setActiveNav("");
     main.innerHTML = `
       <section class="presentation-stage${stageClass}" aria-label="Presentation slide ${index + 1} of ${slides.length}">
         <article class="presentation-slide">
           <div class="slide-main">
-            <span class="eyebrow">${escapeHtml(slide.eyebrow)}${audience ? ` / ${escapeHtml(audience.shortLabel)} lens` : ""}</span>
+            <span class="eyebrow">${escapeHtml(slide.eyebrow)}${audience ? ` / ${escapeHtml(audience.shortLabel)} lens` : deck ? ` / ${escapeHtml(deck.shortLabel)} deck` : ""}</span>
             <div class="slide-narrative${narrativeClass}">
               <h1 class="slide-title">${escapeHtml(slide.title)}</h1>
               <div class="slide-visual">${presentationVisualMarkup(slide, source)}</div>
             </div>
-            <span class="slide-counter">${audience ? `${escapeHtml(audience.shortLabel)} briefing · ` : ""}${String(index + 1).padStart(2, "0")} / ${String(slides.length).padStart(2, "0")}</span>
+            <span class="slide-counter">${audience ? `${escapeHtml(audience.shortLabel)} briefing · ` : deck ? `${escapeHtml(deck.shortLabel)} deck · ` : ""}${String(index + 1).padStart(2, "0")} / ${String(slides.length).padStart(2, "0")}</span>
           </div>
           <aside class="slide-aside">
             <div class="slide-aside-content">
@@ -1828,7 +1857,7 @@
           <button type="button" data-slide-prev aria-label="Previous slide" ${index === 0 ? "disabled" : ""}>←</button>
           <button type="button" data-slide-next aria-label="Next slide" ${index === slides.length - 1 ? "disabled" : ""}>→</button>
           <button type="button" data-fullscreen aria-label="Toggle fullscreen">⛶</button>
-          <a href="${presentationExitHref(audience)}" aria-label="Exit presentation">×</a>
+          <a href="${presentationExitHref(audience, deck)}" aria-label="Exit presentation">×</a>
         </div>
         <span class="slide-progress" style="width:${((index + 1) / slides.length) * 100}%"></span>
       </section>`;
@@ -1842,12 +1871,13 @@
   function moveSlide(delta) {
     const route = parseRoute();
     if (route.name !== "present") return;
-    const hasAudience = route.parts.length > 1;
-    const audienceId = hasAudience ? route.parts[0] : "";
-    const current = Number.parseInt(route.parts[hasAudience ? 1 : 0] || "0", 10) || 0;
-    const { audience, slides } = presentationContext(audienceId);
+    const hasContext = route.parts.length > 1;
+    const contextId = hasContext ? route.parts[0] : "";
+    const current = Number.parseInt(route.parts[hasContext ? 1 : 0] || "0", 10) || 0;
+    const { context, slides } = presentationContext(contextId);
+    if (!slides.length) return;
     const next = Math.min(Math.max(current + delta, 0), slides.length - 1);
-    if (next !== current) location.hash = audience ? `#/present/${audience.id}/${next}` : `#/present/${next}`;
+    if (next !== current) location.hash = context ? `#/present/${context.id}/${next}` : `#/present/${next}`;
   }
 
   async function toggleFullscreen() {
@@ -1887,7 +1917,17 @@
       case "architecture": renderArchitecture(); break;
       case "lab": renderLab(); break;
       case "doc": renderDocument(current.parts[0], current.params.get("anchor") || ""); break;
-      case "present": current.parts.length > 1 ? renderPresentation(current.parts[1], current.parts[0]) : renderPresentation(current.parts[0]); break;
+      case "present": {
+        const genericRoute = current.parts.length === 1 && /^\d+$/.test(current.parts[0]);
+        const contextualRoute = current.parts.length === 2 && /^\d+$/.test(current.parts[1]);
+        if (contextualRoute) renderPresentation(current.parts[1], current.parts[0]);
+        else if (genericRoute) renderPresentation(current.parts[0]);
+        else {
+          document.body.classList.remove("is-presenting");
+          renderNotFound("No presentation story is configured.");
+        }
+        break;
+      }
       default: renderNotFound();
     }
     window.scrollTo(0, 0);
@@ -2011,8 +2051,8 @@
       if (!searchDialog.hidden) closeSearch();
       else if (document.body.classList.contains("is-presenting")) {
         const current = parseRoute();
-        const { audience } = presentationContext(current.parts.length > 1 ? current.parts[0] : "");
-        location.hash = presentationExitHref(audience);
+        const { audience, deck } = presentationContext(current.parts.length > 1 ? current.parts[0] : "");
+        location.hash = presentationExitHref(audience, deck);
       }
       return;
     }

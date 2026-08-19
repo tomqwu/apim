@@ -331,7 +331,7 @@ stateDiagram-v2
   ExistingServing --> Reconciling: control path restored
   IsolatedServing --> Reconciling: control path restored
   Quarantined --> Reconciling: approved recovery
-  Reconciling --> Connected: desired=effective; gap declared; business probe passes
+  Reconciling --> Connected: desired=effective, gap declared, business probe passes
 ```
 
 **Figure interpretation:** The documented ability to proxy from cache is valuable because it reduces request dependence on the CP, but it is only one branch. The platform must prove stale limits, cold/restart behavior, containment, and reconciliation before calling the design resilient.

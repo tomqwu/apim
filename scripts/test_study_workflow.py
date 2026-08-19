@@ -366,6 +366,7 @@ class TemporaryWorkflowRepository:
                     ],
                     "presentation": [],
                     "audiences": [],
+                    "presentationDecks": [],
                 }
             ),
             encoding="utf-8",
@@ -439,6 +440,7 @@ class TemporaryWorkflowRepository:
                     ],
                     "presentation": [],
                     "audiences": [],
+                    "presentationDecks": [],
                 }
             ),
             encoding="utf-8",
@@ -2308,7 +2310,7 @@ class BuildInputBoundaryTests(WorkflowTestCase):
             "_site/content-manifest.json",
             json.dumps(
                 {
-                    "schemaVersion": 1,
+                    "schemaVersion": 2,
                     "sourceRevision": revision,
                     "sourceDirty": True,
                 }
@@ -2374,6 +2376,74 @@ class BuildInputBoundaryTests(WorkflowTestCase):
 
 
 class ManifestRuntimeDependencyTests(WorkflowTestCase):
+    def test_named_presentation_deck_contract_and_route_inventory(self) -> None:
+        repository = self.repository()
+        validator = repository.load_module("scripts/validate_site_manifest.py")
+        verifier = load_pages_verifier_module()
+        items = [
+            {
+                "id": "source",
+                "path": "docs/source.md",
+                "route": "#/doc/source",
+            }
+        ]
+        manifest = {
+            "presentation": [
+                {"index": 0, "key": "decision", "sourceId": "source"},
+                {"index": 1, "key": "technical", "sourceId": "source"},
+            ],
+            "audiences": [
+                {
+                    "id": "architects",
+                    "sourcePaths": ["docs/source.md"],
+                    "sourceIds": ["source"],
+                    "presentationSlides": ["technical"],
+                    "presentationRoute": "#/present/architects/0",
+                    "recommendedRoute": "#/architecture",
+                }
+            ],
+            "presentationDecks": [
+                {
+                    "id": "kong-technical-deep-dive",
+                    "sourcePaths": ["docs/source.md"],
+                    "sourceIds": ["source"],
+                    "audienceRoleIds": ["architects"],
+                    "presentationSlides": ["decision", "technical"],
+                    "presentationRoute": "#/present/kong-technical-deep-dive/0",
+                    "exitRoute": "#/architecture",
+                }
+            ],
+        }
+        by_id = {"source": items[0]}
+
+        validator.validate_routes_and_audiences(manifest, by_id, {"#/doc/source"})
+        routes = verifier.validated_route_inventory(manifest, items)
+        self.assertIn("#/present/kong-technical-deep-dive/0", routes)
+        self.assertIn("#/present/kong-technical-deep-dive/1", routes)
+
+        invalid_cases = (
+            ("unknown slide", "unknown slide"),
+            ("audience ID collision", "collide"),
+            ("invalid entry route", "presentationRoute is invalid"),
+        )
+        for case, expected in invalid_cases:
+            with self.subTest(case=case):
+                invalid = json.loads(json.dumps(manifest))
+                deck = invalid["presentationDecks"][0]
+                if case == "unknown slide":
+                    deck["presentationSlides"] = ["missing-slide"]
+                elif case == "audience ID collision":
+                    deck["id"] = "architects"
+                    deck["presentationRoute"] = "#/present/architects/0"
+                else:
+                    deck["presentationRoute"] = "#/present/not-the-deck/0"
+                with self.assertRaisesRegex(validator.ValidationError, expected):
+                    validator.validate_routes_and_audiences(
+                        invalid, by_id, {"#/doc/source"}
+                    )
+                with self.assertRaisesRegex(verifier.VerificationError, expected):
+                    verifier.validated_route_inventory(invalid, items)
+
     def test_built_manifest_rejects_every_undeclared_or_unsafe_output(self) -> None:
         repository = self.repository(full=True)
         builder = repository.root / "scripts" / "build_site.py"
@@ -2789,6 +2859,65 @@ class ImmutableSpecTests(WorkflowTestCase):
 
 
 class DraftGateTests(WorkflowTestCase):
+    def test_named_presentation_deck_routes_are_manifest_bounded(self) -> None:
+        repository = self.repository(local_origin=True)
+        _, data, _ = repository.prepare_draft()
+        data["derivedPaths"] = [
+            "site/workflow-test.json",
+            "#/doc/workflow-test",
+            "#/present/kong-technical-deep-dive/0",
+        ]
+        manifest = repository.root / "_site" / "content-manifest.json"
+        manifest.write_text(
+            json.dumps(
+                {
+                    "items": [
+                        {
+                            "path": "docs/workflow-test.md",
+                            "route": "#/doc/workflow-test",
+                        }
+                    ],
+                    "presentation": [
+                        {"index": 0, "key": "technical"},
+                    ],
+                    "audiences": [
+                        {
+                            "id": "architects",
+                            "presentationSlides": ["technical"],
+                        }
+                    ],
+                    "presentationDecks": [
+                        {
+                            "id": "kong-technical-deep-dive",
+                            "audienceRoleIds": ["architects"],
+                            "presentationSlides": ["technical"],
+                            "presentationRoute": "#/present/kong-technical-deep-dive/0",
+                        }
+                    ],
+                }
+            ),
+            encoding="utf-8",
+        )
+        workflow = repository.load_module("scripts/study_workflow.py")
+        workflow.verify_local_derived_routes(data)
+
+        for unknown in (
+            "#/present/kong-technical-deep-dive/1",
+            "#/present/unknown-deck/0",
+        ):
+            with self.subTest(route=unknown):
+                invalid = dict(data)
+                invalid["derivedPaths"] = [
+                    "site/workflow-test.json",
+                    "#/doc/workflow-test",
+                    unknown,
+                ]
+                with self.assertRaisesRegex(
+                    workflow.WorkflowError,
+                    "declared derived route is absent from the generated site manifest",
+                ):
+                    workflow.verify_local_derived_routes(invalid)
+
     def test_candidate_rejects_ignored_or_generated_nonroute_derived_files(self) -> None:
         repository = self.repository(local_origin=True)
         checkpoint, valid, _ = repository.prepare_candidate()
@@ -2857,6 +2986,7 @@ class DraftGateTests(WorkflowTestCase):
                     ],
                     "presentation": [],
                     "audiences": [],
+                    "presentationDecks": [],
                 }
             ),
             encoding="utf-8",
@@ -2881,6 +3011,7 @@ class DraftGateTests(WorkflowTestCase):
                     ],
                     "presentation": [],
                     "audiences": [],
+                    "presentationDecks": [],
                 }
             ),
             encoding="utf-8",
@@ -2918,6 +3049,7 @@ class DraftGateTests(WorkflowTestCase):
                     ],
                     "presentation": [],
                     "audiences": [],
+                    "presentationDecks": [],
                 }
             ),
             encoding="utf-8",
@@ -2966,6 +3098,7 @@ class DraftGateTests(WorkflowTestCase):
                     ],
                     "presentation": [],
                     "audiences": [],
+                    "presentationDecks": [],
                 }
             ),
             encoding="utf-8",
