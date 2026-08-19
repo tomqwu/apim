@@ -687,7 +687,7 @@
             <h2 id="kong-platform-architecture-title">Self-managed control is a platform operating model, not an installation topology.</h2>
             <p>KPS-1 keeps approved configuration authority and PostgreSQL inside an enterprise management boundary while distributing request runtimes and failure containment. The roadmap and P1–P10 response keep recovery, trust, business outcome, staffing, and exit obligations visible.</p>
           </div>
-          <div class="decision-visual-grid">
+          <div class="decision-visual-grid is-kong-platform-grid">
             ${visualPanel("A", "KPS-1 target", "Self-managed control, distributed runtime", "Rendered directly from the canonical doc47 Mermaid figure; exact products, regions, replicas, entitlements, capacity, and achieved availability remain unresolved.", '<div class="kps-architecture-target diagram-frame" data-kong-platform-target><p>Rendering canonical KPS-1…</p></div>', "is-wide")}
             ${visualPanel("B", "P1–P10", "Architecture remains accountable to outcomes", "Every Kong platform response retains a measure and mandatory hold condition.", chartMarkup("kongPlatformProblems", visuals.kongPlatformStrategy?.problems || {}, { title: "Problem-to-proof traceability", compact: true }), "is-wide")}
             ${visualPanel("C", "Adoption", "Scale only through recovery and outcome proof", "Six evidence gates preserve stop, replan, Konnect custody-switch, and non-Kong exit paths.", chartMarkup("kongPlatformRoadmap", visuals.kongPlatformStrategy?.roadmap || {}, { title: "0–18 month platform sequence", compact: true }), "is-wide")}
@@ -1400,10 +1400,10 @@
     const isPreview = target.classList.contains("architecture-preview");
     const isPresentation = target.classList.contains("slide-diagram");
     const minimumLabel = isPresentation ? 18 : isPreview ? 14 : 16;
-    const availableWidth = diagramContentWidth(target);
-    const readableScale = Math.max(availableWidth / geometry.width, minimumLabel / geometry.labelSize);
+    const initialWidth = diagramContentWidth(target);
 
     if (isPreview || isPresentation) {
+      const readableScale = Math.max(initialWidth / geometry.width, minimumLabel / geometry.labelSize);
       setDiagramWidth(svg, geometry.width, readableScale);
       target.setAttribute("aria-label", `${label}. Scroll to inspect the diagram at a readable scale.`);
       return;
@@ -1420,8 +1420,6 @@
     const status = document.createElement("output");
     status.className = "diagram-zoom-status";
     status.setAttribute("aria-live", "polite");
-    let scale = readableScale;
-    let mode = "readable";
 
     const makeButton = (text, action, accessibleLabel) => {
       const button = document.createElement("button");
@@ -1438,6 +1436,11 @@
     toolbar.append(fit, actual, out, zoomIn, status);
     target.replaceChildren(toolbar, viewport);
     viewport.appendChild(svg);
+
+    const availableWidth = target.hasAttribute("data-kong-platform-target") ? diagramContentWidth(viewport) : initialWidth;
+    const readableScale = Math.max(availableWidth / geometry.width, minimumLabel / geometry.labelSize);
+    let scale = readableScale;
+    let mode = "readable";
 
     const update = () => {
       scale = setDiagramWidth(svg, geometry.width, scale);
