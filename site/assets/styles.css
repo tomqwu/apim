@@ -589,6 +589,17 @@ a {
   grid-column: span 8;
 }
 
+.is-kong-platform-grid > .visual-panel.is-wide {
+  grid-column: 1 / -1;
+}
+
+.is-kong-platform-grid {
+  position: relative;
+  left: 50%;
+  width: min(calc(100vw - (2 * var(--gutter))), 2560px);
+  transform: translateX(-50%);
+}
+
 .visual-panel-heading {
   display: grid;
   grid-template-columns: minmax(110px, 2fr) minmax(0, 5fr);
