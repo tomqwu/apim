@@ -272,20 +272,32 @@
     </figure>`;
   }
 
+  function presentationEvidence(id, title, body, meta = "") {
+    return `<details class="viz-presentation-detail">
+      <summary>
+        <span class="viz-kps-index">${escapeHtml(id)}</span>
+        <span class="viz-presentation-summary-copy"><strong>${escapeHtml(title)}</strong>${meta ? `<small>${escapeHtml(meta)}</small>` : ""}</span>
+        <span class="viz-presentation-action" aria-hidden="true"><span class="when-closed">Details</span><span class="when-open">Close</span></span>
+      </summary>
+      <div class="viz-kps-copy viz-presentation-detail-body">${body}</div>
+    </details>`;
+  }
+
   function kongPlatformFit(data, options = {}) {
     const rows = Array.isArray(data) ? data : data?.rows || [];
     if (!rows.length) return empty();
     return `<figure class="viz viz-kps-fit ${options.compact ? "is-compact" : ""} ${options.presentation ? "is-presentation" : ""}" aria-label="${escapeHtml(options.title || "Kong platform outcome-fit conditions")}">${heading(options)}
-      <ol class="viz-kps-fit-list">${rows.map((row, index) => `<li>
-        <span class="viz-kps-index">${escapeHtml(row.projectionId || `KPS-FIT-${String(index + 1).padStart(2, "0")}`)}</span>
-        <div class="viz-kps-copy">
-          <strong>${escapeHtml(row.outcome)}</strong>
+      <ol class="viz-kps-fit-list">${rows.map((row, index) => {
+        const id = row.projectionId || `KPS-FIT-${String(index + 1).padStart(2, "0")}`;
+        const body = `
           <p class="viz-kps-mechanism" data-label="Kong mechanism">${escapeHtml(row.mechanism)}</p>
           <p class="viz-kps-reason" data-label="Scenario-relative advantage">${escapeHtml(row.reason)}</p>
           <p class="viz-kps-counter" data-label="Answer changes when">${escapeHtml(row.counterfactual)}</p>
-          <p class="viz-kps-proof" data-label="Proof before commitment">${escapeHtml(row.proof)}</p>
-        </div>
-      </li>`).join("")}</ol>
+          <p class="viz-kps-proof" data-label="Proof before commitment">${escapeHtml(row.proof)}</p>`;
+        return options.presentation
+          ? `<li class="has-presentation-detail">${presentationEvidence(id, row.outcome, body)}</li>`
+          : `<li><span class="viz-kps-index">${escapeHtml(id)}</span><div class="viz-kps-copy"><strong>${escapeHtml(row.outcome)}</strong>${body}</div></li>`;
+      }).join("")}</ol>
     </figure>`;
   }
 
@@ -309,17 +321,18 @@
     const rows = Array.isArray(data) ? data : data?.rows || [];
     if (!rows.length) return empty();
     return `<figure class="viz viz-kps-cases ${options.compact ? "is-compact" : ""} ${options.presentation ? "is-presentation" : ""}" aria-label="${escapeHtml(options.title || "Synthetic Kong platform cases")}">${heading(options)}
-      <ol class="viz-kps-case-list">${rows.map((row, index) => `<li>
-        <span class="viz-kps-index">${escapeHtml(row.id || `KPS-C${index + 1}`)}</span>
-        <div class="viz-kps-copy">
-          <strong>${escapeHtml(row.label)}</strong>
+      <ol class="viz-kps-case-list">${rows.map((row, index) => {
+        const id = row.id || `KPS-C${index + 1}`;
+        const body = `
           <p class="viz-kps-situation" data-label="Situation and trigger">${escapeHtml(row.situation)}</p>
           <p class="viz-kps-response" data-label="Platform response">${escapeHtml(row.response)}</p>
           <p class="viz-kps-measure" data-label="Business outcome measure">${escapeHtml(row.measure)}</p>
           <p class="viz-kps-hold" data-label="Hold / failure signal">${escapeHtml(row.hold)}</p>
-          <p class="viz-kps-owner" data-label="Owner">${escapeHtml(row.owner)}</p>
-        </div>
-      </li>`).join("")}</ol>
+          <p class="viz-kps-owner" data-label="Owner">${escapeHtml(row.owner)}</p>`;
+        return options.presentation
+          ? `<li class="has-presentation-detail">${presentationEvidence(id, row.label, body)}</li>`
+          : `<li><span class="viz-kps-index">${escapeHtml(id)}</span><div class="viz-kps-copy"><strong>${escapeHtml(row.label)}</strong>${body}</div></li>`;
+      }).join("")}</ol>
     </figure>`;
   }
 
@@ -327,14 +340,17 @@
     const phases = Array.isArray(data) ? data : data?.phases || [];
     if (!phases.length) return empty();
     return `<figure class="viz viz-kps-roadmap ${options.compact ? "is-compact" : ""} ${options.presentation ? "is-presentation" : ""}" aria-label="${escapeHtml(options.title || "Kong platform roadmap")}">${heading(options)}
-      <ol class="viz-kps-roadmap-list">${phases.map((phase, index) => `<li>
-        <div class="viz-kps-roadmap-meta"><span>${escapeHtml(phase.id || `KP${index}`)}</span><b>${escapeHtml(phase.window)}</b></div>
-        <strong>${escapeHtml(phase.label)}</strong>
-        <p class="viz-kps-outcome" data-label="Outcome unlocked">${escapeHtml(phase.outcome)}</p>
-        <p class="viz-kps-work" data-label="Platform work">${escapeHtml(phase.work)}</p>
-        <p class="viz-kps-exit" data-label="Exit evidence">${escapeHtml(phase.exitEvidence)}</p>
-        <p class="viz-kps-stop" data-label="Stop / replan">${escapeHtml(phase.stopCondition)}</p>
-      </li>`).join("")}</ol>
+      <ol class="viz-kps-roadmap-list">${phases.map((phase, index) => {
+        const id = phase.id || `KP${index}`;
+        const body = `
+          <p class="viz-kps-outcome" data-label="Outcome unlocked">${escapeHtml(phase.outcome)}</p>
+          <p class="viz-kps-work" data-label="Platform work">${escapeHtml(phase.work)}</p>
+          <p class="viz-kps-exit" data-label="Exit evidence">${escapeHtml(phase.exitEvidence)}</p>
+          <p class="viz-kps-stop" data-label="Stop / replan">${escapeHtml(phase.stopCondition)}</p>`;
+        return options.presentation
+          ? `<li class="has-presentation-detail">${presentationEvidence(id, phase.label, body, phase.window)}</li>`
+          : `<li><div class="viz-kps-roadmap-meta"><span>${escapeHtml(id)}</span><b>${escapeHtml(phase.window)}</b></div><strong>${escapeHtml(phase.label)}</strong>${body}</li>`;
+      }).join("")}</ol>
     </figure>`;
   }
 
@@ -342,17 +358,18 @@
     const rows = Array.isArray(data) ? data : data?.rows || [];
     if (!rows.length) return empty();
     return `<figure class="viz viz-kps-outcomes ${options.compact ? "is-compact" : ""} ${options.presentation ? "is-presentation" : ""}" aria-label="${escapeHtml(options.title || "Kong platform outcome measures")}">${heading(options)}
-      <ol class="viz-kps-outcome-list">${rows.map((row, index) => `<li>
-        <span class="viz-kps-index">${escapeHtml(row.id || `KO-${index + 1}`)}</span>
-        <div class="viz-kps-copy">
-          <strong>${escapeHtml(row.label)}</strong>
+      <ol class="viz-kps-outcome-list">${rows.map((row, index) => {
+        const id = row.id || `KO-${index + 1}`;
+        const body = `
           <p class="viz-kps-measure" data-label="Measure">${escapeHtml(row.measure)}</p>
           <p class="viz-kps-target" data-label="Scenario target form">${escapeHtml(row.target)}</p>
           <p class="viz-kps-artifact" data-label="Evidence artifact">${escapeHtml(row.artifact)}</p>
           <p class="viz-kps-cadence" data-label="Review cadence">${escapeHtml(row.cadence)}</p>
-          <p class="viz-kps-owner" data-label="Accountable owner">${escapeHtml(row.owner)}</p>
-        </div>
-      </li>`).join("")}</ol>
+          <p class="viz-kps-owner" data-label="Accountable owner">${escapeHtml(row.owner)}</p>`;
+        return options.presentation
+          ? `<li class="has-presentation-detail">${presentationEvidence(id, row.label, body)}</li>`
+          : `<li><span class="viz-kps-index">${escapeHtml(id)}</span><div class="viz-kps-copy"><strong>${escapeHtml(row.label)}</strong>${body}</div></li>`;
+      }).join("")}</ol>
     </figure>`;
   }
 
@@ -429,12 +446,19 @@
     const path = item?.path || "";
     const provenance = visuals.provenance || {};
     const charts = [];
-    const add = (caption, name, data, options = {}, sourceKey = "", extraClass = "") => charts.push(`<div class="document-visual ${escapeHtml(extraClass)}"><span class="section-index">${escapeHtml(caption)}</span>${render(name, data, { compact: true, ...options })}${sourceLink(provenance[sourceKey], "Source")}</div>`);
+    const add = (caption, name, data, options = {}, sourceKey = "", extraClass = "") => {
+      const open = charts.length === 0 ? " open" : "";
+      const title = options.title || caption;
+      charts.push(`<details class="document-visual document-evidence-panel ${escapeHtml(extraClass)}"${open}>
+        <summary><span class="section-index">${escapeHtml(caption)}</span><strong>${escapeHtml(title)}</strong><span class="document-evidence-action" aria-hidden="true"><span class="when-closed">Open evidence</span><span class="when-open">Close evidence</span></span></summary>
+        <div class="document-evidence-body">${render(name, data, { compact: true, ...options })}${sourceLink(provenance[sourceKey], "Source")}</div>
+      </details>`);
+    };
     if (path === "reports/methodology-review.md") {
       add("Steering recommendation", "statusMatrix", visuals.review?.decisions || [], { title: "Decision state", nameHeader: "Decision", noteHeader: "Exit evidence" }, "review");
       add("Decision readiness", "donut", visuals.criteria?.statuses || [], { title: "Criteria state", total: visuals.criteria?.total, centerLabel: "criteria" }, "criteria");
       add("Execution proof", "pocStatus", visuals.poc || {}, { title: "PoC state" }, "poc");
-      add("Evidence-system roadmap", "roadmap", visuals.repositoryRoadmap || {}, { title: "Study maturity" }, "repositoryRoadmap", "is-roadmap");
+      add("Evidence-system roadmap", "roadmap", visuals.repositoryRoadmap || {}, { title: "Study maturity" }, "repositoryRoadmap", "is-roadmap is-wide");
     } else if (["docs/00-executive-summary.md", "decision-matrix/findings.md"].includes(path)) {
       add("Steering recommendation", "statusMatrix", visuals.review?.decisions || [], { title: "Decision state", nameHeader: "Decision" }, "review");
       add("Decision readiness", "donut", visuals.criteria?.statuses || [], { title: "Criteria state", total: visuals.criteria?.total, centerLabel: "criteria" }, "criteria");
@@ -518,7 +542,7 @@
     const kongCaseTotal = number(kongPlatform.cases?.rowTotal);
     const kongPhaseTotal = number(kongPlatform.roadmap?.rowTotal);
     const kongOutcomeTotal = number(kongPlatform.outcomes?.rowTotal);
-    const panel = (index, eyebrow, title, note, body, extraClass = "", source = null) => `<article class="visual-panel ${escapeHtml(extraClass)}"><header class="visual-panel-heading"><span class="section-index">${escapeHtml(index)} / ${escapeHtml(eyebrow)}</span><h2>${escapeHtml(title)}</h2><p>${escapeHtml(note)}</p>${sourceLink(source)}</header><div class="visual-panel-body">${body}</div></article>`;
+    const panel = (index, eyebrow, title, note, body, extraClass = "", source = null) => `<details class="visual-panel atlas-panel ${escapeHtml(extraClass)}"${index === "01" ? " open" : ""}><summary class="visual-panel-heading"><span class="section-index">${escapeHtml(index)} / ${escapeHtml(eyebrow)}</span><h2>${escapeHtml(title)}</h2><p>${escapeHtml(note)}</p><span class="atlas-panel-action"><span class="when-closed">Open visual</span><span class="when-open">Close visual</span></span></summary><div class="visual-panel-body">${sourceLink(source)}${body}</div></details>`;
     return `<div class="page-shell visual-atlas">
       <header class="page-intro"><div><p class="eyebrow">Decision evidence, drawn</p><h1>Visual Atlas</h1><p class="lede">Charts, matrices, timelines, and system models generated from the repository’s real assessment data.</p></div><p class="intro-note">These views expose evidence state and study structure. They do not manufacture platform scores where the underlying scorecards remain unknown.</p></header>
       <section class="visual-grid" aria-label="Decision readiness visualizations">
