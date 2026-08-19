@@ -135,7 +135,7 @@ DIAGRAM_COMPANIONS = {
     "architecture/diagrams/transition-state.mmd": "architecture/transition-state.md",
 }
 
-MANIFEST_SCHEMA_VERSION = 1
+MANIFEST_SCHEMA_VERSION = 2
 MANIFEST_GENERATOR = "scripts/build_site.py"
 REQUIRED_SITE_ASSET_PATHS = {
     "index.html",
@@ -1155,18 +1155,38 @@ def kong_platform_strategy_visuals(items: list[dict[str, object]]) -> dict[str, 
             }
         )
 
-    architecture_heading = "Target architecture: self-managed control, distributed runtime"
-    architecture_section = markdown_section(text, architecture_heading)
-    architecture_match = re.search(r"```mermaid\s*\n([\s\S]*?)\n```", architecture_section, flags=re.IGNORECASE)
-    architecture_mermaid = architecture_match.group(1).strip() if architecture_match else ""
-    architecture_provenance = {
-        "sourcePath": source_path,
-        "sourceId": source_id,
-        "sourcePaths": [source_path],
-        "sourceIds": [source_id] if source_id else [],
-        "sourceHeading": architecture_heading,
-        "figureId": "KPS-1",
+    figure_headings = {
+        "KPS-1": "Target architecture: self-managed control, distributed runtime",
+        "KPS-2": "Target architecture: self-managed control, distributed runtime",
+        "KPS-3": "Platform operating model",
+        "KPS-4": "Failure chains and safe degraded modes",
+        "KPS-5": "0–18 month platform roadmap",
+        "KPS-6": "Falsification and proof plan",
     }
+    figures: list[dict[str, object]] = []
+    for figure_id, heading in figure_headings.items():
+        section = markdown_section(text, heading)
+        match = re.search(
+            rf"\*\*Figure\s+{re.escape(figure_id)}\s+—\s+([^*]+)\*\*[\s\S]*?```mermaid\s*\n([\s\S]*?)\n```",
+            section,
+            flags=re.IGNORECASE,
+        )
+        figures.append(
+            {
+                "figureId": figure_id,
+                "title": clean_inline(match.group(1).strip()) if match else "",
+                "mermaid": match.group(2).strip() if match else "",
+                "provenance": {
+                    "sourcePath": source_path,
+                    "sourceId": source_id,
+                    "sourcePaths": [source_path],
+                    "sourceIds": [source_id] if source_id else [],
+                    "sourceHeading": heading,
+                    "figureId": figure_id,
+                },
+            }
+        )
+    architecture = next((figure for figure in figures if figure["figureId"] == "KPS-1"), {})
 
     return {
         "sourcePath": source_path,
@@ -1176,11 +1196,8 @@ def kong_platform_strategy_visuals(items: list[dict[str, object]]) -> dict[str, 
         "cases": {"rowTotal": len(cases), "rows": cases, "provenance": case_provenance},
         "roadmap": {"rowTotal": len(phases), "phases": phases, "provenance": roadmap_provenance},
         "outcomes": {"rowTotal": len(outcomes), "rows": outcomes, "provenance": outcome_provenance},
-        "architecture": {
-            "figureId": "KPS-1",
-            "mermaid": architecture_mermaid,
-            "provenance": architecture_provenance,
-        },
+        "figures": figures,
+        "architecture": architecture,
     }
 
 
@@ -1369,6 +1386,14 @@ def validate_site_projection(stats: dict[str, int], visuals: dict[str, object]) 
             and kong_platform.get("outcomes", {}).get("rowTotal") == 11
             and [row.get("id") for row in kong_platform.get("outcomes", {}).get("rows", [])]
             == [f"KO-{rank}" for rank in range(1, 12)]
+            and [figure.get("figureId") for figure in kong_platform.get("figures", [])]
+            == [f"KPS-{rank}" for rank in range(1, 7)]
+            and all(
+                str(figure.get("mermaid", "")).startswith(("flowchart", "stateDiagram-v2"))
+                and figure.get("provenance", {}).get("sourceId") == kong_platform.get("sourceId")
+                and figure.get("provenance", {}).get("figureId") == figure.get("figureId")
+                for figure in kong_platform.get("figures", [])
+            )
             and kong_platform.get("architecture", {}).get("figureId") == "KPS-1"
             and str(kong_platform.get("architecture", {}).get("mermaid", "")).startswith("flowchart")
             and all(
@@ -1673,6 +1698,11 @@ def make_presentation(items: list[dict[str, object]], stats: dict[str, int], vis
         ("proof", "Proof", "Turn architecture claims into hard-gated experiments", f"The PoC keeps {stats['pocScenarios']} status-register items distinct from {stats['pocProtocolCases']} atomic real-world, portal, and observability cases; overlapping or aggregate cases are never summed as execution progress.", "poc/README.md", stats["pocProtocolCases"], "decision-grade experiment cases", "pocStatus"),
         ("delivery", "Delivery", "Move in controlled waves", "The roadmap combines discovery, evidence closure, PoC execution, operating-model design, migration waves, and decision gates.", "docs/36-implementation-roadmap.md", roadmap_phase_total, "roadmap phases", "roadmap"),
         ("next", "Next", "Close the evidence gaps that can change the decision", "Open questions remain first-class work. The portal is designed to expose uncertainty, not decorate it.", "docs/38-open-questions.md", stats["openQuestions"], "open questions", "governance"),
+        ("kong-technical-state-trust", "Kong technical deep dive · state", "A healthy proxy is not proof of a healthy platform", "KPS-2 separates desired configuration, CP/DP trust, consumer and backend trust, durable business outcome, and evidence paths so each can fail and recover independently.", "docs/47-kong-enterprise-platform-strategy.md", "KPS-2", "canonical state and trust figure", "kongTechnicalFigure"),
+        ("kong-technical-operating-model", "Kong technical deep dive · ownership", "Self-managed control is a funded platform service", "KPS-3 keeps Kong service ownership with the platform product while domain teams retain business authorization, service correctness, data, and consumer outcomes.", "docs/47-kong-enterprise-platform-strategy.md", "KPS-3", "canonical operating-model figure", "kongTechnicalFigure"),
+        ("kong-technical-degraded-mode", "Kong technical deep dive · failure", "Control-plane loss creates explicit admission states", "KPS-4 distinguishes accepted cached service, restart, clean-node admission, quarantine, stale-state limits, reconciliation, and outside-in recovery evidence.", "docs/47-kong-enterprise-platform-strategy.md", "KPS-4", "canonical degraded-mode figure", "kongTechnicalFigure"),
+        ("kong-technical-evidence-path", "Kong technical deep dive · rollout", "Scale is earned through stronger evidence—not elapsed time", "KPS-5 moves from an exact boundary through reversible foundation, E3 failure proof, paved roads, representative operation, and a scale, narrow, switch, or exit decision.", "docs/47-kong-enterprise-platform-strategy.md", "KPS-5", "canonical evidence-path figure", "kongTechnicalFigure"),
+        ("kong-technical-assurance", "Kong technical deep dive · gate", "Negative evidence must still be able to change the architecture", "KPS-6 keeps Konnect custody, a narrower Kong scope, another platform, and a repaired exit path available until representative evidence supports scale.", "docs/47-kong-enterprise-platform-strategy.md", "KPS-6", "canonical decision-assurance figure", "kongTechnicalFigure"),
     ]
     slides = [
         {
@@ -1700,12 +1730,97 @@ def make_presentation(items: list[dict[str, object]], stats: dict[str, int], vis
         "kong-platform-outcomes-1": [str(row.get("id", "")) for row in kong_outcomes[:5]],
         "kong-platform-outcomes-2": [str(row.get("id", "")) for row in kong_outcomes[5:]],
     }
+    figure_ids = {
+        "kong-technical-state-trust": "KPS-2",
+        "kong-technical-operating-model": "KPS-3",
+        "kong-technical-degraded-mode": "KPS-4",
+        "kong-technical-evidence-path": "KPS-5",
+        "kong-technical-assurance": "KPS-6",
+    }
     for slide in slides:
         if slide["key"] in workstream_ids:
             slide["workstreamIds"] = workstream_ids[slide["key"]]
         if slide["key"] in row_ids:
             slide["rowIds"] = row_ids[slide["key"]]
+        if slide["key"] in figure_ids:
+            slide["figureId"] = figure_ids[slide["key"]]
     return slides
+
+
+def make_presentation_decks(
+    items: list[dict[str, object]],
+    presentation: list[dict[str, object]],
+) -> list[dict[str, object]]:
+    """Build named, cross-role stories from the canonical slide registry."""
+    by_key = {str(slide.get("key", "")): slide for slide in presentation}
+    item_by_id = {str(item.get("id", "")): item for item in items}
+
+    def deck(
+        *,
+        deck_id: str,
+        label: str,
+        short_label: str,
+        summary: str,
+        audience_role_ids: tuple[str, ...],
+        slide_keys: tuple[str, ...],
+        exit_route: str,
+    ) -> dict[str, object]:
+        if len(set(slide_keys)) != len(slide_keys):
+            raise ValueError(f"Presentation deck {deck_id} repeats a slide key")
+        missing = [key for key in slide_keys if key not in by_key]
+        if missing:
+            raise ValueError(f"Presentation deck {deck_id} references unknown slides: {missing}")
+        source_paths: list[str] = []
+        source_ids: list[str] = []
+        for key in slide_keys:
+            source_id = str(by_key[key].get("sourceId", ""))
+            source = item_by_id.get(source_id)
+            if not source:
+                raise ValueError(f"Presentation deck {deck_id} slide {key} has no canonical source")
+            source_path = str(source.get("path", ""))
+            if source_id not in source_ids:
+                source_ids.append(source_id)
+                source_paths.append(source_path)
+        return {
+            "id": deck_id,
+            "kind": "deck",
+            "label": label,
+            "shortLabel": short_label,
+            "summary": summary,
+            "audienceRoleIds": list(audience_role_ids),
+            "presentationSlides": list(slide_keys),
+            "slideTotal": len(slide_keys),
+            "presentationRoute": f"#/present/{deck_id}/0",
+            "exitRoute": exit_route,
+            "sourcePaths": source_paths,
+            "sourceIds": source_ids,
+        }
+
+    return [
+        deck(
+            deck_id="kong-technical-deep-dive",
+            label="Kong technical deep dive",
+            short_label="Kong deep dive",
+            summary="Why self-managed hybrid fits, how its state and trust boundaries operate, what can fail, and what must be proved before production scale.",
+            audience_role_ids=("architects", "devops-sre", "platform-teams"),
+            slide_keys=(
+                "decision",
+                "kong-platform-fit-1",
+                "kong-platform-fit-2",
+                "kong-platform-architecture",
+                "kong-technical-state-trust",
+                "kong-technical-operating-model",
+                "kong-technical-degraded-mode",
+                "kong-platform-cases-1",
+                "kong-platform-cases-2",
+                "kong-technical-evidence-path",
+                "kong-platform-outcomes-1",
+                "kong-platform-outcomes-2",
+                "kong-technical-assurance",
+            ),
+            exit_route="#/architecture",
+        )
+    ]
 
 
 def validated_output_path(output: Path) -> Path:
@@ -1764,6 +1879,7 @@ def build(output: Path) -> None:
     visuals = build_visuals(items)
     validate_site_projection(stats, visuals)
     presentation = make_presentation(items, stats, visuals)
+    presentation_decks = make_presentation_decks(items, presentation)
     manifest = {
         "schemaVersion": MANIFEST_SCHEMA_VERSION,
         "sourceRevision": revision,
@@ -1780,6 +1896,7 @@ def build(output: Path) -> None:
         "audiences": build_audiences(items, stats, visuals, presentation),
         "items": items,
         "presentation": presentation,
+        "presentationDecks": presentation_decks,
     }
     (output / "content-manifest.json").write_text(json.dumps(manifest, indent=2, ensure_ascii=False) + "\n", encoding="utf-8")
     (output / ".nojekyll").touch()

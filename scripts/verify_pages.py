@@ -24,7 +24,7 @@ sys.path.insert(0, str(Path(__file__).resolve().parent))
 from repository_inventory import git_environment
 
 
-SCHEMA_VERSION = 1
+SCHEMA_VERSION = 2
 SHA256_PATTERN = re.compile(r"[0-9a-f]{64}")
 REVISION_PATTERN = re.compile(r"[0-9a-f]{40,64}")
 GENERATED_AT_PATTERN = re.compile(r"\d{4}-\d{2}-\d{2}T\d{2}:\d{2}:\d{2}Z")
@@ -106,6 +106,114 @@ def safe_remote_path(value: Any, label: str) -> str:
     parts = split.path.split("/")
     require(all(part not in {"", ".", ".."} for part in parts), f"{label} contains an unsafe path segment")
     return split.path
+
+
+def validated_route_inventory(manifest: dict[str, Any], items: list[dict[str, Any]]) -> set[str]:
+    """Validate every manifest-backed SPA route and return its exact inventory."""
+    item_ids = [item.get("id") for item in items]
+    item_paths = [item.get("path") for item in items]
+    item_routes = [item.get("route") for item in items]
+    path_to_id = dict(zip(item_paths, item_ids))
+
+    presentation = manifest.get("presentation")
+    require(isinstance(presentation, list) and bool(presentation), "manifest presentation must be a non-empty list")
+    require(all(isinstance(slide, dict) for slide in presentation), "manifest presentation slide must be an object")
+    slide_keys = [slide.get("key") for slide in presentation]
+    require(all(isinstance(key, str) and key for key in slide_keys), "manifest presentation keys must be non-empty strings")
+    require(len(slide_keys) == len(set(slide_keys)), "manifest presentation keys must be unique")
+    require(
+        [slide.get("index") for slide in presentation] == list(range(len(presentation))),
+        "manifest presentation indices must be unique and contiguous from zero",
+    )
+    require(
+        all(slide.get("sourceId") in item_ids for slide in presentation),
+        "manifest presentation references an unknown sourceId",
+    )
+
+    content_routes = set(STATIC_ROUTES).union(item_routes)
+    routes = set(STATIC_ROUTES)
+    require(not routes.intersection(item_routes), "manifest static and document routes collide")
+    routes.update(item_routes)
+    generic_routes = {f"#/present/{index}" for index in range(len(presentation))}
+    require(not routes.intersection(generic_routes), "manifest document and presentation routes collide")
+    routes.update(generic_routes)
+
+    audiences = manifest.get("audiences")
+    require(isinstance(audiences, list) and bool(audiences), "manifest audiences must be a non-empty list")
+    require(all(isinstance(audience, dict) for audience in audiences), "manifest audience must be an object")
+    audience_ids = [audience.get("id") for audience in audiences]
+    require(all(isinstance(audience_id, str) and audience_id for audience_id in audience_ids), "manifest audience IDs must be non-empty strings")
+    require(len(audience_ids) == len(set(audience_ids)), "manifest audience IDs must be unique")
+
+    def validate_sources(subject: dict[str, Any], label: str, *, require_nonempty: bool = False) -> list[str]:
+        source_paths = subject.get("sourcePaths")
+        source_ids = subject.get("sourceIds")
+        require(isinstance(source_paths, list) and isinstance(source_ids, list), f"{label} sources must be lists")
+        if require_nonempty:
+            require(bool(source_paths), f"{label} must declare at least one source")
+        require(all(isinstance(path, str) for path in source_paths), f"{label} sourcePaths are invalid")
+        require(all(isinstance(item_id, str) for item_id in source_ids), f"{label} sourceIds are invalid")
+        require(len(source_paths) == len(set(source_paths)), f"{label} sourcePaths must be unique")
+        require(len(source_ids) == len(set(source_ids)), f"{label} sourceIds must be unique")
+        expected_ids = [path_to_id.get(path) for path in source_paths]
+        require(None not in expected_ids, f"{label} references an unknown source path")
+        require(source_ids == expected_ids, f"{label} source IDs do not align with source paths")
+        return source_ids
+
+    for audience in audiences:
+        audience_id = audience["id"]
+        validate_sources(audience, f"manifest audience {audience_id}")
+        selected = audience.get("presentationSlides")
+        require(isinstance(selected, list) and bool(selected), f"manifest audience {audience_id} has no presentation slides")
+        require(all(isinstance(key, str) and key in slide_keys for key in selected), f"manifest audience {audience_id} references an unknown slide")
+        require(len(selected) == len(set(selected)), f"manifest audience {audience_id} presentation slides must be unique")
+        require(audience.get("presentationRoute") == f"#/present/{audience_id}/0", f"manifest audience {audience_id} presentationRoute is invalid")
+        audience_routes = {f"#/present/{audience_id}/{index}" for index in range(len(selected))}
+        audience_routes.add(f"#/audiences/{audience_id}")
+        require(not routes.intersection(audience_routes), f"manifest audience {audience_id} routes collide")
+        routes.update(audience_routes)
+        recommended = audience.get("recommendedRoute")
+        require(isinstance(recommended, str), f"manifest audience {audience_id} recommendedRoute is invalid")
+        require(recommended.split("?", 1)[0] in content_routes, f"manifest audience {audience_id} recommendedRoute is unknown")
+
+    decks = manifest.get("presentationDecks")
+    require(isinstance(decks, list) and bool(decks), "manifest presentationDecks must be a non-empty list")
+    require(all(isinstance(deck, dict) for deck in decks), "manifest presentation deck must be an object")
+    deck_ids = [deck.get("id") for deck in decks]
+    require(all(isinstance(deck_id, str) and deck_id for deck_id in deck_ids), "manifest presentation deck IDs must be non-empty strings")
+    require(len(deck_ids) == len(set(deck_ids)), "manifest presentation deck IDs must be unique")
+    require(not set(deck_ids).intersection(audience_ids), "manifest presentation deck IDs must not collide with audience IDs")
+
+    for deck in decks:
+        deck_id = deck["id"]
+        source_ids = validate_sources(deck, f"manifest presentation deck {deck_id}", require_nonempty=True)
+        selected = deck.get("presentationSlides")
+        require(isinstance(selected, list) and bool(selected), f"manifest presentation deck {deck_id} has no presentation slides")
+        require(all(isinstance(key, str) and key in slide_keys for key in selected), f"manifest presentation deck {deck_id} references an unknown slide")
+        require(len(selected) == len(set(selected)), f"manifest presentation deck {deck_id} presentation slides must be unique")
+        selected_source_ids = {
+            slide["sourceId"] for slide in presentation if slide["key"] in selected
+        }
+        require(
+            selected_source_ids.issubset(set(source_ids)),
+            f"manifest presentation deck {deck_id} sources do not cover its selected slides",
+        )
+        role_ids = deck.get("audienceRoleIds")
+        require(isinstance(role_ids, list) and bool(role_ids), f"manifest presentation deck {deck_id} audienceRoleIds must be a non-empty list")
+        require(
+            all(isinstance(role_id, str) and role_id in audience_ids for role_id in role_ids),
+            f"manifest presentation deck {deck_id} references an unknown audience role",
+        )
+        require(len(role_ids) == len(set(role_ids)), f"manifest presentation deck {deck_id} audienceRoleIds must be unique")
+        require(deck.get("presentationRoute") == f"#/present/{deck_id}/0", f"manifest presentation deck {deck_id} presentationRoute is invalid")
+        deck_routes = {f"#/present/{deck_id}/{index}" for index in range(len(selected))}
+        require(not routes.intersection(deck_routes), f"manifest presentation deck {deck_id} routes collide")
+        routes.update(deck_routes)
+        exit_route = deck.get("exitRoute")
+        require(isinstance(exit_route, str), f"manifest presentation deck {deck_id} exitRoute is invalid")
+        require(exit_route.split("?", 1)[0] in content_routes, f"manifest presentation deck {deck_id} exitRoute is unknown")
+
+    return routes
 
 
 def request_url(base_url: str, relative: str, token: str) -> str:
@@ -259,20 +367,7 @@ def validate_manifest_shape(
         normalized = safe_remote_path(study_path, "study path")
         require(normalized in item_paths, f"requested study path is not published: {normalized}")
 
-    available_routes = set(STATIC_ROUTES)
-    available_routes.update(item.get("route") for item in items)
-    presentation = manifest.get("presentation")
-    require(isinstance(presentation, list), "manifest presentation must be a list")
-    available_routes.update(f"#/present/{index}" for index in range(len(presentation)))
-    audiences = manifest.get("audiences")
-    require(isinstance(audiences, list), "manifest audiences must be a list")
-    for audience in audiences:
-        require(isinstance(audience, dict), "manifest audience must be an object")
-        audience_id = audience.get("id")
-        selected = audience.get("presentationSlides")
-        require(isinstance(audience_id, str) and isinstance(selected, list), "manifest audience route data is invalid")
-        available_routes.add(f"#/audiences/{audience_id}")
-        available_routes.update(f"#/present/{audience_id}/{index}" for index in range(len(selected)))
+    available_routes = validated_route_inventory(manifest, items)
     for route in expected_routes:
         require(isinstance(route, str) and route.startswith("#/") and route in available_routes, f"requested derived route is not published: {route}")
 
