@@ -283,8 +283,8 @@
             <h2 id="kong-platform-strategy-title">Deploy Kong as a platform service—and make self-managed control earn its cost.</h2>
             <p>The stakeholder direction concentrates work on Kong. The canonical strategy keeps that choice scenario-relative: ${kongFitTotal} fit conditions, ${kongPhaseTotal} gated phases, and ${kongOutcomeTotal} outcome contracts preserve counterfactuals, proof, a Konnect custody switch, and a true non-Kong exit.</p>
           </div>
-          <div class="decision-visual-grid">
-            ${visualDisclosurePanel("A", "Strategic fit", "Better here, under explicit conditions", "Each Kong mechanism is paired with the scenario outcome it serves, the counterfactual that can change the answer, and proof before commitment.", chartMarkup("kongPlatformFit", kongPlatformVisual.fit || {}, { title: "Outcome-fit conditions", compact: true }), "is-wide")}
+          <div class="decision-visual-grid is-kong-platform-grid">
+            ${visualDisclosurePanel("A", "Strategic fit", "Better here, under explicit conditions", "Scan all seven conditions, then inspect the complete counterfactual and proof contract for the condition that matters.", chartMarkup("kongPlatformFit", kongPlatformVisual.fit || {}, { title: "Seven outcome-fit conditions", compact: true, mode: "synopsis" }), "is-wide")}
             ${visualDisclosurePanel("B", "Adoption", "Foundation before scale", "KP0 through KP5 advance only through bounded outcome and recovery evidence; elapsed windows remain scenario assumptions.", chartMarkup("kongPlatformRoadmap", kongPlatformVisual.roadmap || {}, { title: "0–18 month evidence-gated roadmap", compact: true }), "is-wide")}
           </div>
           <div class="hero-actions">
@@ -610,8 +610,8 @@
             <h2 id="selected-platform-posture-title">A Kong direction can focus investment without becoming retroactive proof.</h2>
             <p>Kong is the stakeholder-selected planning direction. The platform strategy shows why it fits the stated custody and multicloud outcomes, what would change that answer, and which evidence gates stop production fit or critical scale.</p>
           </div>
-          <div class="decision-visual-grid">
-            ${visualPanel("A", "Conditional fit", "Why Kong is better for this scenario", "The comparison remains falsifiable because every fit row keeps its counterfactual and proof before commitment.", chartMarkup("kongPlatformFit", visuals.kongPlatformStrategy?.fit || {}, { title: "Outcome-fit contract", compact: true }), "is-wide")}
+          <div class="decision-visual-grid is-kong-platform-grid">
+            ${visualPanel("A", "Conditional fit", "Why Kong is better for this scenario", "Scan the seven outcome and mechanism pairs; open a condition to test its advantage, counterfactual, and proof obligation.", chartMarkup("kongPlatformFit", visuals.kongPlatformStrategy?.fit || {}, { title: "Outcome-fit contract", compact: true, mode: "synopsis" }), "is-wide")}
             ${visualPanel("B", "P1–P10", "The selected platform still has to earn every outcome", "Kong responses remain tied to measures and mandatory hold conditions; no problem is marked solved by preference.", chartMarkup("kongPlatformProblems", visuals.kongPlatformStrategy?.problems || {}, { title: "Problem-to-proof traceability", compact: true }), "is-wide")}
           </div>
           <a class="action-link is-primary" href="${itemHref(kongPlatform)}">Open the bounded Kong platform strategy <span aria-hidden="true">↗</span></a>
@@ -2274,9 +2274,11 @@
       document.body.classList.remove("is-presenting");
       return renderNotFound("No presentation story is configured.");
     }
-    let index = Number.parseInt(rawIndex, 10);
-    if (Number.isNaN(index)) index = 0;
-    index = Math.min(Math.max(index, 0), slides.length - 1);
+    const index = Number.parseInt(rawIndex, 10);
+    if (!Number.isInteger(index) || index < 0 || index >= slides.length) {
+      document.body.classList.remove("is-presenting");
+      return renderNotFound("That presentation slide is outside the configured story.");
+    }
     const slide = slides[index];
     const source = state.manifest.items.find((item) => item.id === slide.sourceId);
     const stageClass = slide.key === "industry-practices"
@@ -2493,9 +2495,12 @@
 
   function preparePrintArtifacts() {
     if (state.printSnapshot) return;
-    const closedDetails = [...document.querySelectorAll(".atlas-panel:not([open]), .visual-disclosure:not([open]), .document-evidence-panel:not([open]), .viz-presentation-detail:not([open]), .data-record-details:not([open])")];
+    const closedDetails = [...document.querySelectorAll(".atlas-panel:not([open]), .visual-disclosure:not([open]), .document-evidence-panel:not([open]), .viz-presentation-detail:not([open]), .viz-kps-fit-contract:not([open]), .data-record-details:not([open])")];
+    const namedDetails = [...document.querySelectorAll(".viz-kps-fit-contract[name]")]
+      .map((detail) => ({ detail, name: detail.getAttribute("name") }));
     const hiddenEvidence = [...document.querySelectorAll(".document-section-body[hidden], .diagram-scroll[hidden]")];
-    state.printSnapshot = { closedDetails, hiddenEvidence };
+    state.printSnapshot = { closedDetails, hiddenEvidence, namedDetails };
+    namedDetails.forEach(({ detail }) => detail.removeAttribute("name"));
     closedDetails.forEach((detail) => { detail.open = true; });
     hiddenEvidence.forEach((element) => { element.hidden = false; });
   }
@@ -2507,6 +2512,9 @@
     });
     state.printSnapshot.hiddenEvidence.forEach((element) => {
       if (document.contains(element)) element.hidden = true;
+    });
+    state.printSnapshot.namedDetails.forEach(({ detail, name }) => {
+      if (document.contains(detail) && name) detail.setAttribute("name", name);
     });
     state.printSnapshot = null;
   }

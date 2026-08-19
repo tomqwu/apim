@@ -59,6 +59,20 @@ STATIC_ROUTES = {
     "#/visuals",
     "#/audiences",
 }
+KONG_PLATFORM_FIT_SLIDE_KEYS = (
+    "kong-platform-fit-boundary",
+    "kong-platform-fit-runtime",
+    "kong-platform-fit-change",
+    "kong-platform-fit-fallback",
+)
+KONG_PLATFORM_FIT_IDS = tuple(f"KPS-FIT-{index:02d}" for index in range(1, 8))
+KONG_PLATFORM_FIT_SLIDE_ROWS = {
+    "kong-platform-fit-boundary": ("KPS-FIT-01", "KPS-FIT-02"),
+    "kong-platform-fit-runtime": ("KPS-FIT-03", "KPS-FIT-04"),
+    "kong-platform-fit-change": ("KPS-FIT-05", "KPS-FIT-06"),
+    "kong-platform-fit-fallback": ("KPS-FIT-07",),
+}
+REMOVED_KONG_PLATFORM_FIT_SLIDE_KEYS = frozenset({"kong-platform-fit-1", "kong-platform-fit-2"})
 SHA256_PATTERN = re.compile(r"[0-9a-f]{64}")
 REVISION_PATTERN = re.compile(r"[0-9a-f]{40,64}")
 
@@ -221,6 +235,89 @@ def under(base: Path, relative: PurePosixPath, label: str) -> Path:
 
 def unique(values: list[str], label: str) -> None:
     require(len(values) == len(set(values)), f"{label} contains duplicate values")
+
+
+def validate_kong_platform_fit_slides(
+    manifest: dict[str, Any],
+    presentation: list[dict[str, Any]],
+) -> None:
+    """Bind every Kong fit slide to the canonical seven-row projection."""
+    visuals = manifest.get("visuals")
+    require(isinstance(visuals, dict), "visuals must be an object")
+    strategy = visuals.get("kongPlatformStrategy")
+    require(isinstance(strategy, dict), "visuals.kongPlatformStrategy must be an object")
+    fit = strategy.get("fit")
+    require(isinstance(fit, dict), "visuals.kongPlatformStrategy.fit must be an object")
+    rows = fit.get("rows")
+    require(isinstance(rows, list) and bool(rows), "canonical Kong platform fit rows must be a non-empty list")
+    require(all(isinstance(row, dict) for row in rows), "canonical Kong platform fit rows must be objects")
+    canonical_ids = [row.get("projectionId") for row in rows]
+    require(
+        all(isinstance(row_id, str) and row_id for row_id in canonical_ids),
+        "canonical Kong platform fit IDs must be non-empty strings",
+    )
+    unique(canonical_ids, "canonical Kong platform fit IDs")
+    require(
+        len(canonical_ids) == len(KONG_PLATFORM_FIT_IDS)
+        and set(canonical_ids) == set(KONG_PLATFORM_FIT_IDS),
+        "canonical Kong platform fit IDs must be exactly KPS-FIT-01 through KPS-FIT-07",
+    )
+
+    slides_by_key = {slide["key"]: slide for slide in presentation}
+    require(
+        not REMOVED_KONG_PLATFORM_FIT_SLIDE_KEYS.intersection(slides_by_key),
+        "presentation retains a removed Kong platform fit slide",
+    )
+    fit_slide_keys = {
+        slide["key"]
+        for slide in presentation
+        if slide.get("visual") == "kongPlatformFit"
+    }
+    require(
+        fit_slide_keys == set(KONG_PLATFORM_FIT_SLIDE_KEYS),
+        "presentation Kong platform fit slides must be exactly the four semantic fit slide keys",
+    )
+    require(
+        all(key in slides_by_key for key in KONG_PLATFORM_FIT_SLIDE_KEYS),
+        "presentation must contain the four semantic Kong platform fit slides",
+    )
+    for key in KONG_PLATFORM_FIT_SLIDE_KEYS:
+        require(
+            slides_by_key[key].get("visual") == "kongPlatformFit",
+            f"slide {key} must use the kongPlatformFit visual",
+        )
+        require(
+            tuple(slides_by_key[key].get("rowIds", ())) == KONG_PLATFORM_FIT_SLIDE_ROWS[key],
+            f"slide {key} rowIds do not match its bounded Kong fit contract",
+        )
+
+    canonical_id_set = set(canonical_ids)
+    for slide in presentation:
+        if slide.get("visual") != "kongPlatformFit":
+            continue
+        key = slide["key"]
+        row_ids = slide.get("rowIds")
+        require(isinstance(row_ids, list) and bool(row_ids), f"slide {key} rowIds must be a non-empty list")
+        require(
+            all(isinstance(row_id, str) and row_id for row_id in row_ids),
+            f"slide {key} rowIds must be non-empty strings",
+        )
+        unique(row_ids, f"slide {key} rowIds")
+        require(
+            set(row_ids).issubset(canonical_id_set),
+            f"slide {key} rowIds reference an unknown canonical Kong platform fit ID",
+        )
+
+    semantic_row_ids = [
+        row_id
+        for key in KONG_PLATFORM_FIT_SLIDE_KEYS
+        for row_id in slides_by_key[key]["rowIds"]
+    ]
+    require(
+        len(semantic_row_ids) == len(KONG_PLATFORM_FIT_IDS)
+        and set(semantic_row_ids) == set(KONG_PLATFORM_FIT_IDS),
+        "semantic Kong platform fit slides must cover KPS-FIT-01 through KPS-FIT-07 exactly once",
+    )
 
 
 def publishable_source_inventory() -> set[str]:
@@ -441,6 +538,7 @@ def validate_routes_and_audiences(
     require(indices == list(range(len(presentation))), "presentation indices must be unique and contiguous from zero")
     for slide in presentation:
         require(slide.get("sourceId") in by_id, f"slide {slide.get('key')} references an unknown sourceId")
+    validate_kong_platform_fit_slides(manifest, presentation)
 
     all_routes = set(document_routes)
     generic_presentation_routes = {f"#/present/{index}" for index in range(len(presentation))}
@@ -477,7 +575,12 @@ def validate_routes_and_audiences(
 
         selected_slides = audience.get("presentationSlides")
         require(isinstance(selected_slides, list) and bool(selected_slides), f"audience {audience_id} has no presentation slides")
-        require(all(isinstance(key, str) and key in slide_keys for key in selected_slides), f"audience {audience_id} references an unknown slide")
+        require(all(isinstance(key, str) for key in selected_slides), f"audience {audience_id} presentation slides are invalid")
+        require(
+            not any(key in REMOVED_KONG_PLATFORM_FIT_SLIDE_KEYS for key in selected_slides),
+            f"audience {audience_id} retains a removed Kong platform fit slide",
+        )
+        require(all(key in slide_keys for key in selected_slides), f"audience {audience_id} references an unknown slide")
         unique(selected_slides, f"audience {audience_id} presentation slides")
 
         expected_entry_route = f"#/present/{audience_id}/0"
@@ -506,8 +609,17 @@ def validate_routes_and_audiences(
 
         selected_slides = deck.get("presentationSlides")
         require(isinstance(selected_slides, list) and bool(selected_slides), f"presentation deck {deck_id} has no presentation slides")
-        require(all(isinstance(key, str) and key in slide_keys for key in selected_slides), f"presentation deck {deck_id} references an unknown slide")
+        require(all(isinstance(key, str) for key in selected_slides), f"presentation deck {deck_id} presentation slides are invalid")
+        require(
+            not any(key in REMOVED_KONG_PLATFORM_FIT_SLIDE_KEYS for key in selected_slides),
+            f"presentation deck {deck_id} retains a removed Kong platform fit slide",
+        )
+        require(all(key in slide_keys for key in selected_slides), f"presentation deck {deck_id} references an unknown slide")
         unique(selected_slides, f"presentation deck {deck_id} presentation slides")
+        require(
+            type(deck.get("slideTotal")) is int and deck["slideTotal"] == len(selected_slides),
+            f"presentation deck {deck_id} slideTotal must equal its presentation slide count",
+        )
         selected_source_ids = {
             slide["sourceId"] for slide in presentation if slide["key"] in selected_slides
         }
