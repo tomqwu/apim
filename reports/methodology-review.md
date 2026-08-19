@@ -42,17 +42,42 @@ Current maturity is **structured assessment / evidence collection with a stakeho
 
 Explicitly excluded from this approval are unconditional vendor award, critical production scale, full migration funding, unconditioned contract commitment, and any claim that stakeholder preference or a local functional baseline proves enterprise operability.
 
+**Figure MR-1 — Evidence gates advance the decision in four bounded stages**
+
+- **Depicted scope:** Gate 0 contract approval through Gate 4 authorization of migration and critical production scale, including the evidence, foundation, pilot, rework, and stop paths between them.
+- **Excluded scope:** elapsed time, organization-specific ownership, achieved evidence, and any implication that a gate has passed.
+- **Source and evidence state:** this report's steering recommendation and gate definitions; interpretation of committed repository controls as of 2026-08-19.
+- **Accessible equivalent:** Stage 1 frames the contract and resolves exact options before Gate 1. Stage 2 runs symmetric E3 and TCO proof before Gate 2; only a Gate 2 pass records the selection ADR and exit boundary, then authorizes the reversible foundation. A Gate 2 hold returns only to targeted proof. Stage 3 builds that foundation between Gates 2 and 3; only a Gate 3 pass authorizes representative E4 pilots, while a Gate 3 hold returns only to foundation remediation. Stage 4 runs those pilots between Gates 3 and 4; only a Gate 4 pass authorizes the migration factory and critical production scale, while a Gate 4 hold returns only to pilot extension. Each hold path may instead stop; stop is terminal.
+- **Interpretation:** platform direction does not collapse evidence gates; each hold or rework branch re-enters the corresponding blocked stage, while stop remains terminal.
+- **Limitation:** the model is a decision sequence, not an execution schedule or proof that the Kong option meets any gate.
+
 ```mermaid
-flowchart TB
-  G0{"Gate 0<br/>approve decision contract"} --> S["E1/E2 screen<br/>seven bounded archetypes"] --> O["Resolve edition · version<br/>topology · entitlement · support"] --> G1{"Gate 1<br/>approve finalists"}
-  G1 --> P["Symmetric E3 PoC + TCO<br/>approved finalists"] --> G2{"Gate 2<br/>conditional selection-ready?"}
-  G2 -->|"yes"| R["Conditional selection ADR<br/>conditions, dissent, exit path"] --> F["Platform foundation"] --> G3{"Gate 3<br/>production-pilot ready?"}
-  G3 -->|"yes"| E4["Representative E4 production pilots"] --> G4{"Gate 4<br/>scale-ready?"}
-  G4 -->|"yes"| M["Pattern-based migration factory"]
-  G2 -->|"no"| X["Targeted evidence sprint,<br/>remove candidate, or stop"]
-  X --> G2
-  G3 -->|"no"| F
-  G4 -->|"no"| E4
+flowchart LR
+  S1["1 · FRAME<br/>contract + E1/E2<br/>exact option · G0 → G1"]
+  S2["2 · PROVE<br/>E3 + TCO<br/>G1 → G2"]
+  A["G2 PASS<br/>selection ADR + exit boundary<br/>authorize foundation"]
+  S3["3 · FOUNDATION<br/>reversible platform foundation<br/>G2 → G3"]
+  S4["4 · E4 PILOT<br/>representative production pilots<br/>G3 → G4"]
+  M["AUTHORIZED AFTER G4<br/>migration factory<br/>critical production scale"]
+  H2["G2 HOLD<br/>targeted proof"]
+  H3["G3 HOLD<br/>foundation remediation"]
+  H4["G4 HOLD<br/>extend pilots"]
+  X["STOP<br/>terminal"]
+
+  S1 --> S2
+  S2 -->|"G2 pass"| A
+  A --> S3
+  S3 -->|"G3 pass · authorize E4"| S4
+  S4 -->|"G4 pass · authorize migration + scale"| M
+  S2 -. G2 hold .-> H2
+  H2 -. re-enter targeted proof .-> S2
+  H2 -. stop .-> X
+  S3 -. G3 hold .-> H3
+  H3 -. re-enter foundation remediation .-> S3
+  H3 -. stop .-> X
+  S4 -. G4 hold .-> H4
+  H4 -. re-enter pilot extension .-> S4
+  H4 -. stop .-> X
 ```
 
 The quantitative evidence snapshot and Markdown-renderable charts are maintained in [evidence-state.md](evidence-state.md); the same canonical datasets drive the site Visual Atlas.

@@ -16,6 +16,7 @@
     renderToken: 0,
     searchReturnFocus: null,
     toastTimer: null,
+    printSnapshot: null,
   };
 
   const sectionDescriptions = {
@@ -150,6 +151,19 @@
       </article>`;
   }
 
+  function visualDisclosurePanel(index, eyebrow, title, note, body, extraClass = "", open = false) {
+    return `
+      <details class="visual-panel visual-disclosure ${escapeHtml(extraClass)}"${open ? " open" : ""}>
+        <summary class="visual-panel-heading">
+          <span class="section-index">${escapeHtml(index)} / ${escapeHtml(eyebrow)}</span>
+          <h2>${escapeHtml(title)}</h2>
+          <p>${escapeHtml(note)}</p>
+          <span class="visual-disclosure-action" aria-hidden="true"><span class="when-closed">Open visual</span><span class="when-open">Close visual</span></span>
+        </summary>
+        <div class="visual-panel-body">${body}</div>
+      </details>`;
+  }
+
   function resourceRow(item, index) {
     return `
       <a class="resource-row" href="${itemHref(item)}">
@@ -230,7 +244,7 @@
             <p>Treat Kong as the stakeholder-selected direction, freeze the exact self-managed hybrid option, and fund accountable foundation proof. Production fit, critical scale, support, recovery, and economics remain gated by representative evidence and explicit stop rules.</p>
           </div>
           <div class="decision-visual-grid">
-            ${visualPanel("A", "Steering state", "The decision requested now", "The recommendation separates the stakeholder-selected direction, required benchmarks, production gates, and deferred scale commitments.", chartMarkup("recommendation", visuals.review || {}, { title: "Decision state", compact: true }), "is-wide is-only-panel")}
+            ${visualDisclosurePanel("A", "Steering state", "The decision requested now", "The recommendation separates the stakeholder-selected direction, required benchmarks, production gates, and deferred scale commitments.", chartMarkup("recommendation", visuals.review || {}, { title: "Decision state", compact: true }), "is-wide is-only-panel", true)}
           </div>
           ${review ? `<a class="action-link" href="${itemHref(review)}">Open the principal review <span aria-hidden="true">↗</span></a>` : ""}
         </section>
@@ -270,8 +284,8 @@
             <p>The stakeholder direction concentrates work on Kong. The canonical strategy keeps that choice scenario-relative: ${kongFitTotal} fit conditions, ${kongPhaseTotal} gated phases, and ${kongOutcomeTotal} outcome contracts preserve counterfactuals, proof, a Konnect custody switch, and a true non-Kong exit.</p>
           </div>
           <div class="decision-visual-grid">
-            ${visualPanel("A", "Strategic fit", "Better here, under explicit conditions", "Each Kong mechanism is paired with the scenario outcome it serves, the counterfactual that can change the answer, and proof before commitment.", chartMarkup("kongPlatformFit", kongPlatformVisual.fit || {}, { title: "Outcome-fit conditions", compact: true }), "is-wide")}
-            ${visualPanel("B", "Adoption", "Foundation before scale", "KP0 through KP5 advance only through bounded outcome and recovery evidence; elapsed windows remain scenario assumptions.", chartMarkup("kongPlatformRoadmap", kongPlatformVisual.roadmap || {}, { title: "0–18 month evidence-gated roadmap", compact: true }), "is-wide")}
+            ${visualDisclosurePanel("A", "Strategic fit", "Better here, under explicit conditions", "Each Kong mechanism is paired with the scenario outcome it serves, the counterfactual that can change the answer, and proof before commitment.", chartMarkup("kongPlatformFit", kongPlatformVisual.fit || {}, { title: "Outcome-fit conditions", compact: true }), "is-wide")}
+            ${visualDisclosurePanel("B", "Adoption", "Foundation before scale", "KP0 through KP5 advance only through bounded outcome and recovery evidence; elapsed windows remain scenario assumptions.", chartMarkup("kongPlatformRoadmap", kongPlatformVisual.roadmap || {}, { title: "0–18 month evidence-gated roadmap", compact: true }), "is-wide")}
           </div>
           <div class="hero-actions">
             <a class="action-link is-primary" href="${itemHref(kongPlatform)}">Open the Kong platform strategy <span aria-hidden="true">↗</span></a>
@@ -289,9 +303,9 @@
             <p>The cross-vendor taxonomy defines the outcomes. The practice study turns them into realistic operating cases, and the Kong roadmap converts the stakeholder-selected direction into bounded, reversible self-managed proof before production adoption.</p>
           </div>
           <div class="decision-visual-grid">
-            ${visualPanel("A", "Problem system", `${problemTotal} problem families that outlive product packaging`, "Each problem connects enterprise exposure to the mechanisms vendors productize and the decision implication equivalent proof must resolve.", chartMarkup("problemMatrix", visuals.industryProblems || {}, { title: "Problem → mechanism map", compact: true }))}
-            ${visualPanel("B", "Operating practice", `${practiceTotal} practices across ${scenarioTotal} realistic cases`, industryPractices.summary, chartMarkup("scenarioMatrix", visuals.industryPractices || {}, { title: "Scenario → failure → best-practice control", compact: true }))}
-            ${visualPanel("C", "Kong study", `${kongWorkstreamTotal} gated workstreams`, "Exact options, owners, prerequisites, scenario ranges, and exit gates keep the selected direction reversible; Konnect and non-Kong exit remain explicit benchmarks.", chartMarkup("studyRoadmap", visuals.kongMulticloud || {}, { title: "Kong multicloud study sequence", compact: true }), "is-wide")}
+            ${visualDisclosurePanel("A", "Problem system", `${problemTotal} problem families that outlive product packaging`, "Each problem connects enterprise exposure to the mechanisms vendors productize and the decision implication equivalent proof must resolve.", chartMarkup("problemMatrix", visuals.industryProblems || {}, { title: "Problem → mechanism map", compact: true }))}
+            ${visualDisclosurePanel("B", "Operating practice", `${practiceTotal} practices across ${scenarioTotal} realistic cases`, industryPractices.summary, chartMarkup("scenarioMatrix", visuals.industryPractices || {}, { title: "Scenario → failure → best-practice control", compact: true }))}
+            ${visualDisclosurePanel("C", "Kong study", `${kongWorkstreamTotal} gated workstreams`, "Exact options, owners, prerequisites, scenario ranges, and exit gates keep the selected direction reversible; Konnect and non-Kong exit remain explicit benchmarks.", chartMarkup("studyRoadmap", visuals.kongMulticloud || {}, { title: "Kong multicloud study sequence", compact: true }), "is-wide")}
           </div>
           <div class="hero-actions">
             <a class="action-link is-primary" href="${itemHref(industryProblems)}">Open the industry problem study <span aria-hidden="true">↗</span></a>
@@ -493,18 +507,10 @@
     const targets = [...document.querySelectorAll("[data-diagram-preview]")];
     targets.forEach((target) => {
       const card = target.closest(".architecture-card");
-      if (!card || card.dataset.previewKeyboard === "true") return;
-      card.dataset.previewKeyboard = "true";
+      if (!card || card.dataset.previewConfigured === "true") return;
+      card.dataset.previewConfigured = "true";
       const label = target.dataset.diagramLabel || "Architecture diagram";
-      card.setAttribute("aria-label", `${label}. Use the left and right arrow keys to pan the preview. Press Enter to open the companion note.`);
-      card.addEventListener("keydown", (event) => {
-        if (event.key !== "ArrowLeft" && event.key !== "ArrowRight") return;
-        event.preventDefault();
-        target.scrollBy({
-          left: event.key === "ArrowRight" ? 120 : -120,
-          behavior: window.matchMedia("(prefers-reduced-motion: reduce)").matches ? "auto" : "smooth",
-        });
-      });
+      card.setAttribute("aria-label", `${label}. Whole-model preview. Press Enter to open the companion note.`);
     });
     const load = async (target) => {
       if (target.dataset.rendered === "true") return;
@@ -689,9 +695,9 @@
             <p>KPS-1 keeps approved configuration authority and PostgreSQL inside an enterprise management boundary while distributing request runtimes and failure containment. The roadmap and P1–P10 response keep recovery, trust, business outcome, staffing, and exit obligations visible.</p>
           </div>
           <div class="decision-visual-grid is-kong-platform-grid">
-            ${visualPanel("A", "KPS-1 target", "Self-managed control, distributed runtime", "Rendered directly from the canonical doc47 Mermaid figure; exact products, regions, replicas, entitlements, capacity, and achieved availability remain unresolved.", '<div class="kps-architecture-target diagram-frame" data-kong-platform-target><p>Rendering canonical KPS-1…</p></div>', "is-wide")}
-            ${visualPanel("B", "P1–P10", "Architecture remains accountable to outcomes", "Every Kong platform response retains a measure and mandatory hold condition.", chartMarkup("kongPlatformProblems", visuals.kongPlatformStrategy?.problems || {}, { title: "Problem-to-proof traceability", compact: true }), "is-wide")}
-            ${visualPanel("C", "Adoption", "Scale only through recovery and outcome proof", "Six evidence gates preserve stop, replan, Konnect custody-switch, and non-Kong exit paths.", chartMarkup("kongPlatformRoadmap", visuals.kongPlatformStrategy?.roadmap || {}, { title: "0–18 month platform sequence", compact: true }), "is-wide")}
+            ${visualDisclosurePanel("A", "KPS-1 target", "Self-managed control, distributed runtime", "Rendered directly from the canonical doc47 Mermaid figure; exact products, regions, replicas, entitlements, capacity, and achieved availability remain unresolved.", '<div class="kps-architecture-target diagram-frame" data-kong-platform-target data-diagram-id="KPS-1" data-diagram-summary="One reviewed configuration authority reaches an enterprise management cell while request runtimes and evidence remain close to workloads; exact products, regions, replicas, capacity, entitlements, and achieved availability remain proof obligations."><p>Rendering canonical KPS-1…</p></div>', "is-wide", true)}
+            ${visualDisclosurePanel("B", "P1–P10", "Architecture remains accountable to outcomes", "Every Kong platform response retains a measure and mandatory hold condition.", chartMarkup("kongPlatformProblems", visuals.kongPlatformStrategy?.problems || {}, { title: "Problem-to-proof traceability", compact: true }), "is-wide")}
+            ${visualDisclosurePanel("C", "Adoption", "Scale only through recovery and outcome proof", "Six evidence gates preserve stop, replan, Konnect custody-switch, and non-Kong exit paths.", chartMarkup("kongPlatformRoadmap", visuals.kongPlatformStrategy?.roadmap || {}, { title: "0–18 month platform sequence", compact: true }), "is-wide")}
           </div>
           <div class="hero-actions">
             <a class="action-link is-primary" href="${itemHref(kongPlatform)}">Open the canonical platform strategy <span aria-hidden="true">↗</span></a>
@@ -706,9 +712,9 @@
             <p>Use the enduring-problem taxonomy to define what the architecture must accomplish, then use the Kong roadmap to resolve plane placement, authority, failure domains, operations, economics, migration, and exit.</p>
           </div>
           <div class="decision-visual-grid">
-            ${visualPanel("A", "Architecture pressure", "What every candidate topology must answer", "The canonical frame prevents a clean control/data-plane picture from hiding consumer, governance, evidence, operating-model, or exit obligations.", chartMarkup("problemMatrix", visuals.industryProblems || {}, { title: "Enduring problem system", compact: true }))}
-            ${visualPanel("B", "Failure cases", industryPractices.title, industryPractices.summary, chartMarkup("scenarioMatrix", visuals.industryPractices || {}, { title: "Scenario → failure → operating control", compact: true }))}
-            ${visualPanel("C", "Study sequence", "How the selected Kong direction earns production confidence", "Workstreams advance through prerequisite and exit gates; production fit and critical scale remain blocked until the canonical outcome evidence closes.", chartMarkup("studyRoadmap", visuals.kongMulticloud || {}, { title: "Kong multicloud study roadmap", compact: true }), "is-wide")}
+            ${visualDisclosurePanel("A", "Architecture pressure", "What every candidate topology must answer", "The canonical frame prevents a clean control/data-plane picture from hiding consumer, governance, evidence, operating-model, or exit obligations.", chartMarkup("problemMatrix", visuals.industryProblems || {}, { title: "Enduring problem system", compact: true }))}
+            ${visualDisclosurePanel("B", "Failure cases", industryPractices.title, industryPractices.summary, chartMarkup("scenarioMatrix", visuals.industryPractices || {}, { title: "Scenario → failure → operating control", compact: true }))}
+            ${visualDisclosurePanel("C", "Study sequence", "How the selected Kong direction earns production confidence", "Workstreams advance through prerequisite and exit gates; production fit and critical scale remain blocked until the canonical outcome evidence closes.", chartMarkup("studyRoadmap", visuals.kongMulticloud || {}, { title: "Kong multicloud study roadmap", compact: true }), "is-wide")}
           </div>
           <div class="hero-actions">
             <a class="action-link is-primary" href="${itemHref(industryProblems)}">Open industry problems <span aria-hidden="true">↗</span></a>
@@ -835,7 +841,9 @@
         const link = event.target.closest('a[href^="#"]');
         if (!link) return;
         event.preventDefault();
-        document.getElementById(link.getAttribute("href").slice(1))?.scrollIntoView({ behavior: "smooth", block: "start" });
+        const destination = document.getElementById(link.getAttribute("href").slice(1));
+        revealDocumentSection(destination);
+        destination?.scrollIntoView({ behavior: "smooth", block: "start" });
       });
     }
 
@@ -847,6 +855,7 @@
       const destination = document.getElementById(href.slice(1));
       if (!destination) return;
       event.preventDefault();
+      revealDocumentSection(destination);
       destination.scrollIntoView({ behavior: "smooth", block: "start" });
     });
 
@@ -877,7 +886,7 @@
 
     container.querySelectorAll("table").forEach((table, index) => {
       table.classList.add("editorial-table");
-      sizeTableColumns(table);
+      const profiles = sizeTableColumns(table) || [];
 
       const headerCells = [...table.querySelectorAll("thead th")];
       const headers = headerCells.map((cell, columnIndex) => {
@@ -885,42 +894,176 @@
         cell.id = `${item.id}-table-${index + 1}-column-${columnIndex + 1}`;
         return cell.textContent.trim();
       });
-      const isWideComparison = item.path === "reports/methodology-review.md" && headers.includes("Exit evidence");
-      table.querySelectorAll("tbody tr").forEach((row) => {
-        [...row.children].forEach((cell, columnIndex) => {
+      const bodyRows = [...table.querySelectorAll("tbody tr")];
+      const totalProfileWidth = profiles.reduce((total, profile) => total + profile.width, 0);
+      const isDefinition = headers.length === 2 && bodyRows.length <= 30;
+      const isSwitchable = headers.length >= 2 && headers.length <= 6 && bodyRows.length <= 18
+        || isDefinition;
+      const isWideArtifact = headers.length >= 4 || totalProfileWidth >= 56;
+      bodyRows.forEach((row, rowIndex) => {
+        const cells = [...row.children];
+        cells.forEach((cell, columnIndex) => {
           if (headers[columnIndex]) {
             cell.dataset.columnLabel = headers[columnIndex];
             cell.setAttribute("headers", headerCells[columnIndex].id);
           }
-          if (isWideComparison) {
+          if (isSwitchable) {
             const value = document.createElement("span");
             value.className = "table-card-value";
             while (cell.firstChild) value.appendChild(cell.firstChild);
             cell.appendChild(value);
           }
         });
+        if (isSwitchable && cells.length) {
+          const profiledSummaryIndex = profiles.findIndex((profile, columnIndex) => columnIndex > 0
+            && ["compact", "number", "date", "identifier"].includes(profile.kind));
+          const summaryIndex = isDefinition ? 1 : profiledSummaryIndex > 0 ? profiledSummaryIndex : cells.length > 1 ? 1 : -1;
+          const canCollapse = !isDefinition && summaryIndex > 0;
+          const initiallyExpanded = isDefinition || !canCollapse || bodyRows.length <= 3 && rowIndex === 0;
+          row.dataset.rowExpanded = String(initiallyExpanded);
+          cells[0].classList.add("is-row-key-cell");
+          if (summaryIndex > 0) cells[summaryIndex].classList.add("is-row-summary-cell");
+          if (canCollapse) {
+            const rowLabel = cells[0].querySelector(".table-card-value")?.textContent.trim() || `row ${rowIndex + 1}`;
+            const toggle = document.createElement("button");
+            toggle.type = "button";
+            toggle.className = "table-row-toggle";
+            toggle.dataset.rowToggle = "";
+            toggle.setAttribute("aria-expanded", String(initiallyExpanded));
+            toggle.setAttribute("aria-label", `${initiallyExpanded ? "Hide" : "Show"} all fields for ${rowLabel}`);
+            toggle.textContent = initiallyExpanded ? "Hide fields" : "Show all fields";
+            cells[0].querySelector(".table-card-value")?.append(toggle);
+          }
+        }
       });
 
       const region = document.createElement("figure");
       region.className = "table-region article-table";
-      if (isWideComparison) region.classList.add("is-wide-comparison");
+      region.classList.toggle("is-switchable", isSwitchable);
+      region.classList.toggle("is-definition-table", isDefinition);
+      region.classList.toggle("is-artifact-wide", isWideArtifact);
+      region.classList.toggle("artifact-shell", isWideArtifact);
+      region.dataset.tableMinRem = String(totalProfileWidth);
       const viewport = document.createElement("div");
       viewport.className = "table-viewport";
       const wrapper = document.createElement("div");
       wrapper.className = "table-wrap";
       wrapper.setAttribute("role", "region");
       wrapper.setAttribute("aria-label", `Table ${index + 1} in ${item.title}`);
-      const hint = document.createElement("figcaption");
+      const hint = document.createElement("p");
       hint.className = "table-scroll-hint";
+      hint.hidden = true;
       hint.innerHTML = '<span aria-hidden="true">↔</span> Scroll to compare every field';
 
+      const toolbar = document.createElement("div");
+      toolbar.className = "table-view-toolbar";
+      toolbar.setAttribute("role", "toolbar");
+      toolbar.setAttribute("aria-label", `Table ${index + 1} presentation`);
+      const readingButton = document.createElement("button");
+      readingButton.type = "button";
+      readingButton.dataset.tableMode = "reading";
+      readingButton.textContent = "Read rows";
+      const comparisonButton = document.createElement("button");
+      comparisonButton.type = "button";
+      comparisonButton.dataset.tableMode = "comparison";
+      comparisonButton.textContent = "Compare columns";
+      const tableStatus = document.createElement("output");
+      tableStatus.className = "table-view-status";
+      tableStatus.setAttribute("aria-live", "polite");
+      toolbar.append(readingButton, comparisonButton, tableStatus);
+
       table.parentNode.insertBefore(region, table);
-      region.append(viewport);
-      if (!isWideComparison) region.append(hint);
+      if (isSwitchable) region.append(toolbar);
+      region.append(viewport, hint);
       viewport.appendChild(wrapper);
       wrapper.appendChild(table);
-      activateTableRegion(region);
+      activateArticleTable(region);
     });
+  }
+
+  function revealDocumentSection(destination) {
+    const section = destination?.closest?.(".document-section");
+    if (!section || section.dataset.sectionOpen === "true") return;
+    section.querySelector("[data-document-section-toggle]")?.click();
+  }
+
+  function enhanceDocumentSections(container, item) {
+    const headings = [...container.querySelectorAll(":scope > h2")];
+    const tableTotal = container.querySelectorAll(":scope > .article-table, :scope > .table-region").length;
+    const diagramTotal = container.querySelectorAll(":scope > .inline-diagram").length;
+    const proseLength = container.textContent.length;
+    const longForm = headings.length >= 7
+      && (tableTotal >= 4 || diagramTotal >= 3 || proseLength >= 20000);
+    if (!longForm) return;
+
+    const directChildren = [...container.children];
+    const groups = headings.map((heading, index) => {
+      const start = directChildren.indexOf(heading);
+      const next = index + 1 < headings.length ? directChildren.indexOf(headings[index + 1]) : directChildren.length;
+      return { heading, children: directChildren.slice(start + 1, next) };
+    });
+    const controls = document.createElement("div");
+    controls.className = "document-section-controls artifact-shell";
+    controls.setAttribute("role", "toolbar");
+    controls.setAttribute("aria-label", `${item.title} section controls`);
+    controls.innerHTML = `<span>Long-form study · open only the evidence you need</span><button type="button" data-sections-expand>Expand all</button><button type="button" data-sections-collapse>Collapse all</button><output aria-live="polite"></output>`;
+
+    const sections = groups.map(({ heading, children }, index) => {
+      const headingTitle = heading.textContent.replace(/\s+/g, " ").trim();
+      const section = document.createElement("section");
+      section.className = "document-section";
+      section.dataset.sectionOpen = String(index < 2);
+      section.dataset.sectionTitle = headingTitle;
+      const body = document.createElement("div");
+      body.className = "document-section-body";
+      body.id = `${heading.id}-content`;
+      body.hidden = index >= 2;
+      const toggle = document.createElement("button");
+      toggle.type = "button";
+      toggle.className = "document-section-toggle";
+      toggle.dataset.documentSectionToggle = "";
+      toggle.setAttribute("aria-controls", body.id);
+      toggle.setAttribute("aria-expanded", String(index < 2));
+      toggle.setAttribute("aria-label", `${index < 2 ? "Close" : "Open"} ${headingTitle} section`);
+      toggle.innerHTML = `<span class="when-closed">Open section</span><span class="when-open">Close section</span>`;
+      container.insertBefore(section, heading);
+      section.append(heading, body);
+      heading.append(toggle);
+      children.forEach((child) => body.append(child));
+      return section;
+    });
+
+    sections[0].before(controls);
+    container.classList.add("has-collapsible-sections");
+    const status = controls.querySelector("output");
+    const sync = () => {
+      const openTotal = sections.filter((section) => section.dataset.sectionOpen === "true").length;
+      status.value = `${openTotal} of ${sections.length} sections open`;
+      status.textContent = status.value;
+    };
+    const setSection = (section, open) => {
+      const body = section.querySelector(":scope > .document-section-body");
+      const toggle = section.querySelector("[data-document-section-toggle]");
+      section.dataset.sectionOpen = String(open);
+      if (body) body.hidden = !open;
+      toggle?.setAttribute("aria-expanded", String(open));
+      toggle?.setAttribute("aria-label", `${open ? "Close" : "Open"} ${section.dataset.sectionTitle} section`);
+    };
+    sections.forEach((section) => {
+      section.querySelector("[data-document-section-toggle]")?.addEventListener("click", () => {
+        setSection(section, section.dataset.sectionOpen !== "true");
+        sync();
+      });
+    });
+    controls.querySelector("[data-sections-expand]").addEventListener("click", () => {
+      sections.forEach((section) => setSection(section, true));
+      sync();
+    });
+    controls.querySelector("[data-sections-collapse]").addEventListener("click", () => {
+      sections.forEach((section) => setSection(section, false));
+      sync();
+    });
+    sync();
   }
 
   function focusDocumentAnchor(anchor) {
@@ -933,11 +1076,42 @@
     }
     const destination = document.getElementById(id);
     if (!destination) return;
+    revealDocumentSection(destination);
     destination.setAttribute("tabindex", "-1");
     requestAnimationFrame(() => {
       destination.scrollIntoView({ behavior: "auto", block: "start" });
       destination.focus({ preventScroll: true });
     });
+  }
+
+  function inlineDiagramContract(original, documentTitle, index) {
+    let cursor = original.previousElementSibling;
+    let figureId = `${documentTitle} — diagram ${index + 1}`;
+    let summary = "";
+    let inspected = 0;
+    while (cursor && cursor.tagName !== "H2" && inspected < 10) {
+      const text = cursor.textContent.replace(/\s+/g, " ").trim();
+      if (!summary) {
+        const equivalent = [...cursor.querySelectorAll?.("li") || []]
+          .map((item) => item.textContent.replace(/\s+/g, " ").trim())
+          .find((value) => /^Accessible equivalent:/i.test(value));
+        if (equivalent) summary = equivalent.replace(/^Accessible equivalent:\s*/i, "");
+      }
+      if (/^Figure\s+[A-Z0-9-]+\s+[—-]/i.test(text)) figureId = text;
+      cursor = cursor.previousElementSibling;
+      inspected += 1;
+    }
+    cursor = original.nextElementSibling;
+    inspected = 0;
+    while (!summary && cursor && cursor.tagName !== "H2" && inspected < 5) {
+      const text = cursor.textContent.replace(/\s+/g, " ").trim();
+      if (/^(Accessible equivalent|Figure interpretation):/i.test(text)) {
+        summary = text.replace(/^(Accessible equivalent|Figure interpretation):\s*/i, "");
+      }
+      cursor = cursor.nextElementSibling;
+      inspected += 1;
+    }
+    return { figureId, summary };
   }
 
   async function renderInlineMermaid(container, documentTitle = "Document") {
@@ -946,10 +1120,13 @@
       const source = code.textContent || "";
       const original = code.closest("pre");
       if (!original || !source.trim()) continue;
+      const contract = inlineDiagramContract(original, documentTitle, index);
       const figure = document.createElement("figure");
-      figure.className = "inline-diagram";
+      figure.className = "inline-diagram artifact-shell";
       const frame = document.createElement("div");
       frame.className = "diagram-frame";
+      if (contract.summary) frame.dataset.diagramSummary = contract.summary;
+      frame.dataset.diagramId = contract.figureId;
       frame.innerHTML = "<p>Rendering model…</p>";
       const details = document.createElement("details");
       const summary = document.createElement("summary");
@@ -962,7 +1139,7 @@
       details.append(summary, sourceView);
       figure.append(frame, details);
       original.replaceWith(figure);
-      await mermaidMarkup(source, frame, `${documentTitle} — diagram ${index + 1}`);
+      await mermaidMarkup(source, frame, contract.figureId);
     }
   }
 
@@ -1047,9 +1224,9 @@
   }
 
   function sizeTableColumns(table, suppliedHeaders = null) {
-    if (!table) return;
+    if (!table) return [];
     const headers = suppliedHeaders || [...table.querySelectorAll("thead th")].map((cell) => cell.dataset.field || cell.textContent.trim());
-    if (!headers.length) return;
+    if (!headers.length) return [];
     const bodyRows = [...table.querySelectorAll("tbody tr:not(.data-detail-row)")];
     const profiles = headers.map((header, index) => tableColumnProfile(
       header,
@@ -1072,6 +1249,7 @@
         if (profiles[index]) cell.dataset.columnKind = profiles[index].kind;
       });
     });
+    return profiles;
   }
 
   function updateTableRegion(region) {
@@ -1083,6 +1261,8 @@
     region.classList.toggle("has-horizontal-overflow", hasHorizontalOverflow);
     region.classList.toggle("can-scroll-left", hasHorizontalOverflow && wrapper.scrollLeft > 2);
     region.classList.toggle("can-scroll-right", hasHorizontalOverflow && wrapper.scrollLeft < wrapper.scrollWidth - wrapper.clientWidth - 2);
+    const hint = region.querySelector(":scope > .table-scroll-hint");
+    if (hint) hint.hidden = !hasHorizontalOverflow;
     wrapper.tabIndex = hasHorizontalOverflow || hasVerticalOverflow ? 0 : -1;
   }
 
@@ -1091,6 +1271,61 @@
     if (!wrappers.length) return;
     wrappers.forEach((wrapper) => wrapper.addEventListener("scroll", () => updateTableRegion(region), { passive: true }));
     requestAnimationFrame(() => updateTableRegion(region));
+  }
+
+  function setArticleTableMode(region, mode, userSelected = false) {
+    if (!region?.classList.contains("is-switchable")) return;
+    const reading = mode === "reading";
+    region.classList.toggle("is-reading-mode", reading);
+    region.classList.toggle("is-comparison-mode", !reading);
+    if (userSelected) region.dataset.userTableMode = mode;
+    region.querySelectorAll("[data-table-mode]").forEach((button) => {
+      button.setAttribute("aria-pressed", String(button.dataset.tableMode === mode));
+    });
+    const status = region.querySelector(".table-view-status");
+    if (status) {
+      status.value = reading
+        ? region.classList.contains("is-definition-table")
+          ? "Definition rows · all fields shown"
+          : "Row summaries · expand for detail"
+        : "Column comparison view";
+      status.textContent = status.value;
+    }
+    const wrapper = region.querySelector(".table-wrap");
+    if (reading && wrapper) wrapper.scrollLeft = 0;
+    requestAnimationFrame(() => updateTableRegion(region));
+  }
+
+  function activateArticleTable(region) {
+    activateTableRegion(region);
+    if (!region?.classList.contains("is-switchable")) return;
+    let lastDefaultMode = "";
+    const useResponsiveDefault = () => {
+      if (region.dataset.userTableMode) return;
+      const rootFontSize = Number.parseFloat(getComputedStyle(document.documentElement).fontSize) || 16;
+      const comparisonWidth = (Number.parseFloat(region.dataset.tableMinRem) || 0) * rootFontSize;
+      const availableWidth = region.getBoundingClientRect().width;
+      const mode = availableWidth < 900 || comparisonWidth > availableWidth + 2 ? "reading" : "comparison";
+      if (mode === lastDefaultMode) return;
+      lastDefaultMode = mode;
+      setArticleTableMode(region, mode);
+    };
+    region.addEventListener("click", (event) => {
+      const mode = event.target.closest("[data-table-mode]")?.dataset.tableMode;
+      if (mode) setArticleTableMode(region, mode, true);
+      const rowToggle = event.target.closest("[data-row-toggle]");
+      if (!rowToggle) return;
+      const row = rowToggle.closest("tr");
+      const expanded = row?.dataset.rowExpanded !== "true";
+      if (!row) return;
+      row.dataset.rowExpanded = String(expanded);
+      rowToggle.setAttribute("aria-expanded", String(expanded));
+      const rowLabel = row.querySelector(".is-row-key-cell .table-card-value")?.childNodes[0]?.textContent?.trim() || "this row";
+      rowToggle.setAttribute("aria-label", `${expanded ? "Hide" : "Show"} all fields for ${rowLabel}`);
+      rowToggle.textContent = expanded ? "Hide fields" : "Show all fields";
+    });
+    new ResizeObserver(useResponsiveDefault).observe(region);
+    useResponsiveDefault();
   }
 
   let tableResizeFrame = null;
@@ -1400,10 +1635,11 @@
   function diagramGeometry(svg) {
     const viewBox = svg.viewBox?.baseVal;
     const width = viewBox?.width || Number.parseFloat(svg.getAttribute("width")) || svg.getBoundingClientRect().width || 1;
+    const height = viewBox?.height || Number.parseFloat(svg.getAttribute("height")) || svg.getBoundingClientRect().height || 1;
     const fontSizes = [...svg.querySelectorAll("text")]
       .map((node) => Number.parseFloat(getComputedStyle(node).fontSize))
       .filter((value) => Number.isFinite(value) && value > 0);
-    return { width, labelSize: medianNumber(fontSizes, 18) };
+    return { width, height, labelSize: medianNumber(fontSizes, 18) };
   }
 
   function setDiagramWidth(svg, naturalWidth, scale) {
@@ -1426,13 +1662,23 @@
     const isPresentation = target.classList.contains("slide-diagram");
     const minimumLabel = isPresentation ? 18 : isPreview ? 14 : 16;
     const initialWidth = diagramContentWidth(target);
+    const semanticSummary = String(target.dataset.diagramSummary || "").trim();
+    const semanticFigureId = String(target.dataset.diagramId || label || "Canonical model").trim();
+    const denseOverview = geometry.labelSize * Math.min(1, initialWidth / geometry.width) < minimumLabel;
+    const hasSemanticSummary = Boolean(semanticSummary);
 
-    if (isPreview || isPresentation) {
-      const readableScale = Math.max(initialWidth / geometry.width, minimumLabel / geometry.labelSize);
-      setDiagramWidth(svg, geometry.width, readableScale);
-      target.setAttribute("aria-label", `${label}. Scroll to inspect the diagram at a readable scale.`);
+    if (isPreview) {
+      const previewStyles = getComputedStyle(target);
+      const previewHeight = Math.max(1, target.clientHeight
+        - Number.parseFloat(previewStyles.paddingTop)
+        - Number.parseFloat(previewStyles.paddingBottom));
+      setDiagramWidth(svg, geometry.width, Math.min(1, initialWidth / geometry.width, previewHeight / geometry.height));
+      target.classList.add("is-overview-mode");
+      target.setAttribute("aria-label", `${label}. Whole-diagram preview; open the companion note to inspect the source.`);
       return;
     }
+
+    target.classList.add("diagram-frame");
 
     const toolbar = document.createElement("div");
     toolbar.className = "diagram-toolbar";
@@ -1441,7 +1687,26 @@
     const viewport = document.createElement("div");
     viewport.className = "diagram-scroll";
     viewport.tabIndex = 0;
+    viewport.setAttribute("role", "region");
     viewport.setAttribute("aria-label", `${label}. Scroll horizontally and vertically to inspect the diagram.`);
+    viewport.addEventListener("keydown", (event) => {
+      const horizontalOverflow = viewport.scrollWidth > viewport.clientWidth + 2;
+      const verticalOverflow = viewport.scrollHeight > viewport.clientHeight + 2;
+      const horizontalStep = Math.max(48, Math.round(viewport.clientWidth * 0.22));
+      const verticalStep = Math.max(64, Math.round(viewport.clientHeight * 0.7));
+      if (horizontalOverflow && ["ArrowLeft", "ArrowRight"].includes(event.key)) {
+        event.preventDefault();
+        event.stopPropagation();
+        viewport.scrollLeft += event.key === "ArrowRight" ? horizontalStep : -horizontalStep;
+        return;
+      }
+      if (verticalOverflow && ["ArrowUp", "ArrowDown", "PageUp", "PageDown", " "].includes(event.key)) {
+        event.preventDefault();
+        event.stopPropagation();
+        const backwards = event.key === "ArrowUp" || event.key === "PageUp" || event.shiftKey && event.key === " ";
+        viewport.scrollTop += backwards ? -verticalStep : verticalStep;
+      }
+    });
     const status = document.createElement("output");
     status.className = "diagram-zoom-status";
     status.setAttribute("aria-live", "polite");
@@ -1454,33 +1719,151 @@
       button.setAttribute("aria-label", accessibleLabel);
       return button;
     };
-    const fit = makeButton("Fit", "fit", "Fit the whole diagram to the available width");
+    const summaryButton = hasSemanticSummary
+      ? makeButton("Takeaway", "summary", "Show the authored takeaway for this diagram")
+      : null;
+    const overview = makeButton("Overview", "overview", "Show the whole diagram at the available width");
+    const readable = makeButton("Readable", "readable", "Open a readable, scrollable inspection view");
     const actual = makeButton("100%", "actual", "Show the diagram at its natural size");
     const out = makeButton("−", "out", "Zoom out");
     const zoomIn = makeButton("+", "in", "Zoom in");
-    toolbar.append(fit, actual, out, zoomIn, status);
-    target.replaceChildren(toolbar, viewport);
+    const expand = makeButton("Expand", "expand", "Open the diagram in an expanded canvas");
+    const note = document.createElement("span");
+    note.className = "diagram-mode-note";
+    if (summaryButton) toolbar.append(summaryButton);
+    toolbar.append(overview, readable);
+    if (!isPresentation) toolbar.append(actual, out, zoomIn);
+    toolbar.append(expand, note, status);
+    const summaryPanel = document.createElement("div");
+    summaryPanel.className = "diagram-summary";
+    if (hasSemanticSummary) {
+      const kicker = document.createElement("span");
+      kicker.textContent = `${semanticFigureId} · decision brief`;
+      const heading = document.createElement("strong");
+      heading.textContent = "What this model means";
+      const copy = document.createElement("p");
+      copy.textContent = semanticSummary;
+      const instruction = document.createElement("small");
+      instruction.textContent = "Choose Readable for the full model at presentation-safe type, or Expand for focused inspection.";
+      summaryPanel.append(kicker, heading, copy, instruction);
+    }
+    target.replaceChildren(toolbar);
+    if (hasSemanticSummary) target.append(summaryPanel);
+    target.append(viewport);
     viewport.appendChild(svg);
 
-    const availableWidth = target.hasAttribute("data-kong-platform-target") ? diagramContentWidth(viewport) : initialWidth;
-    const readableScale = Math.max(availableWidth / geometry.width, minimumLabel / geometry.labelSize);
-    let scale = readableScale;
-    let mode = "readable";
+    let lastAvailableSize = "";
+    let scale = 1;
+    const defaultMode = "overview";
+    let mode = defaultMode;
+    let expanded = false;
+    let inertSiblings = [];
+    let originPlaceholder = null;
+
+    const availableWidth = () => diagramContentWidth(viewport);
+    const availableHeight = () => {
+      const styles = getComputedStyle(viewport);
+      return Math.max(1, viewport.clientHeight
+        - Number.parseFloat(styles.paddingTop)
+        - Number.parseFloat(styles.paddingBottom));
+    };
+    const overviewScale = () => Math.min(
+      1,
+      availableWidth() / geometry.width,
+      isPresentation ? availableHeight() / geometry.height : 1,
+    );
+    const readableScale = () => Math.max(Math.min(1, availableWidth() / geometry.width), minimumLabel / geometry.labelSize);
 
     const update = () => {
       scale = setDiagramWidth(svg, geometry.width, scale);
-      status.value = `${Math.round(scale * 100)}%`;
+      const modeLabel = mode === "summary" ? "Summary" : mode === "overview" ? "Overview" : mode === "readable" ? "Readable" : mode === "actual" ? "Actual size" : "Custom";
+      status.value = mode === "summary" ? "Summary · full model available" : `${modeLabel} · ${Math.round(scale * 100)}%`;
       status.textContent = status.value;
-      fit.setAttribute("aria-pressed", String(mode === "fit"));
+      if (summaryButton) summaryButton.setAttribute("aria-pressed", String(mode === "summary"));
+      overview.setAttribute("aria-pressed", String(mode === "overview"));
+      readable.setAttribute("aria-pressed", String(mode === "readable"));
       actual.setAttribute("aria-pressed", String(mode === "actual"));
+      expand.setAttribute("aria-pressed", String(expanded));
+      expand.textContent = expanded ? "Close" : "Expand";
+      expand.setAttribute("aria-label", expanded ? "Close the expanded diagram canvas" : "Open the diagram in an expanded canvas");
+      target.classList.toggle("is-summary-mode", mode === "summary");
+      target.classList.toggle("is-overview-mode", mode === "overview");
+      target.classList.toggle("is-inspection-mode", !["summary", "overview"].includes(mode));
+      target.classList.toggle("is-expanded", expanded);
+      document.body.classList.toggle("has-expanded-diagram", Boolean(document.querySelector(".diagram-frame.is-expanded")));
+      if (hasSemanticSummary) summaryPanel.hidden = mode !== "summary";
+      viewport.hidden = mode === "summary";
+      viewport.tabIndex = ["summary", "overview"].includes(mode) ? -1 : 0;
+      const renderedLabel = geometry.labelSize * scale;
+      note.textContent = mode === "summary"
+        ? "Decision brief"
+        : mode === "overview" && renderedLabel < minimumLabel
+        ? "Whole model · choose Readable to inspect labels"
+        : mode === "overview" ? "Whole model" : "Scroll the canvas to inspect detail";
+      viewport.setAttribute("aria-label", mode === "overview"
+        ? `${label}. Whole-diagram overview.`
+        : `${label}. Readable inspection canvas; scroll horizontally and vertically as needed.`);
     };
+
+    const setExpanded = (nextExpanded, restoreFocus = true) => {
+      expanded = nextExpanded;
+      if (expanded) {
+        originPlaceholder = document.createComment("expanded diagram origin");
+        target.before(originPlaceholder);
+        document.body.append(target);
+        inertSiblings = [];
+        [...document.body.children].forEach((sibling) => {
+          if (sibling === target || sibling.inert) return;
+          sibling.inert = true;
+          inertSiblings.push(sibling);
+        });
+        target.setAttribute("role", "dialog");
+        target.setAttribute("aria-modal", "true");
+        target.setAttribute("aria-label", `${label} expanded diagram`);
+        target.tabIndex = -1;
+      } else {
+        inertSiblings.forEach((element) => { element.inert = false; });
+        inertSiblings = [];
+        if (originPlaceholder?.parentNode) originPlaceholder.replaceWith(target);
+        originPlaceholder = null;
+        target.removeAttribute("role");
+        target.removeAttribute("aria-modal");
+        target.removeAttribute("aria-label");
+        target.removeAttribute("tabindex");
+      }
+      update();
+      requestAnimationFrame(() => {
+        if (mode === "overview") scale = overviewScale();
+        else if (mode === "readable") scale = readableScale();
+        update();
+        if (expanded || restoreFocus) {
+          setTimeout(() => expand.focus({ preventScroll: true }), 0);
+        }
+      });
+    };
+
+    target.addEventListener("diagram-close-request", (event) => {
+      if (expanded) setExpanded(false, event.detail?.restoreFocus !== false);
+    });
 
     toolbar.addEventListener("click", (event) => {
       const action = event.target.closest("button")?.dataset.diagramAction;
       if (!action) return;
-      if (action === "fit") {
-        mode = "fit";
-        scale = diagramContentWidth(viewport) / geometry.width;
+      if (action === "summary") {
+        mode = "summary";
+        viewport.scrollTo({ left: 0, top: 0 });
+      } else if (action === "overview") {
+        mode = "overview";
+        scale = overviewScale();
+        viewport.scrollTo({ left: 0, top: 0 });
+      } else if (action === "readable") {
+        mode = "readable";
+        update();
+        requestAnimationFrame(() => {
+          scale = readableScale();
+          update();
+        });
+        return;
       } else if (action === "actual") {
         mode = "actual";
         scale = 1;
@@ -1490,9 +1873,54 @@
       } else if (action === "in") {
         mode = "custom";
         scale *= 1.2;
+      } else if (action === "expand") {
+        if (!expanded && mode === "summary") {
+          mode = "readable";
+          update();
+          requestAnimationFrame(() => {
+            scale = readableScale();
+            setExpanded(true);
+          });
+        } else {
+          setExpanded(!expanded);
+        }
+        return;
       }
       update();
     });
+    target.addEventListener("keydown", (event) => {
+      if (event.key === "Escape" && expanded) {
+        event.preventDefault();
+        event.stopPropagation();
+        setExpanded(false);
+        return;
+      }
+      if (event.key !== "Tab" || !expanded) return;
+      const focusable = [...target.querySelectorAll("button:not([disabled]), [tabindex='0']")];
+      if (!focusable.length) return;
+      const first = focusable[0];
+      const last = focusable[focusable.length - 1];
+      if (event.shiftKey && document.activeElement === first) {
+        event.preventDefault();
+        last.focus();
+      } else if (!event.shiftKey && document.activeElement === last) {
+        event.preventDefault();
+        first.focus();
+      }
+    });
+    const resizeObserver = new ResizeObserver(() => {
+      const width = availableWidth();
+      const height = availableHeight();
+      const size = `${Math.round(width)}×${Math.round(height)}`;
+      if (size === lastAvailableSize) return;
+      lastAvailableSize = size;
+      if (mode === "summary") return;
+      if (mode === "overview") scale = overviewScale();
+      else if (mode === "readable") scale = readableScale();
+      update();
+    });
+    resizeObserver.observe(viewport);
+    scale = defaultMode === "summary" ? 1 : defaultMode === "readable" ? readableScale() : overviewScale();
     update();
   }
 
@@ -1608,7 +2036,7 @@
     template.innerHTML = markup.trim();
     const context = template.content.firstElementChild;
     if (!context) return;
-    context.classList.add("is-inline");
+    context.classList.add("is-inline", "artifact-shell");
     const firstHeading = prose.querySelector("h2");
     let anchor = firstHeading || prose.querySelector("p, ol, ul, .table-wrap, blockquote") || prose.firstElementChild;
     if (firstHeading) {
@@ -1628,6 +2056,7 @@
       template.innerHTML = String(placement.markup || "").trim();
       const visual = template.content.firstElementChild;
       if (!visual) return;
+      visual.classList.add("artifact-shell");
       let anchor = heading;
       let cursor = heading.nextElementSibling;
       while (cursor && cursor.tagName !== "H2") {
@@ -1667,6 +2096,7 @@
         await renderInlineMermaid(prose, item.title);
         embedDocumentVisualContext(item, prose);
         embedDocumentVisualPlacements(item, prose);
+        enhanceDocumentSections(prose, item);
       } else if (item.type === "csv") {
         target.innerHTML = `${csvMarkup(text, item)}${documentVisualContext(item)}`;
         activateDataGrid(target);
@@ -1732,16 +2162,17 @@
         return chartMarkup("kongPlatformFit", { ...fit, rows: selected(fit.rows, "projectionId") }, options);
       }
       case "kongPlatformArchitecture": {
-        const mermaid = visuals.kongPlatformStrategy?.architecture?.mermaid || "";
+        const architecture = visuals.kongPlatformStrategy?.architecture || {};
+        const mermaid = architecture.mermaid || "";
         return mermaid
-          ? `<div class="slide-diagram is-kps-target" data-slide-inline-mermaid="${escapeHtml(mermaid)}"><p>Rendering canonical KPS-1…</p></div>`
+          ? `<div class="slide-diagram is-kps-target" data-slide-inline-mermaid="${escapeHtml(mermaid)}" data-diagram-id="KPS-1" data-diagram-summary="${escapeHtml(architecture.title || "")}"><p>Rendering canonical KPS-1…</p></div>`
           : '<p class="visual-empty">The canonical KPS-1 model is unavailable.</p>';
       }
       case "kongTechnicalFigure": {
         const figure = (visuals.kongPlatformStrategy?.figures || []).find((item) => item.figureId === slide.figureId);
         const mermaid = figure?.mermaid || "";
         return mermaid
-          ? `<div class="slide-diagram is-kps-target" data-slide-inline-mermaid="${escapeHtml(mermaid)}"><p>Rendering canonical ${escapeHtml(slide.figureId)}…</p></div>`
+          ? `<div class="slide-diagram is-kps-target" data-slide-inline-mermaid="${escapeHtml(mermaid)}" data-diagram-id="${escapeHtml(slide.figureId)}" data-diagram-summary="${escapeHtml(figure?.title || "")}"><p>Rendering canonical ${escapeHtml(slide.figureId)}…</p></div>`
           : `<p class="visual-empty">The canonical ${escapeHtml(slide.figureId || "KPS figure")} model is unavailable.</p>`;
       }
       case "kongPlatformCases": {
@@ -1790,19 +2221,29 @@
     try {
       const text = target.dataset.slideInlineMermaid || await fetchText(target.dataset.slideDiagram);
       await mermaidMarkup(text, target, document.querySelector(".slide-title")?.textContent || "Presentation architecture diagram");
-      if (window.matchMedia("(max-width: 760px)").matches) {
-        const firstLabeledNode = [...target.querySelectorAll("svg g.node")]
-          .find((node) => node.textContent.trim());
-        if (firstLabeledNode) {
-          const viewport = target.getBoundingClientRect();
-          const node = firstLabeledNode.getBoundingClientRect();
-          target.scrollLeft = Math.max(0, target.scrollLeft + node.left - viewport.left - 12);
-          target.scrollTop = Math.max(0, target.scrollTop + node.top - viewport.top - 12);
-        }
-      }
     } catch (error) {
       target.innerHTML = `<p class="visual-empty">Open the supporting source to inspect this model.</p>`;
     }
+  }
+
+  function activatePresentationFrame() {
+    const slideMain = document.querySelector(".presentation-stage .slide-main");
+    if (!slideMain) return;
+    const sync = () => {
+      const scrollable = slideMain.scrollHeight > slideMain.clientHeight + 2;
+      slideMain.tabIndex = scrollable ? 0 : -1;
+      if (scrollable) {
+        slideMain.setAttribute("role", "region");
+        slideMain.setAttribute("aria-label", "Expanded slide detail. Scroll vertically to inspect the opened evidence.");
+      } else {
+        slideMain.removeAttribute("role");
+        slideMain.removeAttribute("aria-label");
+        slideMain.scrollTop = 0;
+      }
+    };
+    slideMain.addEventListener("toggle", () => requestAnimationFrame(sync), true);
+    new ResizeObserver(sync).observe(slideMain);
+    requestAnimationFrame(sync);
   }
 
   function presentationContext(contextId = "") {
@@ -1891,6 +2332,7 @@
     document.querySelector("[data-slide-next]").addEventListener("click", () => moveSlide(1));
     document.querySelector("[data-fullscreen]").addEventListener("click", toggleFullscreen);
     renderPresentationDiagram();
+    activatePresentationFrame();
   }
 
   function moveSlide(delta) {
@@ -1931,6 +2373,8 @@
     if (!state.manifest) return;
     closeMenu();
     closeSearch(false);
+    document.querySelector(".diagram-frame.is-expanded [data-diagram-action='expand']")?.click();
+    document.body.classList.remove("has-expanded-diagram");
     const current = parseRoute();
     if (current.name !== "present") document.body.classList.remove("is-presenting");
     switch (current.name) {
@@ -2007,6 +2451,9 @@
 
   function openSearch() {
     state.searchReturnFocus = document.activeElement instanceof HTMLElement ? document.activeElement : null;
+    document.querySelector(".diagram-frame.is-expanded")?.dispatchEvent(new CustomEvent("diagram-close-request", {
+      detail: { restoreFocus: false },
+    }));
     modalBackground.forEach((element) => { element.inert = true; });
     searchDialog.hidden = false;
     document.body.style.overflow = "hidden";
@@ -2044,6 +2491,26 @@
     return false;
   }
 
+  function preparePrintArtifacts() {
+    if (state.printSnapshot) return;
+    const closedDetails = [...document.querySelectorAll(".atlas-panel:not([open]), .visual-disclosure:not([open]), .document-evidence-panel:not([open]), .viz-presentation-detail:not([open]), .data-record-details:not([open])")];
+    const hiddenEvidence = [...document.querySelectorAll(".document-section-body[hidden], .diagram-scroll[hidden]")];
+    state.printSnapshot = { closedDetails, hiddenEvidence };
+    closedDetails.forEach((detail) => { detail.open = true; });
+    hiddenEvidence.forEach((element) => { element.hidden = false; });
+  }
+
+  function restorePrintArtifacts() {
+    if (!state.printSnapshot) return;
+    state.printSnapshot.closedDetails.forEach((detail) => {
+      if (document.contains(detail)) detail.open = false;
+    });
+    state.printSnapshot.hiddenEvidence.forEach((element) => {
+      if (document.contains(element)) element.hidden = true;
+    });
+    state.printSnapshot = null;
+  }
+
   async function init() {
     try {
       const response = await fetch("content-manifest.json", { cache: "no-cache" });
@@ -2065,7 +2532,10 @@
   document.querySelectorAll("[data-search-close]").forEach((button) => button.addEventListener("click", () => closeSearch()));
   globalSearch.addEventListener("input", updateGlobalSearch);
   window.addEventListener("hashchange", route);
+  window.addEventListener("beforeprint", preparePrintArtifacts);
+  window.addEventListener("afterprint", restorePrintArtifacts);
   document.addEventListener("keydown", (event) => {
+    if (event.defaultPrevented) return;
     if (trapSearchFocus(event)) return;
     if ((event.metaKey || event.ctrlKey) && event.key.toLowerCase() === "k") {
       event.preventDefault();
@@ -2073,7 +2543,13 @@
       return;
     }
     if (event.key === "Escape") {
-      if (!searchDialog.hidden) closeSearch();
+      const expandedDiagram = document.querySelector(".diagram-frame.is-expanded");
+      if (expandedDiagram) {
+        event.preventDefault();
+        expandedDiagram.dispatchEvent(new CustomEvent("diagram-close-request", {
+          detail: { restoreFocus: true },
+        }));
+      } else if (!searchDialog.hidden) closeSearch();
       else if (document.body.classList.contains("is-presenting")) {
         const current = parseRoute();
         const { audience, deck } = presentationContext(current.parts.length > 1 ? current.parts[0] : "");
@@ -2084,6 +2560,11 @@
     if (document.body.classList.contains("is-presenting")) {
       const interactive = event.target instanceof Element && event.target.closest("a, button, input, select, textarea, summary, [contenteditable='true']");
       if (interactive) return;
+      const scrollSurface = event.target instanceof Element && event.target.closest(".slide-main[tabindex='0'], .slide-aside-content[tabindex='0'], .diagram-scroll[tabindex='0'], .table-wrap[tabindex='0']");
+      const verticalScrollKey = ["ArrowDown", "ArrowUp", "PageDown", "PageUp", " "].includes(event.key);
+      const horizontalScrollKey = ["ArrowRight", "ArrowLeft"].includes(event.key);
+      if (scrollSurface && verticalScrollKey && scrollSurface.scrollHeight > scrollSurface.clientHeight + 2) return;
+      if (scrollSurface && horizontalScrollKey && scrollSurface.scrollWidth > scrollSurface.clientWidth + 2) return;
       if (["ArrowRight", "PageDown", " "].includes(event.key)) {
         event.preventDefault();
         moveSlide(1);

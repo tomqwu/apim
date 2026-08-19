@@ -757,6 +757,101 @@ class CanonicalContractTests(WorkflowTestCase):
         self.assertIn('svg.querySelectorAll("g.node")', app)
         self.assertIn("Rendered diagram is missing", app)
 
+    def test_article_artifacts_use_semantic_overview_and_inspection_modes(self) -> None:
+        app = (SOURCE_ROOT / "site/assets/app.js").read_text(encoding="utf-8")
+        charts = (SOURCE_ROOT / "site/assets/charts.js").read_text(encoding="utf-8")
+        styles = (SOURCE_ROOT / "site/assets/styles.css").read_text(encoding="utf-8")
+        methodology = (SOURCE_ROOT / "reports/methodology-review.md").read_text(encoding="utf-8")
+
+        self.assertIn('region.classList.toggle("artifact-shell", isWideArtifact)', app)
+        self.assertIn("function setArticleTableMode", app)
+        self.assertIn('comparisonWidth > availableWidth + 2', app)
+        self.assertIn('const summaryIndex = isDefinition ? 1 : profiledSummaryIndex > 0 ? profiledSummaryIndex : cells.length > 1 ? 1 : -1', app)
+        self.assertIn('const initiallyExpanded = isDefinition || !canCollapse || bodyRows.length <= 3 && rowIndex === 0', app)
+        self.assertIn('const defaultMode = "overview"', app)
+        self.assertIn('makeButton("Takeaway", "summary"', app)
+        self.assertIn('makeButton("Overview", "overview"', app)
+        self.assertIn('hint.hidden = !hasHorizontalOverflow', app)
+        self.assertIn('const hint = document.createElement("p")', app)
+        self.assertNotIn('const hint = document.createElement("figcaption")', app)
+        self.assertIn('"Definition rows · all fields shown"', app)
+        self.assertIn('new CustomEvent("diagram-close-request",', app)
+        self.assertIn('viewport.scrollLeft += event.key === "ArrowRight"', app)
+        self.assertIn('const expandedDiagram = document.querySelector(".diagram-frame.is-expanded")', app)
+        self.assertIn('setTimeout(() => expand.focus({ preventScroll: true }), 0)', app)
+        self.assertNotIn('This is a detailed inspection model.', app)
+        self.assertIn('dataset.diagramSummary', app)
+        self.assertIn('function inlineDiagramContract', app)
+        self.assertIn('function enhanceDocumentSections', app)
+        self.assertIn('section.dataset.sectionTitle = headingTitle', app)
+        self.assertIn('`${open ? "Close" : "Open"} ${section.dataset.sectionTitle} section`', app)
+        self.assertIn('headings.length >= 7', app)
+        self.assertIn('proseLength >= 20000', app)
+        self.assertIn('open only the evidence you need', app)
+        self.assertIn("const overviewScale = () => Math.min(", app)
+        self.assertIn('makeButton("Readable", "readable"', app)
+        self.assertIn('makeButton("Expand", "expand"', app)
+        self.assertIn('target.setAttribute("aria-modal", "true")', app)
+        self.assertIn('document.body.append(target)', app)
+        self.assertIn('originPlaceholder.replaceWith(target)', app)
+        self.assertIn('event.stopPropagation()', app)
+        self.assertIn('const scrollSurface = event.target', app)
+        self.assertIn('function preparePrintArtifacts', app)
+        self.assertIn('window.addEventListener("afterprint", restorePrintArtifacts)', app)
+        self.assertIn("previewHeight / geometry.height", app)
+        self.assertIn('function visualDisclosurePanel', app)
+
+        self.assertIn(".document-shell .prose > .artifact-shell", styles)
+        self.assertIn(".article-table.is-reading-mode tbody td", styles)
+        self.assertIn('tbody tr[data-row-expanded="false"]', styles)
+        self.assertIn(".document-section-controls", styles)
+        self.assertIn(".diagram-summary", styles)
+        self.assertRegex(styles, r"(?s)\.diagram-toolbar\s*\{.*?flex: 0 0 auto;")
+        self.assertIn(".diagram-frame.is-overview-mode .diagram-scroll svg", styles)
+        self.assertIn(".diagram-frame.is-expanded", styles)
+        self.assertIn(".table-scroll-hint[hidden]", styles)
+        self.assertIn(".document-evidence-panel[open]", styles)
+        self.assertRegex(
+            styles,
+            r"(?s)@media \(min-width: 761px\) and \(max-width: 1024px\).*?\.presentation-stage\.is-kong-platform \.slide-visual\s*\{\s*max-height: none;\s*overflow: visible;",
+        )
+        self.assertRegex(
+            styles,
+            r"(?s)@media print.*?\.presentation-slide\s*\{\s*position: static;\s*inset: auto;",
+        )
+        self.assertRegex(
+            styles,
+            r"(?s)@media print.*?\.presentation-stage \*.*?color: var\(--ink\) !important;.*?\.presentation-stage \.slide-main.*?background: white !important;",
+        )
+        self.assertRegex(
+            styles,
+            r"(?s)@media print.*?\.presentation-stage \.viz-donut-core,\s*\.presentation-stage \.viz-roadmap-marker,.*?background: white !important;",
+        )
+        self.assertIn(".visual-atlas .atlas-panel[open]", styles)
+        self.assertIn(".visual-disclosure[open]", styles)
+        self.assertIn(".viz-presentation-detail", styles)
+        self.assertIn(".diagram-frame .diagram-scroll[hidden]", styles)
+        self.assertIn(".visual-disclosure > .visual-panel-body", styles)
+        self.assertNotIn(".is-methodology-review .article-table", styles)
+        self.assertIn('<details class="visual-panel atlas-panel', charts)
+        self.assertIn('<details class="document-visual document-evidence-panel', charts)
+        self.assertIn('<details class="viz-presentation-detail">', charts)
+
+        self.assertIn("**Figure MR-1 — Evidence gates advance the decision in four bounded stages**", methodology)
+        for stage in ("1 · FRAME", "2 · PROVE", "3 · FOUNDATION", "4 · E4 PILOT", "AUTHORIZED AFTER G4"):
+            self.assertIn(stage, methodology)
+        mermaid = methodology.split("```mermaid\n", 1)[1].split("\n```", 1)[0]
+        self.assertIn('A["G2 PASS<br/>selection ADR + exit boundary<br/>authorize foundation"]', mermaid)
+        self.assertIn('H2["G2 HOLD<br/>targeted proof"]', mermaid)
+        self.assertIn('H3["G3 HOLD<br/>foundation remediation"]', mermaid)
+        self.assertIn('H4["G4 HOLD<br/>extend pilots"]', mermaid)
+        self.assertIn('X["STOP<br/>terminal"]', mermaid)
+        self.assertIn('H2 -. re-enter targeted proof .-> S2', mermaid)
+        self.assertIn('H3 -. re-enter foundation remediation .-> S3', mermaid)
+        self.assertIn('H4 -. re-enter pilot extension .-> S4', mermaid)
+        self.assertNotRegex(mermaid, r"(?m)^\s*X\s*(?:-->|-\.)")
+        self.assertNotIn("HOLD / REWORK / STOP", mermaid)
+
     def test_temporary_repositories_drop_outer_publication_provenance(self) -> None:
         original = {
             variable: os.environ.get(variable)
