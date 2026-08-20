@@ -28,6 +28,7 @@ from unittest import mock
 SOURCE_ROOT = Path(__file__).resolve().parents[1]
 PRODUCTION_CLI = SOURCE_ROOT / "scripts" / "study_workflow.py"
 PAGES_VERIFIER = SOURCE_ROOT / "scripts" / "verify_pages.py"
+SITE_VALIDATOR = SOURCE_ROOT / "scripts" / "validate_site_manifest.py"
 
 EXPECTED_STATES = (
     "INTAKE",
@@ -98,6 +99,18 @@ def load_pages_verifier_module() -> Any:
         raise RuntimeError(f"cannot load {PAGES_VERIFIER}")
     module = importlib.util.module_from_spec(spec)
     sys.modules[name] = module
+    spec.loader.exec_module(module)
+    return module
+
+
+def load_site_validator_module() -> Any:
+    """Load the static-site validator without executing its CLI entry point."""
+
+    name = f"validate_site_manifest_under_test_{os.getpid()}_{id(object())}"
+    spec = importlib.util.spec_from_file_location(name, SITE_VALIDATOR)
+    if spec is None or spec.loader is None:
+        raise RuntimeError(f"cannot load {SITE_VALIDATOR}")
+    module = importlib.util.module_from_spec(spec)
     spec.loader.exec_module(module)
     return module
 
@@ -790,7 +803,10 @@ class CanonicalContractTests(WorkflowTestCase):
         self.assertIn('comparisonWidth > availableWidth + 2', app)
         self.assertIn('const summaryIndex = isDefinition ? 1 : profiledSummaryIndex > 0 ? profiledSummaryIndex : cells.length > 1 ? 1 : -1', app)
         self.assertIn('const initiallyExpanded = isDefinition || !canCollapse || bodyRows.length <= 3 && rowIndex === 0', app)
-        self.assertIn('const defaultMode = "overview"', app)
+        self.assertIn(
+            'const defaultMode = isPresentation && hasSemanticSummary ? "summary" : "overview"',
+            app,
+        )
         self.assertIn('makeButton("Takeaway", "summary"', app)
         self.assertIn('makeButton("Overview", "overview"', app)
         self.assertIn('hint.hidden = !hasHorizontalOverflow', app)
@@ -822,6 +838,15 @@ class CanonicalContractTests(WorkflowTestCase):
         self.assertIn('document.querySelectorAll(".viz-kps-fit-contract[name]")', app)
         self.assertIn('detail.removeAttribute("name")', app)
         self.assertIn('detail.setAttribute("name", name)', app)
+        self.assertIn('presentationVisualMarkup(slide, source, isJourneyDeck = false)', app)
+        self.assertIn('title: isJourneyDeck ? slide.title : slide.metricLabel', app)
+        self.assertIn('const journeyVisibility = [...document.querySelectorAll(', app)
+        self.assertIn('element.hidden = element.classList.contains("diagram-scroll")', app)
+        self.assertIn('state.printSnapshot.journeyVisibility.forEach', app)
+        self.assertIn('detail: { restoreFocus: false, deferLayout: false }', app)
+        self.assertIn('journeyVisibility, expandedDiagram', app)
+        self.assertIn('expandedDiagram.querySelector("[data-diagram-action=\'expand\']")?.click()', app)
+        self.assertIn('Source · ${escapeHtml(sourceLocator)}', app)
         self.assertIn('window.addEventListener("afterprint", restorePrintArtifacts)', app)
         self.assertIn("previewHeight / geometry.height", app)
         self.assertIn('function visualDisclosurePanel', app)
@@ -892,6 +917,35 @@ class CanonicalContractTests(WorkflowTestCase):
         self.assertRegex(
             styles,
             r"(?s)@media print.*?\.viz-kps-fit-contract:not\(\[open\]\)\s*\{\s*height: auto !important;",
+        )
+        self.assertIn("@page kong-journey-slide", styles)
+        self.assertRegex(
+            styles,
+            r"(?s)@page kong-journey-slide\s*\{.*?size: 16in 9in;.*?margin: 0\.25in;",
+        )
+        self.assertRegex(
+            styles,
+            r"(?s)@media print.*?\.presentation-stage\.is-kong-journey \.presentation-slide\.is-journey-slide\s*\{.*?page: kong-journey-slide;.*?width: 15\.5in;.*?height: 8\.5in;",
+        )
+        self.assertRegex(
+            styles,
+            r"(?s)@media print.*?\.presentation-stage\.is-kong-journey \.diagram-frame \.diagram-scroll.*?display: none !important;",
+        )
+        self.assertRegex(
+            styles,
+            r"(?s)@media print.*?\.presentation-stage\.is-kong-journey \.diagram-summary > small\s*\{\s*display: none !important;",
+        )
+        self.assertRegex(
+            styles,
+            r"(?s)@media print.*?\.presentation-stage\.is-kong-journey \.viz-kong-selected-grid p::before,.*?color: var\(--signal-dark\) !important;",
+        )
+        self.assertRegex(
+            styles,
+            r"(?s)\.presentation-stage\.is-kong-journey \.diagram-summary > p\s*\{.*?font-size: clamp\(1\.125rem, 1\.25vw, 1\.5rem\);",
+        )
+        self.assertRegex(
+            styles,
+            r"(?s)\.presentation-stage\.is-kong-journey \.diagram-summary > span,.*?font-size: 1rem;",
         )
         self.assertNotIn(".is-methodology-review .article-table", styles)
         self.assertIn('<details class="visual-panel atlas-panel', charts)
@@ -1053,6 +1107,201 @@ process.stdout.write(JSON.stringify({full, compact}));
         self.assertEqual(fit_keys, audience_slides["vp-executive"][1:5])
         self.assertEqual(fit_keys[:2], audience_slides["directors"][1:3])
         self.assertEqual(fit_keys, audience_slides["platform-teams"][:4])
+
+    def test_kong_platform_journey_contract_is_exact_and_falsifiable(self) -> None:
+        journey_slides = (
+            "kong-journey-decision",
+            "kong-journey-options",
+            "kong-journey-selected-option",
+            "kong-platform-architecture",
+            "kong-technical-state-trust",
+            "kong-technical-degraded-mode",
+            "kong-technical-operating-model",
+            "kong-platform-roadmap",
+            "kong-journey-migration-boundary",
+            "kong-journey-migration-coexistence",
+            "kong-journey-migration-waves",
+            "kong-journey-proof",
+            "kong-platform-outcomes-1",
+            "kong-platform-outcomes-2",
+            "kong-technical-assurance",
+        )
+        expected_roles = (
+            "vp-executive", "directors", "architects", "developers", "devops-sre", "platform-teams",
+        )
+        expected_sources = (
+            "docs/47-kong-enterprise-platform-strategy.md",
+            "docs/44-kong-multicloud-study-roadmap.md",
+            "docs/35-mule-migration-strategy.md",
+            "poc/README.md",
+        )
+        expected_options = (
+            "KMC-1", "KMC-2", "KMC-3", "KMC-4A", "KMC-4B", "KMC-5", "KMC-6", "KMC-7",
+        )
+        expected_responsibilities = ("G", "F", "T", "O", "M", "B", "C", "R")
+        expected_waves = tuple(f"M{index}" for index in range(6))
+        expected_figures = ("MULE-2", "MULE-3", "MULE-6")
+
+        with tempfile.TemporaryDirectory(prefix="kong-platform-journey-") as temporary:
+            output = Path(temporary) / "site"
+            built = subprocess.run(
+                (
+                    sys.executable,
+                    "-I",
+                    str(SOURCE_ROOT / "scripts" / "build_site.py"),
+                    "--output",
+                    str(output),
+                ),
+                cwd=SOURCE_ROOT,
+                capture_output=True,
+                text=True,
+                check=False,
+            )
+            self.assertEqual(0, built.returncode, built.stdout + built.stderr)
+            manifest = json.loads((output / "content-manifest.json").read_text(encoding="utf-8"))
+
+        validator = load_site_validator_module()
+        verifier = load_pages_verifier_module()
+        validator.validate_kong_platform_journey(manifest, manifest["presentation"])
+        verifier.validate_kong_platform_journey(manifest, manifest["presentation"])
+
+        self.assertEqual(37, len(manifest["presentation"]))
+        self.assertEqual(63, sum(len(audience["presentationSlides"]) for audience in manifest["audiences"]))
+        self.assertEqual(2, len(manifest["presentationDecks"]))
+        self.assertEqual([15, 15], [deck["slideTotal"] for deck in manifest["presentationDecks"]])
+        journey = next(deck for deck in manifest["presentationDecks"] if deck["id"] == "kong-platform-journey")
+        self.assertEqual(journey_slides, tuple(journey["presentationSlides"]))
+        self.assertEqual(15, journey["slideTotal"])
+        self.assertEqual("kong-journey", journey["theme"])
+        self.assertEqual(expected_roles, tuple(journey["audienceRoleIds"]))
+        self.assertEqual(expected_sources, tuple(journey["sourcePaths"]))
+        self.assertEqual("#/present/kong-platform-journey/0", journey["presentationRoute"])
+        self.assertEqual("#/overview", journey["exitRoute"])
+
+        technical = next(deck for deck in manifest["presentationDecks"] if deck["id"] == "kong-technical-deep-dive")
+        self.assertEqual("kong-platform", technical["theme"])
+        self.assertEqual(15, technical["slideTotal"])
+        self.assertEqual(
+            (
+                "decision",
+                "kong-platform-fit-boundary",
+                "kong-platform-fit-runtime",
+                "kong-platform-fit-change",
+                "kong-platform-fit-fallback",
+                "kong-platform-architecture",
+                "kong-technical-state-trust",
+                "kong-technical-operating-model",
+                "kong-technical-degraded-mode",
+                "kong-platform-cases-1",
+                "kong-platform-cases-2",
+                "kong-technical-evidence-path",
+                "kong-platform-outcomes-1",
+                "kong-platform-outcomes-2",
+                "kong-technical-assurance",
+            ),
+            tuple(technical["presentationSlides"]),
+        )
+
+        slide_by_key = {slide["key"]: slide for slide in manifest["presentation"]}
+        self.assertEqual(
+            tuple(range(30, 37)),
+            tuple(
+                slide_by_key[key]["index"]
+                for key in (
+                    "kong-journey-decision",
+                    "kong-journey-options",
+                    "kong-journey-selected-option",
+                    "kong-journey-migration-boundary",
+                    "kong-journey-migration-coexistence",
+                    "kong-journey-migration-waves",
+                    "kong-journey-proof",
+                )
+            ),
+        )
+        self.assertEqual("kongJourneySpine", slide_by_key["kong-journey-decision"]["visual"])
+        self.assertEqual("docs-47-kong-enterprise-platform-strategy", slide_by_key["kong-journey-decision"]["sourceId"])
+        self.assertEqual("kongPlatformRoadmap", slide_by_key["kong-platform-roadmap"]["visual"])
+        self.assertEqual("docs-47-kong-enterprise-platform-strategy", slide_by_key["kong-platform-roadmap"]["sourceId"])
+        self.assertEqual(36, slide_by_key["kong-journey-proof"]["index"])
+        self.assertEqual("pocStatus", slide_by_key["kong-journey-proof"]["visual"])
+        self.assertEqual(expected_options, tuple(slide_by_key["kong-journey-options"]["optionIds"]))
+        self.assertEqual(
+            ("KPS-FIT-01", "KPS-FIT-02"),
+            tuple(slide_by_key["kong-journey-selected-option"]["rowIds"]),
+        )
+        self.assertEqual("MULE-3", slide_by_key["kong-journey-migration-coexistence"]["figureId"])
+
+        options = manifest["visuals"]["kongMulticloud"]["options"]
+        self.assertEqual(expected_options, tuple(option["id"] for option in options))
+        self.assertTrue(
+            all(
+                str(option[field]).strip()
+                for option in options
+                for field in ("label", "placement", "role", "journeyLabel")
+            )
+        )
+        self.assertTrue(
+            all(
+                str(option[field]).strip()
+                for option in options[:3]
+                for field in ("journeyBoundary", "journeyRole")
+            )
+        )
+        mule = manifest["visuals"]["muleMigration"]
+        self.assertEqual("docs/35-mule-migration-strategy.md", mule["sourcePath"])
+        self.assertEqual(expected_responsibilities, tuple(row["id"] for row in mule["responsibilities"]))
+        self.assertEqual(expected_waves, tuple(wave["id"] for wave in mule["waves"]))
+        self.assertEqual(expected_figures, tuple(figure["figureId"] for figure in mule["figures"]))
+
+        invalid_cases = (
+            ("slide order", "exact 15-slide journey order"),
+            ("theme", "theme must be kong-journey"),
+            ("roles", "exact six-role order"),
+            ("sources", "exact canonical source order"),
+            ("decision visual", "decision slide must use kongJourneySpine"),
+            ("roadmap visual", "roadmap slide must use kongPlatformRoadmap"),
+            ("option ID", "exact KMC option order"),
+            ("option journey label", "journeyLabel evidence"),
+            ("primary option boundary", "journeyBoundary and journeyRole evidence"),
+            ("responsibility order", "exact G/F/T/O/M/B/C/R order"),
+            ("wave provenance", "exact canonical table"),
+            ("figure provenance", "exact canonical figure"),
+        )
+        for case, error in invalid_cases:
+            with self.subTest(case=case):
+                invalid = json.loads(json.dumps(manifest))
+                invalid_journey = next(
+                    deck for deck in invalid["presentationDecks"] if deck["id"] == "kong-platform-journey"
+                )
+                if case == "slide order":
+                    invalid_journey["presentationSlides"][1:3] = reversed(invalid_journey["presentationSlides"][1:3])
+                elif case == "theme":
+                    invalid_journey["theme"] = "kong-platform"
+                elif case == "roles":
+                    invalid_journey["audienceRoleIds"][0:2] = reversed(invalid_journey["audienceRoleIds"][0:2])
+                elif case == "sources":
+                    invalid_journey["sourcePaths"][0:2] = reversed(invalid_journey["sourcePaths"][0:2])
+                elif case == "decision visual":
+                    next(slide for slide in invalid["presentation"] if slide["key"] == "kong-journey-decision")["visual"] = "recommendation"
+                elif case == "roadmap visual":
+                    next(slide for slide in invalid["presentation"] if slide["key"] == "kong-platform-roadmap")["visual"] = "roadmap"
+                elif case == "option ID":
+                    invalid["visuals"]["kongMulticloud"]["options"][0]["id"] = "KMC-X"
+                elif case == "option journey label":
+                    invalid["visuals"]["kongMulticloud"]["options"][4]["journeyLabel"] = ""
+                elif case == "primary option boundary":
+                    invalid["visuals"]["kongMulticloud"]["options"][0]["journeyBoundary"] = ""
+                elif case == "responsibility order":
+                    rows = invalid["visuals"]["muleMigration"]["responsibilities"]
+                    rows[0:2] = reversed(rows[0:2])
+                elif case == "wave provenance":
+                    invalid["visuals"]["muleMigration"]["waveProvenance"]["sourceHeading"] = "Wrong heading"
+                else:
+                    invalid["visuals"]["muleMigration"]["figures"][1]["provenance"]["sourceHeading"] = "Wrong heading"
+                with self.assertRaisesRegex(validator.ValidationError, error):
+                    validator.validate_kong_platform_journey(invalid, invalid["presentation"])
+                with self.assertRaisesRegex(verifier.VerificationError, error):
+                    verifier.validate_kong_platform_journey(invalid, invalid["presentation"])
 
     def test_temporary_repositories_drop_outer_publication_provenance(self) -> None:
         original = {
@@ -3275,6 +3524,65 @@ class ImmutableSpecTests(WorkflowTestCase):
 
 
 class DraftGateTests(WorkflowTestCase):
+    def test_kong_platform_journey_routes_are_bounded_to_zero_through_fourteen(self) -> None:
+        repository = self.repository(local_origin=True)
+        _, data, _ = repository.prepare_draft()
+        data["derivedPaths"] = [
+            "site/workflow-test.json",
+            "#/doc/workflow-test",
+            "#/present/kong-platform-journey/0",
+            "#/present/kong-platform-journey/14",
+        ]
+        slide_keys = [f"journey-{index:02d}" for index in range(15)]
+        role_ids = ["vp-executive", "directors", "architects", "developers", "devops-sre", "platform-teams"]
+        manifest = repository.root / "_site" / "content-manifest.json"
+        manifest.write_text(
+            json.dumps(
+                {
+                    "items": [
+                        {
+                            "path": "docs/workflow-test.md",
+                            "route": "#/doc/workflow-test",
+                        }
+                    ],
+                    "presentation": [
+                        {"index": index, "key": key}
+                        for index, key in enumerate(slide_keys)
+                    ],
+                    "audiences": [
+                        {
+                            "id": role_id,
+                            "presentationSlides": [slide_keys[0]],
+                        }
+                        for role_id in role_ids
+                    ],
+                    "presentationDecks": [
+                        {
+                            "id": "kong-platform-journey",
+                            "audienceRoleIds": role_ids,
+                            "presentationSlides": slide_keys,
+                            "presentationRoute": "#/present/kong-platform-journey/0",
+                        }
+                    ],
+                }
+            ),
+            encoding="utf-8",
+        )
+        workflow = repository.load_module("scripts/study_workflow.py")
+        workflow.verify_local_derived_routes(data)
+
+        invalid = dict(data)
+        invalid["derivedPaths"] = [
+            "site/workflow-test.json",
+            "#/doc/workflow-test",
+            "#/present/kong-platform-journey/15",
+        ]
+        with self.assertRaisesRegex(
+            workflow.WorkflowError,
+            "declared derived route is absent from the generated site manifest",
+        ):
+            workflow.verify_local_derived_routes(invalid)
+
     def test_named_presentation_deck_routes_are_manifest_bounded(self) -> None:
         repository = self.repository(local_origin=True)
         _, data, _ = repository.prepare_draft()
