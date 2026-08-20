@@ -2692,6 +2692,7 @@ class ManifestRuntimeDependencyTests(WorkflowTestCase):
             ("canonical test IDs", "must be exactly POC-001", "must be exactly POC-001"),
             ("undeclared test status", "is undeclared", "is undeclared"),
             ("test status aggregate", "status counts must match", "status counts must match"),
+            ("canonical ID status swap", "canonical ID-to-status", "canonical ID-to-status"),
         )
         for case, local_error, pages_error in invalid_cases:
             with self.subTest(case=case):
@@ -2714,8 +2715,13 @@ class ManifestRuntimeDependencyTests(WorkflowTestCase):
                     poc["tests"][-1]["id"] = "POC-111"
                 elif case == "undeclared test status":
                     poc["tests"][0]["status"] = "Scripted"
-                else:
+                elif case == "test status aggregate":
                     poc["tests"][0]["status"] = "Not run"
+                else:
+                    poc["tests"][0]["status"], poc["tests"][5]["status"] = (
+                        poc["tests"][5]["status"],
+                        poc["tests"][0]["status"],
+                    )
 
                 with self.assertRaisesRegex(validator.ValidationError, local_error):
                     validator.validate_poc_projection(invalid)

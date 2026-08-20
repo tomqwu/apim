@@ -57,10 +57,12 @@ KONG_PLATFORM_FIT_SLIDE_ROWS = {
 }
 REMOVED_KONG_PLATFORM_FIT_SLIDE_KEYS = frozenset({"kong-platform-fit-1", "kong-platform-fit-2"})
 POC_STATUS_COUNTS = {"Automated": 5, "Not run": 11}
-POC_TEST_IDS = (
-    *(f"POC-{index:03d}" for index in range(1, 7)),
-    *(f"POC-{index}" for index in range(101, 111)),
-)
+POC_STATUS_BY_ID = {
+    **{f"POC-{index:03d}": "Automated" for index in range(1, 6)},
+    "POC-006": "Not run",
+    **{f"POC-{index}": "Not run" for index in range(101, 111)},
+}
+POC_TEST_IDS = tuple(POC_STATUS_BY_ID)
 ROOT = Path(__file__).resolve().parents[1]
 
 
@@ -157,6 +159,10 @@ def validate_poc_projection(manifest: dict[str, Any]) -> None:
     require(
         observed_statuses == declared_statuses,
         "manifest visuals.poc.tests status counts must match visuals.poc.byStatus",
+    )
+    require(
+        dict(zip(test_ids, test_statuses)) == POC_STATUS_BY_ID,
+        "manifest visuals.poc.tests must preserve the canonical ID-to-status assignments",
     )
 
 
