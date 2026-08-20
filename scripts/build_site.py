@@ -1212,6 +1212,91 @@ def kong_platform_strategy_visuals(items: list[dict[str, object]]) -> dict[str, 
             }
         )
     architecture = next((figure for figure in figures if figure["figureId"] == "KPS-1"), {})
+    architecture_provenance = dict(architecture.get("provenance", {}))
+    architecture_provenance.update(
+        {
+            "projectionId": "KGE-09-OVERVIEW",
+            "projectionType": "source-derived readable overview",
+        }
+    )
+    guided_architecture_overview = {
+        "overviewId": "KGE-09-OVERVIEW",
+        "title": "One control boundary; distributed request runtimes",
+        "controlZone": {
+            "label": "Enterprise control zone",
+            "nodes": [
+                {
+                    "id": "gitops-trust",
+                    "label": "GitOps + PKI + Vault",
+                    "detail": "approved intent · trust · secrets",
+                },
+                {
+                    "id": "kong-control-plane",
+                    "label": "Kong control plane",
+                    "detail": "multiple CP instances · Admin/API · one governed writer",
+                },
+                {
+                    "id": "postgresql-ha",
+                    "label": "PostgreSQL HA",
+                    "detail": "backup · restore · migration boundary",
+                },
+            ],
+        },
+        "dataPlaneLabel": "Distributed data-plane cells",
+        "targetLabel": "Local services + evidence",
+        "lanes": [
+            {
+                "id": "cloud-a",
+                "dataPlane": {
+                    "id": "cloud-a-dp",
+                    "label": "Cloud A DP cell",
+                    "detail": "accepted config · local proxy",
+                },
+                "target": {
+                    "id": "cloud-a-services-evidence",
+                    "label": "Cloud A services",
+                    "detail": "APIs · collectors · SLO evidence",
+                },
+            },
+            {
+                "id": "cloud-b",
+                "dataPlane": {
+                    "id": "cloud-b-dp",
+                    "label": "Cloud B DP cell",
+                    "detail": "accepted config · local proxy",
+                },
+                "target": {
+                    "id": "cloud-b-services-evidence",
+                    "label": "Cloud B services",
+                    "detail": "APIs · collectors · SLO evidence",
+                },
+            },
+            {
+                "id": "private-legacy",
+                "dataPlane": {
+                    "id": "private-legacy-dp",
+                    "label": "Private / legacy DP",
+                    "detail": "accepted config · local proxy",
+                },
+                "target": {
+                    "id": "private-legacy-services-evidence",
+                    "label": "Private / legacy services",
+                    "detail": "coexistence · collectors · business probes",
+                },
+            },
+        ],
+        "edges": [
+            {"id": "KGE09-E01", "from": "gitops-trust", "to": "kong-control-plane", "kind": "approved-intent"},
+            {"id": "KGE09-E02", "from": "kong-control-plane", "to": "postgresql-ha", "kind": "management-state"},
+            {"id": "KGE09-E03", "from": "kong-control-plane", "to": "cloud-a-dp", "kind": "configuration"},
+            {"id": "KGE09-E04", "from": "kong-control-plane", "to": "cloud-b-dp", "kind": "configuration"},
+            {"id": "KGE09-E05", "from": "kong-control-plane", "to": "private-legacy-dp", "kind": "configuration"},
+            {"id": "KGE09-E06", "from": "cloud-a-dp", "to": "cloud-a-services-evidence", "kind": "local-request-and-evidence"},
+            {"id": "KGE09-E07", "from": "cloud-b-dp", "to": "cloud-b-services-evidence", "kind": "local-request-and-evidence"},
+            {"id": "KGE09-E08", "from": "private-legacy-dp", "to": "private-legacy-services-evidence", "kind": "local-request-and-evidence"},
+        ],
+        "provenance": architecture_provenance,
+    }
 
     return {
         "sourcePath": source_path,
@@ -1223,6 +1308,7 @@ def kong_platform_strategy_visuals(items: list[dict[str, object]]) -> dict[str, 
         "outcomes": {"rowTotal": len(outcomes), "rows": outcomes, "provenance": outcome_provenance},
         "figures": figures,
         "architecture": architecture,
+        "guidedArchitectureOverview": guided_architecture_overview,
     }
 
 
@@ -1334,6 +1420,358 @@ def mule_migration_visuals(items: list[dict[str, object]]) -> dict[str, object]:
     }
 
 
+def guided_evaluation_visuals(items: list[dict[str, object]]) -> dict[str, object]:
+    """Project the guided Kong evaluation and native-deck contract from doc48."""
+    source_path = "docs/48-kong-guided-evaluation.md"
+    text = safe_text(ROOT / source_path)
+    by_path = {str(item["path"]): str(item["id"]) for item in items}
+    source_id = by_path.get(source_path, "")
+
+    metadata_rows = markdown_table(text, ("Field", "Value"))
+    metadata = {
+        clean_inline(row_value(row, "Field")).casefold(): clean_inline(row_value(row, "Value"))
+        for row in metadata_rows
+    }
+    source_class = metadata.get("artifact type", "")
+    evidence_state = metadata.get("evidence state", "")
+    as_of_match = re.search(r"\b\d{4}-\d{2}-\d{2}\b", metadata.get("as-of date", ""))
+    as_of = as_of_match.group(0) if as_of_match else ""
+
+    def provenance(heading: str, columns: tuple[str, ...]) -> dict[str, object]:
+        return {
+            "sourcePath": source_path,
+            "sourceId": source_id,
+            "sourcePaths": [source_path],
+            "sourceIds": [source_id] if source_id else [],
+            "sourceHeading": heading,
+            "tableColumns": list(columns),
+            "sourceClass": source_class,
+            "evidenceState": evidence_state,
+            "asOf": as_of,
+        }
+
+    def scoped_rows(heading: str, columns: tuple[str, ...]) -> tuple[list[dict[str, str]], dict[str, object]]:
+        return markdown_table(markdown_section(text, heading), columns), provenance(heading, columns)
+
+    def numeric(value: str) -> int | float:
+        normalized = re.sub(r"[^0-9.+-]", "", clean_inline(value))
+        try:
+            number = float(normalized)
+        except ValueError:
+            return 0
+        return int(number) if number.is_integer() else number
+
+    target_columns = ("Lane", "Input ID", "Stated target input", "Decision implication")
+    target_rows, target_provenance = scoped_rows("Stated target operating model", target_columns)
+    target_model = [
+        {
+            "lane": clean_inline(row_value(row, "Lane")),
+            "id": clean_inline(row_value(row, "Input ID")),
+            "input": clean_inline(row_value(row, "Stated target input")),
+            "implication": clean_inline(row_value(row, "Decision implication")),
+        }
+        for row in target_rows
+    ]
+
+    weight_columns = ("Weight ID", "Category", "Weight", "Interpretation", "Evidence needed before decision use")
+    weight_rows, weight_provenance = scoped_rows("Supplied weighting model", weight_columns)
+    weights = [
+        {
+            "id": clean_inline(row_value(row, "Weight ID")),
+            "category": clean_inline(row_value(row, "Category")),
+            "weight": numeric(row_value(row, "Weight")),
+            "interpretation": clean_inline(row_value(row, "Interpretation")),
+            "evidenceNeeded": clean_inline(row_value(row, "Evidence needed before decision use")),
+        }
+        for row in weight_rows
+    ]
+
+    option_columns = ("Option ID", "Operating-model archetype", "Strongest when", "Concern to test", "Presentation strongest when", "Presentation concern", "Decision role")
+    option_rows, option_provenance = scoped_rows("Conditional option archetypes", option_columns)
+    options = [
+        {
+            "id": clean_inline(row_value(row, "Option ID")),
+            "archetype": clean_inline(row_value(row, "Operating-model archetype")),
+            "strongestWhen": clean_inline(row_value(row, "Strongest when")),
+            "concern": clean_inline(row_value(row, "Concern to test")),
+            "presentationStrongestWhen": clean_inline(row_value(row, "Presentation strongest when")),
+            "presentationConcern": clean_inline(row_value(row, "Presentation concern")),
+            "decisionRole": clean_inline(row_value(row, "Decision role")),
+        }
+        for row in option_rows
+    ]
+
+    score_columns = (
+        "Category",
+        "Weight",
+        "Kong input",
+        "Apigee input",
+        "MuleSoft input",
+        "Kong weighted",
+        "Apigee weighted",
+        "MuleSoft weighted",
+    )
+    score_source_rows, score_provenance = scoped_rows("Supplied scoring audit", score_columns)
+    displayed_total_columns = ("Product", "Supplied displayed total", "Recalculated total")
+    displayed_total_rows, _ = scoped_rows("Supplied versus recalculated totals", displayed_total_columns)
+    score_key_by_product = {"kong": "kong", "apigee": "apigee", "mulesoft": "muleSoft"}
+    displayed_totals = {
+        score_key_by_product[clean_inline(row_value(row, "Product")).casefold()]: numeric(row_value(row, "Supplied displayed total"))
+        for row in displayed_total_rows
+        if clean_inline(row_value(row, "Product")).casefold() in score_key_by_product
+    }
+    weight_id_by_category = {str(row["category"]).casefold(): str(row["id"]) for row in weights}
+    score_rows: list[dict[str, object]] = []
+    score_totals: dict[str, int | float] = {}
+    for row in score_source_rows:
+        category = clean_inline(row_value(row, "Category"))
+        values = {
+            "weight": numeric(row_value(row, "Weight")),
+            "kongInput": numeric(row_value(row, "Kong input")),
+            "apigeeInput": numeric(row_value(row, "Apigee input")),
+            "muleSoftInput": numeric(row_value(row, "MuleSoft input")),
+            "kongWeighted": numeric(row_value(row, "Kong weighted")),
+            "apigeeWeighted": numeric(row_value(row, "Apigee weighted")),
+            "muleSoftWeighted": numeric(row_value(row, "MuleSoft weighted")),
+        }
+        if category.casefold() == "weighted total":
+            score_totals = {
+                "weight": values["weight"],
+                "kong": values["kongWeighted"],
+                "apigee": values["apigeeWeighted"],
+                "muleSoft": values["muleSoftWeighted"],
+            }
+            continue
+        score_rows.append(
+            {
+                "id": weight_id_by_category.get(category.casefold(), ""),
+                "category": category,
+                **values,
+            }
+        )
+
+    authorization_columns = ("Decision", "Authorize now", "Do not authorize", "Exit evidence")
+    authorization_rows, authorization_provenance = scoped_rows("Bounded authorization", authorization_columns)
+    authorization = [
+        {
+            "id": f"KGE-AUTH-{index:02d}",
+            "decision": clean_inline(row_value(row, "Decision")),
+            "authorize": clean_inline(row_value(row, "Authorize now")),
+            "hold": clean_inline(row_value(row, "Do not authorize")),
+            "exitEvidence": clean_inline(row_value(row, "Exit evidence")),
+        }
+        for index, row in enumerate(authorization_rows, start=1)
+    ]
+
+    proof_programme_columns = (
+        "Workstream ID",
+        "Workstream",
+        "Presentation summary",
+        "Required scope",
+        "Executed evidence and artifact",
+        "Production implication",
+    )
+    proof_programme_rows, proof_programme_provenance = scoped_rows(
+        "Six-workstream target-aligned proof programme",
+        proof_programme_columns,
+    )
+    proof_programme = [
+        {
+            "id": clean_inline(row_value(row, "Workstream ID")),
+            "workstream": clean_inline(row_value(row, "Workstream")),
+            "presentationSummary": clean_inline(row_value(row, "Presentation summary")),
+            "scope": clean_inline(row_value(row, "Required scope")),
+            "artifact": clean_inline(row_value(row, "Executed evidence and artifact")),
+            "implication": clean_inline(row_value(row, "Production implication")),
+        }
+        for row in proof_programme_rows
+    ]
+
+    proof_boundary_columns = ("Evidence system", "Current state", "What it can support", "What it cannot support")
+    proof_boundary_rows, proof_boundary_provenance = scoped_rows("Current proof boundary", proof_boundary_columns)
+    proof_boundary = [
+        {
+            "id": f"KGE-PROOF-{index:02d}",
+            "system": clean_inline(row_value(row, "Evidence system")),
+            "state": clean_inline(row_value(row, "Current state")),
+            "supports": clean_inline(row_value(row, "What it can support")),
+            "doesNotSupport": clean_inline(row_value(row, "What it cannot support")),
+        }
+        for index, row in enumerate(proof_boundary_rows, start=1)
+    ]
+
+    comparison_columns = ("Input ID", "Criterion", "Kong input", "MuleSoft input", "Apigee input", "Evidence treatment")
+
+    def comparison(heading: str) -> dict[str, object]:
+        rows, block_provenance = scoped_rows(heading, comparison_columns)
+        records = [
+            {
+                "id": clean_inline(row_value(row, "Input ID")),
+                "criterion": clean_inline(row_value(row, "Criterion")),
+                "kong": clean_inline(row_value(row, "Kong input")),
+                "muleSoft": clean_inline(row_value(row, "MuleSoft input")),
+                "apigee": clean_inline(row_value(row, "Apigee input")),
+                "evidenceTreatment": clean_inline(row_value(row, "Evidence treatment")),
+            }
+            for row in rows
+        ]
+        return {"rowTotal": len(records), "rows": records, "provenance": block_provenance}
+
+    phase_columns = ("Phase ID", "Phase", "Slides", "Audience decision")
+    phase_rows, phase_provenance = scoped_rows("Guided native deck phases", phase_columns)
+    phases = [
+        {
+            "id": clean_inline(row_value(row, "Phase ID")),
+            "label": clean_inline(row_value(row, "Phase")),
+            "slideRange": clean_inline(row_value(row, "Slides")),
+            "outcome": clean_inline(row_value(row, "Audience decision")),
+        }
+        for row in phase_rows
+    ]
+
+    slide_columns = (
+        "Slide ID",
+        "Stable key",
+        "Phase",
+        "Audience-facing title",
+        "Visible decision content",
+        "Visual contract",
+        "Canonical source",
+    )
+    evidence_columns = ("Slide IDs", "Visible evidence state", "Source class", "Interpretation")
+    evidence_rows, evidence_provenance = scoped_rows(
+        "Native presentation contract: KGE-01–KGE-25",
+        evidence_columns,
+    )
+
+    def slide_id_range(value: str) -> list[str]:
+        normalized = clean_inline(value).replace("—", "-").replace("–", "-")
+        match = re.fullmatch(r"KGE-(\d+)(?:\s*-\s*KGE-(\d+))?", normalized, flags=re.IGNORECASE)
+        if not match:
+            return []
+        start = int(match.group(1))
+        end = int(match.group(2) or start)
+        return [f"KGE-{number:02d}" for number in range(start, end + 1)]
+
+    evidence_states = [
+        {
+            "slideIds": slide_id_range(row_value(row, "Slide IDs")),
+            "evidenceState": clean_inline(row_value(row, "Visible evidence state")),
+            "sourceClass": clean_inline(row_value(row, "Source class")),
+            "interpretation": clean_inline(row_value(row, "Interpretation")),
+        }
+        for row in evidence_rows
+    ]
+    evidence_by_slide_id = {
+        slide_id: evidence
+        for evidence in evidence_states
+        for slide_id in evidence["slideIds"]
+    }
+    reference_columns = ("Slide IDs", "Official references")
+    reference_rows, reference_provenance = scoped_rows(
+        "Guided slide official reference links",
+        reference_columns,
+    )
+
+    def official_links(value: str) -> list[dict[str, str]]:
+        links: list[dict[str, str]] = []
+        seen_urls: set[str] = set()
+        for match in re.finditer(r"\[([^\]]+)\]\((https://[^)]+)\)", value):
+            label = clean_inline(match.group(1))
+            url = match.group(2).strip()
+            if label and url not in seen_urls:
+                seen_urls.add(url)
+                links.append({"label": label, "url": url})
+        return links
+
+    reference_catalog = [
+        {
+            "slideIds": slide_id_range(row_value(row, "Slide IDs")),
+            "links": official_links(row_value(row, "Official references")),
+        }
+        for row in reference_rows
+    ]
+    official_references_by_slide_id = {
+        slide_id: list(reference["links"])
+        for reference in reference_catalog
+        for slide_id in reference["slideIds"]
+    }
+    slide_rows, slide_provenance = scoped_rows("Native presentation contract: KGE-01–KGE-25", slide_columns)
+
+    def linked_source_paths(canonical_source: str) -> list[str]:
+        paths: list[str] = []
+        references = {
+            "docs/44": "docs/44-kong-multicloud-study-roadmap.md",
+            "docs/47": "docs/47-kong-enterprise-platform-strategy.md",
+            "docs/35": "docs/35-mule-migration-strategy.md",
+            "poc/README": "poc/README.md",
+        }
+        for marker, path in references.items():
+            if marker.casefold() in canonical_source.casefold() and path in by_path and path not in paths:
+                paths.append(path)
+        paths.append(source_path)
+        return paths
+
+    slides: list[dict[str, object]] = []
+    for row in slide_rows:
+        slide_id = clean_inline(row_value(row, "Slide ID"))
+        slide_evidence = evidence_by_slide_id.get(slide_id, {})
+        canonical_source = clean_inline(row_value(row, "Canonical source"))
+        source_paths = linked_source_paths(canonical_source)
+        primary_source_path = source_paths[0]
+        stable_key = clean_inline(row_value(row, "Stable key"))
+        slides.append(
+            {
+                "slideId": slide_id,
+                "key": stable_key,
+                "viewId": stable_key.removeprefix("kong-guided-"),
+                "phaseId": clean_inline(row_value(row, "Phase")),
+                "title": clean_inline(row_value(row, "Audience-facing title")),
+                "body": clean_inline(row_value(row, "Visible decision content")),
+                "visualContract": clean_inline(row_value(row, "Visual contract")),
+                "canonicalSource": canonical_source,
+                "primarySourcePath": primary_source_path,
+                "primarySourceId": by_path.get(primary_source_path, ""),
+                "sourcePaths": source_paths,
+                "sourceIds": [by_path[path] for path in source_paths if path in by_path],
+                "officialReferences": official_references_by_slide_id.get(slide_id, []),
+                "evidenceState": str(slide_evidence.get("evidenceState", "")),
+                "sourceClass": str(slide_evidence.get("sourceClass", "")),
+                "evidenceInterpretation": str(slide_evidence.get("interpretation", "")),
+            }
+        )
+    first_key_by_phase: dict[str, str] = {}
+    for slide in slides:
+        first_key_by_phase.setdefault(str(slide["phaseId"]), str(slide["key"]))
+    for phase in phases:
+        phase["startKey"] = first_key_by_phase.get(str(phase["id"]), "")
+
+    return {
+        "sourcePath": source_path,
+        "sourceId": source_id,
+        "sourceClass": source_class,
+        "evidenceState": evidence_state,
+        "asOf": as_of,
+        "metadata": metadata,
+        "targetModel": {"rowTotal": len(target_model), "rows": target_model, "provenance": target_provenance},
+        "weights": {"rowTotal": len(weights), "rows": weights, "weightTotal": sum(row["weight"] for row in weights), "provenance": weight_provenance},
+        "options": {"rowTotal": len(options), "rows": options, "provenance": option_provenance},
+        "scoring": {"rowTotal": len(score_rows), "rows": score_rows, "displayedTotals": displayed_totals, "totals": score_totals, "provenance": score_provenance},
+        "authorization": {"rowTotal": len(authorization), "rows": authorization, "provenance": authorization_provenance},
+        "proofProgramme": {"rowTotal": len(proof_programme), "rows": proof_programme, "provenance": proof_programme_provenance},
+        "proofBoundary": {"rowTotal": len(proof_boundary), "rows": proof_boundary, "provenance": proof_boundary_provenance},
+        "evidenceStates": {"rowTotal": len(evidence_states), "rows": evidence_states, "provenance": evidence_provenance},
+        "referenceCatalog": {"rowTotal": len(reference_catalog), "rows": reference_catalog, "provenance": reference_provenance},
+        "comparisons": {
+            "architecture": comparison("Supplied comparison input: architecture and delivery"),
+            "management": comparison("Supplied comparison input: management, experience, and AI"),
+            "economics": comparison("Supplied comparison input: economics and evidence ceiling"),
+        },
+        "phases": {"rowTotal": len(phases), "rows": phases, "provenance": phase_provenance},
+        "slides": {"rowTotal": len(slides), "rows": slides, "provenance": slide_provenance},
+    }
+
+
 def methodology_visuals() -> dict[str, object]:
     text = safe_text(ROOT / "docs" / "03-assessment-methodology.md")
     sequence_rows = markdown_table(text, ("Stage", "Purpose", "Required output", "Stop condition"))
@@ -1394,6 +1832,7 @@ def visual_provenance(items: list[dict[str, object]]) -> dict[str, dict[str, obj
         "kongMulticloud": ("docs/44-kong-multicloud-study-roadmap.md",),
         "kongPlatformStrategy": ("docs/47-kong-enterprise-platform-strategy.md",),
         "muleMigration": ("docs/35-mule-migration-strategy.md",),
+        "guidedEvaluation": ("docs/48-kong-guided-evaluation.md",),
         "methodology": ("docs/03-assessment-methodology.md",),
         "review": ("reports/methodology-review.md",),
     }
@@ -1434,6 +1873,7 @@ def build_visuals(items: list[dict[str, object]]) -> dict[str, object]:
         "kongMulticloud": kong_multicloud_visuals(items),
         "kongPlatformStrategy": kong_platform_strategy_visuals(items),
         "muleMigration": mule_migration_visuals(items),
+        "guidedEvaluation": guided_evaluation_visuals(items),
         "methodology": methodology_visuals(),
         "review": review_visuals(),
         "provenance": visual_provenance(items),
@@ -1450,7 +1890,18 @@ def validate_site_projection(stats: dict[str, int], visuals: dict[str, object]) 
     industry_practices = visuals.get("industryPractices")
     kong_multicloud = visuals.get("kongMulticloud")
     kong_platform = visuals.get("kongPlatformStrategy")
+    guided_architecture_overview = (
+        kong_platform.get("guidedArchitectureOverview")
+        if isinstance(kong_platform, dict)
+        else None
+    )
     mule_migration = visuals.get("muleMigration")
+    guided_evaluation = visuals.get("guidedEvaluation")
+    guided_slide_rows = (
+        list(guided_evaluation.get("slides", {}).get("rows", []))
+        if isinstance(guided_evaluation, dict)
+        else []
+    )
     checks = {
         "bounded archetypes": isinstance(variants, list) and bool(variants),
         "methodology decision steps": isinstance(methodology, dict) and bool(methodology.get("steps")),
@@ -1556,6 +2007,31 @@ def validate_site_projection(stats: dict[str, int], visuals: dict[str, object]) 
                 )
             )
         ),
+        "KGE-09 guided architecture overview": (
+            isinstance(guided_architecture_overview, dict)
+            and guided_architecture_overview.get("overviewId") == "KGE-09-OVERVIEW"
+            and [node.get("id") for node in guided_architecture_overview.get("controlZone", {}).get("nodes", [])]
+            == ["gitops-trust", "kong-control-plane", "postgresql-ha"]
+            and [lane.get("id") for lane in guided_architecture_overview.get("lanes", [])]
+            == ["cloud-a", "cloud-b", "private-legacy"]
+            and [
+                (edge.get("from"), edge.get("to"), edge.get("kind"))
+                for edge in guided_architecture_overview.get("edges", [])
+            ]
+            == [
+                ("gitops-trust", "kong-control-plane", "approved-intent"),
+                ("kong-control-plane", "postgresql-ha", "management-state"),
+                ("kong-control-plane", "cloud-a-dp", "configuration"),
+                ("kong-control-plane", "cloud-b-dp", "configuration"),
+                ("kong-control-plane", "private-legacy-dp", "configuration"),
+                ("cloud-a-dp", "cloud-a-services-evidence", "local-request-and-evidence"),
+                ("cloud-b-dp", "cloud-b-services-evidence", "local-request-and-evidence"),
+                ("private-legacy-dp", "private-legacy-services-evidence", "local-request-and-evidence"),
+            ]
+            and guided_architecture_overview.get("provenance", {}).get("sourceId")
+            == kong_platform.get("sourceId")
+            and guided_architecture_overview.get("provenance", {}).get("figureId") == "KPS-1"
+        ),
         "Mule migration journey models": (
             isinstance(mule_migration, dict)
             and bool(mule_migration.get("sourceId"))
@@ -1577,6 +2053,116 @@ def validate_site_projection(stats: dict[str, int], visuals: dict[str, object]) 
                 and figure.get("provenance", {}).get("sourceId") == mule_migration.get("sourceId")
                 and figure.get("provenance", {}).get("figureId") == figure.get("figureId")
                 for figure in mule_migration.get("figures", [])
+            )
+        ),
+        "Kong guided evaluation and native deck contract": (
+            isinstance(guided_evaluation, dict)
+            and bool(guided_evaluation.get("sourceId"))
+            and guided_evaluation.get("sourceClass") == "comparative-study"
+            and guided_evaluation.get("asOf") == "2026-08-20"
+            and bool(guided_evaluation.get("evidenceState"))
+            and guided_evaluation.get("targetModel", {}).get("rowTotal") == 9
+            and [row.get("id") for row in guided_evaluation.get("targetModel", {}).get("rows", [])]
+            == [f"GTM-{rank:02d}" for rank in range(1, 10)]
+            and guided_evaluation.get("weights", {}).get("rowTotal") == 8
+            and guided_evaluation.get("weights", {}).get("weightTotal") == 100
+            and [row.get("id") for row in guided_evaluation.get("weights", {}).get("rows", [])]
+            == [f"GEW-{rank:02d}" for rank in range(1, 9)]
+            and guided_evaluation.get("options", {}).get("rowTotal") == 4
+            and [row.get("id") for row in guided_evaluation.get("options", {}).get("rows", [])]
+            == ["GEO-KONG", "GEO-APIGEE", "GEO-MULE", "GEO-APIM"]
+            and guided_evaluation.get("scoring", {}).get("rowTotal") == 8
+            and guided_evaluation.get("scoring", {}).get("totals")
+            == {"weight": 100, "kong": 93, "apigee": 85.5, "muleSoft": 77}
+            and guided_evaluation.get("scoring", {}).get("displayedTotals")
+            == {"kong": 93, "apigee": 87, "muleSoft": 78}
+            and guided_evaluation.get("authorization", {}).get("rowTotal") == 5
+            and [row.get("id") for row in guided_evaluation.get("authorization", {}).get("rows", [])]
+            == [f"KGE-AUTH-{rank:02d}" for rank in range(1, 6)]
+            and guided_evaluation.get("proofProgramme", {}).get("rowTotal") == 6
+            and [row.get("id") for row in guided_evaluation.get("proofProgramme", {}).get("rows", [])]
+            == [f"GEP-{rank:02d}" for rank in range(1, 7)]
+            and guided_evaluation.get("proofBoundary", {}).get("rowTotal") == 3
+            and [row.get("id") for row in guided_evaluation.get("proofBoundary", {}).get("rows", [])]
+            == [f"KGE-PROOF-{rank:02d}" for rank in range(1, 4)]
+            and guided_evaluation.get("evidenceStates", {}).get("rowTotal") == 12
+            and [
+                slide_id
+                for row in guided_evaluation.get("evidenceStates", {}).get("rows", [])
+                for slide_id in row.get("slideIds", [])
+            ]
+            == [f"KGE-{rank:02d}" for rank in range(1, 26)]
+            and guided_evaluation.get("comparisons", {}).get("architecture", {}).get("rowTotal") == 8
+            and guided_evaluation.get("comparisons", {}).get("management", {}).get("rowTotal") == 7
+            and guided_evaluation.get("comparisons", {}).get("economics", {}).get("rowTotal") == 3
+            and [
+                row.get("id")
+                for group in ("architecture", "management", "economics")
+                for row in guided_evaluation.get("comparisons", {}).get(group, {}).get("rows", [])
+            ]
+            == [f"GEC-{rank:02d}" for rank in range(1, 19)]
+            and guided_evaluation.get("phases", {}).get("rowTotal") == 6
+            and [row.get("id") for row in guided_evaluation.get("phases", {}).get("rows", [])]
+            == [f"KGE-P{rank}" for rank in range(1, 7)]
+            and [row.get("startKey") for row in guided_evaluation.get("phases", {}).get("rows", [])]
+            == [
+                "kong-guided-cover",
+                "kong-guided-options",
+                "kong-guided-architecture",
+                "kong-guided-migration-boundary",
+                "kong-guided-proof-boundary",
+                "kong-guided-compare-architecture",
+            ]
+            and guided_evaluation.get("slides", {}).get("rowTotal") == 25
+            and [row.get("slideId") for row in guided_slide_rows]
+            == [f"KGE-{rank:02d}" for rank in range(1, 26)]
+            and len({row.get("key") for row in guided_slide_rows}) == 25
+            and [row.get("evidenceState") for row in guided_slide_rows]
+            == [
+                "Guided decision brief",
+                *("Stakeholder input" for _ in range(2)),
+                "Conditional hypothesis",
+                "Stakeholder input",
+                "Bounded direction",
+                *("Proposed target" for _ in range(6)),
+                "Scenario assumption",
+                *("Proposed migration model" for _ in range(3)),
+                "Executed local baseline",
+                "Not run",
+                *("Proposed acceptance contract" for _ in range(3)),
+                *("Stakeholder input" for _ in range(4)),
+            ]
+            and all(row.get("sourceClass") and row.get("evidenceInterpretation") for row in guided_slide_rows)
+            and all(
+                row.get("key")
+                and row.get("viewId")
+                and row.get("phaseId")
+                and row.get("title")
+                and row.get("body")
+                and row.get("visualContract")
+                and row.get("canonicalSource")
+                and row.get("sourceIds")
+                for row in guided_slide_rows
+            )
+            and all(
+                block.get("provenance", {}).get("sourceId") == guided_evaluation.get("sourceId")
+                and block.get("provenance", {}).get("sourceClass") == guided_evaluation.get("sourceClass")
+                and block.get("provenance", {}).get("asOf") == guided_evaluation.get("asOf")
+                for block in (
+                    guided_evaluation.get("targetModel", {}),
+                    guided_evaluation.get("weights", {}),
+                    guided_evaluation.get("options", {}),
+                    guided_evaluation.get("scoring", {}),
+                    guided_evaluation.get("authorization", {}),
+                    guided_evaluation.get("proofProgramme", {}),
+                    guided_evaluation.get("proofBoundary", {}),
+                    guided_evaluation.get("evidenceStates", {}),
+                    guided_evaluation.get("phases", {}),
+                    guided_evaluation.get("slides", {}),
+                    guided_evaluation.get("comparisons", {}).get("architecture", {}),
+                    guided_evaluation.get("comparisons", {}).get("management", {}),
+                    guided_evaluation.get("comparisons", {}).get("economics", {}),
+                )
             )
         ),
     }
@@ -1943,6 +2529,94 @@ def make_presentation(items: list[dict[str, object]], stats: dict[str, int], vis
             slide["optionIds"] = option_ids[slide["key"]]
         if slide["key"] in figure_ids:
             slide["figureId"] = figure_ids[slide["key"]]
+
+    guided = visuals.get("guidedEvaluation", {})
+    guided_contract = list(guided.get("slides", {}).get("rows", []))
+    guided_phases = {
+        str(row.get("id", "")): row
+        for row in guided.get("phases", {}).get("rows", [])
+    }
+
+    def block_ids(block: object) -> list[str]:
+        if not isinstance(block, dict):
+            return []
+        return [str(row.get("id", "")) for row in block.get("rows", []) if row.get("id")]
+
+    comparison_blocks = guided.get("comparisons", {})
+    comparison_blocks = comparison_blocks if isinstance(comparison_blocks, dict) else {}
+    guided_row_ids = {
+        "cover": block_ids(guided.get("phases", {})),
+        "target-model": block_ids(guided.get("targetModel", {})),
+        "weights": block_ids(guided.get("weights", {})),
+        "options": block_ids(guided.get("options", {})),
+        "score": block_ids(guided.get("scoring", {})),
+        "decision": block_ids(guided.get("authorization", {})),
+        "boundary": ["KMC-3", "KMC-2"],
+        "duty": [str(row.get("projectionId", "")) for row in kong_fit_rows if row.get("projectionId")],
+        "adoption": [str(row.get("id", "")) for row in kong_phases if row.get("id")],
+        "migration-boundary": [str(row.get("id", "")) for row in mule_responsibilities if row.get("id")],
+        "waves": [str(row.get("id", "")) for row in mule_waves if row.get("id")],
+        "proof-boundary": block_ids(guided.get("proofBoundary", {})),
+        "proof-programme": block_ids(guided.get("proofProgramme", {})),
+        "outcomes-1": [str(row.get("id", "")) for row in kong_outcomes[:5] if row.get("id")],
+        "outcomes-2": [str(row.get("id", "")) for row in kong_outcomes[5:] if row.get("id")],
+        "compare-architecture": block_ids(comparison_blocks.get("architecture", {})),
+        "compare-management": block_ids(comparison_blocks.get("management", {})),
+        "compare-economics": block_ids(comparison_blocks.get("economics", {})),
+        "score-audit": block_ids(guided.get("weights", {})),
+    }
+    guided_figure_ids = {
+        "architecture": ["KPS-1"],
+        "state-trust": ["KPS-2"],
+        "degraded": ["KPS-4"],
+        "operating-model": ["KPS-3"],
+        "adoption": ["KPS-5"],
+        "migration-boundary": ["MULE-2"],
+        "coexistence": ["MULE-3"],
+        "waves": ["MULE-6"],
+        "assurance": ["KPS-6"],
+    }
+    guided_option_ids = {"boundary": ["KMC-3", "KMC-2"]}
+    for contract in guided_contract:
+        view_id = str(contract.get("viewId", ""))
+        phase = guided_phases.get(str(contract.get("phaseId", "")), {})
+        figure_id_values = guided_figure_ids.get(view_id, [])
+        guided_slide: dict[str, object] = {
+            "index": len(slides),
+            "key": str(contract.get("key", "")),
+            "slideId": str(contract.get("slideId", "")),
+            "eyebrow": f"{contract.get('phaseId', '')} · {phase.get('label', '')}".strip(" ·"),
+            "title": str(contract.get("title", "")),
+            "body": str(contract.get("body", "")),
+            "sourceId": str(contract.get("primarySourceId", "")),
+            "sourceIds": [str(value) for value in contract.get("sourceIds", []) if value],
+            "sourcePaths": [str(value) for value in contract.get("sourcePaths", []) if value],
+            "officialReferences": [
+                {"label": str(reference.get("label", "")), "url": str(reference.get("url", ""))}
+                for reference in contract.get("officialReferences", [])
+                if isinstance(reference, dict) and reference.get("label") and reference.get("url")
+            ],
+            "metric": str(contract.get("slideId", "")),
+            "metricLabel": "canonical frame",
+            "visual": "guidedEvaluation",
+            "viewId": view_id,
+            "phaseId": str(contract.get("phaseId", "")),
+            "phaseLabel": str(phase.get("label", "")),
+            "phaseOutcome": str(phase.get("outcome", "")),
+            "visualContract": str(contract.get("visualContract", "")),
+            "canonicalSource": str(contract.get("canonicalSource", "")),
+            "rowIds": guided_row_ids.get(view_id, []),
+            "figureIds": figure_id_values,
+            "evidenceState": str(contract.get("evidenceState", "")),
+            "sourceClass": str(contract.get("sourceClass", "")),
+            "evidenceInterpretation": str(contract.get("evidenceInterpretation", "")),
+            "asOf": str(guided.get("asOf", "")),
+        }
+        if figure_id_values:
+            guided_slide["figureId"] = figure_id_values[0]
+        if view_id in guided_option_ids:
+            guided_slide["optionIds"] = guided_option_ids[view_id]
+        slides.append(guided_slide)
     return slides
 
 
@@ -1965,6 +2639,7 @@ def make_presentation_decks(
         exit_route: str,
         theme: str = "",
         journey_phases: tuple[tuple[str, str], ...] = (),
+        journey_phase_records: tuple[dict[str, str], ...] = (),
     ) -> dict[str, object]:
         if len(set(slide_keys)) != len(slide_keys):
             raise ValueError(f"Presentation deck {deck_id} repeats a slide key")
@@ -1974,14 +2649,32 @@ def make_presentation_decks(
         source_paths: list[str] = []
         source_ids: list[str] = []
         for key in slide_keys:
-            source_id = str(by_key[key].get("sourceId", ""))
-            source = item_by_id.get(source_id)
-            if not source:
+            slide_source_ids = [str(value) for value in by_key[key].get("sourceIds", []) if value]
+            primary_source_id = str(by_key[key].get("sourceId", ""))
+            if primary_source_id and primary_source_id not in slide_source_ids:
+                slide_source_ids.insert(0, primary_source_id)
+            if not slide_source_ids:
                 raise ValueError(f"Presentation deck {deck_id} slide {key} has no canonical source")
-            source_path = str(source.get("path", ""))
-            if source_id not in source_ids:
-                source_ids.append(source_id)
-                source_paths.append(source_path)
+            for source_id in slide_source_ids:
+                source = item_by_id.get(source_id)
+                if not source:
+                    raise ValueError(f"Presentation deck {deck_id} slide {key} references an unknown canonical source")
+                source_path = str(source.get("path", ""))
+                if source_id not in source_ids:
+                    source_ids.append(source_id)
+                    source_paths.append(source_path)
+        phase_records = [dict(phase) for phase in journey_phase_records]
+        if phase_records:
+            if len({phase.get("id", "") for phase in phase_records}) != len(phase_records):
+                raise ValueError(f"Presentation deck {deck_id} repeats a journey phase ID")
+            invalid_start_keys = [phase.get("startKey", "") for phase in phase_records if phase.get("startKey") not in slide_keys]
+            if invalid_start_keys:
+                raise ValueError(f"Presentation deck {deck_id} has invalid journey phase starts: {invalid_start_keys}")
+        else:
+            phase_records = [
+                {"id": f"{index:02d}", "label": label, "outcome": outcome}
+                for index, (label, outcome) in enumerate(journey_phases, start=1)
+            ]
         return {
             "id": deck_id,
             "kind": "deck",
@@ -1994,13 +2687,30 @@ def make_presentation_decks(
             "presentationRoute": f"#/present/{deck_id}/0",
             "exitRoute": exit_route,
             "theme": theme,
-            "journeyPhases": [
-                {"id": f"{index:02d}", "label": label, "outcome": outcome}
-                for index, (label, outcome) in enumerate(journey_phases, start=1)
-            ],
+            "journeyPhases": phase_records,
             "sourcePaths": source_paths,
             "sourceIds": source_ids,
         }
+
+    guided_slides = [slide for slide in presentation if slide.get("visual") == "guidedEvaluation"]
+    if len(guided_slides) != 25:
+        raise ValueError(f"Guided Kong deck must project 25 slides, found {len(guided_slides)}")
+    guided_slide_keys = tuple(str(slide.get("key", "")) for slide in guided_slides)
+    guided_phase_records: list[dict[str, str]] = []
+    seen_guided_phase_ids: set[str] = set()
+    for slide in guided_slides:
+        phase_id = str(slide.get("phaseId", ""))
+        if phase_id in seen_guided_phase_ids:
+            continue
+        seen_guided_phase_ids.add(phase_id)
+        guided_phase_records.append(
+            {
+                "id": phase_id,
+                "label": str(slide.get("phaseLabel", "")),
+                "outcome": str(slide.get("phaseOutcome", "")),
+                "startKey": str(slide.get("key", "")),
+            }
+        )
 
     return [
         deck(
@@ -2061,6 +2771,17 @@ def make_presentation_decks(
                 ("Migration", "Move representative slices with route-back; retire only after dependency zero"),
                 ("Production", "Scale only accepted patterns; narrow, switch, or exit otherwise"),
             ),
+        ),
+        deck(
+            deck_id="kong-platform-journey-guided",
+            label="Kong platform journey — guided evaluation",
+            short_label="Kong guided journey",
+            summary=str(guided_slides[0].get("body", "")),
+            audience_role_ids=("vp-executive", "directors", "architects", "developers", "devops-sre", "platform-teams"),
+            slide_keys=guided_slide_keys,
+            exit_route="#/overview",
+            theme="kong-guided",
+            journey_phase_records=tuple(guided_phase_records),
         ),
     ]
 

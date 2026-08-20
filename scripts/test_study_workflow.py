@@ -8,6 +8,7 @@ They use only the Python standard library and never contact GitHub.
 from __future__ import annotations
 
 import hashlib
+import html
 import importlib.util
 import json
 import os
@@ -19,6 +20,8 @@ import sys
 import tempfile
 import time
 import unittest
+import zipfile
+from xml.etree import ElementTree as ET
 from pathlib import Path
 from types import SimpleNamespace
 from typing import Any
@@ -52,6 +55,8 @@ REPOSITORY_FIXTURES = (
     "config/public-content-allowlist.json",
     "docs/46-study-publication-workflow.md",
     "docs/47-kong-enterprise-platform-strategy.md",
+    "docs/48-kong-guided-evaluation.md",
+    "presentations/kong-platform-journey-guided.pptx",
     "templates/study-intake-template.md",
     ".agents/skills/publish-api-study/SKILL.md",
     ".agents/skills/publish-api-study/agents/openai.yaml",
@@ -134,6 +139,41 @@ def poc_projection_fixture() -> dict[str, Any]:
             {"label": "Automated", "value": 5},
         ],
         "tests": tests,
+    }
+
+
+def criteria_projection_fixture() -> dict[str, Any]:
+    """Return the canonical evidence-state and criterion-composition projection."""
+
+    categories = (
+        ("architecture", "Architecture", 3, 7),
+        ("security", "Security", 7, 3),
+        ("network", "Network", 2, 8),
+        ("kubernetes", "Kubernetes", 2, 8),
+        ("api-lifecycle", "API lifecycle", 1, 9),
+        ("apiops", "APIOps", 3, 7),
+        ("traffic-policy", "Traffic & policy", 1, 9),
+        ("observability", "Observability", 1, 9),
+        ("resilience-performance", "Resilience & performance", 3, 7),
+        ("operations-support", "Operations & support", 2, 8),
+        ("mule-migration", "Mule migration", 2, 8),
+        ("commercial-strategy", "Commercial strategy", 3, 7),
+    )
+    return {
+        "total": 120,
+        "mandatory": 30,
+        "weighted": 90,
+        "statuses": [{"label": "Unknown", "value": 120}],
+        "categories": [
+            {
+                "id": category_id,
+                "label": label,
+                "total": mandatory + weighted,
+                "mandatory": mandatory,
+                "weighted": weighted,
+            }
+            for category_id, label, mandatory, weighted in categories
+        ],
     }
 
 
@@ -731,6 +771,104 @@ class CanonicalContractTests(WorkflowTestCase):
         self.assertIn("scans source before any content parser or generator runs", workflow)
         self.assertIn("rescans source plus generated output", workflow)
 
+    def test_guided_ppt_visible_links_follow_native_slide_contract(self) -> None:
+        with tempfile.TemporaryDirectory(prefix="guided-ppt-contract-") as temporary:
+            output = Path(temporary) / "site"
+            result = subprocess.run(
+                (
+                    sys.executable,
+                    "-I",
+                    str(SOURCE_ROOT / "scripts" / "build_site.py"),
+                    "--output",
+                    str(output),
+                ),
+                cwd=SOURCE_ROOT,
+                capture_output=True,
+                text=True,
+                check=False,
+            )
+            self.assertEqual(0, result.returncode, result.stdout + result.stderr)
+            manifest = json.loads((output / "content-manifest.json").read_text(encoding="utf-8"))
+
+        deck = next(
+            candidate
+            for candidate in manifest["presentationDecks"]
+            if candidate["id"] == "kong-platform-journey-guided"
+        )
+        slides_by_key = {slide["key"]: slide for slide in manifest["presentation"]}
+        contract = [slides_by_key[key] for key in deck["presentationSlides"]]
+        self.assertEqual(25, len(contract))
+
+        pptx = SOURCE_ROOT / "presentations" / "kong-platform-journey-guided.pptx"
+        drawing = "http://schemas.openxmlformats.org/drawingml/2006/main"
+        office_relationships = "http://schemas.openxmlformats.org/officeDocument/2006/relationships"
+        package_relationships = "http://schemas.openxmlformats.org/package/2006/relationships"
+        namespaces = {"a": drawing, "r": office_relationships, "pr": package_relationships}
+
+        with zipfile.ZipFile(pptx) as archive:
+            members = set(archive.namelist())
+            self.assertEqual(
+                25,
+                len(re.findall(r"^ppt/slides/slide\d+\.xml$", "\n".join(sorted(members)), re.MULTILINE)),
+            )
+            self.assertEqual(
+                25,
+                len(re.findall(r"^ppt/notesSlides/notesSlide\d+\.xml$", "\n".join(sorted(members)), re.MULTILINE)),
+            )
+
+            for index, slide_contract in enumerate(contract, start=1):
+                slide = ET.fromstring(archive.read(f"ppt/slides/slide{index}.xml"))
+                relationships = ET.fromstring(
+                    archive.read(f"ppt/slides/_rels/slide{index}.xml.rels")
+                )
+                targets = {
+                    relation.attrib["Id"]: relation
+                    for relation in relationships.findall("pr:Relationship", namespaces)
+                }
+                visible_links: dict[str, list[tuple[str, str | None]]] = {}
+                for run in slide.findall(".//a:r", namespaces):
+                    label = "".join(
+                        text.text or "" for text in run.findall(".//a:t", namespaces)
+                    )
+                    if label not in {"Repo reference", "Official docs"}:
+                        continue
+                    click = run.find("./a:rPr/a:hlinkClick", namespaces)
+                    self.assertIsNotNone(click, f"slide {index} {label} lacks a hyperlink")
+                    relationship_id = click.attrib[f"{{{office_relationships}}}id"]
+                    relation = targets[relationship_id]
+                    visible_links.setdefault(label, []).append(
+                        (relation.attrib["Target"], relation.attrib.get("TargetMode"))
+                    )
+
+                self.assertEqual(
+                    {"Repo reference", "Official docs"},
+                    set(visible_links),
+                    f"slide {index} visible reference labels drifted",
+                )
+                self.assertEqual(1, len(visible_links["Repo reference"]))
+                self.assertEqual(1, len(visible_links["Official docs"]))
+                repo_target, repo_mode = visible_links["Repo reference"][0]
+                official_target, official_mode = visible_links["Official docs"][0]
+                expected_repo = (
+                    "https://github.com/tomqwu/apim/blob/main/"
+                    f"{slide_contract['sourcePaths'][0]}"
+                )
+                allowed_official = {
+                    reference["url"] for reference in slide_contract["officialReferences"]
+                }
+                self.assertEqual(expected_repo, repo_target, f"slide {index} repository link drifted")
+                self.assertIn(official_target, allowed_official, f"slide {index} official link drifted")
+                self.assertEqual("External", repo_mode)
+                self.assertEqual("External", official_mode)
+
+            score_slide = ET.fromstring(archive.read("ppt/slides/slide25.xml"))
+            score_widths = [
+                int(column.attrib["w"])
+                for column in score_slide.findall(".//a:tblGrid/a:gridCol", namespaces)
+            ]
+            self.assertEqual(5, len(score_widths))
+            self.assertGreaterEqual(score_widths[-1], 1_143_000)
+
     def test_independent_review_comment_contract_is_exact_and_copyable(self) -> None:
         required_lines = (
             "Accepted head SHA:",
@@ -807,8 +945,8 @@ class CanonicalContractTests(WorkflowTestCase):
             'const defaultMode = isPresentation && hasSemanticSummary ? "summary" : "overview"',
             app,
         )
-        self.assertIn('makeButton("Takeaway", "summary"', app)
-        self.assertIn('makeButton("Overview", "overview"', app)
+        self.assertIn('makeButton(hasAuthoredOverview ? "Overview" : "Takeaway", "summary"', app)
+        self.assertIn('makeButton(hasAuthoredOverview ? "Full model" : "Overview", "overview"', app)
         self.assertIn('hint.hidden = !hasHorizontalOverflow', app)
         self.assertIn('const hint = document.createElement("p")', app)
         self.assertNotIn('const hint = document.createElement("figcaption")', app)
@@ -1045,6 +1183,70 @@ process.stdout.write(JSON.stringify({full, compact}));
         self.assertIn(".presentation-stage .viz-poc-rail > .is-automated", styles)
         self.assertRegex(styles, r"(?s)@media \(max-width: 760px\).*?\.viz-poc-cohorts\s*\{\s*grid-template-columns: 1fr;")
 
+    def test_criteria_overview_separates_unknown_state_from_category_composition(self) -> None:
+        build_spec = importlib.util.spec_from_file_location("build_site_criteria_contract", SOURCE_ROOT / "scripts/build_site.py")
+        assert build_spec and build_spec.loader
+        build_site = importlib.util.module_from_spec(build_spec)
+        build_spec.loader.exec_module(build_site)
+        criteria = build_site.criteria_visuals()
+        node = next(
+            (
+                candidate
+                for candidate in (
+                    Path("/usr/bin/node"),
+                    Path("/bin/node"),
+                    Path("/usr/local/bin/node"),
+                    Path("/opt/homebrew/bin/node"),
+                )
+                if candidate.is_file() and os.access(candidate, os.X_OK)
+            ),
+            None,
+        )
+        self.assertIsNotNone(node, "Node.js is required to validate the criteria overview renderer")
+        script = r'''
+global.window = {};
+require("./site/assets/charts.js");
+const data = JSON.parse(require("fs").readFileSync(0, "utf8"));
+process.stdout.write(window.ApiStudyCharts.render("criteriaOverview", data, {compact: true}));
+'''
+        observed = subprocess.run(
+            [str(node), "-e", script],
+            cwd=SOURCE_ROOT,
+            check=False,
+            capture_output=True,
+            input=json.dumps(criteria),
+            text=True,
+        )
+        self.assertEqual(0, observed.returncode, observed.stderr)
+        markup = observed.stdout
+        self.assertIn('class="viz viz-criteria-overview is-compact"', markup)
+        self.assertIn("<strong>120</strong>", markup)
+        self.assertIn("<b>Unknown</b><small>of 120 criteria</small>", markup)
+        self.assertIn("All 120 criteria retain Unknown status", markup)
+        self.assertIn("<strong>30</strong> mandatory", markup)
+        self.assertIn("<strong>90</strong> weighted", markup)
+        self.assertNotIn("viz-donut", markup)
+        self.assertNotIn("viz-stacked", markup)
+        self.assertNotIn("viz-bar-track", markup)
+        self.assertNotIn("Decision readiness", markup)
+        for row in criteria["categories"]:
+            row_label = str(row["label"])
+            escaped_label = html.escape(row_label)
+            with self.subTest(category=row_label):
+                self.assertEqual(2, markup.count(escaped_label))
+                self.assertIn(
+                    f'{escaped_label}: {row["mandatory"]} mandatory, {row["weighted"]} weighted, {row["total"]} total',
+                    markup,
+                )
+
+        audiences = (SOURCE_ROOT / "site/assets/audiences.js").read_text(encoding="utf-8")
+        styles = (SOURCE_ROOT / "site/assets/styles.css").read_text(encoding="utf-8")
+        self.assertIn('return chart(charts, "criteriaOverview", visuals.criteria || {}, compact);', audiences)
+        self.assertIn(".viz-criteria-overview", styles)
+        self.assertIn(".viz-criteria-domains", styles)
+        self.assertRegex(styles, r"(?s)@media \(max-width: 760px\).*?\.viz-criteria-overview\s*\{\s*grid-template-columns: 1fr;")
+        self.assertRegex(styles, r"(?s)@media \(max-width: 520px\).*?\.viz-criteria-domains\s*\{\s*grid-template-columns: 1fr;")
+
     def test_kong_fit_projection_is_four_bounded_complete_story_frames(self) -> None:
         fit_keys = (
             "kong-platform-fit-boundary",
@@ -1165,10 +1367,16 @@ process.stdout.write(JSON.stringify({full, compact}));
         validator.validate_kong_platform_journey(manifest, manifest["presentation"])
         verifier.validate_kong_platform_journey(manifest, manifest["presentation"])
 
-        self.assertEqual(37, len(manifest["presentation"]))
+        self.assertEqual(62, len(manifest["presentation"]))
         self.assertEqual(63, sum(len(audience["presentationSlides"]) for audience in manifest["audiences"]))
-        self.assertEqual(2, len(manifest["presentationDecks"]))
-        self.assertEqual([15, 15], [deck["slideTotal"] for deck in manifest["presentationDecks"]])
+        self.assertEqual(3, len(manifest["presentationDecks"]))
+        self.assertEqual([15, 15, 25], [deck["slideTotal"] for deck in manifest["presentationDecks"]])
+        self.assertEqual(
+            180,
+            len(manifest["presentation"])
+            + sum(len(audience["presentationSlides"]) for audience in manifest["audiences"])
+            + sum(deck["slideTotal"] for deck in manifest["presentationDecks"]),
+        )
         journey = next(deck for deck in manifest["presentationDecks"] if deck["id"] == "kong-platform-journey")
         self.assertEqual(journey_slides, tuple(journey["presentationSlides"]))
         self.assertEqual(15, journey["slideTotal"])
@@ -1302,6 +1510,266 @@ process.stdout.write(JSON.stringify({full, compact}));
                     validator.validate_kong_platform_journey(invalid, invalid["presentation"])
                 with self.assertRaisesRegex(verifier.VerificationError, error):
                     verifier.validate_kong_platform_journey(invalid, invalid["presentation"])
+
+    def test_kong_guided_evaluation_contract_is_exact_and_falsifiable(self) -> None:
+        guided_keys = (
+            "kong-guided-cover",
+            "kong-guided-target-model",
+            "kong-guided-weights",
+            "kong-guided-options",
+            "kong-guided-score",
+            "kong-guided-decision",
+            "kong-guided-boundary",
+            "kong-guided-duty",
+            "kong-guided-architecture",
+            "kong-guided-state-trust",
+            "kong-guided-degraded",
+            "kong-guided-operating-model",
+            "kong-guided-adoption",
+            "kong-guided-migration-boundary",
+            "kong-guided-coexistence",
+            "kong-guided-waves",
+            "kong-guided-proof-boundary",
+            "kong-guided-proof-programme",
+            "kong-guided-outcomes-1",
+            "kong-guided-outcomes-2",
+            "kong-guided-assurance",
+            "kong-guided-compare-architecture",
+            "kong-guided-compare-management",
+            "kong-guided-compare-economics",
+            "kong-guided-score-audit",
+        )
+        roles = ("vp-executive", "directors", "architects", "developers", "devops-sre", "platform-teams")
+        sources = (
+            "docs/48-kong-guided-evaluation.md",
+            "docs/44-kong-multicloud-study-roadmap.md",
+            "docs/47-kong-enterprise-platform-strategy.md",
+            "docs/35-mule-migration-strategy.md",
+            "poc/README.md",
+        )
+        phases = (
+            ("KGE-P1", "Why now", "kong-guided-cover"),
+            ("KGE-P2", "Options and decision", "kong-guided-options"),
+            ("KGE-P3", "Architecture and adoption", "kong-guided-architecture"),
+            ("KGE-P4", "Migration", "kong-guided-migration-boundary"),
+            ("KGE-P5", "Production proof", "kong-guided-proof-boundary"),
+            ("KGE-P6", "Audit appendix", "kong-guided-compare-architecture"),
+        )
+
+        with tempfile.TemporaryDirectory(prefix="kong-guided-evaluation-") as temporary:
+            output = Path(temporary) / "site"
+            built = subprocess.run(
+                (sys.executable, "-I", str(SOURCE_ROOT / "scripts" / "build_site.py"), "--output", str(output)),
+                cwd=SOURCE_ROOT,
+                capture_output=True,
+                text=True,
+                check=False,
+            )
+            self.assertEqual(0, built.returncode, built.stdout + built.stderr)
+            manifest = json.loads((output / "content-manifest.json").read_text(encoding="utf-8"))
+
+        validator = load_site_validator_module()
+        verifier = load_pages_verifier_module()
+        validator.validate_kong_guided_evaluation(manifest, manifest["presentation"])
+        verifier.validate_kong_guided_evaluation(manifest, manifest["presentation"])
+
+        deck = next(item for item in manifest["presentationDecks"] if item["id"] == "kong-platform-journey-guided")
+        self.assertEqual("kong-guided", deck["theme"])
+        self.assertEqual(25, deck["slideTotal"])
+        self.assertEqual(guided_keys, tuple(deck["presentationSlides"]))
+        self.assertEqual(roles, tuple(deck["audienceRoleIds"]))
+        self.assertEqual(sources, tuple(deck["sourcePaths"]))
+        self.assertEqual(
+            phases,
+            tuple((phase["id"], phase["label"], phase["startKey"]) for phase in deck["journeyPhases"]),
+        )
+        self.assertEqual([15, 15, 25], [item["slideTotal"] for item in manifest["presentationDecks"]])
+        self.assertEqual(62, len(manifest["presentation"]))
+        self.assertEqual(63, sum(len(audience["presentationSlides"]) for audience in manifest["audiences"]))
+        self.assertEqual(180, 62 + 63 + sum(item["slideTotal"] for item in manifest["presentationDecks"]))
+
+        items_by_id = {item["id"]: item for item in manifest["items"]}
+        document_routes = {item["route"] for item in manifest["items"]}
+        local_routes = validator.validate_routes_and_audiences(manifest, items_by_id, document_routes)
+        pages_routes = verifier.validated_route_inventory(manifest, manifest["items"])
+        for routes in (local_routes, pages_routes):
+            self.assertIn("#/present/kong-platform-journey-guided/0", routes)
+            self.assertIn("#/present/kong-platform-journey-guided/24", routes)
+            self.assertNotIn("#/present/kong-platform-journey-guided/25", routes)
+
+        guided = manifest["visuals"]["guidedEvaluation"]
+        self.assertEqual(tuple(f"GTM-{index:02d}" for index in range(1, 10)), tuple(row["id"] for row in guided["targetModel"]["rows"]))
+        self.assertEqual(tuple(f"GEW-{index:02d}" for index in range(1, 9)), tuple(row["id"] for row in guided["weights"]["rows"]))
+        self.assertEqual(100, guided["weights"]["weightTotal"])
+        self.assertEqual(("GEO-KONG", "GEO-APIGEE", "GEO-MULE", "GEO-APIM"), tuple(row["id"] for row in guided["options"]["rows"]))
+        self.assertTrue(all(row["presentationStrongestWhen"] and row["presentationConcern"] for row in guided["options"]["rows"]))
+        self.assertEqual({"weight": 100, "kong": 93, "apigee": 85.5, "muleSoft": 77}, guided["scoring"]["totals"])
+        self.assertEqual({"kong": 93, "apigee": 87, "muleSoft": 78}, guided["scoring"]["displayedTotals"])
+        self.assertEqual(tuple(f"GEP-{index:02d}" for index in range(1, 7)), tuple(row["id"] for row in guided["proofProgramme"]["rows"]))
+        self.assertTrue(all(row["presentationSummary"] for row in guided["proofProgramme"]["rows"]))
+        self.assertEqual([8, 7, 3], [guided["comparisons"][group]["rowTotal"] for group in ("architecture", "management", "economics")])
+        self.assertEqual(tuple(f"KGE-{index:02d}" for index in range(1, 26)), tuple(row["slideId"] for row in guided["slides"]["rows"]))
+        self.assertEqual(12, guided["evidenceStates"]["rowTotal"])
+        reference_catalog = guided["referenceCatalog"]
+        self.assertEqual(9, reference_catalog["rowTotal"])
+        self.assertEqual(
+            tuple(f"KGE-{index:02d}" for index in range(1, 26)),
+            tuple(slide_id for row in reference_catalog["rows"] for slide_id in row["slideIds"]),
+        )
+        self.assertTrue(
+            all(
+                link["label"] and link["url"].startswith("https://")
+                for row in reference_catalog["rows"]
+                for link in row["links"]
+            )
+        )
+        architecture_overview = manifest["visuals"]["kongPlatformStrategy"]["guidedArchitectureOverview"]
+        self.assertEqual("KGE-09-OVERVIEW", architecture_overview["overviewId"])
+        self.assertEqual(
+            ("gitops-trust", "kong-control-plane", "postgresql-ha"),
+            tuple(node["id"] for node in architecture_overview["controlZone"]["nodes"]),
+        )
+        self.assertEqual(
+            ("cloud-a", "cloud-b", "private-legacy"),
+            tuple(lane["id"] for lane in architecture_overview["lanes"]),
+        )
+        self.assertEqual(
+            (
+                ("gitops-trust", "kong-control-plane", "approved-intent"),
+                ("kong-control-plane", "postgresql-ha", "management-state"),
+                ("kong-control-plane", "cloud-a-dp", "configuration"),
+                ("kong-control-plane", "cloud-b-dp", "configuration"),
+                ("kong-control-plane", "private-legacy-dp", "configuration"),
+                ("cloud-a-dp", "cloud-a-services-evidence", "local-request-and-evidence"),
+                ("cloud-b-dp", "cloud-b-services-evidence", "local-request-and-evidence"),
+                ("private-legacy-dp", "private-legacy-services-evidence", "local-request-and-evidence"),
+            ),
+            tuple((edge["from"], edge["to"], edge["kind"]) for edge in architecture_overview["edges"]),
+        )
+        self.assertEqual("KPS-1", architecture_overview["provenance"]["figureId"])
+        guided_contract_by_key = {row["key"]: row for row in guided["slides"]["rows"]}
+        guided_slides_by_key = {slide["key"]: slide for slide in manifest["presentation"] if slide["key"] in guided_keys}
+        self.assertTrue(all(guided_contract_by_key[key]["officialReferences"] for key in guided_keys))
+        self.assertEqual(
+            {key: guided_contract_by_key[key]["officialReferences"] for key in guided_keys},
+            {key: guided_slides_by_key[key]["officialReferences"] for key in guided_keys},
+        )
+        app = (SOURCE_ROOT / "site" / "assets" / "app.js").read_text(encoding="utf-8")
+        charts = (SOURCE_ROOT / "site" / "assets" / "charts.js").read_text(encoding="utf-8")
+        styles = (SOURCE_ROOT / "site" / "assets" / "styles.css").read_text(encoding="utf-8")
+        self.assertIn(
+            'data-diagram-summary="${escapeHtml(figure?.title || slide.body || "")}"',
+            app,
+        )
+        self.assertIn("template[data-diagram-overview]", app)
+        self.assertIn('chartMarkup("guidedArchitectureOverview"', app)
+        self.assertIn('makeButton(hasAuthoredOverview ? "Overview" : "Takeaway"', app)
+        self.assertIn("function guidedArchitectureOverview(data)", charts)
+        self.assertIn('class="viz-guided-architecture-fanout"', charts)
+        self.assertIn('class="viz-guided-architecture-lanes"', charts)
+        self.assertRegex(styles, r"(?s)\.viz-guided-architecture-map\s*\{[^}]*grid-template-columns:")
+        self.assertRegex(styles, r"(?s)\.viz-guided-architecture-fanout::before\s*\{[^}]*border-left:")
+        self.assertRegex(styles, r"(?s)\.viz-guided-architecture-lanes > li\s*\{[^}]*grid-template-columns:")
+        self.assertIn("row.presentationStrongestWhen || row.strongestWhen", charts)
+        self.assertIn("row.presentationSummary || row.scope", charts)
+        self.assertIn('<table class="viz-guided-comparison">', charts)
+        self.assertIn('class="viz-guided-comparison-wrap" tabindex="-1" data-comparison-label=', charts)
+        self.assertIn('class="viz-guided-scroll-cue" aria-hidden="true" hidden', charts)
+        self.assertNotIn('<th scope="col">Evidence required</th>', charts)
+        self.assertIn(".viz-guided-comparison-wrap[tabindex='0']", app)
+        self.assertIn('if (axis === "horizontal")', app)
+        self.assertIn('["ArrowUp", "ArrowDown", "PageUp", "PageDown", "Home", "End", " "]', app)
+        self.assertIn('class="slide-reference-actions"', app)
+        self.assertIn('class="slide-references"', app)
+        self.assertIn('class="slide-reference-menu"', app)
+        self.assertIn('document.querySelector(".slide-references[open]")', app)
+        self.assertIn('openReferences.querySelector("summary")?.focus()', app)
+        self.assertRegex(styles, r"(?s)\.viz-guided-comparison\s*\{[^}]*min-width:\s*0;")
+        self.assertRegex(styles, r"(?s)@media screen and \(min-width: 761px\) and \(max-width: 1199px\).*?\.viz-guided-comparison\s*\{\s*min-width:\s*100rem;")
+        self.assertRegex(styles, r"(?s)@media screen and \(max-width: 760px\).*?\.viz-guided-comparison\s*\{\s*min-width:\s*70rem;")
+        self.assertRegex(styles, r"(?s)@media screen and \(max-width: 760px\).*?\.guided-evidence-ribbon p\s*\{\s*flex: 0 1 auto;")
+        self.assertRegex(styles, r"(?s)@media screen and \(min-width: 761px\) and \(max-width: 1279px\).*?\.presentation-stage\.is-kong-guided \.journey-phase-spine li\s*\{[^}]*justify-content:\s*center;[^}]*font-size:\s*1rem;")
+        self.assertRegex(styles, r"(?s)@media screen and \(min-width: 761px\) and \(max-width: 1279px\).*?\.presentation-stage\.is-kong-guided \.journey-phase-spine li b\s*\{[^}]*width:\s*1px;[^}]*clip-path:\s*inset\(50%\);")
+        self.assertRegex(styles, r"(?s)@media screen and \(min-width: 1024px\) and \(max-width: 1199px\).*?\.presentation-stage\.is-kong-guided \.viz-guided-proof-boundary article\s*\{[^}]*padding:\s*0\.45rem;")
+        self.assertRegex(styles, r"(?s)@media \(max-width: 760px\).*?\.presentation-stage:not\(\.is-kong-guided\) \.slide-diagram\.is-summary-mode\s*\{[^}]*height:\s*auto;")
+        self.assertRegex(styles, r"(?s)\.presentation-stage\.is-kong-guided \.slide-references > summary\s*\{[^}]*min-height:\s*44px;")
+        self.assertRegex(styles, r"(?s)\.presentation-stage\.is-kong-guided \.slide-reference-menu\s*\{[^}]*overflow:\s*auto;")
+        self.assertRegex(styles, r"(?s)@media print.*?\.presentation-stage\.is-kong-guided \.journey-proof-strip\s*\{[^}]*position:\s*relative !important;[^}]*display:\s*block !important;")
+        self.assertRegex(styles, r"(?s)@media print.*?\.journey-proof-strip \.slide-aside-content\s*\{[^}]*width:\s*auto !important;[^}]*min-width:\s*0 !important;")
+        self.assertRegex(styles, r"(?s)@media print.*?\.presentation-stage\.is-kong-guided \.slide-reference-actions\s*\{[^}]*position:\s*absolute !important;")
+        self.assertRegex(styles, r"(?s)@media print.*?\.presentation-stage\.is-kong-guided \.slide-references\s*\{[^}]*display:\s*none !important;")
+
+        invalid_cases = (
+            ("existing deck", "deep-dive deck contract changed"),
+            ("slide order", "exact 25-slide KGE order"),
+            ("theme", "theme must be kong-guided"),
+            ("roles", "exact six-role order"),
+            ("phase start", "six-stage spine and start keys"),
+            ("target ID", "GTM-01 through GTM-09"),
+            ("weight sum", "weights must sum to 100"),
+            ("option ID", "exact GEO order"),
+            ("score arithmetic", "arithmetic is invalid"),
+            ("score total", "corrected kong total is invalid"),
+            ("displayed total", "supplied displayed apigee total is invalid"),
+            ("workstream", "GEP-01 through GEP-06"),
+            ("architecture overview", "guided architecture edges"),
+            ("comparison", "architecture comparison IDs are invalid"),
+            ("KGE contract", "exact KGE semantic order"),
+            ("evidence state", "evidence states/classes"),
+            ("point source", "provenance does not match"),
+            ("reference URL", "official references"),
+            ("reference projection", "official references"),
+            ("private path", "local or private source path"),
+        )
+        for case, error in invalid_cases:
+            with self.subTest(case=case):
+                invalid = json.loads(json.dumps(manifest))
+                invalid_guided = invalid["visuals"]["guidedEvaluation"]
+                invalid_deck = next(item for item in invalid["presentationDecks"] if item["id"] == "kong-platform-journey-guided")
+                if case == "existing deck":
+                    invalid["presentationDecks"][0]["theme"] = "changed"
+                elif case == "slide order":
+                    invalid_deck["presentationSlides"][0:2] = reversed(invalid_deck["presentationSlides"][0:2])
+                elif case == "theme":
+                    invalid_deck["theme"] = "kong-platform"
+                elif case == "roles":
+                    invalid_deck["audienceRoleIds"][0:2] = reversed(invalid_deck["audienceRoleIds"][0:2])
+                elif case == "phase start":
+                    invalid_deck["journeyPhases"][5]["startKey"] = "kong-guided-score-audit"
+                elif case == "target ID":
+                    invalid_guided["targetModel"]["rows"][0]["id"] = "GTM-X"
+                elif case == "weight sum":
+                    invalid_guided["weights"]["weightTotal"] = 99
+                elif case == "option ID":
+                    invalid_guided["options"]["rows"][0]["id"] = "GEO-X"
+                elif case == "score arithmetic":
+                    invalid_guided["scoring"]["rows"][0]["kongWeighted"] = 19
+                elif case == "score total":
+                    invalid_guided["scoring"]["totals"]["kong"] = 94
+                elif case == "displayed total":
+                    invalid_guided["scoring"]["displayedTotals"]["apigee"] = 86
+                elif case == "workstream":
+                    invalid_guided["proofProgramme"]["rows"][0]["id"] = "GEP-X"
+                elif case == "architecture overview":
+                    invalid["visuals"]["kongPlatformStrategy"]["guidedArchitectureOverview"]["edges"][5]["to"] = "cloud-b-services-evidence"
+                elif case == "comparison":
+                    invalid_guided["comparisons"]["architecture"]["rows"][0]["id"] = "GEC-X"
+                elif case == "KGE contract":
+                    invalid_guided["slides"]["rows"][0]["key"] = "kong-guided-unknown"
+                elif case == "evidence state":
+                    invalid_guided["evidenceStates"]["rows"][0]["sourceClass"] = "Unbounded claim"
+                elif case == "point source":
+                    next(slide for slide in invalid["presentation"] if slide["key"] == "kong-guided-boundary")["sourceId"] = "docs-48-kong-guided-evaluation"
+                elif case == "reference URL":
+                    invalid_guided["referenceCatalog"]["rows"][0]["links"][0]["url"] = "https://example.com/not-the-canonical-reference"
+                elif case == "reference projection":
+                    next(slide for slide in invalid["presentation"] if slide["key"] == "kong-guided-cover")["officialReferences"].pop()
+                else:
+                    next(slide for slide in invalid["presentation"] if slide["key"] == "kong-guided-cover")["body"] = os.sep + "Users" + os.sep + "example/private/input.docx"
+                with self.assertRaisesRegex(validator.ValidationError, error):
+                    validator.validate_kong_guided_evaluation(invalid, invalid["presentation"])
+                with self.assertRaisesRegex(verifier.VerificationError, error):
+                    verifier.validate_kong_guided_evaluation(invalid, invalid["presentation"])
 
     def test_temporary_repositories_drop_outer_publication_provenance(self) -> None:
         original = {
@@ -3030,6 +3498,7 @@ class ManifestRuntimeDependencyTests(WorkflowTestCase):
             ],
             "visuals": {
                 "poc": poc_projection_fixture(),
+                "criteria": criteria_projection_fixture(),
                 "kongPlatformStrategy": {"fit": {"rows": fit_rows}},
             },
             "audiences": [
@@ -3524,6 +3993,57 @@ class ImmutableSpecTests(WorkflowTestCase):
 
 
 class DraftGateTests(WorkflowTestCase):
+    def test_kong_guided_routes_are_bounded_to_zero_through_twenty_four(self) -> None:
+        repository = self.repository(local_origin=True)
+        _, data, _ = repository.prepare_draft()
+        data["derivedPaths"] = [
+            "site/workflow-test.json",
+            "#/doc/workflow-test",
+            "#/present/kong-platform-journey-guided/0",
+            "#/present/kong-platform-journey-guided/24",
+        ]
+        slide_keys = [f"kong-guided-{index:02d}" for index in range(1, 26)]
+        role_ids = ["vp-executive", "directors", "architects", "developers", "devops-sre", "platform-teams"]
+        manifest = repository.root / "_site" / "content-manifest.json"
+        manifest.write_text(
+            json.dumps(
+                {
+                    "items": [{"path": "docs/workflow-test.md", "route": "#/doc/workflow-test"}],
+                    "presentation": [
+                        {"index": index, "key": key}
+                        for index, key in enumerate(slide_keys)
+                    ],
+                    "audiences": [
+                        {"id": role_id, "presentationSlides": [slide_keys[0]]}
+                        for role_id in role_ids
+                    ],
+                    "presentationDecks": [
+                        {
+                            "id": "kong-platform-journey-guided",
+                            "audienceRoleIds": role_ids,
+                            "presentationSlides": slide_keys,
+                            "presentationRoute": "#/present/kong-platform-journey-guided/0",
+                        }
+                    ],
+                }
+            ),
+            encoding="utf-8",
+        )
+        workflow = repository.load_module("scripts/study_workflow.py")
+        workflow.verify_local_derived_routes(data)
+
+        invalid = dict(data)
+        invalid["derivedPaths"] = [
+            "site/workflow-test.json",
+            "#/doc/workflow-test",
+            "#/present/kong-platform-journey-guided/25",
+        ]
+        with self.assertRaisesRegex(
+            workflow.WorkflowError,
+            "declared derived route is absent from the generated site manifest",
+        ):
+            workflow.verify_local_derived_routes(invalid)
+
     def test_kong_platform_journey_routes_are_bounded_to_zero_through_fourteen(self) -> None:
         repository = self.repository(local_origin=True)
         _, data, _ = repository.prepare_draft()

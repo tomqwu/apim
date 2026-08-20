@@ -457,6 +457,14 @@ docs/47-kong-enterprise-platform-strategy.md,https://developer.konghq.com/plugin
 docs/47-kong-enterprise-platform-strategy.md,https://developer.konghq.com/plugins/openid-connect/),https://developer.konghq.com/plugins/openid-connect,contextual,,developer.konghq.com
 docs/47-kong-enterprise-platform-strategy.md,https://developer.konghq.com/plugins/opentelemetry/),https://developer.konghq.com/plugins/opentelemetry,registered,K-008,developer.konghq.com
 docs/47-kong-enterprise-platform-strategy.md,https://gateway-api.sigs.k8s.io/docs/concepts/versioning/)),https://gateway-api.sigs.k8s.io/docs/concepts/versioning,contextual,,gateway-api.sigs.k8s.io
+docs/48-kong-guided-evaluation.md,https://developer.konghq.com/ai-gateway/),https://developer.konghq.com/ai-gateway,contextual,,developer.konghq.com
+docs/48-kong-guided-evaluation.md,https://developer.konghq.com/gateway/deployment-topologies/),https://developer.konghq.com/gateway/deployment-topologies,registered,K-003,developer.konghq.com
+docs/48-kong-guided-evaluation.md,https://developer.konghq.com/gateway/hybrid-mode/),https://developer.konghq.com/gateway/hybrid-mode,registered,K-001,developer.konghq.com
+docs/48-kong-guided-evaluation.md,https://developer.konghq.com/gateway/monitoring/),https://developer.konghq.com/gateway/monitoring,contextual,,developer.konghq.com
+docs/48-kong-guided-evaluation.md,https://developer.konghq.com/gateway/version-support-policy/),https://developer.konghq.com/gateway/version-support-policy,contextual,,developer.konghq.com
+docs/48-kong-guided-evaluation.md,https://docs.cloud.google.com/apigee/docs/hybrid/v1.16/what-is-hybrid),https://docs.cloud.google.com/apigee/docs/hybrid/v1.16/what-is-hybrid,registered,G-005,docs.cloud.google.com
+docs/48-kong-guided-evaluation.md,https://docs.mulesoft.com/gateway/latest/),https://docs.mulesoft.com/gateway/latest,contextual,,docs.mulesoft.com
+docs/48-kong-guided-evaluation.md,https://learn.microsoft.com/en-us/azure/api-management/self-hosted-gateway-overview),https://learn.microsoft.com/en-us/azure/api-management/self-hosted-gateway-overview,registered,M-002,learn.microsoft.com
 poc/real-world-scenarios.md,https://cert-manager.io/docs/usage/certificate/)),https://cert-manager.io/docs/usage/certificate,contextual,,cert-manager.io
 poc/real-world-scenarios.md,https://docs.cloudfoundry.org/devguide/deploy-apps/routes-domains.html)),https://docs.cloudfoundry.org/devguide/deploy-apps/routes-domains.html,contextual,,docs.cloudfoundry.org
 poc/real-world-scenarios.md,https://docs.mulesoft.com/mule-runtime/latest/mule-high-availability-ha-clusters),https://docs.mulesoft.com/mule-runtime/latest/mule-high-availability-ha-clusters,registered,MU-005,docs.mulesoft.com

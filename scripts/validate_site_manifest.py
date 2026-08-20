@@ -59,6 +59,21 @@ STATIC_ROUTES = {
     "#/visuals",
     "#/audiences",
 }
+CRITERIA_STATUS_COUNTS = {"Unknown": 120}
+CRITERIA_CATEGORY_COUNTS = {
+    "architecture": (3, 7),
+    "security": (7, 3),
+    "network": (2, 8),
+    "kubernetes": (2, 8),
+    "api-lifecycle": (1, 9),
+    "apiops": (3, 7),
+    "traffic-policy": (1, 9),
+    "observability": (1, 9),
+    "resilience-performance": (3, 7),
+    "operations-support": (2, 8),
+    "mule-migration": (2, 8),
+    "commercial-strategy": (3, 7),
+}
 KONG_PLATFORM_FIT_SLIDE_KEYS = (
     "kong-platform-fit-boundary",
     "kong-platform-fit-runtime",
@@ -112,6 +127,180 @@ KONG_PLATFORM_JOURNEY_PHASES = (
     ("03", "Adoption", "Turn installation into a paved, supportable platform"),
     ("04", "Migration", "Move representative slices with route-back; retire only after dependency zero"),
     ("05", "Production", "Scale only accepted patterns; narrow, switch, or exit otherwise"),
+)
+KONG_GUIDED_DECK_ID = "kong-platform-journey-guided"
+KONG_GUIDED_THEME = "kong-guided"
+KONG_GUIDED_SLIDE_KEYS = (
+    "kong-guided-cover",
+    "kong-guided-target-model",
+    "kong-guided-weights",
+    "kong-guided-options",
+    "kong-guided-score",
+    "kong-guided-decision",
+    "kong-guided-boundary",
+    "kong-guided-duty",
+    "kong-guided-architecture",
+    "kong-guided-state-trust",
+    "kong-guided-degraded",
+    "kong-guided-operating-model",
+    "kong-guided-adoption",
+    "kong-guided-migration-boundary",
+    "kong-guided-coexistence",
+    "kong-guided-waves",
+    "kong-guided-proof-boundary",
+    "kong-guided-proof-programme",
+    "kong-guided-outcomes-1",
+    "kong-guided-outcomes-2",
+    "kong-guided-assurance",
+    "kong-guided-compare-architecture",
+    "kong-guided-compare-management",
+    "kong-guided-compare-economics",
+    "kong-guided-score-audit",
+)
+KONG_GUIDED_ROLE_IDS = KONG_PLATFORM_JOURNEY_ROLE_IDS
+KONG_GUIDED_SOURCE_PATHS = (
+    "docs/48-kong-guided-evaluation.md",
+    "docs/44-kong-multicloud-study-roadmap.md",
+    "docs/47-kong-enterprise-platform-strategy.md",
+    "docs/35-mule-migration-strategy.md",
+    "poc/README.md",
+)
+KONG_GUIDED_SOURCE_IDS = (
+    "docs-48-kong-guided-evaluation",
+    "docs-44-kong-multicloud-study-roadmap",
+    "docs-47-kong-enterprise-platform-strategy",
+    "docs-35-mule-migration-strategy",
+    "poc-readme",
+)
+KONG_GUIDED_TARGET_IDS = tuple(f"GTM-{index:02d}" for index in range(1, 10))
+KONG_GUIDED_WEIGHT_IDS = tuple(f"GEW-{index:02d}" for index in range(1, 9))
+KONG_GUIDED_OPTION_IDS = ("GEO-KONG", "GEO-APIGEE", "GEO-MULE", "GEO-APIM")
+KONG_GUIDED_WORKSTREAM_IDS = tuple(f"GEP-{index:02d}" for index in range(1, 7))
+KONG_GUIDED_COMPARISON_IDS = (
+    tuple(f"GEC-{index:02d}" for index in range(1, 9)),
+    tuple(f"GEC-{index:02d}" for index in range(9, 16)),
+    tuple(f"GEC-{index:02d}" for index in range(16, 19)),
+)
+KONG_GUIDED_SCORE_TOTALS = {"weight": 100.0, "kong": 93.0, "apigee": 85.5, "muleSoft": 77.0}
+KONG_GUIDED_DISPLAYED_TOTALS = {"kong": 93.0, "apigee": 87.0, "muleSoft": 78.0}
+KONG_GUIDED_ARCHITECTURE_CONTROL_IDS = ("gitops-trust", "kong-control-plane", "postgresql-ha")
+KONG_GUIDED_ARCHITECTURE_LANE_IDS = ("cloud-a", "cloud-b", "private-legacy")
+KONG_GUIDED_ARCHITECTURE_EDGES = (
+    ("gitops-trust", "kong-control-plane", "approved-intent"),
+    ("kong-control-plane", "postgresql-ha", "management-state"),
+    ("kong-control-plane", "cloud-a-dp", "configuration"),
+    ("kong-control-plane", "cloud-b-dp", "configuration"),
+    ("kong-control-plane", "private-legacy-dp", "configuration"),
+    ("cloud-a-dp", "cloud-a-services-evidence", "local-request-and-evidence"),
+    ("cloud-b-dp", "cloud-b-services-evidence", "local-request-and-evidence"),
+    ("private-legacy-dp", "private-legacy-services-evidence", "local-request-and-evidence"),
+)
+KONG_GUIDED_PHASES = (
+    ("KGE-P1", "Why now", "Confirm the target operating model and make its weights visible", "kong-guided-cover"),
+    ("KGE-P2", "Options and decision", "Compare conditional archetypes and authorize only the bounded Kong boundary", "kong-guided-options"),
+    ("KGE-P3", "Architecture and adoption", "Understand the target topology, failure paths, ownership, and evidence-gated adoption", "kong-guided-architecture"),
+    ("KGE-P4", "Migration", "Move responsibilities through coexistence, route-back, and exit evidence", "kong-guided-migration-boundary"),
+    ("KGE-P5", "Production proof", "Replace documented capability with executed target-shaped evidence and outcome gates", "kong-guided-proof-boundary"),
+    ("KGE-P6", "Audit appendix", "Preserve the supplied comparison and score inputs without promoting them to proof", "kong-guided-compare-architecture"),
+)
+KONG_GUIDED_PHASE_BY_KEY = {
+    key: phase_id
+    for phase_id, keys in (
+        ("KGE-P1", KONG_GUIDED_SLIDE_KEYS[0:3]),
+        ("KGE-P2", KONG_GUIDED_SLIDE_KEYS[3:8]),
+        ("KGE-P3", KONG_GUIDED_SLIDE_KEYS[8:13]),
+        ("KGE-P4", KONG_GUIDED_SLIDE_KEYS[13:16]),
+        ("KGE-P5", KONG_GUIDED_SLIDE_KEYS[16:21]),
+        ("KGE-P6", KONG_GUIDED_SLIDE_KEYS[21:25]),
+    )
+    for key in keys
+}
+KONG_GUIDED_POINT_SOURCE_BY_KEY = {
+    **{key: KONG_GUIDED_SOURCE_IDS[0] for key in KONG_GUIDED_SLIDE_KEYS},
+    "kong-guided-boundary": KONG_GUIDED_SOURCE_IDS[1],
+    **{key: KONG_GUIDED_SOURCE_IDS[2] for key in KONG_GUIDED_SLIDE_KEYS[7:13]},
+    **{key: KONG_GUIDED_SOURCE_IDS[3] for key in KONG_GUIDED_SLIDE_KEYS[13:16]},
+    "kong-guided-proof-boundary": KONG_GUIDED_SOURCE_IDS[4],
+    **{key: KONG_GUIDED_SOURCE_IDS[2] for key in KONG_GUIDED_SLIDE_KEYS[18:21]},
+}
+KONG_GUIDED_EVIDENCE_GROUPS = (
+    (("KGE-01",), "Guided decision brief", "Mixed public-safe synthesis", "Orientation only; no new evidence"),
+    (("KGE-02", "KGE-03"), "Stakeholder input", "Sanitized supplied input", "Target preferences and weighting choices; not admitted candidate evidence"),
+    (("KGE-04",), "Conditional hypothesis", "Supplied input plus documented-mechanism interpretation", "Conditional operating-model archetypes to test; not an observed product comparison"),
+    (("KGE-05",), "Stakeholder input", "Sanitized supplied input", "Arithmetic audit of supplied ratings; not admitted candidate evidence"),
+    (("KGE-06",), "Bounded direction", "Stakeholder direction plus repository interpretation", "Authorizes foundation and proof only"),
+    (("KGE-07", "KGE-08", "KGE-09", "KGE-10", "KGE-11", "KGE-12"), "Proposed target", "Repository E1 interpretation", "Operating options, architecture, failure policy, and ownership to prove"),
+    (("KGE-13",), "Scenario assumption", "Repository adoption plan", "Overlapping decision windows, not status or commitment"),
+    (("KGE-14", "KGE-15", "KGE-16"), "Proposed migration model", "Repository migration interpretation and scenario sequence", "No observed estate classification, coexistence result, or migration status"),
+    (("KGE-17",), "Executed local baseline", "Canonical PoC register as of 2026-08-20", "Exact local-baseline counts; not representative target proof"),
+    (("KGE-18",), "Not run", "User direction canonicalized as GEP-01–GEP-06", "Required future proof work only"),
+    (("KGE-19", "KGE-20", "KGE-21"), "Proposed acceptance contract", "Repository outcome and assurance design", "Measures, artifacts, and decisions, not achieved outcomes"),
+    (("KGE-22", "KGE-23", "KGE-24", "KGE-25"), "Stakeholder input", "Sanitized supplied input", "Audit appendix; qualitative labels and scores remain unverified"),
+)
+KONG_GUIDED_REFERENCE_GROUPS = (
+    (("KGE-01", "KGE-02", "KGE-03"), (
+        "https://developer.konghq.com/gateway/deployment-topologies/",
+        "https://developer.konghq.com/gateway/hybrid-mode/",
+    )),
+    (("KGE-04", "KGE-05"), (
+        "https://developer.konghq.com/gateway/deployment-topologies/",
+        "https://docs.cloud.google.com/apigee/docs/hybrid/v1.16/what-is-hybrid",
+        "https://docs.mulesoft.com/gateway/latest/",
+        "https://learn.microsoft.com/en-us/azure/api-management/self-hosted-gateway-overview",
+    )),
+    (("KGE-06", "KGE-07", "KGE-08"), (
+        "https://developer.konghq.com/gateway/hybrid-mode/",
+        "https://developer.konghq.com/gateway/version-support-policy/",
+    )),
+    (("KGE-09", "KGE-10", "KGE-11", "KGE-12", "KGE-13"), (
+        "https://developer.konghq.com/gateway/hybrid-mode/",
+        "https://developer.konghq.com/gateway/monitoring/",
+    )),
+    (("KGE-14", "KGE-15", "KGE-16"), (
+        "https://docs.mulesoft.com/gateway/latest/",
+        "https://developer.konghq.com/gateway/deployment-topologies/",
+    )),
+    (("KGE-17",), (
+        "https://developer.konghq.com/gateway/hybrid-mode/",
+        "https://developer.konghq.com/gateway/monitoring/",
+    )),
+    (("KGE-18",), (
+        "https://developer.konghq.com/gateway/version-support-policy/",
+        "https://developer.konghq.com/gateway/hybrid-mode/",
+        "https://developer.konghq.com/gateway/monitoring/",
+        "https://developer.konghq.com/ai-gateway/",
+    )),
+    (("KGE-19", "KGE-20", "KGE-21"), (
+        "https://developer.konghq.com/gateway/hybrid-mode/",
+        "https://developer.konghq.com/gateway/monitoring/",
+        "https://developer.konghq.com/ai-gateway/",
+    )),
+    (("KGE-22", "KGE-23", "KGE-24", "KGE-25"), (
+        "https://developer.konghq.com/gateway/deployment-topologies/",
+        "https://developer.konghq.com/ai-gateway/",
+        "https://docs.cloud.google.com/apigee/docs/hybrid/v1.16/what-is-hybrid",
+        "https://docs.mulesoft.com/gateway/latest/",
+        "https://learn.microsoft.com/en-us/azure/api-management/self-hosted-gateway-overview",
+    )),
+)
+KONG_TECHNICAL_DEEP_DIVE_SLIDE_KEYS = (
+    "decision",
+    *KONG_PLATFORM_FIT_SLIDE_KEYS,
+    "kong-platform-architecture",
+    "kong-technical-state-trust",
+    "kong-technical-operating-model",
+    "kong-technical-degraded-mode",
+    "kong-platform-cases-1",
+    "kong-platform-cases-2",
+    "kong-technical-evidence-path",
+    "kong-platform-outcomes-1",
+    "kong-platform-outcomes-2",
+    "kong-technical-assurance",
+)
+KONG_TECHNICAL_DEEP_DIVE_ROLE_IDS = ("architects", "devops-sre", "platform-teams")
+KONG_GUIDED_PRIVATE_PATH_PATTERN = re.compile(
+    r"(?:file://|/" r"Users/|/var/" r"folders/|/private/" r"var/|[A-Za-z]:\\\\|\.docx(?:\b|$))",
+    re.IGNORECASE,
 )
 KONG_MULTICLOUD_OPTION_IDS = (
     "KMC-1", "KMC-2", "KMC-3", "KMC-4A", "KMC-4B", "KMC-5", "KMC-6", "KMC-7",
@@ -356,6 +545,39 @@ def validate_poc_projection(manifest: dict[str, Any]) -> None:
         dict(zip(test_ids, test_statuses)) == POC_STATUS_BY_ID,
         "visuals.poc.tests must preserve the canonical ID-to-status assignments",
     )
+
+
+def validate_criteria_projection(manifest: dict[str, Any]) -> None:
+    """Keep evidence state distinct from the mandatory/weighted composition."""
+    visuals = manifest.get("visuals")
+    require(isinstance(visuals, dict), "visuals must be an object")
+    criteria = visuals.get("criteria")
+    require(isinstance(criteria, dict), "visuals.criteria must be an object")
+    require(criteria.get("total") == 120, "visuals.criteria.total must be exactly 120")
+    require(criteria.get("mandatory") == 30, "visuals.criteria.mandatory must be exactly 30")
+    require(criteria.get("weighted") == 90, "visuals.criteria.weighted must be exactly 90")
+
+    statuses = criteria.get("statuses")
+    require(isinstance(statuses, list) and bool(statuses), "visuals.criteria.statuses must be a non-empty list")
+    require(all(isinstance(item, dict) for item in statuses), "visuals.criteria.statuses entries must be objects")
+    observed_statuses = {item.get("label"): item.get("value") for item in statuses}
+    require(observed_statuses == CRITERIA_STATUS_COUNTS, "visuals.criteria.statuses must be exactly Unknown=120")
+
+    categories = criteria.get("categories")
+    require(isinstance(categories, list), "visuals.criteria.categories must be a list")
+    require(all(isinstance(row, dict) for row in categories), "visuals.criteria.categories entries must be objects")
+    observed_categories: dict[str, tuple[int, int]] = {}
+    for row in categories:
+        category_id = row.get("id")
+        mandatory = row.get("mandatory")
+        weighted = row.get("weighted")
+        total_value = row.get("total")
+        require(isinstance(category_id, str) and bool(category_id), "visuals.criteria category IDs must be non-empty strings")
+        require(type(mandatory) is int and mandatory >= 0, f"visuals.criteria {category_id} mandatory count is invalid")
+        require(type(weighted) is int and weighted >= 0, f"visuals.criteria {category_id} weighted count is invalid")
+        require(total_value == mandatory + weighted, f"visuals.criteria {category_id} total must equal mandatory plus weighted")
+        observed_categories[category_id] = (mandatory, weighted)
+    require(observed_categories == CRITERIA_CATEGORY_COUNTS, "visuals.criteria category composition is not canonical")
 
 
 def validate_kong_platform_fit_slides(
@@ -689,6 +911,473 @@ def validate_kong_platform_journey(
         )
 
 
+def validate_kong_guided_evaluation(
+    manifest: dict[str, Any],
+    presentation: list[dict[str, Any]],
+) -> None:
+    """Bind the 25-frame guided deck to doc48 and its evidence ceiling."""
+
+    def nonempty_strings(row: dict[str, Any], fields: tuple[str, ...], label: str) -> None:
+        require(
+            all(isinstance(row.get(field), str) and row[field].strip() for field in fields),
+            f"{label} must retain every canonical text field",
+        )
+
+    def numeric(value: Any) -> bool:
+        return type(value) in (int, float)
+
+    def recursively_reject_private_paths(value: Any, label: str) -> None:
+        if isinstance(value, dict):
+            for key, child in value.items():
+                recursively_reject_private_paths(child, f"{label}.{key}")
+        elif isinstance(value, list):
+            for index, child in enumerate(value):
+                recursively_reject_private_paths(child, f"{label}[{index}]")
+        elif isinstance(value, str):
+            require(
+                not KONG_GUIDED_PRIVATE_PATH_PATTERN.search(value),
+                f"{label} contains a local or private source path",
+            )
+
+    visuals = manifest.get("visuals")
+    require(isinstance(visuals, dict), "visuals must be an object")
+    guided = visuals.get("guidedEvaluation")
+    require(isinstance(guided, dict), "visuals.guidedEvaluation must be an object")
+    require(
+        guided.get("sourcePath") == KONG_GUIDED_SOURCE_PATHS[0]
+        and guided.get("sourceId") == KONG_GUIDED_SOURCE_IDS[0],
+        "guided evaluation sourcePath/sourceId must identify canonical doc48",
+    )
+    require(
+        guided.get("sourceClass") == "comparative-study",
+        "guided evaluation sourceClass must be comparative-study",
+    )
+    evidence_state = guided.get("evidenceState")
+    require(isinstance(evidence_state, str) and bool(evidence_state.strip()), "guided evaluation evidenceState is required")
+    for marker in ("Stakeholder inputs", "E1", "interpretation", "hypotheses", "scenario assumptions", "E2", "E3", "E4"):
+        require(marker.casefold() in evidence_state.casefold(), f"guided evaluation evidenceState must preserve {marker}")
+    require(guided.get("asOf") == "2026-08-20", "guided evaluation asOf must be 2026-08-20")
+    metadata = guided.get("metadata")
+    require(isinstance(metadata, dict), "guided evaluation metadata must be an object")
+    require(metadata.get("artifact type") == guided["sourceClass"], "guided evaluation metadata source class is inconsistent")
+    require(metadata.get("evidence state") == evidence_state, "guided evaluation metadata evidence state is inconsistent")
+    require("2026-08-20" in str(metadata.get("as-of date", "")), "guided evaluation metadata as-of date is inconsistent")
+
+    kong_platform = visuals.get("kongPlatformStrategy")
+    require(isinstance(kong_platform, dict), "visuals.kongPlatformStrategy must be an object")
+    architecture_overview = kong_platform.get("guidedArchitectureOverview")
+    require(isinstance(architecture_overview, dict), "KGE-09 guided architecture overview must be an object")
+    require(
+        architecture_overview.get("overviewId") == "KGE-09-OVERVIEW",
+        "KGE-09 guided architecture overview ID is invalid",
+    )
+    control_zone = architecture_overview.get("controlZone")
+    require(isinstance(control_zone, dict), "KGE-09 guided architecture control zone must be an object")
+    control_nodes = control_zone.get("nodes")
+    require(isinstance(control_nodes, list), "KGE-09 guided architecture control nodes must be a list")
+    require(
+        tuple(node.get("id") for node in control_nodes if isinstance(node, dict))
+        == KONG_GUIDED_ARCHITECTURE_CONTROL_IDS,
+        "KGE-09 guided architecture control nodes are invalid",
+    )
+    require(
+        all(isinstance(node, dict) and node.get("label") and node.get("detail") for node in control_nodes),
+        "KGE-09 guided architecture control nodes must retain label and detail",
+    )
+    architecture_lanes = architecture_overview.get("lanes")
+    require(isinstance(architecture_lanes, list), "KGE-09 guided architecture lanes must be a list")
+    require(
+        tuple(lane.get("id") for lane in architecture_lanes if isinstance(lane, dict))
+        == KONG_GUIDED_ARCHITECTURE_LANE_IDS,
+        "KGE-09 guided architecture lanes are invalid",
+    )
+    require(
+        all(
+            isinstance(lane, dict)
+            and isinstance(lane.get("dataPlane"), dict)
+            and isinstance(lane.get("target"), dict)
+            and all(lane[part].get(field) for part in ("dataPlane", "target") for field in ("id", "label", "detail"))
+            for lane in architecture_lanes
+        ),
+        "KGE-09 guided architecture lanes must retain paired DP and local target nodes",
+    )
+    architecture_edges = architecture_overview.get("edges")
+    require(isinstance(architecture_edges, list), "KGE-09 guided architecture edges must be a list")
+    require(
+        tuple(
+            (edge.get("from"), edge.get("to"), edge.get("kind"))
+            for edge in architecture_edges
+            if isinstance(edge, dict)
+        )
+        == KONG_GUIDED_ARCHITECTURE_EDGES,
+        "KGE-09 guided architecture edges must preserve CP fanout and three local, non-crossing runtime lanes",
+    )
+    architecture_provenance = architecture_overview.get("provenance")
+    require(isinstance(architecture_provenance, dict), "KGE-09 guided architecture provenance must be an object")
+    require(
+        (
+            architecture_provenance.get("sourcePath"),
+            architecture_provenance.get("sourceId"),
+            architecture_provenance.get("sourceHeading"),
+            architecture_provenance.get("figureId"),
+            architecture_provenance.get("projectionId"),
+            architecture_provenance.get("projectionType"),
+        )
+        == (
+            KONG_GUIDED_SOURCE_PATHS[2],
+            KONG_GUIDED_SOURCE_IDS[2],
+            "Target architecture: self-managed control, distributed runtime",
+            "KPS-1",
+            "KGE-09-OVERVIEW",
+            "source-derived readable overview",
+        ),
+        "KGE-09 guided architecture provenance must resolve to canonical KPS-1",
+    )
+
+    expected_headings = {
+        "targetModel": "Stated target operating model",
+        "weights": "Supplied weighting model",
+        "options": "Conditional option archetypes",
+        "scoring": "Supplied scoring audit",
+        "authorization": "Bounded authorization",
+        "proofProgramme": "Six-workstream target-aligned proof programme",
+        "proofBoundary": "Current proof boundary",
+        "referenceCatalog": "Guided slide official reference links",
+        "phases": "Guided native deck phases",
+        "slides": "Native presentation contract: KGE-01–KGE-25",
+    }
+
+    def validate_block_provenance(block: dict[str, Any], label: str, heading: str) -> None:
+        provenance = block.get("provenance")
+        require(isinstance(provenance, dict), f"guided evaluation {label} provenance must be an object")
+        require(
+            (
+                provenance.get("sourcePath"),
+                provenance.get("sourceId"),
+                tuple(provenance.get("sourcePaths", ())),
+                tuple(provenance.get("sourceIds", ())),
+                provenance.get("sourceHeading"),
+                provenance.get("sourceClass"),
+                provenance.get("evidenceState"),
+                provenance.get("asOf"),
+            )
+            == (
+                KONG_GUIDED_SOURCE_PATHS[0],
+                KONG_GUIDED_SOURCE_IDS[0],
+                (KONG_GUIDED_SOURCE_PATHS[0],),
+                (KONG_GUIDED_SOURCE_IDS[0],),
+                heading,
+                "comparative-study",
+                evidence_state,
+                "2026-08-20",
+            ),
+            f"guided evaluation {label} provenance must match canonical doc48 and its evidence class",
+        )
+        columns = provenance.get("tableColumns")
+        require(
+            isinstance(columns, list) and bool(columns)
+            and all(isinstance(column, str) and column.strip() for column in columns)
+            and len(columns) == len(set(columns)),
+            f"guided evaluation {label} provenance tableColumns are invalid",
+        )
+
+    target = guided.get("targetModel")
+    require(isinstance(target, dict), "guided evaluation targetModel must be an object")
+    target_rows = target.get("rows")
+    require(isinstance(target_rows, list) and target.get("rowTotal") == 9, "guided evaluation targetModel must contain exactly nine rows")
+    require(tuple(row.get("id") for row in target_rows if isinstance(row, dict)) == KONG_GUIDED_TARGET_IDS, "guided evaluation targetModel IDs must be GTM-01 through GTM-09")
+    require(all(isinstance(row, dict) for row in target_rows), "guided evaluation targetModel rows must be objects")
+    for row in target_rows:
+        nonempty_strings(row, ("lane", "id", "input", "implication"), f"guided target {row.get('id')}")
+    validate_block_provenance(target, "targetModel", expected_headings["targetModel"])
+
+    weights = guided.get("weights")
+    require(isinstance(weights, dict), "guided evaluation weights must be an object")
+    weight_rows = weights.get("rows")
+    require(isinstance(weight_rows, list) and weights.get("rowTotal") == 8, "guided evaluation weights must contain exactly eight rows")
+    require(tuple(row.get("id") for row in weight_rows if isinstance(row, dict)) == KONG_GUIDED_WEIGHT_IDS, "guided evaluation weight IDs must be GEW-01 through GEW-08")
+    require(all(isinstance(row, dict) for row in weight_rows), "guided evaluation weight rows must be objects")
+    require(tuple(row.get("weight") for row in weight_rows) == (20, 15, 15, 10, 10, 10, 10, 10), "guided evaluation weights must preserve the supplied eight-weight model")
+    require(weights.get("weightTotal") == 100 and sum(row["weight"] for row in weight_rows) == 100, "guided evaluation weights must sum to 100")
+    for row in weight_rows:
+        nonempty_strings(row, ("id", "category", "interpretation", "evidenceNeeded"), f"guided weight {row.get('id')}")
+        require(numeric(row.get("weight")) and row["weight"] > 0, f"guided weight {row.get('id')} must be numeric and positive")
+    validate_block_provenance(weights, "weights", expected_headings["weights"])
+
+    options = guided.get("options")
+    require(isinstance(options, dict), "guided evaluation options must be an object")
+    option_rows = options.get("rows")
+    require(isinstance(option_rows, list) and options.get("rowTotal") == 4, "guided evaluation options must contain exactly four rows")
+    require(tuple(row.get("id") for row in option_rows if isinstance(row, dict)) == KONG_GUIDED_OPTION_IDS, "guided evaluation option IDs must preserve the exact GEO order")
+    require(all(isinstance(row, dict) for row in option_rows), "guided evaluation option rows must be objects")
+    for row in option_rows:
+        nonempty_strings(row, ("id", "archetype", "strongestWhen", "concern", "presentationStrongestWhen", "presentationConcern", "decisionRole"), f"guided option {row.get('id')}")
+    validate_block_provenance(options, "options", expected_headings["options"])
+
+    scoring = guided.get("scoring")
+    require(isinstance(scoring, dict), "guided evaluation scoring must be an object")
+    score_rows = scoring.get("rows")
+    require(isinstance(score_rows, list) and scoring.get("rowTotal") == 8, "guided evaluation scoring must contain exactly eight criterion rows")
+    require(tuple(row.get("id") for row in score_rows if isinstance(row, dict)) == KONG_GUIDED_WEIGHT_IDS, "guided evaluation scoring rows must align to GEW-01 through GEW-08")
+    require(all(isinstance(row, dict) for row in score_rows), "guided evaluation scoring rows must be objects")
+    weighted_fields = (
+        ("kongInput", "kongWeighted", "kong"),
+        ("apigeeInput", "apigeeWeighted", "apigee"),
+        ("muleSoftInput", "muleSoftWeighted", "muleSoft"),
+    )
+    for score_row, weight_row in zip(score_rows, weight_rows):
+        nonempty_strings(score_row, ("id", "category"), f"guided score {score_row.get('id')}")
+        require(score_row["category"] == weight_row["category"] and score_row.get("weight") == weight_row["weight"], f"guided score {score_row.get('id')} must align with its weight row")
+        for input_field, weighted_field, _ in weighted_fields:
+            rating = score_row.get(input_field)
+            weighted = score_row.get(weighted_field)
+            require(numeric(rating) and 0 <= rating <= 10 and numeric(weighted), f"guided score {score_row.get('id')} contains a non-numeric rating or weighted result")
+            require(abs(float(weighted) - float(weight_row["weight"]) * float(rating) / 10.0) < 1e-9, f"guided score {score_row.get('id')} arithmetic is invalid for {input_field}")
+    totals = scoring.get("totals")
+    require(isinstance(totals, dict), "guided evaluation scoring totals must be an object")
+    require(set(totals) == set(KONG_GUIDED_SCORE_TOTALS), "guided evaluation scoring total keys are invalid")
+    for key, expected in KONG_GUIDED_SCORE_TOTALS.items():
+        require(numeric(totals.get(key)) and abs(float(totals[key]) - expected) < 1e-9, f"guided evaluation corrected {key} total is invalid")
+    displayed_totals = scoring.get("displayedTotals")
+    require(isinstance(displayed_totals, dict) and set(displayed_totals) == set(KONG_GUIDED_DISPLAYED_TOTALS), "guided evaluation supplied displayed total keys are invalid")
+    for key, expected in KONG_GUIDED_DISPLAYED_TOTALS.items():
+        require(numeric(displayed_totals.get(key)) and abs(float(displayed_totals[key]) - expected) < 1e-9, f"guided evaluation supplied displayed {key} total is invalid")
+    for _, weighted_field, total_field in weighted_fields:
+        require(abs(sum(float(row[weighted_field]) for row in score_rows) - float(totals[total_field])) < 1e-9, f"guided evaluation {total_field} total does not equal its score rows")
+    validate_block_provenance(scoring, "scoring", expected_headings["scoring"])
+
+    authorization = guided.get("authorization")
+    require(isinstance(authorization, dict), "guided evaluation authorization must be an object")
+    authorization_rows = authorization.get("rows")
+    require(isinstance(authorization_rows, list) and authorization.get("rowTotal") == 5, "guided evaluation authorization must contain exactly five rows")
+    require(tuple(row.get("id") for row in authorization_rows if isinstance(row, dict)) == tuple(f"KGE-AUTH-{index:02d}" for index in range(1, 6)), "guided evaluation authorization IDs are invalid")
+    require(all(isinstance(row, dict) for row in authorization_rows), "guided evaluation authorization rows must be objects")
+    for row in authorization_rows:
+        nonempty_strings(row, ("id", "decision", "authorize", "hold", "exitEvidence"), f"guided authorization {row.get('id')}")
+    validate_block_provenance(authorization, "authorization", expected_headings["authorization"])
+
+    proof = guided.get("proofProgramme")
+    require(isinstance(proof, dict), "guided evaluation proofProgramme must be an object")
+    proof_rows = proof.get("rows")
+    require(isinstance(proof_rows, list) and proof.get("rowTotal") == 6, "guided evaluation proofProgramme must contain exactly six rows")
+    require(tuple(row.get("id") for row in proof_rows if isinstance(row, dict)) == KONG_GUIDED_WORKSTREAM_IDS, "guided evaluation workstream IDs must be GEP-01 through GEP-06")
+    require(all(isinstance(row, dict) for row in proof_rows), "guided evaluation proofProgramme rows must be objects")
+    for row in proof_rows:
+        nonempty_strings(row, ("id", "workstream", "presentationSummary", "scope", "artifact", "implication"), f"guided proof workstream {row.get('id')}")
+    validate_block_provenance(proof, "proofProgramme", expected_headings["proofProgramme"])
+
+    proof_boundary = guided.get("proofBoundary")
+    require(isinstance(proof_boundary, dict), "guided evaluation proofBoundary must be an object")
+    proof_boundary_rows = proof_boundary.get("rows")
+    require(isinstance(proof_boundary_rows, list) and proof_boundary.get("rowTotal") == 3, "guided evaluation proofBoundary must contain exactly three rows")
+    require(tuple(row.get("id") for row in proof_boundary_rows if isinstance(row, dict)) == tuple(f"KGE-PROOF-{index:02d}" for index in range(1, 4)), "guided evaluation proofBoundary IDs are invalid")
+    require(all(isinstance(row, dict) for row in proof_boundary_rows), "guided evaluation proofBoundary rows must be objects")
+    for row in proof_boundary_rows:
+        nonempty_strings(row, ("id", "system", "state", "supports", "doesNotSupport"), f"guided proof boundary {row.get('id')}")
+    validate_block_provenance(proof_boundary, "proofBoundary", expected_headings["proofBoundary"])
+
+    evidence_states = guided.get("evidenceStates")
+    require(isinstance(evidence_states, dict), "guided evaluation evidenceStates must be an object")
+    evidence_rows = evidence_states.get("rows")
+    require(isinstance(evidence_rows, list) and evidence_states.get("rowTotal") == 12, "guided evaluation evidenceStates must contain exactly twelve bounded groups")
+    require(all(isinstance(row, dict) for row in evidence_rows), "guided evaluation evidenceStates rows must be objects")
+    observed_evidence_groups = tuple(
+        (
+            tuple(row.get("slideIds", ())),
+            row.get("evidenceState"),
+            row.get("sourceClass"),
+            row.get("interpretation"),
+        )
+        for row in evidence_rows
+    )
+    require(observed_evidence_groups == KONG_GUIDED_EVIDENCE_GROUPS, "guided evaluation per-slide evidence states/classes must match the exact twelve-group contract")
+    covered_evidence_slides = tuple(slide_id for group in observed_evidence_groups for slide_id in group[0])
+    require(covered_evidence_slides == tuple(f"KGE-{index:02d}" for index in range(1, 26)), "guided evaluation evidence-state groups must cover KGE-01 through KGE-25 exactly once")
+    validate_block_provenance(evidence_states, "evidenceStates", expected_headings["slides"])
+
+    reference_catalog = guided.get("referenceCatalog")
+    require(isinstance(reference_catalog, dict), "guided evaluation referenceCatalog must be an object")
+    reference_rows = reference_catalog.get("rows")
+    require(isinstance(reference_rows, list) and reference_catalog.get("rowTotal") == 9, "guided evaluation referenceCatalog must contain exactly nine slide groups")
+    require(all(isinstance(row, dict) for row in reference_rows), "guided evaluation referenceCatalog rows must be objects")
+    observed_reference_groups = tuple(
+        (
+            tuple(row.get("slideIds", ())),
+            tuple(link.get("url") for link in row.get("links", ()) if isinstance(link, dict)),
+        )
+        for row in reference_rows
+    )
+    require(observed_reference_groups == KONG_GUIDED_REFERENCE_GROUPS, "guided evaluation official references must match the exact canonical slide groups")
+    covered_reference_slides = tuple(slide_id for group in observed_reference_groups for slide_id in group[0])
+    require(covered_reference_slides == tuple(f"KGE-{index:02d}" for index in range(1, 26)), "guided evaluation official-reference groups must cover KGE-01 through KGE-25 exactly once")
+    for row in reference_rows:
+        links = row.get("links")
+        require(isinstance(links, list) and links, "guided evaluation reference group must retain at least one official link")
+        require(len({link.get("url") for link in links if isinstance(link, dict)}) == len(links), "guided evaluation reference group contains duplicate URLs")
+        for link in links:
+            require(isinstance(link, dict), "guided evaluation official reference must be an object")
+            nonempty_strings(link, ("label", "url"), "guided evaluation official reference")
+            require(str(link["url"]).startswith("https://"), "guided evaluation official reference must use HTTPS")
+    validate_block_provenance(reference_catalog, "referenceCatalog", expected_headings["referenceCatalog"])
+
+    comparisons = guided.get("comparisons")
+    require(isinstance(comparisons, dict) and set(comparisons) == {"architecture", "management", "economics"}, "guided evaluation comparisons must contain exactly the three canonical groups")
+    comparison_headings = (
+        "Supplied comparison input: architecture and delivery",
+        "Supplied comparison input: management, experience, and AI",
+        "Supplied comparison input: economics and evidence ceiling",
+    )
+    for group, expected_ids, heading in zip(("architecture", "management", "economics"), KONG_GUIDED_COMPARISON_IDS, comparison_headings):
+        block = comparisons[group]
+        require(isinstance(block, dict), f"guided evaluation {group} comparison must be an object")
+        rows = block.get("rows")
+        require(isinstance(rows, list) and block.get("rowTotal") == len(expected_ids), f"guided evaluation {group} comparison row count is invalid")
+        require(tuple(row.get("id") for row in rows if isinstance(row, dict)) == expected_ids, f"guided evaluation {group} comparison IDs are invalid")
+        require(all(isinstance(row, dict) for row in rows), f"guided evaluation {group} comparison rows must be objects")
+        for row in rows:
+            nonempty_strings(row, ("id", "criterion", "kong", "muleSoft", "apigee", "evidenceTreatment"), f"guided comparison {row.get('id')}")
+        validate_block_provenance(block, f"comparisons.{group}", heading)
+
+    phases = guided.get("phases")
+    require(isinstance(phases, dict), "guided evaluation phases must be an object")
+    phase_rows = phases.get("rows")
+    require(isinstance(phase_rows, list) and phases.get("rowTotal") == 6, "guided evaluation phases must contain exactly six rows")
+    observed_phases = tuple(
+        (row.get("id"), row.get("label"), row.get("outcome"), row.get("startKey"))
+        for row in phase_rows if isinstance(row, dict)
+    )
+    require(len(observed_phases) == len(phase_rows) and observed_phases == KONG_GUIDED_PHASES, "guided evaluation phases must preserve the exact six-stage spine and start keys")
+    require(phase_rows[-1].get("label") == "Audit appendix", "guided evaluation final phase must be the audit appendix")
+    for row in phase_rows:
+        nonempty_strings(row, ("id", "label", "slideRange", "outcome", "startKey"), f"guided phase {row.get('id')}")
+    validate_block_provenance(phases, "phases", expected_headings["phases"])
+
+    slide_contract = guided.get("slides")
+    require(isinstance(slide_contract, dict), "guided evaluation slides must be an object")
+    contract_rows = slide_contract.get("rows")
+    require(isinstance(contract_rows, list) and slide_contract.get("rowTotal") == 25, "guided evaluation slide contract must contain exactly 25 rows")
+    require(tuple(row.get("slideId") for row in contract_rows if isinstance(row, dict)) == tuple(f"KGE-{index:02d}" for index in range(1, 26)), "guided evaluation slide IDs must be KGE-01 through KGE-25")
+    require(tuple(row.get("key") for row in contract_rows if isinstance(row, dict)) == KONG_GUIDED_SLIDE_KEYS, "guided evaluation slide keys must match the exact KGE semantic order")
+    require(all(isinstance(row, dict) for row in contract_rows), "guided evaluation slide contract rows must be objects")
+    path_to_id = dict(zip(KONG_GUIDED_SOURCE_PATHS, KONG_GUIDED_SOURCE_IDS))
+    official_references_by_slide_id = {
+        slide_id: urls
+        for slide_ids, urls in KONG_GUIDED_REFERENCE_GROUPS
+        for slide_id in slide_ids
+    }
+    for row in contract_rows:
+        nonempty_strings(row, ("slideId", "key", "viewId", "phaseId", "title", "body", "visualContract", "canonicalSource"), f"guided slide contract {row.get('slideId')}")
+        require(row["viewId"] == row["key"].removeprefix("kong-guided-"), f"guided slide contract {row.get('slideId')} viewId is invalid")
+        require(row["phaseId"] == KONG_GUIDED_PHASE_BY_KEY[row["key"]], f"guided slide contract {row.get('slideId')} phase is invalid")
+        source_paths = row.get("sourcePaths")
+        source_ids = row.get("sourceIds")
+        require(isinstance(source_paths, list) and source_paths and KONG_GUIDED_SOURCE_PATHS[0] in source_paths, f"guided slide contract {row.get('slideId')} sourcePaths must retain canonical doc48")
+        require(len(source_paths) == len(set(source_paths)) and set(source_paths).issubset(set(KONG_GUIDED_SOURCE_PATHS)), f"guided slide contract {row.get('slideId')} sourcePaths are invalid")
+        require(source_ids == [path_to_id[path] for path in source_paths], f"guided slide contract {row.get('slideId')} sourceIds do not align with sourcePaths")
+        official_references = row.get("officialReferences")
+        require(isinstance(official_references, list) and official_references, f"guided slide contract {row.get('slideId')} must retain official references")
+        require(tuple(reference.get("url") for reference in official_references if isinstance(reference, dict)) == official_references_by_slide_id[row["slideId"]], f"guided slide contract {row.get('slideId')} official references do not match the canonical catalog")
+    validate_block_provenance(slide_contract, "slides", expected_headings["slides"])
+
+    decks = manifest.get("presentationDecks")
+    require(isinstance(decks, list), "presentationDecks must be a list")
+    require(
+        tuple(deck.get("id") for deck in decks if isinstance(deck, dict))
+        == ("kong-technical-deep-dive", KONG_PLATFORM_JOURNEY_DECK_ID, KONG_GUIDED_DECK_ID),
+        "presentationDecks must preserve the two existing decks and append exactly one guided deck",
+    )
+    technical, _, deck = decks
+    require(
+        technical.get("theme") == "kong-platform"
+        and tuple(technical.get("presentationSlides", ())) == KONG_TECHNICAL_DEEP_DIVE_SLIDE_KEYS
+        and technical.get("slideTotal") == 15
+        and tuple(technical.get("audienceRoleIds", ())) == KONG_TECHNICAL_DEEP_DIVE_ROLE_IDS
+        and tuple(technical.get("sourcePaths", ())) == (KONG_GUIDED_SOURCE_PATHS[2],)
+        and tuple(technical.get("sourceIds", ())) == (KONG_GUIDED_SOURCE_IDS[2],)
+        and technical.get("presentationRoute") == "#/present/kong-technical-deep-dive/0"
+        and technical.get("exitRoute") == "#/architecture",
+        "Kong technical deep-dive deck contract changed while adding the guided deck",
+    )
+    require(deck.get("theme") == KONG_GUIDED_THEME, "Kong guided deck theme must be kong-guided")
+    require(tuple(deck.get("presentationSlides", ())) == KONG_GUIDED_SLIDE_KEYS, "Kong guided deck slides must match the exact 25-slide KGE order")
+    require(deck.get("slideTotal") == 25, "Kong guided deck slideTotal must be 25")
+    require(tuple(deck.get("audienceRoleIds", ())) == KONG_GUIDED_ROLE_IDS, "Kong guided deck audienceRoleIds must match the exact six-role order")
+    require(tuple(deck.get("sourcePaths", ())) == KONG_GUIDED_SOURCE_PATHS, "Kong guided deck sourcePaths must match the exact canonical source order")
+    require(tuple(deck.get("sourceIds", ())) == KONG_GUIDED_SOURCE_IDS, "Kong guided deck sourceIds must match the exact canonical source order")
+    require(deck.get("presentationRoute") == "#/present/kong-platform-journey-guided/0", "Kong guided deck presentationRoute is invalid")
+    require(deck.get("exitRoute") == "#/overview", "Kong guided deck exitRoute must be #/overview")
+    deck_phases = deck.get("journeyPhases")
+    require(isinstance(deck_phases, list), "Kong guided deck journeyPhases must be a list")
+    require(
+        tuple((phase.get("id"), phase.get("label"), phase.get("outcome"), phase.get("startKey")) for phase in deck_phases if isinstance(phase, dict)) == KONG_GUIDED_PHASES
+        and len(deck_phases) == 6,
+        "Kong guided deck phases must match the exact six-stage spine and start keys",
+    )
+
+    slides_by_key = {slide.get("key"): slide for slide in presentation if isinstance(slide, dict)}
+    require(tuple(slides_by_key) == tuple(slide.get("key") for slide in presentation), "presentation slide keys must be unique")
+    require(all(key in slides_by_key for key in KONG_GUIDED_SLIDE_KEYS), "Kong guided deck references a missing presentation slide")
+    require(tuple(slides_by_key[key].get("index") for key in KONG_GUIDED_SLIDE_KEYS) == tuple(range(37, 62)), "Kong guided slides must append after the unchanged 37-slide global registry")
+    contract_by_key = {row["key"]: row for row in contract_rows}
+    phase_by_id = {phase[0]: phase for phase in KONG_GUIDED_PHASES}
+    evidence_by_slide_id = {
+        slide_id: (state, source_class, interpretation)
+        for slide_ids, state, source_class, interpretation in KONG_GUIDED_EVIDENCE_GROUPS
+        for slide_id in slide_ids
+    }
+    for index, key in enumerate(KONG_GUIDED_SLIDE_KEYS, start=1):
+        slide = slides_by_key[key]
+        contract = contract_by_key[key]
+        phase = phase_by_id[contract["phaseId"]]
+        slide_id = f"KGE-{index:02d}"
+        expected_evidence_state, expected_source_class, expected_interpretation = evidence_by_slide_id[slide_id]
+        require(slide.get("slideId") == slide_id and slide.get("viewId") == contract["viewId"], f"guided presentation slide {key} identity is invalid")
+        require(slide.get("visual") == "guidedEvaluation", f"guided presentation slide {key} must use guidedEvaluation")
+        require(slide.get("phaseId") == phase[0] and slide.get("phaseLabel") == phase[1] and slide.get("phaseOutcome") == phase[2], f"guided presentation slide {key} phase metadata is invalid")
+        require(
+            slide.get("evidenceState") == expected_evidence_state
+            and slide.get("sourceClass") == expected_source_class
+            and slide.get("evidenceInterpretation") == expected_interpretation
+            and slide.get("asOf") == guided["asOf"],
+            f"guided presentation slide {key} evidence state/class is invalid",
+        )
+        require(
+            slide.get("sourcePaths") == contract["sourcePaths"]
+            and slide.get("sourceIds") == contract["sourceIds"]
+            and slide.get("sourceId") == contract["sourceIds"][0] == KONG_GUIDED_POINT_SOURCE_BY_KEY[key],
+            f"guided presentation slide {key} provenance does not match its KGE contract",
+        )
+        require(slide.get("officialReferences") == contract["officialReferences"], f"guided presentation slide {key} official references do not match its KGE contract")
+
+    expected_row_ids = {
+        "kong-guided-target-model": KONG_GUIDED_TARGET_IDS,
+        "kong-guided-weights": KONG_GUIDED_WEIGHT_IDS,
+        "kong-guided-options": KONG_GUIDED_OPTION_IDS,
+        "kong-guided-score": KONG_GUIDED_WEIGHT_IDS,
+        "kong-guided-decision": tuple(f"KGE-AUTH-{index:02d}" for index in range(1, 6)),
+        "kong-guided-proof-boundary": tuple(f"KGE-PROOF-{index:02d}" for index in range(1, 4)),
+        "kong-guided-proof-programme": KONG_GUIDED_WORKSTREAM_IDS,
+        "kong-guided-compare-architecture": KONG_GUIDED_COMPARISON_IDS[0],
+        "kong-guided-compare-management": KONG_GUIDED_COMPARISON_IDS[1],
+        "kong-guided-compare-economics": KONG_GUIDED_COMPARISON_IDS[2],
+        "kong-guided-score-audit": KONG_GUIDED_WEIGHT_IDS,
+    }
+    for key, row_ids in expected_row_ids.items():
+        require(tuple(slides_by_key[key].get("rowIds", ())) == row_ids, f"guided presentation slide {key} rowIds are invalid")
+
+    audience_states = sum(len(audience.get("presentationSlides", ())) for audience in manifest.get("audiences", ()) if isinstance(audience, dict))
+    named_states = sum(deck_item.get("slideTotal", 0) for deck_item in decks if isinstance(deck_item, dict))
+    require(len(presentation) == 62, "global presentation registry must contain exactly 62 slides")
+    require(audience_states == 63, "audience presentation registry must remain exactly 63 states")
+    require(named_states == 55, "named presentation decks must contain exactly 55 states")
+    require(len(presentation) + audience_states + named_states == 180, "configured presentation state total must be exactly 180")
+
+    recursively_reject_private_paths(guided, "visuals.guidedEvaluation")
+    recursively_reject_private_paths(architecture_overview, "visuals.kongPlatformStrategy.guidedArchitectureOverview")
+    recursively_reject_private_paths(deck, "guided presentation deck")
+    recursively_reject_private_paths([slides_by_key[key] for key in KONG_GUIDED_SLIDE_KEYS], "guided presentation slides")
+
+
 def publishable_source_inventory() -> set[str]:
     """Enumerate canonical publishable sources independently of the manifest."""
     inventory: set[str] = set()
@@ -896,7 +1585,7 @@ def validate_routes_and_audiences(
     manifest: dict[str, Any],
     by_id: dict[str, dict[str, Any]],
     document_routes: set[str],
-) -> None:
+) -> set[str]:
     presentation = manifest.get("presentation")
     require(isinstance(presentation, list) and bool(presentation), "presentation must be a non-empty list")
     require(all(isinstance(slide, dict) for slide in presentation), "every presentation slide must be an object")
@@ -908,6 +1597,7 @@ def validate_routes_and_audiences(
     for slide in presentation:
         require(slide.get("sourceId") in by_id, f"slide {slide.get('key')} references an unknown sourceId")
     validate_poc_projection(manifest)
+    validate_criteria_projection(manifest)
     validate_kong_platform_fit_slides(manifest, presentation)
 
     all_routes = set(document_routes)
@@ -1020,6 +1710,8 @@ def validate_routes_and_audiences(
             f"presentation deck {deck_id} exitRoute is unknown",
         )
 
+    return all_routes
+
 
 def validate(output: Path, expected_revision: str | None, require_clean: bool) -> dict[str, Any]:
     require(output.is_dir() and not output.is_symlink(), "generated output root must be a regular directory")
@@ -1036,6 +1728,7 @@ def validate(output: Path, expected_revision: str | None, require_clean: bool) -
     validate_output_inventory(manifest, output)
     validate_routes_and_audiences(manifest, by_id, document_routes)
     validate_kong_platform_journey(manifest, manifest["presentation"])
+    validate_kong_guided_evaluation(manifest, manifest["presentation"])
     return manifest
 
 

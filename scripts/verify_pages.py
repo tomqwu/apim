@@ -96,6 +96,184 @@ KONG_PLATFORM_JOURNEY_PHASES = (
     ("04", "Migration", "Move representative slices with route-back; retire only after dependency zero"),
     ("05", "Production", "Scale only accepted patterns; narrow, switch, or exit otherwise"),
 )
+KONG_GUIDED_DECK_ID = "kong-platform-journey-guided"
+KONG_GUIDED_THEME = "kong-guided"
+KONG_GUIDED_SLIDE_KEYS = (
+    "kong-guided-cover",
+    "kong-guided-target-model",
+    "kong-guided-weights",
+    "kong-guided-options",
+    "kong-guided-score",
+    "kong-guided-decision",
+    "kong-guided-boundary",
+    "kong-guided-duty",
+    "kong-guided-architecture",
+    "kong-guided-state-trust",
+    "kong-guided-degraded",
+    "kong-guided-operating-model",
+    "kong-guided-adoption",
+    "kong-guided-migration-boundary",
+    "kong-guided-coexistence",
+    "kong-guided-waves",
+    "kong-guided-proof-boundary",
+    "kong-guided-proof-programme",
+    "kong-guided-outcomes-1",
+    "kong-guided-outcomes-2",
+    "kong-guided-assurance",
+    "kong-guided-compare-architecture",
+    "kong-guided-compare-management",
+    "kong-guided-compare-economics",
+    "kong-guided-score-audit",
+)
+KONG_GUIDED_ROLE_IDS = KONG_PLATFORM_JOURNEY_ROLE_IDS
+KONG_GUIDED_SOURCE_PATHS = (
+    "docs/48-kong-guided-evaluation.md",
+    "docs/44-kong-multicloud-study-roadmap.md",
+    "docs/47-kong-enterprise-platform-strategy.md",
+    "docs/35-mule-migration-strategy.md",
+    "poc/README.md",
+)
+KONG_GUIDED_SOURCE_IDS = (
+    "docs-48-kong-guided-evaluation",
+    "docs-44-kong-multicloud-study-roadmap",
+    "docs-47-kong-enterprise-platform-strategy",
+    "docs-35-mule-migration-strategy",
+    "poc-readme",
+)
+KONG_GUIDED_ARCHITECTURE_CONTROL_IDS = (
+    "gitops-trust", "kong-control-plane", "postgresql-ha",
+)
+KONG_GUIDED_ARCHITECTURE_LANE_IDS = (
+    "cloud-a", "cloud-b", "private-legacy",
+)
+KONG_GUIDED_ARCHITECTURE_EDGES = (
+    ("gitops-trust", "kong-control-plane", "approved-intent"),
+    ("kong-control-plane", "postgresql-ha", "management-state"),
+    ("kong-control-plane", "cloud-a-dp", "configuration"),
+    ("kong-control-plane", "cloud-b-dp", "configuration"),
+    ("kong-control-plane", "private-legacy-dp", "configuration"),
+    ("cloud-a-dp", "cloud-a-services-evidence", "local-request-and-evidence"),
+    ("cloud-b-dp", "cloud-b-services-evidence", "local-request-and-evidence"),
+    ("private-legacy-dp", "private-legacy-services-evidence", "local-request-and-evidence"),
+)
+KONG_GUIDED_TARGET_IDS = tuple(f"GTM-{index:02d}" for index in range(1, 10))
+KONG_GUIDED_WEIGHT_IDS = tuple(f"GEW-{index:02d}" for index in range(1, 9))
+KONG_GUIDED_OPTION_IDS = ("GEO-KONG", "GEO-APIGEE", "GEO-MULE", "GEO-APIM")
+KONG_GUIDED_WORKSTREAM_IDS = tuple(f"GEP-{index:02d}" for index in range(1, 7))
+KONG_GUIDED_COMPARISON_IDS = (
+    tuple(f"GEC-{index:02d}" for index in range(1, 9)),
+    tuple(f"GEC-{index:02d}" for index in range(9, 16)),
+    tuple(f"GEC-{index:02d}" for index in range(16, 19)),
+)
+KONG_GUIDED_SCORE_TOTALS = {"weight": 100.0, "kong": 93.0, "apigee": 85.5, "muleSoft": 77.0}
+KONG_GUIDED_DISPLAYED_TOTALS = {"kong": 93.0, "apigee": 87.0, "muleSoft": 78.0}
+KONG_GUIDED_PHASES = (
+    ("KGE-P1", "Why now", "Confirm the target operating model and make its weights visible", "kong-guided-cover"),
+    ("KGE-P2", "Options and decision", "Compare conditional archetypes and authorize only the bounded Kong boundary", "kong-guided-options"),
+    ("KGE-P3", "Architecture and adoption", "Understand the target topology, failure paths, ownership, and evidence-gated adoption", "kong-guided-architecture"),
+    ("KGE-P4", "Migration", "Move responsibilities through coexistence, route-back, and exit evidence", "kong-guided-migration-boundary"),
+    ("KGE-P5", "Production proof", "Replace documented capability with executed target-shaped evidence and outcome gates", "kong-guided-proof-boundary"),
+    ("KGE-P6", "Audit appendix", "Preserve the supplied comparison and score inputs without promoting them to proof", "kong-guided-compare-architecture"),
+)
+KONG_GUIDED_PHASE_BY_KEY = {
+    key: phase_id
+    for phase_id, keys in (
+        ("KGE-P1", KONG_GUIDED_SLIDE_KEYS[0:3]),
+        ("KGE-P2", KONG_GUIDED_SLIDE_KEYS[3:8]),
+        ("KGE-P3", KONG_GUIDED_SLIDE_KEYS[8:13]),
+        ("KGE-P4", KONG_GUIDED_SLIDE_KEYS[13:16]),
+        ("KGE-P5", KONG_GUIDED_SLIDE_KEYS[16:21]),
+        ("KGE-P6", KONG_GUIDED_SLIDE_KEYS[21:25]),
+    )
+    for key in keys
+}
+KONG_GUIDED_POINT_SOURCE_BY_KEY = {
+    **{key: KONG_GUIDED_SOURCE_IDS[0] for key in KONG_GUIDED_SLIDE_KEYS},
+    "kong-guided-boundary": KONG_GUIDED_SOURCE_IDS[1],
+    **{key: KONG_GUIDED_SOURCE_IDS[2] for key in KONG_GUIDED_SLIDE_KEYS[7:13]},
+    **{key: KONG_GUIDED_SOURCE_IDS[3] for key in KONG_GUIDED_SLIDE_KEYS[13:16]},
+    "kong-guided-proof-boundary": KONG_GUIDED_SOURCE_IDS[4],
+    **{key: KONG_GUIDED_SOURCE_IDS[2] for key in KONG_GUIDED_SLIDE_KEYS[18:21]},
+}
+KONG_GUIDED_EVIDENCE_GROUPS = (
+    (("KGE-01",), "Guided decision brief", "Mixed public-safe synthesis", "Orientation only; no new evidence"),
+    (("KGE-02", "KGE-03"), "Stakeholder input", "Sanitized supplied input", "Target preferences and weighting choices; not admitted candidate evidence"),
+    (("KGE-04",), "Conditional hypothesis", "Supplied input plus documented-mechanism interpretation", "Conditional operating-model archetypes to test; not an observed product comparison"),
+    (("KGE-05",), "Stakeholder input", "Sanitized supplied input", "Arithmetic audit of supplied ratings; not admitted candidate evidence"),
+    (("KGE-06",), "Bounded direction", "Stakeholder direction plus repository interpretation", "Authorizes foundation and proof only"),
+    (("KGE-07", "KGE-08", "KGE-09", "KGE-10", "KGE-11", "KGE-12"), "Proposed target", "Repository E1 interpretation", "Operating options, architecture, failure policy, and ownership to prove"),
+    (("KGE-13",), "Scenario assumption", "Repository adoption plan", "Overlapping decision windows, not status or commitment"),
+    (("KGE-14", "KGE-15", "KGE-16"), "Proposed migration model", "Repository migration interpretation and scenario sequence", "No observed estate classification, coexistence result, or migration status"),
+    (("KGE-17",), "Executed local baseline", "Canonical PoC register as of 2026-08-20", "Exact local-baseline counts; not representative target proof"),
+    (("KGE-18",), "Not run", "User direction canonicalized as GEP-01–GEP-06", "Required future proof work only"),
+    (("KGE-19", "KGE-20", "KGE-21"), "Proposed acceptance contract", "Repository outcome and assurance design", "Measures, artifacts, and decisions, not achieved outcomes"),
+    (("KGE-22", "KGE-23", "KGE-24", "KGE-25"), "Stakeholder input", "Sanitized supplied input", "Audit appendix; qualitative labels and scores remain unverified"),
+)
+KONG_GUIDED_REFERENCE_GROUPS = (
+    (("KGE-01", "KGE-02", "KGE-03"), (
+        "https://developer.konghq.com/gateway/deployment-topologies/",
+        "https://developer.konghq.com/gateway/hybrid-mode/",
+    )),
+    (("KGE-04", "KGE-05"), (
+        "https://developer.konghq.com/gateway/deployment-topologies/",
+        "https://docs.cloud.google.com/apigee/docs/hybrid/v1.16/what-is-hybrid",
+        "https://docs.mulesoft.com/gateway/latest/",
+        "https://learn.microsoft.com/en-us/azure/api-management/self-hosted-gateway-overview",
+    )),
+    (("KGE-06", "KGE-07", "KGE-08"), (
+        "https://developer.konghq.com/gateway/hybrid-mode/",
+        "https://developer.konghq.com/gateway/version-support-policy/",
+    )),
+    (("KGE-09", "KGE-10", "KGE-11", "KGE-12", "KGE-13"), (
+        "https://developer.konghq.com/gateway/hybrid-mode/",
+        "https://developer.konghq.com/gateway/monitoring/",
+    )),
+    (("KGE-14", "KGE-15", "KGE-16"), (
+        "https://docs.mulesoft.com/gateway/latest/",
+        "https://developer.konghq.com/gateway/deployment-topologies/",
+    )),
+    (("KGE-17",), (
+        "https://developer.konghq.com/gateway/hybrid-mode/",
+        "https://developer.konghq.com/gateway/monitoring/",
+    )),
+    (("KGE-18",), (
+        "https://developer.konghq.com/gateway/version-support-policy/",
+        "https://developer.konghq.com/gateway/hybrid-mode/",
+        "https://developer.konghq.com/gateway/monitoring/",
+        "https://developer.konghq.com/ai-gateway/",
+    )),
+    (("KGE-19", "KGE-20", "KGE-21"), (
+        "https://developer.konghq.com/gateway/hybrid-mode/",
+        "https://developer.konghq.com/gateway/monitoring/",
+        "https://developer.konghq.com/ai-gateway/",
+    )),
+    (("KGE-22", "KGE-23", "KGE-24", "KGE-25"), (
+        "https://developer.konghq.com/gateway/deployment-topologies/",
+        "https://developer.konghq.com/ai-gateway/",
+        "https://docs.cloud.google.com/apigee/docs/hybrid/v1.16/what-is-hybrid",
+        "https://docs.mulesoft.com/gateway/latest/",
+        "https://learn.microsoft.com/en-us/azure/api-management/self-hosted-gateway-overview",
+    )),
+)
+KONG_TECHNICAL_DEEP_DIVE_SLIDE_KEYS = (
+    "decision",
+    *KONG_PLATFORM_FIT_SLIDE_KEYS,
+    "kong-platform-architecture",
+    "kong-technical-state-trust",
+    "kong-technical-operating-model",
+    "kong-technical-degraded-mode",
+    "kong-platform-cases-1",
+    "kong-platform-cases-2",
+    "kong-technical-evidence-path",
+    "kong-platform-outcomes-1",
+    "kong-platform-outcomes-2",
+    "kong-technical-assurance",
+)
+KONG_TECHNICAL_DEEP_DIVE_ROLE_IDS = ("architects", "devops-sre", "platform-teams")
+KONG_GUIDED_PRIVATE_PATH_PATTERN = re.compile(
+    r"(?:file://|/" r"Users/|/var/" r"folders/|/private/" r"var/|[A-Za-z]:\\\\|\.docx(?:\b|$))",
+    re.IGNORECASE,
+)
 KONG_MULTICLOUD_OPTION_IDS = (
     "KMC-1", "KMC-2", "KMC-3", "KMC-4A", "KMC-4B", "KMC-5", "KMC-6", "KMC-7",
 )
@@ -115,6 +293,21 @@ POC_STATUS_BY_ID = {
     **{f"POC-{index}": "Not run" for index in range(101, 111)},
 }
 POC_TEST_IDS = tuple(POC_STATUS_BY_ID)
+CRITERIA_STATUS_COUNTS = {"Unknown": 120}
+CRITERIA_CATEGORY_COUNTS = {
+    "architecture": (3, 7),
+    "security": (7, 3),
+    "network": (2, 8),
+    "kubernetes": (2, 8),
+    "api-lifecycle": (1, 9),
+    "apiops": (3, 7),
+    "traffic-policy": (1, 9),
+    "observability": (1, 9),
+    "resilience-performance": (3, 7),
+    "operations-support": (2, 8),
+    "mule-migration": (2, 8),
+    "commercial-strategy": (3, 7),
+}
 ROOT = Path(__file__).resolve().parents[1]
 
 
@@ -216,6 +409,39 @@ def validate_poc_projection(manifest: dict[str, Any]) -> None:
         dict(zip(test_ids, test_statuses)) == POC_STATUS_BY_ID,
         "manifest visuals.poc.tests must preserve the canonical ID-to-status assignments",
     )
+
+
+def validate_criteria_projection(manifest: dict[str, Any]) -> None:
+    """Mirror the local criteria evidence/composition contract on deployed Pages."""
+    visuals = manifest.get("visuals")
+    require(isinstance(visuals, dict), "manifest visuals must be an object")
+    criteria = visuals.get("criteria")
+    require(isinstance(criteria, dict), "manifest visuals.criteria must be an object")
+    require(criteria.get("total") == 120, "manifest visuals.criteria.total must be exactly 120")
+    require(criteria.get("mandatory") == 30, "manifest visuals.criteria.mandatory must be exactly 30")
+    require(criteria.get("weighted") == 90, "manifest visuals.criteria.weighted must be exactly 90")
+
+    statuses = criteria.get("statuses")
+    require(isinstance(statuses, list) and bool(statuses), "manifest visuals.criteria.statuses must be a non-empty list")
+    require(all(isinstance(item, dict) for item in statuses), "manifest visuals.criteria.statuses entries must be objects")
+    observed_statuses = {item.get("label"): item.get("value") for item in statuses}
+    require(observed_statuses == CRITERIA_STATUS_COUNTS, "manifest visuals.criteria.statuses must be exactly Unknown=120")
+
+    categories = criteria.get("categories")
+    require(isinstance(categories, list), "manifest visuals.criteria.categories must be a list")
+    require(all(isinstance(row, dict) for row in categories), "manifest visuals.criteria.categories entries must be objects")
+    observed_categories: dict[str, tuple[int, int]] = {}
+    for row in categories:
+        category_id = row.get("id")
+        mandatory = row.get("mandatory")
+        weighted = row.get("weighted")
+        total_value = row.get("total")
+        require(isinstance(category_id, str) and bool(category_id), "manifest visuals.criteria category IDs must be non-empty strings")
+        require(type(mandatory) is int and mandatory >= 0, f"manifest visuals.criteria {category_id} mandatory count is invalid")
+        require(type(weighted) is int and weighted >= 0, f"manifest visuals.criteria {category_id} weighted count is invalid")
+        require(total_value == mandatory + weighted, f"manifest visuals.criteria {category_id} total must equal mandatory plus weighted")
+        observed_categories[category_id] = (mandatory, weighted)
+    require(observed_categories == CRITERIA_CATEGORY_COUNTS, "manifest visuals.criteria category composition is not canonical")
 
 
 def validate_kong_platform_fit_slides(
@@ -552,6 +778,52 @@ def validate_kong_platform_journey(
         )
 
 
+def validate_kong_guided_evaluation(
+    manifest: dict[str, Any],
+    presentation: list[dict[str, Any]],
+) -> None:
+    """Run the same fail-closed guided-deck contract against deployed Pages."""
+    try:
+        from validate_site_manifest import (
+            ValidationError as LocalValidationError,
+            validate_kong_guided_evaluation as validate_local_guided_evaluation,
+        )
+
+        validate_local_guided_evaluation(manifest, presentation)
+    except LocalValidationError as exc:
+        raise VerificationError(f"manifest {exc}") from exc
+
+    strategy = manifest.get("visuals", {}).get("kongPlatformStrategy", {})
+    overview = strategy.get("guidedArchitectureOverview")
+    require(isinstance(overview, dict), "manifest KGE-09 guided architecture overview must be an object")
+    require(
+        overview.get("overviewId") == "KGE-09-OVERVIEW",
+        "manifest KGE-09 guided architecture overview ID is invalid",
+    )
+    control_nodes = overview.get("controlZone", {}).get("nodes", [])
+    require(
+        tuple(node.get("id") for node in control_nodes if isinstance(node, dict))
+        == KONG_GUIDED_ARCHITECTURE_CONTROL_IDS,
+        "manifest KGE-09 guided architecture control nodes are invalid",
+    )
+    lanes = overview.get("lanes", [])
+    require(
+        tuple(lane.get("id") for lane in lanes if isinstance(lane, dict))
+        == KONG_GUIDED_ARCHITECTURE_LANE_IDS,
+        "manifest KGE-09 guided architecture lanes are invalid",
+    )
+    edges = overview.get("edges", [])
+    require(
+        tuple(
+            (edge.get("from"), edge.get("to"), edge.get("kind"))
+            for edge in edges
+            if isinstance(edge, dict)
+        )
+        == KONG_GUIDED_ARCHITECTURE_EDGES,
+        "manifest KGE-09 guided architecture edges must preserve CP fanout and three local, non-crossing runtime lanes",
+    )
+
+
 def run_git(*args: str) -> str:
     try:
         result = subprocess.run(
@@ -608,6 +880,7 @@ def validated_route_inventory(manifest: dict[str, Any], items: list[dict[str, An
         "manifest presentation references an unknown sourceId",
     )
     validate_poc_projection(manifest)
+    validate_criteria_projection(manifest)
     validate_kong_platform_fit_slides(manifest, presentation)
 
     content_routes = set(STATIC_ROUTES).union(item_routes)
@@ -863,6 +1136,7 @@ def validate_manifest_shape(
 
     available_routes = validated_route_inventory(manifest, items)
     validate_kong_platform_journey(manifest, manifest["presentation"])
+    validate_kong_guided_evaluation(manifest, manifest["presentation"])
     for route in expected_routes:
         require(isinstance(route, str) and route.startswith("#/") and route in available_routes, f"requested derived route is not published: {route}")
 
