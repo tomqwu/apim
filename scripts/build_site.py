@@ -1003,15 +1003,40 @@ def kong_multicloud_visuals(items: list[dict[str, object]]) -> dict[str, object]
         }
         for row in workstream_rows
     ]
-    options = [
-        {
-            "id": clean_inline(row_value(row, "Option ID")),
-            "label": clean_inline(row_value(row, "Bounded archetype")),
-            "placement": clean_inline(row_value(row, "Plane placement and authority")),
-            "role": clean_inline(row_value(row, "Intended study role")),
-        }
-        for row in option_rows
-    ]
+    journey_option_copy = {
+        "KMC-1": {
+            "journeyLabel": "Managed control · self-hosted runtime",
+            "journeyBoundary": "Kong operates the control plane and database; the enterprise operates data planes and their network paths.",
+            "journeyRole": "Customer-hosted runtime proof",
+        },
+        "KMC-2": {
+            "journeyLabel": "Managed control and managed runtime",
+            "journeyBoundary": "Kong operates the control plane and dedicated data planes; the enterprise retains edge, connectivity, upstream, policy, and evidence integration.",
+            "journeyRole": "Managed-runtime benchmark",
+        },
+        "KMC-3": {
+            "journeyLabel": "Self-managed control and runtime",
+            "journeyBoundary": "The enterprise operates the control plane, PostgreSQL, Admin API, PKI, and data planes across its zones.",
+            "journeyRole": "Enterprise-control proof",
+        },
+        "KMC-4A": {"journeyLabel": "Konnect + KIC authority"},
+        "KMC-4B": {"journeyLabel": "Self-managed + KIC authority"},
+        "KMC-5": {"journeyLabel": "Operator lifecycle"},
+        "KMC-6": {"journeyLabel": "DB-less edge / recovery"},
+        "KMC-7": {"journeyLabel": "Serverless pre-production"},
+    }
+    options = []
+    for row in option_rows:
+        option_id = clean_inline(row_value(row, "Option ID"))
+        options.append(
+            {
+                "id": option_id,
+                "label": clean_inline(row_value(row, "Bounded archetype")),
+                "placement": clean_inline(row_value(row, "Plane placement and authority")),
+                "role": clean_inline(row_value(row, "Intended study role")),
+                **journey_option_copy.get(option_id, {}),
+            }
+        )
     return {
         "workstreamTotal": len(workstreams),
         "workstreams": workstreams,
@@ -1201,6 +1226,114 @@ def kong_platform_strategy_visuals(items: list[dict[str, object]]) -> dict[str, 
     }
 
 
+def mule_migration_visuals(items: list[dict[str, object]]) -> dict[str, object]:
+    """Project the canonical responsibility, coexistence, and wave migration models."""
+    source_path = "docs/35-mule-migration-strategy.md"
+    text = safe_text(ROOT / source_path)
+    by_path = {str(item["path"]): str(item["id"]) for item in items}
+    source_id = by_path.get(source_path, "")
+
+    responsibility_columns = (
+        "Class",
+        "Responsibility",
+        "Default target",
+        "Evidence needed",
+        "Common error",
+    )
+    responsibility_rows = markdown_table(
+        markdown_section(text, "Mechanism analysis: decompose before selecting a target"),
+        responsibility_columns,
+    )
+    responsibilities = [
+        {
+            "id": clean_inline(row_value(row, "Class")),
+            "responsibility": clean_inline(row_value(row, "Responsibility")),
+            "target": clean_inline(row_value(row, "Default target")),
+            "evidence": clean_inline(row_value(row, "Evidence needed")),
+            "error": clean_inline(row_value(row, "Common error")),
+        }
+        for row in responsibility_rows
+    ]
+
+    wave_columns = (
+        "Wave",
+        "Assumed scope",
+        "Hard pattern intentionally included",
+        "Entry gate",
+        "Exit gate",
+    )
+    wave_rows = markdown_table(markdown_section(text, "Migration waves"), wave_columns)
+    waves: list[dict[str, object]] = []
+    for row in wave_rows:
+        wave_label = clean_inline(row_value(row, "Wave"))
+        match = re.match(r"^(M\d+)\b\s*(.*)$", wave_label, flags=re.IGNORECASE)
+        waves.append(
+            {
+                "id": match.group(1).upper() if match else "",
+                "label": match.group(2).strip(" —–:-") if match else wave_label,
+                "scope": clean_inline(row_value(row, "Assumed scope")),
+                "pattern": clean_inline(row_value(row, "Hard pattern intentionally included")),
+                "entryGate": clean_inline(row_value(row, "Entry gate")),
+                "exitGate": clean_inline(row_value(row, "Exit gate")),
+            }
+        )
+
+    figure_headings = {
+        "MULE-2": "Mechanism analysis: decompose before selecting a target",
+        "MULE-3": "Target coexistence architecture",
+        "MULE-6": "Migration waves",
+    }
+    figures: list[dict[str, object]] = []
+    for figure_id, heading in figure_headings.items():
+        section = markdown_section(text, heading)
+        match = re.search(
+            rf"\*\*Figure\s+{re.escape(figure_id)}\s+—\s+([^*]+)\*\*[\s\S]*?```mermaid\s*\n([\s\S]*?)\n```",
+            section,
+            flags=re.IGNORECASE,
+        )
+        figures.append(
+            {
+                "figureId": figure_id,
+                "title": clean_inline(match.group(1).strip()) if match else "",
+                "mermaid": match.group(2).strip() if match else "",
+                "provenance": {
+                    "sourcePath": source_path,
+                    "sourceId": source_id,
+                    "sourcePaths": [source_path],
+                    "sourceIds": [source_id] if source_id else [],
+                    "sourceHeading": heading,
+                    "figureId": figure_id,
+                },
+            }
+        )
+
+    provenance = {
+        "sourcePath": source_path,
+        "sourceId": source_id,
+        "sourcePaths": [source_path],
+        "sourceIds": [source_id] if source_id else [],
+    }
+    return {
+        "sourcePath": source_path,
+        "sourceId": source_id,
+        "responsibilityTotal": len(responsibilities),
+        "responsibilities": responsibilities,
+        "responsibilityProvenance": {
+            **provenance,
+            "sourceHeading": "Mechanism analysis: decompose before selecting a target",
+            "tableColumns": list(responsibility_columns),
+        },
+        "waveTotal": len(waves),
+        "waves": waves,
+        "waveProvenance": {
+            **provenance,
+            "sourceHeading": "Migration waves",
+            "tableColumns": list(wave_columns),
+        },
+        "figures": figures,
+    }
+
+
 def methodology_visuals() -> dict[str, object]:
     text = safe_text(ROOT / "docs" / "03-assessment-methodology.md")
     sequence_rows = markdown_table(text, ("Stage", "Purpose", "Required output", "Stop condition"))
@@ -1260,6 +1393,7 @@ def visual_provenance(items: list[dict[str, object]]) -> dict[str, dict[str, obj
         "industryPractices": ("docs/45-api-management-industry-practices.md",),
         "kongMulticloud": ("docs/44-kong-multicloud-study-roadmap.md",),
         "kongPlatformStrategy": ("docs/47-kong-enterprise-platform-strategy.md",),
+        "muleMigration": ("docs/35-mule-migration-strategy.md",),
         "methodology": ("docs/03-assessment-methodology.md",),
         "review": ("reports/methodology-review.md",),
     }
@@ -1299,6 +1433,7 @@ def build_visuals(items: list[dict[str, object]]) -> dict[str, object]:
         "industryPractices": industry_practice_visuals(),
         "kongMulticloud": kong_multicloud_visuals(items),
         "kongPlatformStrategy": kong_platform_strategy_visuals(items),
+        "muleMigration": mule_migration_visuals(items),
         "methodology": methodology_visuals(),
         "review": review_visuals(),
         "provenance": visual_provenance(items),
@@ -1315,6 +1450,7 @@ def validate_site_projection(stats: dict[str, int], visuals: dict[str, object]) 
     industry_practices = visuals.get("industryPractices")
     kong_multicloud = visuals.get("kongMulticloud")
     kong_platform = visuals.get("kongPlatformStrategy")
+    mule_migration = visuals.get("muleMigration")
     checks = {
         "bounded archetypes": isinstance(variants, list) and bool(variants),
         "methodology decision steps": isinstance(methodology, dict) and bool(methodology.get("steps")),
@@ -1367,6 +1503,18 @@ def validate_site_projection(stats: dict[str, int], visuals: dict[str, object]) 
             }
             == {f"P{rank}" for rank in range(1, 11)}
             and bool(kong_multicloud.get("problemSourceId"))
+            and kong_multicloud.get("optionTotal") == 8
+            and [option.get("id") for option in kong_multicloud.get("options", [])]
+            == ["KMC-1", "KMC-2", "KMC-3", "KMC-4A", "KMC-4B", "KMC-5", "KMC-6", "KMC-7"]
+            and all(
+                option.get("label") and option.get("placement") and option.get("role")
+                for option in kong_multicloud.get("options", [])
+            )
+            and all(option.get("journeyLabel") for option in kong_multicloud.get("options", []))
+            and all(
+                option.get("journeyBoundary") and option.get("journeyRole")
+                for option in kong_multicloud.get("options", [])[:3]
+            )
         ),
         "Kong enterprise platform strategy": (
             isinstance(kong_platform, dict)
@@ -1406,6 +1554,29 @@ def validate_site_projection(stats: dict[str, int], visuals: dict[str, object]) 
                     kong_platform.get("outcomes", {}),
                     kong_platform.get("architecture", {}),
                 )
+            )
+        ),
+        "Mule migration journey models": (
+            isinstance(mule_migration, dict)
+            and bool(mule_migration.get("sourceId"))
+            and mule_migration.get("responsibilityTotal") == 8
+            and [row.get("id") for row in mule_migration.get("responsibilities", [])]
+            == ["G", "F", "T", "O", "M", "B", "C", "R"]
+            and all(
+                row.get("responsibility") and row.get("target") and row.get("evidence") and row.get("error")
+                for row in mule_migration.get("responsibilities", [])
+            )
+            and mule_migration.get("waveTotal") == 6
+            and [row.get("id") for row in mule_migration.get("waves", [])]
+            == [f"M{rank}" for rank in range(0, 6)]
+            and [figure.get("figureId") for figure in mule_migration.get("figures", [])]
+            == ["MULE-2", "MULE-3", "MULE-6"]
+            and all(
+                figure.get("title")
+                and str(figure.get("mermaid", "")).startswith("flowchart")
+                and figure.get("provenance", {}).get("sourceId") == mule_migration.get("sourceId")
+                and figure.get("provenance", {}).get("figureId") == figure.get("figureId")
+                for figure in mule_migration.get("figures", [])
             )
         ),
     }
@@ -1674,6 +1845,16 @@ def make_presentation(items: list[dict[str, object]], stats: dict[str, int], vis
     kong_cases = list(kong_platform.get("cases", {}).get("rows", []))
     kong_phases = list(kong_platform.get("roadmap", {}).get("phases", []))
     kong_outcomes = list(kong_platform.get("outcomes", {}).get("rows", []))
+    kong_options = list(visuals.get("kongMulticloud", {}).get("options", []))
+    mule_migration = visuals.get("muleMigration", {})
+    mule_responsibilities = list(mule_migration.get("responsibilities", []))
+    mule_waves = list(mule_migration.get("waves", []))
+    poc_by_status = {
+        str(row.get("label", "")): int(row.get("value", 0))
+        for row in visuals.get("poc", {}).get("byStatus", [])
+    }
+    poc_automated = poc_by_status.get("Automated", 0)
+    poc_not_run = poc_by_status.get("Not run", 0)
     specs = [
         ("orientation", "Orientation", "A living evidence base for API management decisions", "Research, architecture, proof, and reusable delivery material in one navigable system.", "docs/00-executive-summary.md", stats["resources"], "indexed resources", "composition"),
         ("decision", "Decision", "Proceed with a bounded, reversible Kong foundation", "Kong is the stakeholder-selected planning direction. Freeze the exact self-managed hybrid option and fund accountable foundation proof; production fit and critical scale remain blocked until the mandatory evidence gates close.", "docs/47-kong-enterprise-platform-strategy.md", "KP0", "foundation gate", "recommendation"),
@@ -1700,11 +1881,18 @@ def make_presentation(items: list[dict[str, object]], stats: dict[str, int], vis
         ("proof", "Proof", "Turn architecture claims into hard-gated experiments", f"The PoC keeps {stats['pocScenarios']} status-register items distinct from {stats['pocProtocolCases']} atomic real-world, portal, and observability cases; overlapping or aggregate cases are never summed as execution progress.", "poc/README.md", stats["pocProtocolCases"], "decision-grade experiment cases", "pocStatus"),
         ("delivery", "Delivery", "Move in controlled waves", "The roadmap combines discovery, evidence closure, PoC execution, operating-model design, migration waves, and decision gates.", "docs/36-implementation-roadmap.md", roadmap_phase_total, "roadmap phases", "roadmap"),
         ("next", "Next", "Close the evidence gaps that can change the decision", "Open questions remain first-class work. The portal is designed to expose uncertainty, not decorate it.", "docs/38-open-questions.md", stats["openQuestions"], "open questions", "governance"),
-        ("kong-technical-state-trust", "Kong technical deep dive · state", "A healthy proxy is not proof of a healthy platform", "KPS-2 separates desired configuration, CP/DP trust, consumer and backend trust, durable business outcome, and evidence paths so each can fail and recover independently.", "docs/47-kong-enterprise-platform-strategy.md", "KPS-2", "canonical state and trust figure", "kongTechnicalFigure"),
+        ("kong-technical-state-trust", "Kong technical deep dive · state", "A healthy proxy is not proof of a healthy platform", "KPS-2 separates desired configuration, CP/DP trust, consumer and backend trust, durable business outcome, and evidence paths. Each can fail independently, so admission and recovery must evaluate them separately.", "docs/47-kong-enterprise-platform-strategy.md", "KPS-2", "canonical state and trust figure", "kongTechnicalFigure"),
         ("kong-technical-operating-model", "Kong technical deep dive · ownership", "Self-managed control is a funded platform service", "KPS-3 keeps Kong service ownership with the platform product while domain teams retain business authorization, service correctness, data, and consumer outcomes.", "docs/47-kong-enterprise-platform-strategy.md", "KPS-3", "canonical operating-model figure", "kongTechnicalFigure"),
-        ("kong-technical-degraded-mode", "Kong technical deep dive · failure", "Control-plane loss creates explicit admission states", "KPS-4 distinguishes accepted cached service, restart, clean-node admission, quarantine, stale-state limits, reconciliation, and outside-in recovery evidence.", "docs/47-kong-enterprise-platform-strategy.md", "KPS-4", "canonical degraded-mode figure", "kongTechnicalFigure"),
-        ("kong-technical-evidence-path", "Kong technical deep dive · rollout", "Scale is earned through stronger evidence—not elapsed time", "KPS-5 moves from an exact boundary through reversible foundation, E3 failure proof, paved roads, representative operation, and a scale, narrow, switch, or exit decision.", "docs/47-kong-enterprise-platform-strategy.md", "KPS-5", "canonical evidence-path figure", "kongTechnicalFigure"),
+        ("kong-technical-degraded-mode", "Kong technical deep dive · failure", "Control-plane loss requires explicit admission states", "KPS-4 is an organizational admission policy—not automatic Kong behavior. It separates accepted cached service, restart, clean-node admission, quarantine, stale-state limits, reconciliation, and outside-in recovery evidence.", "docs/47-kong-enterprise-platform-strategy.md", "KPS-4", "canonical degraded-mode figure", "kongTechnicalFigure"),
+        ("kong-technical-evidence-path", "Kong technical deep dive · rollout", "Scale is earned through stronger evidence—not elapsed time", "KPS-5 moves from an exact boundary through reversible foundation, E3 failure proof, paved roads, representative operation, and a scale, narrow, switch, or exit decision. Its 0–18 month windows are scenario assumptions, not a delivery promise.", "docs/47-kong-enterprise-platform-strategy.md", "KPS-5", "canonical evidence-path figure", "kongTechnicalFigure"),
         ("kong-technical-assurance", "Kong technical deep dive · gate", "Negative evidence must still be able to change the architecture", "KPS-6 keeps Konnect custody, a narrower Kong scope, another platform, and a repaired exit path available until representative evidence supports scale.", "docs/47-kong-enterprise-platform-strategy.md", "KPS-6", "canonical decision-assurance figure", "kongTechnicalFigure"),
+        ("kong-journey-decision", "Kong journey · decision", "Proceed with a bounded, reversible Kong foundation", "Kong is the stakeholder-selected planning direction. Freeze the exact self-managed hybrid option and fund accountable foundation proof; production fit and critical scale remain blocked until the mandatory evidence gates close.", "docs/47-kong-enterprise-platform-strategy.md", "KP0", "foundation gate", "kongJourneySpine"),
+        ("kong-journey-options", "Kong journey · options", "Choose the operating boundary before the topology", "KMC-1, KMC-2, and KMC-3 are bounded proof tracks inside two canonical Kong records—not three scored candidates. KMC-2 is the managed-runtime benchmark; Kubernetes authority, Operator, DB-less, and Serverless remain attached experiments.", "docs/44-kong-multicloud-study-roadmap.md", 3, "bounded proof tracks", "kongOptions"),
+        ("kong-journey-selected-option", "Kong journey · leading option", "Self-managed control earns its place only if the enterprise funds the duty", "Fund the CP, PostgreSQL, PKI, upgrade, restore, audit, support, and 24×7 duties. Commit only after exact state and flow, support, isolated restore, packet path, failure, and TCO proof.", "docs/47-kong-enterprise-platform-strategy.md", "KP-SMH1", "conditional target", "kongSelectedOption"),
+        ("kong-journey-migration-boundary", "Kong journey · migration 1/3", "Move responsibilities—not Mule packages", "Every application is decomposed into gateway, facade, transformation, workflow, messaging, batch/file, adapter, or retirement responsibilities before a target is chosen. Only gateway policy is unambiguously at the Kong edge; facade placement remains conditional.", "docs/35-mule-migration-strategy.md", len(mule_responsibilities), "responsibility classes", "muleMigrationBoundary"),
+        ("kong-journey-migration-coexistence", "Kong journey · migration 2/3", "Keep the edge stable while old and new runtimes coexist", "A cohort-aware API edge routes bounded traffic while durable outcome state and independent reconciliation span Mule and target services. Route-back is separate from state reconciliation and remains explicit.", "docs/35-mule-migration-strategy.md", "MULE-3", "canonical coexistence model", "muleMigrationFigure"),
+        ("kong-journey-migration-waves", "Kong journey · migration 3/3", "Factory scale waits for state, semantics, ownership, and dependency zero", "M0 through M5 move from inventory truth to gateway-dominant work, hard-pattern proof, domain ownership, the connector and batch tail, and finally shared-runtime retirement. This is a scenario planning sequence—not current programme status.", "docs/35-mule-migration-strategy.md", len(mule_waves), "evidence-gated waves", "muleMigrationWaves"),
+        ("kong-journey-proof", "Kong journey · evidence boundary", "The current PoC is a functional baseline—not KP-SMH1 proof", f"{poc_automated} of {stats['pocScenarios']} aggregate register items have automated local-baseline evidence and {poc_not_run} are not run. The separate {stats['pocProtocolCases']} atomic protocol cases all begin not run, and the self-managed hybrid target still has no E3 or E4 result.", "poc/README.md", 0, "target-option E3/E4 results", "pocStatus"),
     ]
     slides = [
         {
@@ -1733,6 +1921,10 @@ def make_presentation(items: list[dict[str, object]], stats: dict[str, int], vis
         "kong-platform-cases-2": [str(row.get("id", "")) for row in kong_cases[4:]],
         "kong-platform-outcomes-1": [str(row.get("id", "")) for row in kong_outcomes[:5]],
         "kong-platform-outcomes-2": [str(row.get("id", "")) for row in kong_outcomes[5:]],
+        "kong-journey-selected-option": [str(row.get("projectionId", "")) for row in kong_fit_rows[:2]],
+    }
+    option_ids = {
+        "kong-journey-options": [str(option.get("id", "")) for option in kong_options],
     }
     figure_ids = {
         "kong-technical-state-trust": "KPS-2",
@@ -1740,12 +1932,15 @@ def make_presentation(items: list[dict[str, object]], stats: dict[str, int], vis
         "kong-technical-degraded-mode": "KPS-4",
         "kong-technical-evidence-path": "KPS-5",
         "kong-technical-assurance": "KPS-6",
+        "kong-journey-migration-coexistence": "MULE-3",
     }
     for slide in slides:
         if slide["key"] in workstream_ids:
             slide["workstreamIds"] = workstream_ids[slide["key"]]
         if slide["key"] in row_ids:
             slide["rowIds"] = row_ids[slide["key"]]
+        if slide["key"] in option_ids:
+            slide["optionIds"] = option_ids[slide["key"]]
         if slide["key"] in figure_ids:
             slide["figureId"] = figure_ids[slide["key"]]
     return slides
@@ -1768,6 +1963,8 @@ def make_presentation_decks(
         audience_role_ids: tuple[str, ...],
         slide_keys: tuple[str, ...],
         exit_route: str,
+        theme: str = "",
+        journey_phases: tuple[tuple[str, str], ...] = (),
     ) -> dict[str, object]:
         if len(set(slide_keys)) != len(slide_keys):
             raise ValueError(f"Presentation deck {deck_id} repeats a slide key")
@@ -1796,6 +1993,11 @@ def make_presentation_decks(
             "slideTotal": len(slide_keys),
             "presentationRoute": f"#/present/{deck_id}/0",
             "exitRoute": exit_route,
+            "theme": theme,
+            "journeyPhases": [
+                {"id": f"{index:02d}", "label": label, "outcome": outcome}
+                for index, (label, outcome) in enumerate(journey_phases, start=1)
+            ],
             "sourcePaths": source_paths,
             "sourceIds": source_ids,
         }
@@ -1825,7 +2027,41 @@ def make_presentation_decks(
                 "kong-technical-assurance",
             ),
             exit_route="#/architecture",
-        )
+            theme="kong-platform",
+        ),
+        deck(
+            deck_id="kong-platform-journey",
+            label="Kong platform journey",
+            short_label="Kong journey",
+            summary="A decision-led path from operating option and self-managed architecture through adoption, Mule coexistence and migration, representative production gates, and a scale, narrow, switch, or exit decision.",
+            audience_role_ids=("vp-executive", "directors", "architects", "developers", "devops-sre", "platform-teams"),
+            slide_keys=(
+                "kong-journey-decision",
+                "kong-journey-options",
+                "kong-journey-selected-option",
+                "kong-platform-architecture",
+                "kong-technical-state-trust",
+                "kong-technical-degraded-mode",
+                "kong-technical-operating-model",
+                "kong-platform-roadmap",
+                "kong-journey-migration-boundary",
+                "kong-journey-migration-coexistence",
+                "kong-journey-migration-waves",
+                "kong-journey-proof",
+                "kong-platform-outcomes-1",
+                "kong-platform-outcomes-2",
+                "kong-technical-assurance",
+            ),
+            exit_route="#/overview",
+            theme="kong-journey",
+            journey_phases=(
+                ("Options", "Fix custody, runtime, and evidence ownership"),
+                ("Architecture", "Separate management state from request execution"),
+                ("Adoption", "Turn installation into a paved, supportable platform"),
+                ("Migration", "Move representative slices with route-back; retire only after dependency zero"),
+                ("Production", "Scale only accepted patterns; narrow, switch, or exit otherwise"),
+            ),
+        ),
     ]
 
 

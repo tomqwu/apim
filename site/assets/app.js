@@ -291,6 +291,7 @@
           </div>
           <div class="hero-actions">
             <a class="action-link is-primary" href="${itemHref(kongPlatform)}">Open the Kong platform strategy <span aria-hidden="true">↗</span></a>
+            <a class="action-link is-primary" href="#/present/kong-platform-journey/0">Start the Kong platform journey <span aria-hidden="true">→</span></a>
             <a class="action-link" href="#/architecture">Inspect the target architecture <span aria-hidden="true">→</span></a>
             <a class="action-link" href="#/present/kong-technical-deep-dive/0">Start the technical deep dive <span aria-hidden="true">→</span></a>
             <a class="action-link" href="#/present/platform-teams/0">Start the platform-team briefing <span aria-hidden="true">→</span></a>
@@ -703,6 +704,7 @@
           </div>
           <div class="hero-actions">
             <a class="action-link is-primary" href="${itemHref(kongPlatform)}">Open the canonical platform strategy <span aria-hidden="true">↗</span></a>
+            <a class="action-link is-primary" href="#/present/kong-platform-journey/0">Start the Kong platform journey <span aria-hidden="true">→</span></a>
             <a class="action-link" href="#/present/kong-technical-deep-dive/0">Start the Kong technical deep dive <span aria-hidden="true">→</span></a>
           </div>
         </section>` : ""}
@@ -1762,7 +1764,7 @@
 
     let lastAvailableSize = "";
     let scale = 1;
-    const defaultMode = "overview";
+    const defaultMode = isPresentation && hasSemanticSummary ? "summary" : "overview";
     let mode = defaultMode;
     let expanded = false;
     let inertSiblings = [];
@@ -1813,7 +1815,7 @@
         : `${label}. Readable inspection canvas; scroll horizontally and vertically as needed.`);
     };
 
-    const setExpanded = (nextExpanded, restoreFocus = true) => {
+    const setExpanded = (nextExpanded, restoreFocus = true, deferLayout = true) => {
       expanded = nextExpanded;
       if (expanded) {
         originPlaceholder = document.createComment("expanded diagram origin");
@@ -1840,6 +1842,7 @@
         target.removeAttribute("tabindex");
       }
       update();
+      if (!deferLayout) return;
       requestAnimationFrame(() => {
         if (mode === "overview") scale = overviewScale();
         else if (mode === "readable") scale = readableScale();
@@ -1851,7 +1854,11 @@
     };
 
     target.addEventListener("diagram-close-request", (event) => {
-      if (expanded) setExpanded(false, event.detail?.restoreFocus !== false);
+      if (expanded) setExpanded(
+        false,
+        event.detail?.restoreFocus !== false,
+        event.detail?.deferLayout !== false,
+      );
     });
 
     toolbar.addEventListener("click", (event) => {
@@ -2133,9 +2140,9 @@
     }
   }
 
-  function presentationVisualMarkup(slide, source) {
+  function presentationVisualMarkup(slide, source, isJourneyDeck = false) {
     const visuals = state.manifest.visuals || {};
-    const options = { presentation: true, compact: true, title: slide.metricLabel };
+    const options = { presentation: true, compact: true, title: isJourneyDeck ? slide.title : slide.metricLabel };
     const selected = (rows, idKey = "id") => {
       const ids = Array.isArray(slide.rowIds) ? new Set(slide.rowIds) : null;
       return Array.isArray(rows) ? rows.filter((row) => !ids || ids.has(row?.[idKey])) : [];
@@ -2169,6 +2176,21 @@
         const fit = visuals.kongPlatformStrategy?.fit || {};
         return chartMarkup("kongPlatformFit", { ...fit, rows: selected(fit.rows, "projectionId") }, options);
       }
+      case "kongOptions": {
+        const optionIds = Array.isArray(slide.optionIds) ? new Set(slide.optionIds) : null;
+        const optionsData = visuals.kongMulticloud || {};
+        return chartMarkup("kongOptions", {
+          ...optionsData,
+          options: Array.isArray(optionsData.options)
+            ? optionsData.options.filter((option) => !optionIds || optionIds.has(option.id))
+            : [],
+        }, options);
+      }
+      case "kongJourneySpine": return chartMarkup("kongJourneySpine", { phases: slide.journeyPhases || [] }, options);
+      case "kongSelectedOption": {
+        const fit = visuals.kongPlatformStrategy?.fit || {};
+        return chartMarkup("kongSelectedOption", { ...fit, rows: selected(fit.rows, "projectionId") }, options);
+      }
       case "kongPlatformArchitecture": {
         const architecture = visuals.kongPlatformStrategy?.architecture || {};
         const mermaid = architecture.mermaid || "";
@@ -2191,6 +2213,15 @@
       case "kongPlatformOutcomes": {
         const outcomes = visuals.kongPlatformStrategy?.outcomes || {};
         return chartMarkup("kongPlatformOutcomes", { ...outcomes, rows: selected(outcomes.rows) }, options);
+      }
+      case "muleMigrationBoundary": return chartMarkup("muleMigrationBoundary", visuals.muleMigration || {}, options);
+      case "muleMigrationWaves": return chartMarkup("muleMigrationWaves", visuals.muleMigration || {}, options);
+      case "muleMigrationFigure": {
+        const figure = (visuals.muleMigration?.figures || []).find((item) => item.figureId === slide.figureId);
+        const mermaid = figure?.mermaid || "";
+        return mermaid
+          ? `<div class="slide-diagram is-migration-model" data-slide-inline-mermaid="${escapeHtml(mermaid)}" data-diagram-id="${escapeHtml(slide.figureId)}" data-diagram-summary="${escapeHtml(figure?.title || "")}"><p>Rendering canonical ${escapeHtml(slide.figureId)}…</p></div>`
+          : `<p class="visual-empty">The canonical ${escapeHtml(slide.figureId || "migration figure")} model is unavailable.</p>`;
       }
       case "governance": return chartMarkup("governance", visuals.governance || {}, options);
       case "recommendation": return chartMarkup("recommendation", visuals.review || {}, options);
@@ -2295,45 +2326,72 @@
     }
     const slide = slides[index];
     const source = state.manifest.items.find((item) => item.id === slide.sourceId);
+    const sourceLocator = source
+      ? (() => {
+          const numberedStudy = source.path.match(/^docs\/(\d+)-/);
+          return numberedStudy ? `docs/${numberedStudy[1]}` : source.path;
+        })()
+      : "";
+    const isJourneyDeck = deck?.theme === "kong-journey";
+    const visualSlide = isJourneyDeck && slide.visual === "kongJourneySpine"
+      ? { ...slide, journeyPhases: deck.journeyPhases || [] }
+      : slide;
     const stageClass = slide.key === "industry-practices"
       ? " is-industry-practices"
-      : deck?.id === "kong-technical-deep-dive" || slide.key.startsWith("kong-platform-") || slide.key.startsWith("kong-technical-")
+      : isJourneyDeck
+        ? " is-kong-platform is-kong-journey"
+      : deck?.theme === "kong-platform" || slide.key.startsWith("kong-platform-") || slide.key.startsWith("kong-technical-")
         ? " is-kong-platform"
         : "";
-    const narrativeClass = ["architectureDiagram", "kongPlatformArchitecture", "kongTechnicalFigure"].includes(slide.visual)
+    const narrativeClass = ["architectureDiagram", "kongPlatformArchitecture", "kongTechnicalFigure", "muleMigrationFigure"].includes(visualSlide.visual)
       ? " is-diagram"
-      : ["roadmap", "kongPlatformRoadmap"].includes(slide.visual)
+      : ["roadmap", "kongPlatformRoadmap"].includes(visualSlide.visual)
         ? " is-roadmap"
-        : slide.visual === "studyRoadmap"
+        : visualSlide.visual === "studyRoadmap"
           ? " is-roadmap"
-        : slide.visual === "sourceBalance"
+        : visualSlide.visual === "sourceBalance"
           ? " is-matrix is-source-balance"
-        : ["statusMatrix", "recommendation", "governance", "problemMatrix", "practiceFramework", "scenarioMatrix", "maturitySequence", "kongPlatformFit", "kongPlatformCases", "kongPlatformOutcomes"].includes(slide.visual)
+        : ["statusMatrix", "recommendation", "governance", "problemMatrix", "practiceFramework", "scenarioMatrix", "maturitySequence", "kongPlatformFit", "kongSelectedOption", "kongOptions", "kongJourneySpine", "kongPlatformCases", "kongPlatformOutcomes", "muleMigrationBoundary", "muleMigrationWaves"].includes(visualSlide.visual)
           ? " is-matrix"
           : "";
     document.body.classList.add("is-presenting");
     const contextLabel = context?.shortLabel || "";
     setPageTitle(`${index + 1}. ${slide.title}${contextLabel ? ` — ${contextLabel}` : ""}`);
     setActiveNav("");
+    const journeyPhases = ["Options", "Architecture", "Adoption", "Migration", "Production"];
+    const journeyPhaseIndex = index <= 2 ? 0 : index <= 5 ? 1 : index <= 7 ? 2 : index <= 10 ? 3 : 4;
+    const journeySpine = isJourneyDeck
+      ? `<ol class="journey-phase-spine" aria-label="Kong platform journey phases">${journeyPhases.map((phase, phaseIndex) => `<li class="${phaseIndex < journeyPhaseIndex ? "is-complete" : phaseIndex === journeyPhaseIndex ? "is-current" : ""}" ${phaseIndex === journeyPhaseIndex ? 'aria-current="step"' : ""}><span>${String(phaseIndex + 1).padStart(2, "0")}</span><b>${escapeHtml(phase)}</b></li>`).join("")}</ol>`
+      : "";
+    const journeyProof = isJourneyDeck
+      ? `<aside class="slide-aside journey-proof-strip">
+          <div class="slide-aside-content">
+            <div class="slide-metric"><strong>${escapeHtml(slide.metric)}</strong><span>${escapeHtml(slide.metricLabel)}</span></div>
+            <div class="journey-proof-copy"><span>Why it matters</span><p class="slide-body">${escapeHtml(slide.body)}</p></div>
+          </div>
+          ${source ? `<a class="slide-source" href="${itemHref(source)}" aria-label="Open canonical source: ${escapeHtml(source.title)}">Source · ${escapeHtml(sourceLocator)} <span aria-hidden="true">↗</span></a>` : ""}
+        </aside>`
+      : `<aside class="slide-aside">
+          <div class="slide-aside-content">
+            <div class="slide-metric"><strong>${escapeHtml(slide.metric)}</strong><span>${escapeHtml(slide.metricLabel)}</span></div>
+            ${audience ? `<div class="slide-audience-cue"><span>Close this room with</span><p>${escapeHtml(audience.action)}</p></div>` : ""}
+            <p class="slide-body">${escapeHtml(slide.body)}</p>
+          </div>
+          ${source ? `<a class="slide-source" href="${itemHref(source)}">Open supporting source <span aria-hidden="true">↗</span></a>` : ""}
+        </aside>`;
     main.innerHTML = `
       <section class="presentation-stage${stageClass}" aria-label="Presentation slide ${index + 1} of ${slides.length}">
-        <article class="presentation-slide">
+        <article class="presentation-slide${isJourneyDeck ? " is-journey-slide" : ""}">
+          ${journeySpine}
           <div class="slide-main">
             <span class="eyebrow">${escapeHtml(slide.eyebrow)}${audience ? ` / ${escapeHtml(audience.shortLabel)} lens` : deck ? ` / ${escapeHtml(deck.shortLabel)} deck` : ""}</span>
             <div class="slide-narrative${narrativeClass}">
               <h1 class="slide-title">${escapeHtml(slide.title)}</h1>
-              <div class="slide-visual">${presentationVisualMarkup(slide, source)}</div>
+              <div class="slide-visual">${presentationVisualMarkup(visualSlide, source, isJourneyDeck)}</div>
             </div>
             <span class="slide-counter">${audience ? `${escapeHtml(audience.shortLabel)} briefing · ` : deck ? `${escapeHtml(deck.shortLabel)} deck · ` : ""}${String(index + 1).padStart(2, "0")} / ${String(slides.length).padStart(2, "0")}</span>
           </div>
-          <aside class="slide-aside">
-            <div class="slide-aside-content">
-              <div class="slide-metric"><strong>${escapeHtml(slide.metric)}</strong><span>${escapeHtml(slide.metricLabel)}</span></div>
-              ${audience ? `<div class="slide-audience-cue"><span>Close this room with</span><p>${escapeHtml(audience.action)}</p></div>` : ""}
-              <p class="slide-body">${escapeHtml(slide.body)}</p>
-            </div>
-            ${source ? `<a class="slide-source" href="${itemHref(source)}">Open supporting source <span aria-hidden="true">↗</span></a>` : ""}
-          </aside>
+          ${journeyProof}
         </article>
         <div class="slide-controls" aria-label="Presentation controls">
           <button type="button" data-slide-prev aria-label="Previous slide" ${index === 0 ? "disabled" : ""}>←</button>
@@ -2509,18 +2567,30 @@
 
   function preparePrintArtifacts() {
     if (state.printSnapshot) return;
-    const closedDetails = [...document.querySelectorAll(".atlas-panel:not([open]), .visual-disclosure:not([open]), .document-evidence-panel:not([open]), .viz-presentation-detail:not([open]), .viz-kps-fit-contract:not([open]), .data-record-details:not([open])")];
+    const expandedDiagram = document.querySelector(".diagram-frame.is-expanded");
+    expandedDiagram?.dispatchEvent(new CustomEvent("diagram-close-request", {
+      detail: { restoreFocus: false, deferLayout: false },
+    }));
+    const closedDetails = [...document.querySelectorAll(".atlas-panel:not([open]), .visual-disclosure:not([open]), .document-evidence-panel:not([open]), .viz-presentation-detail:not([open]), .viz-kps-fit-contract:not([open]), .data-record-details:not([open])")]
+      .filter((detail) => !detail.closest(".presentation-stage.is-kong-journey"));
     const namedDetails = [...document.querySelectorAll(".viz-kps-fit-contract[name]")]
       .map((detail) => ({ detail, name: detail.getAttribute("name") }));
-    const hiddenEvidence = [...document.querySelectorAll(".document-section-body[hidden], .diagram-scroll[hidden]")];
-    state.printSnapshot = { closedDetails, hiddenEvidence, namedDetails };
+    const hiddenEvidence = [...document.querySelectorAll(".document-section-body[hidden], .diagram-scroll[hidden]")]
+      .filter((element) => !element.closest(".presentation-stage.is-kong-journey"));
+    const journeyVisibility = [...document.querySelectorAll(".presentation-stage.is-kong-journey .diagram-summary, .presentation-stage.is-kong-journey .diagram-scroll")]
+      .map((element) => ({ element, hidden: element.hidden }));
+    state.printSnapshot = { closedDetails, hiddenEvidence, namedDetails, journeyVisibility, expandedDiagram };
     namedDetails.forEach(({ detail }) => detail.removeAttribute("name"));
     closedDetails.forEach((detail) => { detail.open = true; });
     hiddenEvidence.forEach((element) => { element.hidden = false; });
+    journeyVisibility.forEach(({ element }) => {
+      element.hidden = element.classList.contains("diagram-scroll");
+    });
   }
 
   function restorePrintArtifacts() {
     if (!state.printSnapshot) return;
+    const { expandedDiagram } = state.printSnapshot;
     state.printSnapshot.closedDetails.forEach((detail) => {
       if (document.contains(detail)) detail.open = false;
     });
@@ -2530,7 +2600,13 @@
     state.printSnapshot.namedDetails.forEach(({ detail, name }) => {
       if (document.contains(detail) && name) detail.setAttribute("name", name);
     });
+    state.printSnapshot.journeyVisibility.forEach(({ element, hidden }) => {
+      if (document.contains(element)) element.hidden = hidden;
+    });
     state.printSnapshot = null;
+    if (expandedDiagram && document.contains(expandedDiagram) && !expandedDiagram.classList.contains("is-expanded")) {
+      expandedDiagram.querySelector("[data-diagram-action='expand']")?.click();
+    }
   }
 
   async function init() {

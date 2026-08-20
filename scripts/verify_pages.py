@@ -56,6 +56,58 @@ KONG_PLATFORM_FIT_SLIDE_ROWS = {
     "kong-platform-fit-fallback": ("KPS-FIT-07",),
 }
 REMOVED_KONG_PLATFORM_FIT_SLIDE_KEYS = frozenset({"kong-platform-fit-1", "kong-platform-fit-2"})
+KONG_PLATFORM_JOURNEY_DECK_ID = "kong-platform-journey"
+KONG_PLATFORM_JOURNEY_SLIDE_KEYS = (
+    "kong-journey-decision",
+    "kong-journey-options",
+    "kong-journey-selected-option",
+    "kong-platform-architecture",
+    "kong-technical-state-trust",
+    "kong-technical-degraded-mode",
+    "kong-technical-operating-model",
+    "kong-platform-roadmap",
+    "kong-journey-migration-boundary",
+    "kong-journey-migration-coexistence",
+    "kong-journey-migration-waves",
+    "kong-journey-proof",
+    "kong-platform-outcomes-1",
+    "kong-platform-outcomes-2",
+    "kong-technical-assurance",
+)
+KONG_PLATFORM_JOURNEY_ROLE_IDS = (
+    "vp-executive", "directors", "architects", "developers", "devops-sre", "platform-teams",
+)
+KONG_PLATFORM_JOURNEY_SOURCE_PATHS = (
+    "docs/47-kong-enterprise-platform-strategy.md",
+    "docs/44-kong-multicloud-study-roadmap.md",
+    "docs/35-mule-migration-strategy.md",
+    "poc/README.md",
+)
+KONG_PLATFORM_JOURNEY_SOURCE_IDS = (
+    "docs-47-kong-enterprise-platform-strategy",
+    "docs-44-kong-multicloud-study-roadmap",
+    "docs-35-mule-migration-strategy",
+    "poc-readme",
+)
+KONG_PLATFORM_JOURNEY_PHASES = (
+    ("01", "Options", "Fix custody, runtime, and evidence ownership"),
+    ("02", "Architecture", "Separate management state from request execution"),
+    ("03", "Adoption", "Turn installation into a paved, supportable platform"),
+    ("04", "Migration", "Move representative slices with route-back; retire only after dependency zero"),
+    ("05", "Production", "Scale only accepted patterns; narrow, switch, or exit otherwise"),
+)
+KONG_MULTICLOUD_OPTION_IDS = (
+    "KMC-1", "KMC-2", "KMC-3", "KMC-4A", "KMC-4B", "KMC-5", "KMC-6", "KMC-7",
+)
+MULE_MIGRATION_SOURCE_PATH = "docs/35-mule-migration-strategy.md"
+MULE_MIGRATION_SOURCE_ID = "docs-35-mule-migration-strategy"
+MULE_RESPONSIBILITY_IDS = ("G", "F", "T", "O", "M", "B", "C", "R")
+MULE_WAVE_IDS = tuple(f"M{index}" for index in range(6))
+MULE_FIGURE_HEADINGS = {
+    "MULE-2": "Mechanism analysis: decompose before selecting a target",
+    "MULE-3": "Target coexistence architecture",
+    "MULE-6": "Migration waves",
+}
 POC_STATUS_COUNTS = {"Automated": 5, "Not run": 11}
 POC_STATUS_BY_ID = {
     **{f"POC-{index:03d}": "Automated" for index in range(1, 6)},
@@ -250,6 +302,254 @@ def validate_kong_platform_fit_slides(
         and set(semantic_row_ids) == set(KONG_PLATFORM_FIT_IDS),
         "manifest semantic Kong platform fit slides must cover KPS-FIT-01 through KPS-FIT-07 exactly once",
     )
+
+
+def validate_kong_platform_journey(
+    manifest: dict[str, Any],
+    presentation: list[dict[str, Any]],
+) -> None:
+    """Bind the deployed Kong journey to its exact narrative and evidence payload."""
+    decks = manifest.get("presentationDecks")
+    require(isinstance(decks, list), "manifest presentationDecks must be a list")
+    matches = [
+        deck for deck in decks
+        if isinstance(deck, dict) and deck.get("id") == KONG_PLATFORM_JOURNEY_DECK_ID
+    ]
+    require(
+        len(matches) == 1,
+        "manifest presentationDecks must contain exactly one kong-platform-journey deck",
+    )
+    deck = matches[0]
+    require(deck.get("theme") == "kong-journey", "manifest Kong platform journey theme must be kong-journey")
+    require(
+        tuple(deck.get("presentationSlides", ())) == KONG_PLATFORM_JOURNEY_SLIDE_KEYS,
+        "manifest Kong platform journey slides must match the exact 15-slide journey order",
+    )
+    require(deck.get("slideTotal") == 15, "manifest Kong platform journey slideTotal must be 15")
+    require(
+        tuple(deck.get("audienceRoleIds", ())) == KONG_PLATFORM_JOURNEY_ROLE_IDS,
+        "manifest Kong platform journey audienceRoleIds must match the exact six-role order",
+    )
+    require(
+        tuple(deck.get("sourcePaths", ())) == KONG_PLATFORM_JOURNEY_SOURCE_PATHS,
+        "manifest Kong platform journey sourcePaths must match the exact canonical source order",
+    )
+    require(
+        tuple(deck.get("sourceIds", ())) == KONG_PLATFORM_JOURNEY_SOURCE_IDS,
+        "manifest Kong platform journey sourceIds must match the exact canonical source order",
+    )
+    require(
+        deck.get("presentationRoute") == "#/present/kong-platform-journey/0",
+        "manifest Kong platform journey presentationRoute is invalid",
+    )
+    require(deck.get("exitRoute") == "#/overview", "manifest Kong platform journey exitRoute must be #/overview")
+    phases = deck.get("journeyPhases")
+    require(isinstance(phases, list), "manifest Kong platform journey journeyPhases must be a list")
+    observed_phases = tuple(
+        (phase.get("id"), phase.get("label"), phase.get("outcome"))
+        for phase in phases
+        if isinstance(phase, dict)
+    )
+    require(
+        len(observed_phases) == len(phases) and observed_phases == KONG_PLATFORM_JOURNEY_PHASES,
+        "manifest Kong platform journey phases must match the exact five-stage spine",
+    )
+
+    slides_by_key = {slide.get("key"): slide for slide in presentation if isinstance(slide, dict)}
+    require(
+        all(key in slides_by_key for key in KONG_PLATFORM_JOURNEY_SLIDE_KEYS),
+        "manifest Kong platform journey references a missing presentation slide",
+    )
+    expected_source_ids = {
+        key: "docs-47-kong-enterprise-platform-strategy"
+        for key in KONG_PLATFORM_JOURNEY_SLIDE_KEYS
+    }
+    expected_source_ids["kong-journey-options"] = "docs-44-kong-multicloud-study-roadmap"
+    for key in (
+        "kong-journey-migration-boundary",
+        "kong-journey-migration-coexistence",
+        "kong-journey-migration-waves",
+    ):
+        expected_source_ids[key] = MULE_MIGRATION_SOURCE_ID
+    expected_source_ids["kong-journey-proof"] = "poc-readme"
+    require(
+        all(slides_by_key[key].get("sourceId") == expected_source_ids[key] for key in KONG_PLATFORM_JOURNEY_SLIDE_KEYS),
+        "manifest Kong platform journey slides must preserve their exact canonical source coverage",
+    )
+
+    decision_slide = slides_by_key["kong-journey-decision"]
+    require(
+        decision_slide.get("visual") == "kongJourneySpine",
+        "manifest Kong journey decision slide must use kongJourneySpine",
+    )
+    roadmap_slide = slides_by_key["kong-platform-roadmap"]
+    require(
+        roadmap_slide.get("visual") == "kongPlatformRoadmap",
+        "manifest Kong platform roadmap slide must use kongPlatformRoadmap",
+    )
+
+    options_slide = slides_by_key["kong-journey-options"]
+    require(options_slide.get("visual") == "kongOptions", "manifest Kong options slide must use kongOptions")
+    require(
+        tuple(options_slide.get("optionIds", ())) == KONG_MULTICLOUD_OPTION_IDS,
+        "manifest Kong options slide optionIds must match the exact KMC option order",
+    )
+    selected_slide = slides_by_key["kong-journey-selected-option"]
+    require(
+        selected_slide.get("visual") == "kongSelectedOption",
+        "manifest Kong selected-option slide must use kongSelectedOption",
+    )
+    require(
+        tuple(selected_slide.get("rowIds", ())) == ("KPS-FIT-01", "KPS-FIT-02"),
+        "manifest Kong selected-option slide rowIds must be KPS-FIT-01 and KPS-FIT-02",
+    )
+    proof_slide = slides_by_key["kong-journey-proof"]
+    require(
+        proof_slide.get("visual") == "pocStatus",
+        "manifest Kong journey proof slide must use the canonical pocStatus visual",
+    )
+    required_migration_slides = {
+        "kong-journey-migration-boundary": ("muleMigrationBoundary", None),
+        "kong-journey-migration-coexistence": ("muleMigrationFigure", "MULE-3"),
+        "kong-journey-migration-waves": ("muleMigrationWaves", None),
+    }
+    for key, (visual, figure_id) in required_migration_slides.items():
+        slide = slides_by_key[key]
+        require(slide.get("visual") == visual, f"manifest slide {key} must use {visual}")
+        if figure_id is not None:
+            require(slide.get("figureId") == figure_id, f"manifest slide {key} must use figure {figure_id}")
+
+    visuals = manifest.get("visuals")
+    require(isinstance(visuals, dict), "manifest visuals must be an object")
+    multicloud = visuals.get("kongMulticloud")
+    require(isinstance(multicloud, dict), "manifest visuals.kongMulticloud must be an object")
+    options = multicloud.get("options")
+    require(isinstance(options, list), "manifest visuals.kongMulticloud.options must be a list")
+    require(all(isinstance(option, dict) for option in options), "manifest Kong multicloud options must be objects")
+    require(
+        tuple(option.get("id") for option in options) == KONG_MULTICLOUD_OPTION_IDS,
+        "manifest Kong multicloud option IDs must match the exact KMC option order",
+    )
+    for option in options:
+        require(
+            all(isinstance(option.get(field), str) and option[field].strip() for field in ("label", "placement", "role", "journeyLabel")),
+            f"manifest Kong multicloud option {option.get('id')} must retain label, placement, role, and journeyLabel evidence",
+        )
+    for option in options[:3]:
+        require(
+            all(isinstance(option.get(field), str) and option[field].strip() for field in ("journeyBoundary", "journeyRole")),
+            f"manifest primary Kong multicloud option {option.get('id')} must retain journeyBoundary and journeyRole evidence",
+        )
+
+    mule = visuals.get("muleMigration")
+    require(isinstance(mule, dict), "manifest visuals.muleMigration must be an object")
+    require(mule.get("sourcePath") == MULE_MIGRATION_SOURCE_PATH, "manifest Mule migration sourcePath is invalid")
+    require(mule.get("sourceId") == MULE_MIGRATION_SOURCE_ID, "manifest Mule migration sourceId is invalid")
+
+    responsibilities = mule.get("responsibilities")
+    require(isinstance(responsibilities, list), "manifest Mule migration responsibilities must be a list")
+    require(mule.get("responsibilityTotal") == len(MULE_RESPONSIBILITY_IDS), "manifest Mule responsibilityTotal is invalid")
+    require(all(isinstance(row, dict) for row in responsibilities), "manifest Mule responsibilities must be objects")
+    require(
+        tuple(row.get("id") for row in responsibilities) == MULE_RESPONSIBILITY_IDS,
+        "manifest Mule responsibility IDs must match the exact G/F/T/O/M/B/C/R order",
+    )
+    for row in responsibilities:
+        require(
+            all(isinstance(row.get(field), str) and row[field].strip() for field in ("responsibility", "target", "evidence", "error")),
+            f"manifest Mule responsibility {row.get('id')} must retain every canonical evidence field",
+        )
+    responsibility_provenance = mule.get("responsibilityProvenance")
+    require(isinstance(responsibility_provenance, dict), "manifest Mule responsibility provenance must be an object")
+    require(
+        (
+            responsibility_provenance.get("sourcePath"),
+            responsibility_provenance.get("sourceId"),
+            tuple(responsibility_provenance.get("sourcePaths", ())),
+            tuple(responsibility_provenance.get("sourceIds", ())),
+            responsibility_provenance.get("sourceHeading"),
+            tuple(responsibility_provenance.get("tableColumns", ())),
+        )
+        == (
+            MULE_MIGRATION_SOURCE_PATH,
+            MULE_MIGRATION_SOURCE_ID,
+            (MULE_MIGRATION_SOURCE_PATH,),
+            (MULE_MIGRATION_SOURCE_ID,),
+            "Mechanism analysis: decompose before selecting a target",
+            ("Class", "Responsibility", "Default target", "Evidence needed", "Common error"),
+        ),
+        "manifest Mule responsibility provenance must match the exact canonical table",
+    )
+
+    waves = mule.get("waves")
+    require(isinstance(waves, list), "manifest Mule migration waves must be a list")
+    require(mule.get("waveTotal") == len(MULE_WAVE_IDS), "manifest Mule waveTotal is invalid")
+    require(all(isinstance(wave, dict) for wave in waves), "manifest Mule migration waves must be objects")
+    require(
+        tuple(wave.get("id") for wave in waves) == MULE_WAVE_IDS,
+        "manifest Mule migration wave IDs must match the exact M0 through M5 order",
+    )
+    for wave in waves:
+        require(
+            all(isinstance(wave.get(field), str) and wave[field].strip() for field in ("label", "scope", "pattern", "entryGate", "exitGate")),
+            f"manifest Mule migration wave {wave.get('id')} must retain every canonical evidence field",
+        )
+    wave_provenance = mule.get("waveProvenance")
+    require(isinstance(wave_provenance, dict), "manifest Mule wave provenance must be an object")
+    require(
+        (
+            wave_provenance.get("sourcePath"),
+            wave_provenance.get("sourceId"),
+            tuple(wave_provenance.get("sourcePaths", ())),
+            tuple(wave_provenance.get("sourceIds", ())),
+            wave_provenance.get("sourceHeading"),
+            tuple(wave_provenance.get("tableColumns", ())),
+        )
+        == (
+            MULE_MIGRATION_SOURCE_PATH,
+            MULE_MIGRATION_SOURCE_ID,
+            (MULE_MIGRATION_SOURCE_PATH,),
+            (MULE_MIGRATION_SOURCE_ID,),
+            "Migration waves",
+            ("Wave", "Assumed scope", "Hard pattern intentionally included", "Entry gate", "Exit gate"),
+        ),
+        "manifest Mule wave provenance must match the exact canonical table",
+    )
+
+    figures = mule.get("figures")
+    require(isinstance(figures, list), "manifest Mule migration figures must be a list")
+    require(all(isinstance(figure, dict) for figure in figures), "manifest Mule migration figures must be objects")
+    require(
+        tuple(figure.get("figureId") for figure in figures) == tuple(MULE_FIGURE_HEADINGS),
+        "manifest Mule figure IDs must match the exact MULE-2/MULE-3/MULE-6 order",
+    )
+    for figure in figures:
+        figure_id = figure["figureId"]
+        require(
+            all(isinstance(figure.get(field), str) and figure[field].strip() for field in ("title", "mermaid")),
+            f"manifest Mule figure {figure_id} must retain title and Mermaid source",
+        )
+        provenance = figure.get("provenance")
+        require(isinstance(provenance, dict), f"manifest Mule figure {figure_id} provenance must be an object")
+        require(
+            (
+                provenance.get("sourcePath"),
+                provenance.get("sourceId"),
+                tuple(provenance.get("sourcePaths", ())),
+                tuple(provenance.get("sourceIds", ())),
+                provenance.get("sourceHeading"),
+                provenance.get("figureId"),
+            )
+            == (
+                MULE_MIGRATION_SOURCE_PATH,
+                MULE_MIGRATION_SOURCE_ID,
+                (MULE_MIGRATION_SOURCE_PATH,),
+                (MULE_MIGRATION_SOURCE_ID,),
+                MULE_FIGURE_HEADINGS[figure_id],
+                figure_id,
+            ),
+            f"manifest Mule figure {figure_id} provenance must match its exact canonical figure",
+        )
 
 
 def run_git(*args: str) -> str:
@@ -562,6 +862,7 @@ def validate_manifest_shape(
         require(normalized in item_paths, f"requested study path is not published: {normalized}")
 
     available_routes = validated_route_inventory(manifest, items)
+    validate_kong_platform_journey(manifest, manifest["presentation"])
     for route in expected_routes:
         require(isinstance(route, str) and route.startswith("#/") and route in available_routes, f"requested derived route is not published: {route}")
 

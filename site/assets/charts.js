@@ -386,6 +386,83 @@
     </figure>`;
   }
 
+  function kongOptions(data, options = {}) {
+    const optionsList = Array.isArray(data) ? data : data?.options || [];
+    if (!optionsList.length) return empty();
+    const primaryIds = new Set(["KMC-1", "KMC-2", "KMC-3"]);
+    const primary = optionsList.filter((option) => primaryIds.has(option.id));
+    const attached = optionsList.filter((option) => !primaryIds.has(option.id));
+    return `<figure class="viz viz-kong-options ${options.presentation ? "is-presentation" : ""}" aria-label="${escapeHtml(options.title || "Kong operating-boundary options")}">${heading(options)}
+      <div class="viz-kong-options-primary">${primary.map((option) => `<article aria-label="${escapeHtml(`${option.id}. ${option.journeyLabel || option.label}. ${option.journeyBoundary || option.placement}. Evidence track: ${option.journeyRole || option.role}.`)}">
+        <span>${escapeHtml(option.id)}</span>
+        <strong>${escapeHtml(option.journeyLabel || option.label)}</strong>
+        <p data-label="Operating boundary">${escapeHtml(option.journeyBoundary || option.placement)}</p>
+      </article>`).join("")}</div>
+      <div class="viz-kong-options-attached" aria-label="Attached authority and hosting experiments">
+        <b>Attach only after the primary operating boundary is fixed</b>
+        <ol>${attached.map((option) => `<li><span>${escapeHtml(option.id)}</span><strong>${escapeHtml(option.journeyLabel || option.label)}</strong></li>`).join("")}</ol>
+      </div>
+    </figure>`;
+  }
+
+  function kongSelectedOption(data, options = {}) {
+    const rows = Array.isArray(data) ? data : data?.rows || [];
+    if (!rows.length) return empty();
+    return `<figure class="viz viz-kong-selected ${options.presentation ? "is-presentation" : ""}" aria-label="${escapeHtml(options.title || "Why the self-managed Kong option leads conditionally")}">${heading(options)}
+      <div class="viz-kong-selected-grid">${rows.map((row) => `<article>
+        <span>${escapeHtml(row.projectionId || "")}</span>
+        <strong>${escapeHtml(row.outcome || "")}</strong>
+        <p data-label="Why this fits here">${escapeHtml(row.reason || "")}</p>
+        <p data-label="Platform response">${escapeHtml(row.mechanism || "")}</p>
+        <p data-label="Reconsider when">${escapeHtml(row.counterfactual || "")}</p>
+      </article>`).join("")}</div>
+    </figure>`;
+  }
+
+  function kongJourneySpine(data, options = {}) {
+    const phases = Array.isArray(data) ? data : data?.phases || [];
+    if (!phases.length) return empty();
+    return `<figure class="viz viz-kong-journey-spine" aria-label="${escapeHtml(options.title || "Kong platform journey from option to production")}">${heading(options)}
+      <ol>${phases.map((phase, index) => `<li>
+        <span>${escapeHtml(phase.id || String(index + 1).padStart(2, "0"))}</span>
+        <strong>${escapeHtml(phase.label)}</strong>
+        <p>${escapeHtml(phase.outcome)}</p>
+      </li>`).join("")}</ol>
+      <div class="viz-kong-journey-hold"><b>Evidence gate</b><span>Advance</span><span>Hold</span><span>Narrow</span><span>Switch custody</span><span>Exit</span></div>
+    </figure>`;
+  }
+
+  function muleMigrationBoundary(data, options = {}) {
+    const rows = Array.isArray(data) ? data : data?.responsibilities || [];
+    if (!rows.length) return empty();
+    const groups = [
+      { label: "Gateway policy", ids: new Set(["G"]) },
+      { label: "Owned services + platforms", ids: new Set(["F", "T", "O", "M", "B", "C"]) },
+      { label: "Retire after proof", ids: new Set(["R"]) },
+    ];
+    return `<figure class="viz viz-mule-boundary ${options.presentation ? "is-presentation" : ""}" aria-label="${escapeHtml(options.title || "Migration responsibility boundary")}">${heading(options)}
+      <div class="viz-mule-boundary-groups">${groups.map((group) => `<section>
+        <h3>${escapeHtml(group.label)}</h3>
+        <ol>${rows.filter((row) => group.ids.has(row.id)).map((row) => `<li>
+          <span>${escapeHtml(row.id)}</span>
+          <div><strong>${escapeHtml(row.responsibility)}</strong><p>${escapeHtml(row.target)}</p></div>
+        </li>`).join("")}</ol>
+      </section>`).join("")}</div>
+    </figure>`;
+  }
+
+  function muleMigrationWaves(data, options = {}) {
+    const rows = Array.isArray(data) ? data : data?.waves || [];
+    if (!rows.length) return empty();
+    return `<figure class="viz viz-mule-waves ${options.presentation ? "is-presentation" : ""}" aria-label="${escapeHtml(options.title || "Evidence-gated migration waves")}">${heading(options)}
+      <ol class="viz-mule-wave-list">${rows.map((row) => `<li aria-label="${escapeHtml(`${row.id} ${row.label}. Scope: ${row.scope}. Enter when: ${row.entryGate}. Exit when: ${row.exitGate}.`)}">
+        <span>${escapeHtml(row.id)}</span>
+        <strong>${escapeHtml(row.label)}</strong>
+        <p data-label="Exit evidence">${escapeHtml(row.exitGate)}</p>
+      </li>`).join("")}</ol>
+    </figure>`;
+  }
+
   function composition(data, options = {}) {
     const sections = data?.bySection || (Array.isArray(data) ? data : []);
     const types = data?.byType || [];
@@ -643,6 +720,11 @@
     kongPlatformCases,
     kongPlatformRoadmap,
     kongPlatformOutcomes,
+    kongOptions,
+    kongSelectedOption,
+    kongJourneySpine,
+    muleMigrationBoundary,
+    muleMigrationWaves,
     composition,
     sourceBalance,
     sources: sourceBalance,
@@ -694,6 +776,11 @@
       kongPlatformCases: visuals?.kongPlatformStrategy?.cases,
       kongPlatformRoadmap: visuals?.kongPlatformStrategy?.roadmap,
       kongPlatformOutcomes: visuals?.kongPlatformStrategy?.outcomes,
+      kongOptions: visuals?.kongMulticloud,
+      kongSelectedOption: visuals?.kongPlatformStrategy?.fit,
+      kongJourneySpine: visuals?.kongPlatformJourney,
+      muleMigrationBoundary: visuals?.muleMigration,
+      muleMigrationWaves: visuals?.muleMigration,
     };
     return map[name] ?? visuals?.[name];
   }
@@ -728,6 +815,11 @@
     kongPlatformCases,
     kongPlatformRoadmap,
     kongPlatformOutcomes,
+    kongOptions,
+    kongSelectedOption,
+    kongJourneySpine,
+    muleMigrationBoundary,
+    muleMigrationWaves,
     composition,
     sourceBalance,
     pocStatus,
