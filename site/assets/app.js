@@ -202,6 +202,7 @@
     const industryPractices = findByPath("docs/45-api-management-industry-practices.md");
     const kongMulticloud = findByPath("docs/44-kong-multicloud-study-roadmap.md");
     const kongPlatform = findByPath("docs/47-kong-enterprise-platform-strategy.md");
+    const pocPlan = findByPath("poc/test-plan.md");
     const kongPlatformVisual = visuals.kongPlatformStrategy || {};
     const problemTotal = Number(visuals.industryProblems?.total) || 0;
     const practiceTotal = Number(visuals.industryPractices?.practiceTotal) || 0;
@@ -273,6 +274,7 @@
           <div class="overview-visual">
             <span class="section-index">Execution proof</span>
             ${chartMarkup("pocStatus", visuals.poc || {}, { title: "PoC status", compact: true })}
+            ${pocPlan ? `<a class="visual-source" href="${itemHref(pocPlan)}">Open scenario register <span>poc/test-plan.md ↗</span></a>` : ""}
           </div>
         </section>
 
@@ -746,6 +748,12 @@
   function renderLab() {
     const stats = state.manifest.stats;
     const visuals = state.manifest.visuals || {};
+    const pocPlan = findByPath("poc/test-plan.md");
+    const pocStatuses = Array.isArray(visuals.poc?.byStatus) ? visuals.poc.byStatus : [];
+    const pocStatusCount = (label) => Number(pocStatuses.find((item) => String(item?.label || "").toLowerCase() === label.toLowerCase())?.value) || 0;
+    const pocAutomated = pocStatusCount("Automated");
+    const pocNotRun = pocStatusCount("Not run");
+    const pocScenarioHeadline = `${pocAutomated} baseline ${pocAutomated === 1 ? "check is" : "checks are"} automated; ${pocNotRun} ${pocNotRun === 1 ? "scenario is" : "scenarios are"} not run`;
     const preferred = [
       "poc/README.md",
       "poc/test-plan.md",
@@ -776,8 +784,8 @@
             <div class="lab-step"><span class="card-label">04 / Record</span><strong>Evidence first</strong><p>Acceptance criteria distinguish execution proof from product documentation.</p></div>
           </div>
           <div class="lab-visuals">
-            ${visualPanel("A", "Scenario state", "Execution is deliberately explicit", "Automated, scripted, and not-run tests are reported separately.", chartMarkup("pocStatus", visuals.poc || {}, { title: "PoC scenario state" }), "is-wide")}
-            ${visualPanel("B", "Evidence path", "A passing harness is not a production pilot", "Each result should move confidence only as far as its environment and artifacts support.", chartMarkup("evidenceLadder", visuals.methodology?.evidenceLevels || [], { title: "Evidence confidence" }))}
+            ${visualPanel("A", "Scenario state", pocScenarioHeadline, "This is a local evidence boundary, not proof of production fit.", `${chartMarkup("pocStatus", visuals.poc || {})}${pocPlan ? `<a class="visual-source" href="${itemHref(pocPlan)}">Open scenario register <span>poc/test-plan.md ↗</span></a>` : ""}`)}
+            ${visualPanel("B", "Evidence path", "Automation does not equal representative evidence", "Each result should move confidence only as far as its environment and artifacts support.", chartMarkup("evidenceLadder", visuals.methodology?.evidenceLevels || [], { title: "Evidence confidence" }))}
           </div>
           <div class="lab-grid">
             ${preferred.map((item, index) => `
@@ -2140,7 +2148,7 @@
       case "architectureDiagram": return presentationArchitectureMarkup(slide, source);
       case "donut": return chartMarkup("donut", visuals.criteria?.statuses || [], { ...options, total: visuals.criteria?.total, centerLabel: "criteria" });
       case "sourceBalance": return chartMarkup("sourceBalance", visuals.sources || {}, options);
-      case "pocStatus": return chartMarkup("pocStatus", visuals.poc || {}, options);
+      case "pocStatus": return chartMarkup("pocStatus", visuals.poc || {}, { ...options, title: `${Number(visuals.poc?.total) || 0} aggregate status-register items` });
       case "roadmap": return chartMarkup("roadmap", visuals.roadmap || {}, options);
       case "problemMatrix": return chartMarkup("problemMatrix", visuals.industryProblems || {}, { ...options, presentation: true });
       case "practiceFramework": return chartMarkup("practiceFramework", visuals.industryPractices || {}, { ...options, presentation: true });
@@ -2229,20 +2237,26 @@
   function activatePresentationFrame() {
     const slideMain = document.querySelector(".presentation-stage .slide-main");
     if (!slideMain) return;
-    const sync = () => {
-      const scrollable = slideMain.scrollHeight > slideMain.clientHeight + 2;
-      slideMain.tabIndex = scrollable ? 0 : -1;
+    const surfaces = [
+      [slideMain, "Expanded slide detail. Scroll vertically to inspect the opened evidence."],
+      [document.querySelector(".presentation-stage .slide-aside-content"), "Additional slide context. Scroll vertically to inspect the complete cue and source framing."],
+    ].filter(([surface]) => surface);
+    const syncSurface = (surface, label) => {
+      const scrollable = surface.scrollHeight > surface.clientHeight + 2;
+      surface.tabIndex = scrollable ? 0 : -1;
       if (scrollable) {
-        slideMain.setAttribute("role", "region");
-        slideMain.setAttribute("aria-label", "Expanded slide detail. Scroll vertically to inspect the opened evidence.");
+        surface.setAttribute("role", "region");
+        surface.setAttribute("aria-label", label);
       } else {
-        slideMain.removeAttribute("role");
-        slideMain.removeAttribute("aria-label");
-        slideMain.scrollTop = 0;
+        surface.removeAttribute("role");
+        surface.removeAttribute("aria-label");
+        surface.scrollTop = 0;
       }
     };
-    slideMain.addEventListener("toggle", () => requestAnimationFrame(sync), true);
-    new ResizeObserver(sync).observe(slideMain);
+    const sync = () => surfaces.forEach(([surface, label]) => syncSurface(surface, label));
+    surfaces.forEach(([surface]) => surface.addEventListener("toggle", () => requestAnimationFrame(sync), true));
+    const observer = new ResizeObserver(sync);
+    surfaces.forEach(([surface]) => observer.observe(surface));
     requestAnimationFrame(sync);
   }
 

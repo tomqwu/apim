@@ -1932,8 +1932,7 @@ a {
   min-height: 520px;
 }
 
-.viz-composition-grid,
-.viz-poc-grid {
+.viz-composition-grid {
   display: grid;
   grid-template-columns: minmax(0, 2fr) minmax(150px, 1fr);
   gap: 1.5rem;
@@ -1992,32 +1991,121 @@ a {
   font-weight: 400;
 }
 
-.viz-poc-tests {
-  display: grid;
-  grid-template-columns: repeat(2, minmax(0, 1fr));
-  align-content: start;
-  border-top: 1px solid var(--line-dark);
-}
-
-.viz-poc-tests span {
-  min-width: 0;
+.viz-poc-score {
   display: flex;
   justify-content: space-between;
-  gap: 0.4rem;
-  padding: 0.5rem;
-  border-right: 1px solid var(--line);
-  border-bottom: 1px solid var(--line);
+  gap: clamp(1.25rem, 4vw, 4rem);
+  align-items: end;
+  margin-bottom: 1.1rem;
 }
 
-.viz-poc-tests b,
-.viz-poc-tests small {
+.viz-poc-score p {
+  min-width: 0;
+  display: flex;
+  gap: 0.8rem;
+  align-items: end;
+  margin: 0;
+}
+
+.viz-poc-score strong {
+  font-family: var(--serif);
+  font-size: clamp(3.8rem, 8vw, 7.5rem);
+  font-weight: 400;
+  letter-spacing: -0.08em;
+  line-height: 0.72;
+}
+
+.viz-poc-score span {
+  max-width: 14ch;
   font-family: var(--mono);
   font-size: var(--viz-meta);
+  letter-spacing: 0.04em;
+  line-height: 1.2;
+  text-transform: uppercase;
 }
 
-.viz-poc-tests .is-not-run {
+.viz-poc-score .is-hold {
+  justify-content: flex-end;
+  color: var(--signal);
+  text-align: right;
+}
+
+.viz-poc-rail {
+  min-height: 54px;
+  display: flex;
+  overflow: hidden;
+  border: 1px solid var(--ink);
+}
+
+.viz-poc-rail > span {
+  min-width: 0;
+  flex: 0 0 var(--poc-share);
+  display: flex;
+  align-items: center;
+  padding: 0.65rem 0.8rem;
+  color: var(--paper-bright);
+  background: var(--poc-color);
+}
+
+.viz-poc-rail > span + span {
+  border-left: 1px solid var(--paper-bright);
+}
+
+.viz-poc-cohorts {
+  display: grid;
+  grid-template-columns: repeat(2, minmax(0, 1fr));
+  padding: 0;
+  margin: 1.15rem 0 0;
+  border-top: 1px solid var(--ink);
+  border-left: 1px solid var(--ink);
+  list-style: none;
+}
+
+.viz-poc-cohorts li {
+  min-width: 0;
+  padding: 0.9rem 1rem 1rem;
+  border-right: 1px solid var(--ink);
+  border-bottom: 1px solid var(--ink);
+}
+
+.viz-poc-cohorts li.is-not-run {
   color: var(--muted);
   background: var(--paper-deep);
+}
+
+.viz-poc-cohorts li > div {
+  display: flex;
+  justify-content: space-between;
+  gap: 1rem;
+  align-items: baseline;
+}
+
+.viz-poc-cohorts strong,
+.viz-poc-cohorts b,
+.viz-poc-cohorts code {
+  font-family: var(--mono);
+}
+
+.viz-poc-cohorts strong {
+  font-size: var(--viz-label);
+}
+
+.viz-poc-cohorts b {
+  font-size: clamp(1.8rem, 3vw, 2.8rem);
+  font-weight: 400;
+}
+
+.viz-poc-cohorts p {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 0.35rem 0.7rem;
+  margin: 0.8rem 0 0;
+}
+
+.viz-poc-cohorts code {
+  color: inherit;
+  font-size: var(--viz-meta);
+  background: transparent;
 }
 
 .viz-governance-metrics {
@@ -3729,9 +3817,32 @@ body.has-expanded-diagram {
 .presentation-stage .viz-flow-list strong,
 .presentation-stage .viz-roadmap-list strong,
 .presentation-stage .viz-type-list > span:not(.viz-subhead),
-.presentation-stage .viz-poc-tests b,
-.presentation-stage .viz-poc-tests small {
+.presentation-stage .viz-poc-cohorts strong,
+.presentation-stage .viz-poc-cohorts code {
   font-size: var(--slide-data);
+}
+
+.presentation-stage .viz-poc-score span,
+.presentation-stage .viz-poc-cohorts b {
+  font-size: var(--slide-meta);
+}
+
+.presentation-stage .viz-poc-cohorts,
+.presentation-stage .viz-poc-cohorts li {
+  border-color: #5d6159;
+}
+
+.presentation-stage .viz-poc-cohorts li.is-not-run {
+  color: #bdc2b8;
+  background: #1b1e1a;
+}
+
+.presentation-stage .viz-poc-rail {
+  border-color: #f3f0e7;
+}
+
+.presentation-stage .viz-poc-rail > .is-automated {
+  background: #f3f0e7;
 }
 
 .presentation-stage .viz-flow-list,
@@ -3813,8 +3924,7 @@ body.has-expanded-diagram {
 }
 
 .presentation-stage .viz-roadmap-list p,
-.presentation-stage .viz-matrix-row > small,
-.presentation-stage .viz-poc-tests {
+.presentation-stage .viz-matrix-row > small {
   display: none;
 }
 
@@ -5502,7 +5612,7 @@ body.is-presenting .site-footer {
     overflow: visible;
     flex-wrap: wrap;
     margin-bottom: 0;
-    font-size: 0.875rem;
+    font-size: 1rem;
     text-overflow: clip;
     white-space: normal;
   }
@@ -5704,8 +5814,11 @@ body.is-presenting .site-footer {
 
   .viz-donut-layout,
   .viz-composition-grid,
-  .viz-poc-grid,
   .viz-overview {
+    grid-template-columns: 1fr;
+  }
+
+  .viz-poc-cohorts {
     grid-template-columns: 1fr;
   }
 
@@ -6331,7 +6444,7 @@ body.is-presenting .site-footer {
   .slide-source {
     align-self: end;
     max-width: none;
-    font-size: 0.875rem;
+    font-size: 1rem;
   }
 
   .slide-controls {

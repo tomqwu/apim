@@ -413,11 +413,38 @@
     const statuses = data?.byStatus || (Array.isArray(data) ? data : []);
     if (!statuses.length) return empty();
     const tests = Array.isArray(data?.tests) ? data.tests : [];
-    return `<figure class="viz viz-poc ${options.compact ? "is-compact" : ""}" aria-label="${escapeHtml(options.title || "PoC status")}">${heading(options)}
-      <div class="viz-poc-grid">
-        ${donut(statuses, { compact: true, total: data?.total, centerLabel: "scenarios" })}
-        ${tests.length && !options.compact ? `<div class="viz-poc-tests">${tests.map((test) => `<span class="is-${escapeHtml(slug(test.status))}"><b>${escapeHtml(test.id)}</b><small>${escapeHtml(test.status)}</small></span>`).join("")}</div>` : ""}
+    const registerTotal = number(data?.total) || total(series(statuses));
+    const automatedStatus = statuses.find((item) => slug(item?.label) === "automated");
+    const notRunStatus = statuses.find((item) => slug(item?.label) === "not-run");
+    const automated = automatedStatus || { label: "Automated", value: 0 };
+    const notRun = notRunStatus || { label: "Not run", value: 0 };
+    const orderedStatuses = [
+      automatedStatus,
+      notRunStatus,
+      ...statuses.filter((item) => !["automated", "not-run"].includes(slug(item?.label))),
+    ].filter(Boolean);
+    const showCohorts = tests.length && !options.compact;
+    const cohorts = orderedStatuses.map((status) => {
+      const label = String(status?.label || "Unknown");
+      const ids = tests.filter((test) => slug(test?.status) === slug(label)).map((test) => String(test?.id || "")).filter(Boolean);
+      return `<li class="is-${escapeHtml(slug(label))}">
+        <div><strong>${escapeHtml(label)}</strong><b>${number(status?.value)}</b></div>
+        <p>${ids.map((id) => `<code>${escapeHtml(id)}</code>`).join("")}</p>
+      </li>`;
+    }).join("");
+    const statusLabel = orderedStatuses.map((item) => `${number(item?.value)} ${String(item?.label || "unknown")}`).join(", ");
+    return `<figure class="viz viz-poc ${options.compact ? "is-compact" : ""} ${options.presentation ? "is-presentation" : ""}" aria-label="${escapeHtml(options.title || "PoC status")}">${heading(options)}
+      <div class="viz-poc-score">
+        <p><strong>${number(automated.value)}</strong><span>of ${registerTotal}<br/>automated baseline</span></p>
+        <p class="is-hold"><strong>${number(notRun.value)}</strong><span>not run</span></p>
       </div>
+      <div class="viz-poc-rail" role="img" aria-label="${escapeHtml(statusLabel)}">
+        ${orderedStatuses.map((item, index) => {
+          const tone = slug(item?.label) === "not-run" ? "var(--signal)" : slug(item?.label) === "automated" ? "var(--ink)" : `var(--viz-color-${index % 6})`;
+          return `<span class="is-${escapeHtml(slug(item?.label))}" aria-hidden="true" style="--poc-share:${registerTotal ? (number(item?.value) / registerTotal) * 100 : 0}%;--poc-color:${tone}"></span>`;
+        }).join("")}
+      </div>
+      ${showCohorts ? `<ol class="viz-poc-cohorts" aria-label="Scenario IDs grouped by baseline status">${cohorts}</ol>` : ""}
     </figure>`;
   }
 
