@@ -2147,6 +2147,215 @@ a {
   gap: 2rem;
 }
 
+.viz-criteria-overview {
+  display: grid;
+  grid-template-columns: minmax(13rem, 0.82fr) minmax(0, 2.18fr);
+  gap: clamp(1.5rem, 3vw, 3rem);
+  align-items: stretch;
+}
+
+.viz-criteria-state,
+.viz-criteria-composition {
+  min-width: 0;
+}
+
+.viz-criteria-state {
+  display: flex;
+  flex-direction: column;
+  padding-right: clamp(1.25rem, 2.5vw, 2.5rem);
+  border-right: 1px solid var(--line-dark);
+}
+
+.viz-criteria-state > .viz-subhead,
+.viz-criteria-composition > header {
+  min-height: 2.35rem;
+  padding-bottom: 0.65rem;
+  border-bottom: 1px solid var(--line);
+}
+
+.viz-criteria-status {
+  display: grid;
+  grid-template-columns: minmax(0, 1fr);
+  gap: 0.8rem;
+  align-items: start;
+  margin: clamp(1.4rem, 3vw, 2.6rem) 0 1.2rem;
+}
+
+.viz-criteria-status > strong {
+  color: var(--signal-dark);
+  font-family: var(--serif);
+  font-size: clamp(5rem, 9vw, 8rem);
+  font-weight: 400;
+  letter-spacing: -0.08em;
+  line-height: 0.72;
+}
+
+.viz-criteria-status > span {
+  display: grid;
+  gap: 0.15rem;
+}
+
+.viz-criteria-status b {
+  font-family: var(--mono);
+  font-size: clamp(1.05rem, 1.5vw, 1.35rem);
+  letter-spacing: 0.06em;
+  text-transform: uppercase;
+}
+
+.viz-criteria-status small,
+.viz-criteria-state > p {
+  color: var(--muted);
+  font-size: var(--viz-label);
+  line-height: 1.35;
+}
+
+.viz-criteria-state > p {
+  max-width: 30ch;
+  margin: auto 0 0;
+  padding-top: 1rem;
+  border-top: 1px solid var(--line);
+  text-wrap: pretty;
+}
+
+.viz-criteria-composition > header {
+  display: flex;
+  justify-content: space-between;
+  gap: 1rem;
+  align-items: baseline;
+}
+
+.viz-criteria-composition > header > p,
+.viz-criteria-key {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 0.35rem 1rem;
+  margin: 0;
+  color: var(--muted);
+  font-family: var(--mono);
+  font-size: var(--viz-meta);
+  letter-spacing: 0.035em;
+  text-transform: uppercase;
+}
+
+.viz-criteria-composition > header > p strong {
+  color: var(--ink);
+  font-size: 1.15em;
+}
+
+.viz-criteria-composition > header > p span:first-child strong {
+  color: var(--signal-dark);
+}
+
+.viz-criteria-key {
+  justify-content: flex-end;
+  padding: 0.65rem 0;
+  border-bottom: 1px solid var(--line);
+}
+
+.viz-criteria-key b {
+  color: var(--ink);
+}
+
+.viz-criteria-domains {
+  display: grid;
+  grid-template-columns: repeat(2, minmax(0, 1fr));
+  margin: 0;
+  padding: 0;
+  list-style: none;
+}
+
+.viz-criteria-domains li {
+  min-width: 0;
+  display: grid;
+  grid-template-columns: repeat(3, minmax(0, 1fr));
+  gap: 0.35rem 0.55rem;
+  align-items: center;
+  padding: 0.68rem 0.65rem 0.68rem 0;
+  border-bottom: 1px solid var(--line);
+}
+
+.viz-criteria-domains li:nth-child(odd) {
+  padding-right: 1rem;
+  border-right: 1px solid var(--line);
+}
+
+.viz-criteria-domains li:nth-child(even) {
+  padding-left: 1rem;
+}
+
+.viz-criteria-domains li > strong {
+  grid-column: 1 / -1;
+  min-width: 0;
+  font-size: var(--viz-label);
+  font-weight: 500;
+  line-height: 1.15;
+  overflow-wrap: anywhere;
+}
+
+.viz-criteria-domains li > span {
+  display: inline-flex;
+  gap: 0.2rem;
+  align-items: baseline;
+  justify-self: start;
+  color: var(--ink);
+  font-family: var(--mono);
+  font-size: var(--viz-meta);
+}
+
+.viz-criteria-domains li > span small {
+  color: var(--muted);
+  font-size: 0.78em;
+}
+
+.viz-criteria-domains li > .is-mandatory b {
+  color: var(--signal-dark);
+}
+
+.viz-criteria-domains li > .is-total {
+  color: var(--muted);
+}
+
+@media (max-width: 760px) {
+  .viz-criteria-overview {
+    grid-template-columns: 1fr;
+    gap: 1.5rem;
+  }
+
+  .viz-criteria-state {
+    padding: 0 0 1.5rem;
+    border-right: 0;
+    border-bottom: 1px solid var(--line-dark);
+  }
+
+  .viz-criteria-state > p {
+    max-width: 42ch;
+    margin-top: 1rem;
+  }
+
+  .viz-criteria-composition > header {
+    align-items: flex-start;
+    flex-direction: column;
+  }
+
+  .viz-criteria-key {
+    justify-content: flex-start;
+  }
+
+}
+
+@media (max-width: 520px) {
+  .viz-criteria-domains {
+    grid-template-columns: 1fr;
+  }
+
+  .viz-criteria-domains li:nth-child(odd),
+  .viz-criteria-domains li:nth-child(even) {
+    padding-right: 0;
+    padding-left: 0;
+    border-right: 0;
+  }
+}
+
 .page-intro {
   display: grid;
   grid-template-columns: 8fr 4fr;
@@ -4473,7 +4682,7 @@ body.is-presenting .site-footer {
   grid-column: 1;
   grid-row: 1;
   display: grid;
-  grid-template-columns: repeat(5, minmax(0, 1fr));
+  grid-template-columns: repeat(var(--journey-phase-count, 5), minmax(0, 1fr));
   margin: 0;
   padding: 0 clamp(1.5rem, 4vw, 5rem);
   border-bottom: 1px solid #454840;
@@ -5110,7 +5319,7 @@ body.is-presenting .site-footer {
   }
 
   .presentation-stage.is-kong-journey .journey-phase-spine {
-    grid-template-columns: repeat(5, minmax(0, 1fr));
+    grid-template-columns: repeat(var(--journey-phase-count, 5), minmax(0, 1fr));
     margin-right: var(--mobile-control-rail);
     padding: 0;
   }
@@ -7120,6 +7329,11 @@ body.is-presenting .site-footer {
     height: auto;
   }
 
+  .presentation-stage:not(.is-kong-guided) .slide-diagram.is-summary-mode {
+    height: auto;
+    max-height: none;
+  }
+
   .slide-diagram.is-summary-mode .diagram-summary {
     flex: 0 0 auto;
     min-height: 17rem;
@@ -7835,5 +8049,1802 @@ body.is-presenting .site-footer {
 @media screen and (min-width: 761px) and (max-width: 1200px) {
   .presentation-stage.is-kong-journey .journey-proof-strip {
     padding-right: 14.5rem;
+  }
+}
+
+/* Guided Kong evaluation: a brand-neutral editorial system derived from the
+   supplied yellow / black / warm-white / violet visual direction. */
+.presentation-stage.is-kong-guided {
+  --guided-paper: #fffdf5;
+  --guided-paper-deep: #f3efe2;
+  --guided-ink: #11120f;
+  --guided-muted: #62645d;
+  --guided-line: #bbb7aa;
+  --guided-yellow: #ffcb2f;
+  --guided-yellow-deep: #a56600;
+  --guided-yellow-soft: #ffe58a;
+  --guided-violet: #5f38d7;
+  --guided-positive: #5f38d7;
+  color: var(--guided-ink);
+  background: var(--guided-paper);
+}
+
+.presentation-stage.is-kong-guided .presentation-slide.is-guided-slide {
+  color: var(--guided-ink);
+  background-color: var(--guided-paper);
+  background-image: repeating-linear-gradient(90deg, transparent 0, transparent calc(8.333% - 1px), rgb(17 18 15 / 4%) calc(8.333% - 1px), rgb(17 18 15 / 4%) 8.333%);
+}
+
+.presentation-stage.is-kong-guided .journey-phase-spine {
+  border-color: var(--guided-ink);
+  background: var(--guided-paper);
+}
+
+.presentation-stage.is-kong-guided .journey-phase-spine li,
+.presentation-stage.is-kong-guided .journey-phase-spine li:last-child {
+  border-color: var(--guided-line);
+  color: var(--guided-muted);
+  background: transparent;
+}
+
+.presentation-stage.is-kong-guided .journey-phase-spine li.is-complete {
+  color: var(--guided-ink);
+  box-shadow: inset 0 -3px 0 var(--guided-violet);
+}
+
+.presentation-stage.is-kong-guided .journey-phase-spine li.is-current {
+  color: var(--guided-ink);
+  background: var(--guided-yellow);
+  box-shadow: none;
+}
+
+.presentation-stage.is-kong-guided .journey-phase-spine span,
+.presentation-stage.is-kong-guided .eyebrow,
+.presentation-stage.is-kong-guided .slide-counter {
+  color: var(--guided-violet);
+}
+
+.presentation-stage.is-kong-guided .slide-counter {
+  display: none;
+}
+
+.guided-evidence-ribbon {
+  min-width: 0;
+  display: flex;
+  flex-wrap: wrap;
+  gap: 0.35rem 1rem;
+  align-items: baseline;
+  padding: 0.42rem 0.65rem;
+  border-left: 0.35rem solid var(--guided-violet);
+  color: var(--guided-muted);
+  background: color-mix(in srgb, var(--guided-violet) 7%, var(--guided-paper));
+  font-family: var(--mono);
+  font-size: 1rem;
+  line-height: 1.25;
+}
+
+.guided-evidence-ribbon span {
+  display: inline-flex;
+  gap: 0.35rem;
+  align-items: baseline;
+}
+
+.guided-evidence-ribbon b {
+  color: var(--guided-violet);
+  letter-spacing: 0.04em;
+  text-transform: uppercase;
+}
+
+.guided-evidence-ribbon p {
+  flex: 1 1 28rem;
+  margin: 0;
+  color: var(--guided-ink);
+}
+
+.presentation-stage.is-kong-guided .slide-title {
+  max-width: 25ch;
+  color: var(--guided-ink);
+  font-family: "Avenir Next", Avenir, "Century Gothic", Trebuchet MS, sans-serif;
+  font-size: clamp(2.5rem, 4.2vw, 5rem);
+  font-weight: 750;
+  letter-spacing: -0.065em;
+  line-height: 0.91;
+}
+
+.presentation-stage.is-kong-guided .slide-visual {
+  border-color: var(--guided-ink);
+  color: var(--guided-ink);
+}
+
+.presentation-stage.is-kong-guided .journey-proof-strip {
+  border-color: var(--guided-ink);
+  color: var(--guided-paper);
+  background: var(--guided-ink);
+}
+
+.presentation-stage.is-kong-guided .journey-proof-strip .slide-metric strong,
+.presentation-stage.is-kong-guided .journey-proof-strip .slide-metric span,
+.presentation-stage.is-kong-guided .journey-proof-copy > span,
+.presentation-stage.is-kong-guided .journey-proof-strip .slide-source {
+  color: var(--guided-yellow);
+}
+
+.presentation-stage.is-kong-guided .slide-reference-actions {
+  position: relative;
+  z-index: 5;
+  min-width: 10rem;
+  display: grid;
+  gap: 0.35rem;
+  justify-items: start;
+}
+
+.presentation-stage.is-kong-guided .slide-reference-actions .slide-source {
+  max-width: 22ch;
+  margin: 0;
+}
+
+.presentation-stage.is-kong-guided .slide-references {
+  position: relative;
+}
+
+.presentation-stage.is-kong-guided .slide-references > summary {
+  min-height: 44px;
+  display: inline-flex;
+  align-items: center;
+  padding: 0.45rem 0.65rem;
+  border: 1px solid var(--guided-yellow);
+  color: var(--guided-yellow);
+  background: var(--guided-ink);
+  cursor: pointer;
+  font-family: var(--mono);
+  font-size: 1rem;
+  letter-spacing: 0.045em;
+  list-style: none;
+  text-transform: uppercase;
+}
+
+.presentation-stage.is-kong-guided .slide-references > summary::-webkit-details-marker {
+  display: none;
+}
+
+.presentation-stage.is-kong-guided .slide-references > summary::after {
+  margin-left: 0.45rem;
+  content: "+";
+}
+
+.presentation-stage.is-kong-guided .slide-references[open] > summary::after {
+  content: "−";
+}
+
+.presentation-stage.is-kong-guided .slide-references > summary:focus-visible {
+  outline: 3px solid var(--guided-yellow);
+  outline-offset: 3px;
+}
+
+.presentation-stage.is-kong-guided .slide-reference-menu {
+  position: absolute;
+  right: 0;
+  bottom: calc(100% + 0.45rem);
+  z-index: 8;
+  width: min(32rem, calc(100vw - 2rem));
+  max-height: min(30rem, 62vh);
+  display: grid;
+  gap: 0;
+  overflow: auto;
+  overscroll-behavior: contain;
+  border: 1px solid var(--guided-ink);
+  color: var(--guided-ink);
+  background: var(--guided-paper);
+  box-shadow: 0 1rem 2.5rem rgb(0 0 0 / 28%);
+}
+
+.presentation-stage.is-kong-guided .slide-reference-menu > span {
+  padding: 0.55rem 0.7rem;
+  color: var(--guided-violet);
+  background: var(--guided-paper-deep);
+  font-family: var(--mono);
+  font-size: 1rem;
+  font-weight: 700;
+  letter-spacing: 0.04em;
+  text-transform: uppercase;
+}
+
+.presentation-stage.is-kong-guided .slide-reference-menu > a {
+  min-height: 44px;
+  display: flex;
+  align-items: center;
+  padding: 0.55rem 0.7rem;
+  border-top: 1px solid var(--guided-line);
+  color: var(--guided-ink);
+  font-size: 1rem;
+  line-height: 1.2;
+  text-decoration: none;
+}
+
+.presentation-stage.is-kong-guided .slide-reference-menu > a:hover,
+.presentation-stage.is-kong-guided .slide-reference-menu > a:focus-visible {
+  color: var(--guided-ink);
+  background: var(--guided-yellow-soft);
+  outline: 3px solid var(--guided-violet);
+  outline-offset: -3px;
+}
+
+.presentation-stage.is-kong-guided .journey-proof-copy .slide-body {
+  color: var(--guided-paper);
+}
+
+.presentation-stage.is-kong-guided .slide-controls {
+  border-color: var(--guided-ink);
+}
+
+.presentation-stage.is-kong-guided .slide-controls button,
+.presentation-stage.is-kong-guided .slide-controls a {
+  border-color: var(--guided-paper);
+  color: var(--guided-paper);
+  background: var(--guided-ink);
+}
+
+.presentation-stage.is-kong-guided .slide-controls button:hover,
+.presentation-stage.is-kong-guided .slide-controls button:focus-visible,
+.presentation-stage.is-kong-guided .slide-controls a:hover,
+.presentation-stage.is-kong-guided .slide-controls a:focus-visible {
+  color: var(--guided-ink);
+  background: var(--guided-yellow);
+}
+
+.presentation-stage.is-kong-guided .slide-progress {
+  background: var(--guided-violet);
+}
+
+.presentation-stage.is-kong-guided .viz,
+.presentation-stage.is-kong-guided .viz-overview {
+  --viz-color-0: var(--guided-violet);
+  --viz-color-1: var(--guided-yellow);
+  --viz-color-2: var(--guided-ink);
+  --viz-color-3: var(--guided-yellow-soft);
+  --viz-color-4: var(--guided-violet);
+  --viz-color-5: var(--guided-muted);
+  --viz-empty: var(--guided-paper-deep);
+  color: var(--guided-ink);
+}
+
+.presentation-stage.is-kong-guided .viz-heading,
+.presentation-stage.is-kong-guided .viz-bar-row,
+.presentation-stage.is-kong-guided .viz-stacked-row,
+.presentation-stage.is-kong-guided .viz-matrix-table,
+.presentation-stage.is-kong-guided .viz-matrix-row,
+.presentation-stage.is-kong-guided .viz-kps-fit-list > li,
+.presentation-stage.is-kong-guided .viz-kps-case-list > li,
+.presentation-stage.is-kong-guided .viz-kps-outcome-list > li,
+.presentation-stage.is-kong-guided .viz-kps-roadmap-list > li,
+.presentation-stage.is-kong-guided .viz-mule-boundary-groups,
+.presentation-stage.is-kong-guided .viz-mule-boundary-groups > section,
+.presentation-stage.is-kong-guided .viz-mule-boundary li,
+.presentation-stage.is-kong-guided .viz-mule-wave-list,
+.presentation-stage.is-kong-guided .viz-mule-wave-list li {
+  border-color: var(--guided-line);
+}
+
+.presentation-stage.is-kong-guided .viz-heading strong,
+.presentation-stage.is-kong-guided .viz-bar-label,
+.presentation-stage.is-kong-guided .viz-bar-value,
+.presentation-stage.is-kong-guided .viz-kps-copy > strong,
+.presentation-stage.is-kong-guided .viz-kps-roadmap-list > li > strong,
+.presentation-stage.is-kong-guided .viz-mule-boundary strong,
+.presentation-stage.is-kong-guided .viz-mule-wave-list strong {
+  color: var(--guided-ink);
+}
+
+.presentation-stage.is-kong-guided .viz-heading span,
+.presentation-stage.is-kong-guided .viz-kps-copy p,
+.presentation-stage.is-kong-guided .viz-kps-roadmap-list p,
+.presentation-stage.is-kong-guided .viz-mule-boundary p,
+.presentation-stage.is-kong-guided .viz-mule-wave-list p,
+.presentation-stage.is-kong-guided .diagram-summary > p,
+.presentation-stage.is-kong-guided .diagram-summary > small {
+  color: var(--guided-muted);
+}
+
+.presentation-stage.is-kong-guided .viz-kps-index,
+.presentation-stage.is-kong-guided .viz-kps-roadmap-meta,
+.presentation-stage.is-kong-guided .viz-mule-boundary h3,
+.presentation-stage.is-kong-guided .viz-mule-boundary li > span,
+.presentation-stage.is-kong-guided .viz-mule-wave-list li > span,
+.presentation-stage.is-kong-guided .viz-kps-copy p::before,
+.presentation-stage.is-kong-guided .viz-kps-roadmap-list p::before,
+.presentation-stage.is-kong-guided .viz-mule-wave-list p::before {
+  color: var(--guided-violet);
+}
+
+.presentation-stage.is-kong-guided .slide-diagram,
+.presentation-stage.is-kong-guided .diagram-frame,
+.presentation-stage.is-kong-guided .diagram-summary,
+.presentation-stage.is-kong-guided .diagram-scroll {
+  color: var(--guided-ink);
+  background: var(--guided-paper);
+}
+
+.presentation-stage.is-kong-guided .diagram-summary.has-authored-overview {
+  display: block;
+  padding: clamp(0.55rem, 1vw, 0.9rem);
+}
+
+.presentation-stage.is-kong-guided .diagram-summary.has-authored-overview[hidden] {
+  display: none;
+}
+
+.viz-guided-architecture-overview {
+  min-width: 0;
+  min-height: 0;
+  height: 100%;
+  display: grid;
+  grid-template-rows: auto minmax(0, 1fr);
+  gap: 0.45rem;
+  margin: 0;
+  color: var(--guided-ink);
+}
+
+.viz-guided-architecture-head {
+  display: grid;
+  grid-template-columns: minmax(12rem, 0.9fr) 3.6rem minmax(0, 2.1fr);
+  align-items: end;
+  color: var(--guided-violet);
+  font-family: var(--mono);
+  font-size: clamp(0.72rem, 0.85vw, 1rem);
+  font-weight: 700;
+  letter-spacing: 0.045em;
+  line-height: 1.1;
+  text-transform: uppercase;
+}
+
+.viz-guided-architecture-head > div {
+  grid-column: 3;
+  display: grid;
+  grid-template-columns: minmax(0, 0.9fr) 2.8rem minmax(0, 1.35fr);
+}
+
+.viz-guided-architecture-head > div > span:last-child {
+  grid-column: 3;
+}
+
+.viz-guided-architecture-map {
+  min-width: 0;
+  min-height: 0;
+  display: grid;
+  grid-template-columns: minmax(12rem, 0.9fr) 3.6rem minmax(0, 2.1fr);
+  gap: 0;
+}
+
+.viz-guided-architecture-control {
+  min-width: 0;
+  min-height: 0;
+  display: grid;
+  grid-template-rows: minmax(3.75rem, 1fr) auto minmax(3.75rem, 1fr) auto minmax(3.75rem, 1fr);
+  gap: 0;
+}
+
+.viz-guided-architecture-node {
+  min-width: 0;
+  min-height: 0;
+  display: grid;
+  place-content: center;
+  gap: 0.25rem;
+  padding: clamp(0.45rem, 0.8vw, 0.75rem);
+  border: 1.5px solid var(--guided-ink);
+  background: var(--guided-paper);
+  text-align: center;
+}
+
+.viz-guided-architecture-node strong {
+  font-size: clamp(0.95rem, 1.25vw, 1.45rem);
+  line-height: 1.05;
+  text-wrap: balance;
+}
+
+.viz-guided-architecture-node span {
+  color: var(--guided-muted);
+  font-size: clamp(0.72rem, 0.9vw, 1rem);
+  line-height: 1.12;
+  text-wrap: balance;
+}
+
+.viz-guided-architecture-node.is-authority {
+  border-color: var(--guided-violet);
+}
+
+.viz-guided-architecture-node.is-control-plane {
+  border-color: var(--guided-yellow-deep);
+  background: var(--guided-yellow-soft);
+}
+
+.viz-guided-architecture-node.is-data-plane {
+  border-color: var(--guided-violet);
+}
+
+.viz-guided-architecture-node.is-local-target {
+  border-color: var(--guided-muted);
+}
+
+.viz-guided-architecture-control-flow {
+  position: relative;
+  min-height: 1.25rem;
+  display: grid;
+  place-items: center;
+  color: var(--guided-muted);
+  font-family: var(--mono);
+  font-size: clamp(0.6rem, 0.65vw, 0.75rem);
+  line-height: 1;
+  text-transform: uppercase;
+}
+
+.viz-guided-architecture-control-flow::before {
+  position: absolute;
+  top: 0;
+  bottom: 0.2rem;
+  left: 50%;
+  border-left: 1.5px solid currentcolor;
+  content: "";
+}
+
+.viz-guided-architecture-control-flow::after {
+  position: absolute;
+  bottom: 0;
+  left: calc(50% - 0.25rem);
+  border-top: 0.42rem solid currentcolor;
+  border-right: 0.25rem solid transparent;
+  border-left: 0.25rem solid transparent;
+  content: "";
+}
+
+.viz-guided-architecture-control-flow b {
+  position: relative;
+  z-index: 1;
+  padding-inline: 0.25rem;
+  background: var(--guided-paper);
+  font-weight: 600;
+}
+
+.viz-guided-architecture-fanout {
+  position: relative;
+  z-index: 1;
+  display: grid;
+  grid-template-rows: repeat(3, minmax(0, 1fr));
+}
+
+.viz-guided-architecture-fanout::before {
+  position: absolute;
+  top: 16.667%;
+  bottom: 16.667%;
+  left: 0.75rem;
+  border-left: 2px solid var(--guided-yellow-deep);
+  content: "";
+}
+
+.viz-guided-architecture-fanout::after {
+  position: absolute;
+  top: 50%;
+  right: calc(100% - 0.75rem);
+  width: 0.75rem;
+  border-top: 2px solid var(--guided-yellow-deep);
+  content: "";
+}
+
+.viz-guided-architecture-fanout > span {
+  position: relative;
+  align-self: center;
+  margin-left: 0.75rem;
+  border-top: 2px solid var(--guided-yellow-deep);
+}
+
+.viz-guided-architecture-fanout > span::after,
+.viz-guided-architecture-request::after {
+  position: absolute;
+  top: -0.33rem;
+  right: -0.05rem;
+  border-top: 0.28rem solid transparent;
+  border-bottom: 0.28rem solid transparent;
+  border-left: 0.45rem solid currentcolor;
+  content: "";
+}
+
+.viz-guided-architecture-fanout > span b {
+  position: absolute;
+  right: 0;
+  bottom: 0.35rem;
+  color: var(--guided-violet);
+  font-family: var(--mono);
+  font-size: clamp(0.58rem, 0.6vw, 0.7rem);
+  font-weight: 700;
+  letter-spacing: 0.035em;
+  text-transform: uppercase;
+}
+
+.viz-guided-architecture-lanes {
+  min-width: 0;
+  min-height: 0;
+  display: grid;
+  grid-template-rows: repeat(3, minmax(0, 1fr));
+  gap: 0.55rem;
+  margin: 0;
+  padding: 0;
+  list-style: none;
+}
+
+.viz-guided-architecture-lanes > li {
+  min-width: 0;
+  min-height: 0;
+  display: grid;
+  grid-template-columns: minmax(0, 0.9fr) 2.8rem minmax(0, 1.35fr);
+  align-items: stretch;
+}
+
+.viz-guided-architecture-request {
+  position: relative;
+  align-self: center;
+  color: var(--guided-muted);
+  border-top: 1.5px solid currentcolor;
+}
+
+.viz-guided-architecture-request b {
+  position: absolute;
+  right: 0.25rem;
+  bottom: 0.35rem;
+  font-family: var(--mono);
+  font-size: clamp(0.58rem, 0.6vw, 0.7rem);
+  font-weight: 600;
+  text-transform: uppercase;
+}
+
+.viz-guided {
+  min-width: 0;
+  min-height: 100%;
+  height: auto;
+  display: block;
+  margin: 0;
+}
+
+.viz-guided-frame {
+  min-width: 0;
+  min-height: 0;
+}
+
+.presentation-stage.is-kong-guided .viz-guided-meta {
+  display: none;
+}
+
+.viz-guided-meta {
+  min-width: 0;
+  display: flex;
+  gap: 0.7rem;
+  align-items: center;
+  margin-top: 0.65rem;
+  padding-top: 0.55rem;
+  border-top: 1px solid var(--guided-line, var(--line));
+  color: var(--guided-muted, var(--muted));
+  font-family: var(--mono);
+  font-size: 0.8rem;
+  letter-spacing: 0.035em;
+  text-transform: uppercase;
+}
+
+.viz-guided-meta > span {
+  display: inline-flex;
+  gap: 0.35rem;
+}
+
+.viz-guided-meta > span:empty {
+  display: none;
+}
+
+.viz-guided-meta b {
+  color: var(--guided-violet, var(--signal-dark));
+  font-weight: 700;
+}
+
+.viz-guided-meta .visual-source {
+  max-width: none;
+  margin: 0 0 0 auto;
+  color: inherit;
+  font-size: inherit;
+}
+
+.viz-guided-phases,
+.viz-guided-weights,
+.viz-guided-programme {
+  margin: 0;
+  padding: 0;
+  list-style: none;
+}
+
+.viz-guided-phases {
+  height: 100%;
+  display: grid;
+  grid-template-columns: repeat(6, minmax(0, 1fr));
+  border-top: 1px solid var(--guided-ink);
+  border-left: 1px solid var(--guided-ink);
+}
+
+.viz-guided-phases li {
+  min-width: 0;
+  display: grid;
+  grid-template-rows: auto auto 1fr;
+  gap: 0.85rem;
+  padding: clamp(0.8rem, 1.4vw, 1.4rem);
+  border-right: 1px solid var(--guided-ink);
+  border-bottom: 1px solid var(--guided-ink);
+}
+
+.viz-guided-phases li:nth-child(odd) {
+  background: color-mix(in srgb, var(--guided-yellow) 18%, transparent);
+}
+
+.viz-guided-phases span,
+.viz-guided-target h3,
+.viz-guided-options article > span,
+.viz-guided-boundaries article > span,
+.viz-guided-duty article > span,
+.viz-guided-programme li > span,
+.viz-guided-comparison article > span {
+  color: var(--guided-violet);
+  font-family: var(--mono);
+  font-size: clamp(0.9rem, 0.9vw, 1.1rem);
+  letter-spacing: 0.055em;
+  text-transform: uppercase;
+}
+
+.viz-guided-phases strong {
+  font-family: "Avenir Next", Avenir, "Century Gothic", Trebuchet MS, sans-serif;
+  font-size: clamp(1.45rem, 1.7vw, 2.2rem);
+  line-height: 1;
+  text-wrap: balance;
+}
+
+.viz-guided-phases p {
+  margin: 0;
+  color: var(--guided-muted);
+  font-size: clamp(1rem, 1.05vw, 1.3rem);
+  line-height: 1.3;
+  text-wrap: pretty;
+}
+
+.viz-guided-target {
+  height: 100%;
+  display: grid;
+  grid-template-columns: repeat(3, minmax(0, 1fr));
+  border-top: 1px solid var(--guided-ink);
+  border-left: 1px solid var(--guided-ink);
+}
+
+.viz-guided-target > section {
+  min-width: 0;
+  border-right: 1px solid var(--guided-ink);
+  border-bottom: 1px solid var(--guided-ink);
+}
+
+.viz-guided-target h3 {
+  margin: 0;
+  padding: 0.65rem 0.85rem;
+  color: var(--guided-ink);
+  background: var(--guided-yellow);
+}
+
+.viz-guided-target ol {
+  margin: 0;
+  padding: 0;
+  list-style: none;
+}
+
+.viz-guided-target li {
+  min-width: 0;
+  min-height: 4.25rem;
+  display: flex;
+  align-items: center;
+  padding: 0.55rem 0.75rem;
+  border-top: 1px solid var(--guided-line);
+}
+
+.viz-guided-target li:first-child {
+  border-top: 0;
+}
+
+.viz-guided-target strong {
+  display: block;
+  font-size: clamp(1rem, 1.25vw, 1.5rem);
+  line-height: 1.15;
+  text-wrap: balance;
+}
+
+.viz-guided-weights {
+  display: grid;
+  grid-template-columns: repeat(2, minmax(0, 1fr));
+  border-top: 1px solid var(--guided-ink);
+  border-left: 1px solid var(--guided-ink);
+}
+
+.viz-guided-weights li {
+  min-width: 0;
+  display: grid;
+  grid-template-columns: 4.3rem minmax(9rem, 1fr) minmax(7rem, 1.25fr) 3.5rem;
+  gap: 0.55rem;
+  align-items: center;
+  padding: 0.65rem 0.75rem;
+  border-right: 1px solid var(--guided-ink);
+  border-bottom: 1px solid var(--guided-ink);
+}
+
+.viz-guided-weights li > span,
+.viz-guided-weights li > b {
+  color: var(--guided-violet);
+  font-family: var(--mono);
+  font-size: 0.9rem;
+}
+
+.viz-guided-weights li > strong {
+  font-size: clamp(1rem, 1.05vw, 1.25rem);
+  line-height: 1.15;
+}
+
+.viz-guided-weights li > p {
+  grid-column: 2 / -1;
+  margin: 0;
+  color: var(--guided-muted);
+  font-size: 0.9rem;
+  line-height: 1.2;
+}
+
+.viz-guided-weight-track,
+.viz-guided-score-rank li > div {
+  min-width: 0;
+  height: 0.85rem;
+  border: 1px solid var(--guided-ink);
+  background: var(--guided-paper-deep);
+}
+
+.viz-guided-weight-track i,
+.viz-guided-score-rank li > div i {
+  width: var(--guided-weight, var(--guided-score, 0%));
+  height: 100%;
+  display: block;
+  background: var(--guided-yellow);
+}
+
+.viz-guided-options,
+.viz-guided-boundaries,
+.viz-guided-duty,
+.viz-guided-proof-boundary,
+.viz-guided-authorization {
+  display: grid;
+  border-top: 1px solid var(--guided-ink);
+  border-left: 1px solid var(--guided-ink);
+}
+
+.viz-guided-options {
+  height: 100%;
+  grid-template-columns: repeat(4, minmax(0, 1fr));
+}
+
+.viz-guided-boundaries,
+.viz-guided-proof-boundary {
+  height: 100%;
+  grid-template-columns: repeat(3, minmax(0, 1fr));
+}
+
+.viz-guided-duty {
+  height: 100%;
+  grid-template-columns: repeat(2, minmax(0, 1fr));
+}
+
+.viz-guided-authorization {
+  grid-template-columns: repeat(2, minmax(0, 1fr));
+}
+
+.viz-guided-options article,
+.viz-guided-boundaries article,
+.viz-guided-duty article,
+.viz-guided-proof-boundary article,
+.viz-guided-authorization article {
+  min-width: 0;
+  display: flex;
+  flex-direction: column;
+  gap: 0.65rem;
+  padding: clamp(0.75rem, 1.2vw, 1.2rem);
+  border-right: 1px solid var(--guided-ink);
+  border-bottom: 1px solid var(--guided-ink);
+}
+
+.viz-guided-options article:first-child,
+.viz-guided-boundaries article:first-child,
+.viz-guided-duty article:first-child,
+.viz-guided-proof-boundary article:first-child,
+.viz-guided-authorization article:first-child {
+  background: color-mix(in srgb, var(--guided-yellow) 22%, transparent);
+}
+
+.viz-guided-options strong,
+.viz-guided-boundaries strong,
+.viz-guided-duty strong,
+.viz-guided-proof-boundary strong,
+.viz-guided-authorization strong {
+  font-family: "Avenir Next", Avenir, "Century Gothic", Trebuchet MS, sans-serif;
+  font-size: clamp(1.2rem, 1.45vw, 1.85rem);
+  line-height: 1.05;
+  text-wrap: balance;
+}
+
+.viz-guided-options p,
+.viz-guided-boundaries p,
+.viz-guided-duty p,
+.viz-guided-proof-boundary p,
+.viz-guided-authorization p,
+.viz-guided-options small,
+.viz-guided-boundaries small,
+.viz-guided-authorization small {
+  margin: 0;
+  color: var(--guided-muted);
+  font-size: clamp(0.95rem, 1vw, 1.2rem);
+  line-height: 1.27;
+  text-wrap: pretty;
+}
+
+.viz-guided-options p::before,
+.viz-guided-duty p::before,
+.viz-guided-proof-boundary p::before,
+.viz-guided-authorization p::before,
+.viz-guided-authorization small::before {
+  display: block;
+  margin-bottom: 0.18rem;
+  color: var(--guided-violet);
+  font-family: var(--mono);
+  font-size: 0.78rem;
+  font-weight: 700;
+  letter-spacing: 0.04em;
+  text-transform: uppercase;
+  content: attr(data-label);
+}
+
+.viz-guided-options small,
+.viz-guided-boundaries small,
+.viz-guided-authorization small {
+  margin-top: auto;
+  padding-top: 0.55rem;
+  border-top: 1px solid var(--guided-line);
+}
+
+.viz-guided-proof-boundary article > b {
+  color: var(--guided-violet);
+  font-family: var(--mono);
+  font-size: clamp(1rem, 1.05vw, 1.25rem);
+  font-weight: 600;
+}
+
+.viz-guided-authorization .is-authorize {
+  color: var(--guided-positive);
+}
+
+.viz-guided-authorization .is-hold {
+  color: var(--guided-ink);
+  background: color-mix(in srgb, var(--guided-yellow) 40%, transparent);
+}
+
+.viz-guided-authorization > section {
+  min-width: 0;
+  padding: clamp(0.65rem, 1.1vw, 1.1rem);
+  border-right: 1px solid var(--guided-ink);
+  border-bottom: 1px solid var(--guided-ink);
+}
+
+.viz-guided-authorization > section > span {
+  display: block;
+  margin-bottom: 0.45rem;
+  color: var(--guided-violet);
+  font-family: var(--mono);
+  font-size: 1rem;
+  font-weight: 700;
+  letter-spacing: 0.04em;
+  text-transform: uppercase;
+}
+
+.viz-guided-authorization ul {
+  display: grid;
+  gap: 0;
+  margin: 0;
+  padding: 0;
+  list-style: none;
+}
+
+.viz-guided-authorization li {
+  min-width: 0;
+  display: grid;
+  grid-template-columns: minmax(6.5rem, 0.42fr) minmax(0, 1fr);
+  gap: 0.65rem;
+  padding: 0.45rem 0;
+  border-top: 1px solid var(--guided-line);
+}
+
+.viz-guided-authorization li strong,
+.viz-guided-authorization li p {
+  margin: 0;
+  font-size: clamp(1rem, 1.25vw, 1.5rem);
+  line-height: 1.15;
+}
+
+.viz-guided-authorization li strong {
+  font-family: "Avenir Next", Avenir, "Century Gothic", Trebuchet MS, sans-serif;
+}
+
+.viz-guided-authorization li p {
+  color: var(--guided-muted);
+}
+
+.viz-guided-score-rank {
+  display: grid;
+  gap: clamp(0.8rem, 1.4vw, 1.4rem);
+  margin: 0;
+  padding: clamp(0.5rem, 1vw, 1rem) 0;
+  list-style: none;
+}
+
+.viz-guided-score-rank li {
+  display: grid;
+  grid-template-columns: 3rem minmax(8rem, 0.8fr) minmax(0, 5fr) 6rem;
+  gap: 1rem;
+  align-items: center;
+}
+
+.viz-guided-score-rank li > span {
+  color: var(--guided-violet);
+  font-family: var(--mono);
+}
+
+.viz-guided-score-rank li > strong {
+  font-size: clamp(1.4rem, 1.8vw, 2.3rem);
+}
+
+.viz-guided-score-rank li > b {
+  font-family: "Avenir Next", Avenir, "Century Gothic", Trebuchet MS, sans-serif;
+  font-size: clamp(2.3rem, 4vw, 5.2rem);
+  line-height: 0.8;
+}
+
+.viz-guided-score-rank li:first-child > div i {
+  background: var(--guided-violet);
+}
+
+.viz-guided-programme {
+  display: grid;
+  grid-template-columns: repeat(3, minmax(0, 1fr));
+  border-top: 1px solid var(--guided-ink);
+  border-left: 1px solid var(--guided-ink);
+}
+
+.viz-guided-programme li {
+  min-width: 0;
+  display: grid;
+  grid-template-columns: 4.2rem minmax(0, 1fr);
+  gap: 0.28rem 0.55rem;
+  padding: 0.55rem;
+  border-right: 1px solid var(--guided-ink);
+  border-bottom: 1px solid var(--guided-ink);
+}
+
+.viz-guided-programme li > span {
+  grid-row: 1 / span 4;
+}
+
+.viz-guided-programme strong {
+  font-size: clamp(1rem, 1.08vw, 1.3rem);
+  line-height: 1.05;
+}
+
+.viz-guided-programme p,
+.viz-guided-programme small {
+  margin: 0;
+  color: var(--guided-muted);
+  font-size: clamp(1rem, 1.25vw, 1.5rem);
+  line-height: 1.15;
+}
+
+.viz-guided-programme small {
+  padding-top: 0.2rem;
+  border-top: 1px solid var(--guided-line);
+}
+
+.viz-guided-comparison-wrap {
+  width: 100%;
+  max-height: 100%;
+  overflow-x: auto;
+  overflow-y: hidden;
+  border: 1px solid var(--guided-ink);
+  scrollbar-gutter: stable;
+}
+
+.viz-guided-comparison-wrap:focus-visible {
+  outline: 3px solid var(--guided-violet);
+  outline-offset: 3px;
+}
+
+.viz-guided-comparison {
+  width: 100%;
+  min-width: 0;
+  table-layout: fixed;
+  border-collapse: collapse;
+  font-size: 1.125rem;
+  line-height: 1.12;
+}
+
+.viz-guided-comparison caption {
+  position: absolute;
+  width: 1px;
+  height: 1px;
+  overflow: hidden;
+  clip-path: inset(50%);
+}
+
+.viz-guided-comparison th,
+.viz-guided-comparison td {
+  padding: 0.28rem 0.45rem;
+  border-right: 1px solid var(--guided-line);
+  border-bottom: 1px solid var(--guided-line);
+  text-align: left;
+  vertical-align: top;
+}
+
+.viz-guided-comparison th:last-child,
+.viz-guided-comparison td:last-child {
+  border-right: 0;
+}
+
+.viz-guided-comparison thead th {
+  color: var(--guided-ink);
+  background: var(--guided-yellow);
+  font-family: var(--mono);
+  font-weight: 700;
+}
+
+.viz-guided-comparison thead th:nth-child(1) { width: 16%; }
+.viz-guided-comparison thead th:nth-child(2),
+.viz-guided-comparison thead th:nth-child(3),
+.viz-guided-comparison thead th:nth-child(4) { width: 28%; }
+
+.viz-guided-comparison tbody th {
+  font-weight: 700;
+}
+
+.viz-guided-comparison tbody th span {
+  display: inline-block;
+  margin-right: 0.45rem;
+  color: var(--guided-violet);
+  font-family: var(--mono);
+  font-size: 1rem;
+}
+
+.viz-guided-scroll-cue {
+  display: none;
+  margin: 0.3rem 0 0;
+  color: var(--guided-muted);
+  font-family: var(--mono);
+  font-size: 1rem;
+}
+
+.viz-guided-audit {
+  border-top: 1px solid var(--guided-ink);
+  border-left: 1px solid var(--guided-ink);
+}
+
+.viz-guided-audit-head,
+.viz-guided-audit-row,
+.viz-guided-audit-total {
+  display: grid;
+  grid-template-columns: minmax(12rem, 2.2fr) minmax(5rem, 0.6fr) repeat(3, minmax(7rem, 1fr));
+}
+
+.viz-guided-audit-head {
+  color: var(--guided-ink);
+  background: var(--guided-yellow);
+  font-family: var(--mono);
+  font-size: 1.125rem;
+  font-weight: 700;
+  letter-spacing: 0.035em;
+  text-transform: uppercase;
+}
+
+.viz-guided-audit-head > *,
+.viz-guided-audit-row > *,
+.viz-guided-audit-total > * {
+  min-width: 0;
+  padding: 0.18rem 0.45rem;
+  border-right: 1px solid var(--guided-ink);
+  border-bottom: 1px solid var(--guided-ink);
+}
+
+.viz-guided-audit-row {
+  font-size: 1.125rem;
+}
+
+.viz-guided-audit-row > span:not(:nth-child(2)) {
+  display: flex;
+  gap: 0.45rem;
+  align-items: baseline;
+}
+
+.viz-guided-audit-row small {
+  color: var(--guided-muted);
+}
+
+.viz-guided-audit-row small::before {
+  content: "weighted ";
+}
+
+.viz-guided-audit-total {
+  font-size: 1.125rem;
+  background: color-mix(in srgb, var(--guided-violet) 10%, transparent);
+}
+
+.viz-guided-audit-total.is-supplied {
+  background: color-mix(in srgb, var(--guided-yellow) 22%, transparent);
+}
+
+.viz-guided-phases p,
+.viz-guided-target strong,
+.viz-guided-weights li > strong,
+.viz-guided-options p,
+.viz-guided-options small,
+.viz-guided-boundaries p,
+.viz-guided-boundaries small,
+.viz-guided-duty p,
+.viz-guided-proof-boundary p,
+.viz-guided-proof-boundary article > b,
+.viz-guided-authorization li strong,
+.viz-guided-authorization li p,
+.viz-guided-programme strong,
+.viz-guided-programme p {
+  font-size: 1rem;
+}
+
+@media screen and (min-width: 761px) and (max-width: 1023px) {
+  .presentation-stage.is-kong-guided .is-guided-slide > .slide-main {
+    overflow-y: auto;
+    overscroll-behavior: contain;
+  }
+
+  .presentation-stage.is-kong-guided .slide-visual {
+    overflow: visible;
+  }
+}
+
+@media screen and (min-width: 761px) and (max-width: 1199px) {
+  .presentation-stage.is-kong-guided .journey-proof-strip {
+    grid-template-rows: minmax(0, 1fr);
+  }
+
+  .viz-guided-options {
+    height: auto;
+    grid-template-columns: minmax(0, 1fr);
+  }
+
+  .viz-guided-comparison {
+    min-width: 100rem;
+  }
+
+  .viz-guided-scroll-cue:not([hidden]) {
+    display: block;
+  }
+
+  .viz-guided-phases {
+    height: auto;
+    grid-template-columns: repeat(3, minmax(0, 1fr));
+  }
+
+  .viz-guided-options article,
+  .viz-guided-authorization > section {
+    padding: 0.5rem;
+  }
+
+  .viz-guided-options article {
+    display: grid;
+    grid-template-columns: minmax(9rem, 1.2fr) minmax(0, 2fr) minmax(0, 2fr) minmax(8rem, 1.15fr);
+    gap: 0.38rem 0.6rem;
+    align-items: start;
+  }
+
+  .viz-guided-options article > span {
+    display: none;
+  }
+
+  .viz-guided-options p,
+  .viz-guided-options small,
+  .viz-guided-authorization li strong,
+  .viz-guided-authorization li p {
+    font-size: 1.125rem;
+    line-height: 1.15;
+  }
+
+  .viz-guided-authorization li {
+    gap: 0.45rem;
+    padding: 0.28rem 0;
+  }
+
+  .presentation-stage.is-kong-guided .viz-mule-boundary h3 {
+    padding-block: 0.2rem;
+  }
+
+  .presentation-stage.is-kong-guided .viz-mule-boundary li {
+    padding-block: 0.18rem;
+  }
+}
+
+@media screen and (min-width: 761px) {
+  .viz-guided-phases p,
+  .viz-guided-target strong,
+  .viz-guided-weights li > strong,
+  .viz-guided-options p,
+  .viz-guided-options small,
+  .viz-guided-boundaries p,
+  .viz-guided-boundaries small,
+  .viz-guided-duty p,
+  .viz-guided-proof-boundary p,
+  .viz-guided-proof-boundary article > b,
+  .viz-guided-authorization li strong,
+  .viz-guided-authorization li p,
+  .viz-guided-programme strong,
+  .viz-guided-programme p {
+    font-size: 1.125rem;
+  }
+}
+
+@media screen and (min-width: 761px) and (max-width: 1023px) {
+  .presentation-stage.is-kong-guided .slide-title,
+  .presentation-stage.is-kong-guided .slide-narrative.is-diagram .slide-title,
+  .presentation-stage.is-kong-guided .slide-narrative.is-roadmap .slide-title,
+  .presentation-stage.is-kong-guided .slide-narrative.is-matrix .slide-title {
+    max-width: 25ch;
+    font-size: clamp(2.2rem, 4vw, 3.25rem);
+  }
+
+  .presentation-stage.is-kong-guided .journey-phase-spine li {
+    font-size: 0.78rem;
+  }
+
+  .viz-guided-phases,
+  .viz-guided-options,
+  .viz-guided-target,
+  .viz-guided-boundaries,
+  .viz-guided-proof-boundary {
+    grid-template-columns: repeat(2, minmax(0, 1fr));
+    height: auto;
+  }
+
+  .viz-guided-duty {
+    height: auto;
+  }
+
+  .viz-guided-programme,
+  .viz-guided-authorization {
+    grid-template-columns: repeat(2, minmax(0, 1fr));
+  }
+
+  .viz-guided-weights {
+    grid-template-columns: 1fr;
+  }
+
+  .viz-guided-weights li {
+    grid-template-columns: 4rem minmax(9rem, 1fr) minmax(5rem, 1.1fr) 3rem;
+  }
+
+  .viz-guided-audit-head,
+  .viz-guided-audit-row,
+  .viz-guided-audit-total {
+    grid-template-columns: minmax(10rem, 2fr) 4.5rem repeat(3, minmax(5.5rem, 1fr));
+  }
+
+  .viz-guided-audit-head,
+  .viz-guided-audit-row {
+    font-size: 0.8rem;
+  }
+}
+
+/* Keep the six-phase rail inside its reserved row at compact desktop widths.
+   The full phase name remains in the accessibility tree and in the slide eyebrow. */
+@media screen and (min-width: 761px) and (max-width: 1279px) {
+  .presentation-stage.is-kong-guided .journey-phase-spine li {
+    justify-content: center;
+    font-size: 1rem;
+  }
+
+  .presentation-stage.is-kong-guided .journey-phase-spine li b {
+    position: absolute;
+    width: 1px;
+    height: 1px;
+    overflow: hidden;
+    clip-path: inset(50%);
+  }
+}
+
+@media screen and (min-width: 1024px) {
+  .presentation-stage.is-kong-guided .is-guided-slide > .slide-main {
+    overflow: hidden;
+  }
+
+  .presentation-stage.is-kong-guided .slide-visual {
+    overflow: visible;
+  }
+
+  .viz-guided-comparison {
+    font-size: 1.125rem;
+  }
+}
+
+@media screen and (min-width: 1024px) and (max-width: 1199px) {
+  .presentation-stage.is-kong-guided .viz-guided-proof-boundary article {
+    gap: 0.25rem;
+    padding: 0.45rem;
+  }
+}
+
+@media screen and (min-width: 1600px) {
+  .viz-guided-comparison {
+    font-size: 1.5rem;
+  }
+
+  .viz-guided-audit-head,
+  .viz-guided-audit-row,
+  .viz-guided-audit-total {
+    font-size: 1.5rem;
+  }
+
+  .viz-guided-phases p,
+  .viz-guided-target strong,
+  .viz-guided-weights li > strong,
+  .viz-guided-options p,
+  .viz-guided-options small,
+  .viz-guided-boundaries p,
+  .viz-guided-boundaries small,
+  .viz-guided-duty p,
+  .viz-guided-proof-boundary p,
+  .viz-guided-proof-boundary article > b,
+  .viz-guided-authorization li strong,
+  .viz-guided-authorization li p,
+  .viz-guided-programme strong,
+  .viz-guided-programme p {
+    font-size: 1.5rem;
+  }
+}
+
+@media screen and (max-width: 760px) {
+  .presentation-stage.is-kong-guided .presentation-slide.is-guided-slide {
+    background-image: none;
+  }
+
+  .presentation-stage.is-kong-guided .journey-phase-spine {
+    grid-template-columns: repeat(var(--journey-phase-count, 6), minmax(0, 1fr));
+  }
+
+  .presentation-stage.is-kong-guided .slide-title,
+  .presentation-stage.is-kong-guided .slide-narrative.is-diagram .slide-title,
+  .presentation-stage.is-kong-guided .slide-narrative.is-roadmap .slide-title,
+  .presentation-stage.is-kong-guided .slide-narrative.is-matrix .slide-title {
+    font-size: clamp(2rem, 9vw, 2.75rem);
+  }
+
+  .guided-evidence-ribbon {
+    align-items: flex-start;
+    flex-direction: column;
+  }
+
+  .guided-evidence-ribbon p {
+    flex: 0 1 auto;
+  }
+
+  .presentation-stage.is-kong-guided .slide-reference-actions {
+    width: 100%;
+  }
+
+  .presentation-stage.is-kong-guided .slide-reference-menu {
+    right: auto;
+    left: 0;
+    width: min(32rem, calc(100vw - var(--mobile-control-rail) - 2rem));
+  }
+
+  .viz-guided-meta {
+    align-items: flex-start;
+    flex-direction: column;
+  }
+
+  .viz-guided-meta .visual-source {
+    margin-left: 0;
+  }
+
+  .viz-guided-phases,
+  .viz-guided-target,
+  .viz-guided-weights,
+  .viz-guided-options,
+  .viz-guided-boundaries,
+  .viz-guided-duty,
+  .viz-guided-proof-boundary,
+  .viz-guided-authorization,
+  .viz-guided-programme {
+    height: auto;
+    grid-template-columns: minmax(0, 1fr);
+  }
+
+  .viz-guided-phases li {
+    min-height: 0;
+    grid-template-columns: 4.5rem minmax(7rem, 0.8fr) minmax(0, 1.4fr);
+    grid-template-rows: auto;
+    align-items: start;
+  }
+
+  .viz-guided-phases strong {
+    font-size: 1.35rem;
+  }
+
+  .viz-guided-weights li {
+    grid-template-columns: 3.8rem minmax(0, 1fr) 3rem;
+  }
+
+  .viz-guided-weight-track {
+    grid-column: 2;
+    grid-row: 2;
+  }
+
+  .viz-guided-weights li > b {
+    grid-column: 3;
+    grid-row: 1 / 3;
+  }
+
+  .viz-guided-weights li > p {
+    grid-column: 2 / -1;
+  }
+
+  .viz-guided-score-rank li {
+    grid-template-columns: 2rem minmax(0, 1fr) 4rem;
+    gap: 0.55rem;
+  }
+
+  .viz-guided-score-rank li > div {
+    grid-column: 2 / -1;
+    grid-row: 2;
+  }
+
+  .viz-guided-score-rank li > b {
+    grid-column: 3;
+    font-size: 2.2rem;
+  }
+
+  .viz-guided-programme li {
+    grid-template-columns: 3.6rem minmax(0, 1fr);
+  }
+
+  .viz-guided-comparison {
+    min-width: 70rem;
+    font-size: 1rem;
+  }
+
+  .viz-guided-scroll-cue:not([hidden]) {
+    display: block;
+  }
+
+  .viz-guided-audit-head {
+    display: none;
+  }
+
+  .viz-guided-audit-row,
+  .viz-guided-audit-total {
+    grid-template-columns: minmax(0, 1fr) repeat(3, minmax(3.5rem, auto));
+  }
+
+  .viz-guided-audit-row > strong,
+  .viz-guided-audit-total > strong {
+    grid-column: 1 / -1;
+    background: var(--guided-yellow);
+  }
+
+  .viz-guided-audit-row > span:nth-child(2),
+  .viz-guided-audit-total > span:nth-child(2) {
+    grid-column: 1;
+  }
+
+  .viz-guided-audit-row > span:not(:nth-child(2)) {
+    display: block;
+  }
+
+  .viz-guided-audit-row small {
+    display: block;
+  }
+}
+
+@media screen and (max-width: 760px) {
+  .presentation-stage.is-kong-guided .diagram-summary.has-authored-overview {
+    padding: 0.55rem;
+  }
+
+  .viz-guided-architecture-head {
+    grid-template-columns: minmax(0, 1fr);
+    gap: 0.35rem;
+  }
+
+  .viz-guided-architecture-head > div {
+    grid-column: 1;
+    grid-template-columns: repeat(2, minmax(0, 1fr));
+    gap: 1.8rem;
+  }
+
+  .viz-guided-architecture-head > div > span:last-child {
+    grid-column: 2;
+  }
+
+  .viz-guided-architecture-map {
+    grid-template-columns: minmax(0, 1fr);
+    gap: 0.75rem;
+  }
+
+  .viz-guided-architecture-control {
+    grid-template-columns: repeat(3, minmax(0, 1fr));
+    grid-template-rows: minmax(4rem, auto);
+    align-items: stretch;
+  }
+
+  .viz-guided-architecture-control-flow {
+    display: none;
+  }
+
+  .viz-guided-architecture-node strong {
+    font-size: 0.95rem;
+  }
+
+  .viz-guided-architecture-node span {
+    font-size: 0.75rem;
+  }
+
+  .viz-guided-architecture-fanout {
+    display: none;
+  }
+
+  .viz-guided-architecture-lanes {
+    gap: 0.7rem;
+  }
+
+  .viz-guided-architecture-lanes > li {
+    grid-template-columns: minmax(0, 1fr) 1.8rem minmax(0, 1.15fr);
+  }
+
+  .viz-guided-architecture-request b {
+    display: none;
+  }
+}
+
+@page kong-guided-slide {
+  size: 16in 9in;
+  margin: 0;
+}
+
+@media print {
+  body.is-presenting .skip-link {
+    display: none !important;
+  }
+
+  body.is-presenting:has(.presentation-stage.is-kong-guided),
+  body.is-presenting:has(.presentation-stage.is-kong-guided) > main,
+  body.is-presenting:has(.presentation-stage.is-kong-guided) .presentation-stage {
+    page: kong-guided-slide;
+  }
+
+  .presentation-stage.is-kong-guided .presentation-slide.is-guided-slide {
+    page: kong-guided-slide;
+    width: 16in;
+    height: 9in;
+    min-height: 9in;
+    max-height: 9in;
+    grid-template-rows: 0.48in minmax(0, 1fr) 1.16in;
+    color: var(--guided-ink) !important;
+    background: var(--guided-paper) !important;
+    print-color-adjust: exact;
+    -webkit-print-color-adjust: exact;
+  }
+
+  .presentation-stage.is-kong-guided .journey-phase-spine,
+  .presentation-stage.is-kong-guided .slide-main,
+  .presentation-stage.is-kong-guided .slide-visual,
+  .presentation-stage.is-kong-guided .viz-guided-frame {
+    min-height: 0;
+  }
+
+  .presentation-stage.is-kong-guided .journey-phase-spine {
+    background: var(--guided-paper) !important;
+  }
+
+  .presentation-stage.is-kong-guided .journey-phase-spine li.is-current {
+    background: var(--guided-yellow) !important;
+  }
+
+  .presentation-stage.is-kong-guided .journey-proof-strip {
+    position: relative !important;
+    display: block !important;
+    grid-template-columns: minmax(0, 1fr) !important;
+    grid-template-rows: auto !important;
+    gap: 0 !important;
+    padding: 0.12in 0.3in 0.15in !important;
+    color: var(--guided-paper) !important;
+    background: var(--guided-ink) !important;
+  }
+
+  .presentation-stage.is-kong-guided .journey-proof-strip .slide-aside-content {
+    width: auto !important;
+    min-width: 0 !important;
+    grid-template-columns: minmax(1.55in, 0.8fr) minmax(0, 4fr) !important;
+    grid-template-rows: auto !important;
+    gap: 0.16in !important;
+    overflow: visible !important;
+    padding: 0 2.55in 0 0 !important;
+  }
+
+  .presentation-stage.is-kong-guided .slide-reference-actions {
+    position: absolute !important;
+    right: 0.3in !important;
+    top: 50% !important;
+    z-index: 3 !important;
+    width: 2.2in !important;
+    min-width: 0 !important;
+    display: block !important;
+    transform: translateY(-50%) !important;
+  }
+
+  .presentation-stage.is-kong-guided .slide-reference-actions .slide-source {
+    width: 100% !important;
+    max-width: none !important;
+    display: inline-flex !important;
+    justify-content: flex-end !important;
+    margin: 0 !important;
+    font-size: 0.12in !important;
+    line-height: 1.15 !important;
+    text-align: right !important;
+  }
+
+  .presentation-stage.is-kong-guided .slide-references {
+    display: none !important;
+  }
+
+  .presentation-stage.is-kong-guided .journey-proof-strip *,
+  .presentation-stage.is-kong-guided .journey-proof-copy .slide-body {
+    color: var(--guided-paper) !important;
+  }
+
+  .presentation-stage.is-kong-guided .journey-proof-strip .slide-metric strong,
+  .presentation-stage.is-kong-guided .journey-proof-strip .slide-metric span,
+  .presentation-stage.is-kong-guided .journey-proof-copy > span,
+  .presentation-stage.is-kong-guided .journey-proof-strip .slide-source {
+    color: var(--guided-yellow) !important;
+  }
+
+  .presentation-stage.is-kong-guided .viz-guided-meta {
+    display: none !important;
+  }
+
+  .presentation-stage.is-kong-guided .slide-visual {
+    padding-block: 0 !important;
+  }
+
+  .presentation-stage.is-kong-guided .viz-guided-score-rank li {
+    grid-template-columns: 3rem minmax(8rem, 0.8fr) minmax(0, 5fr) 8rem !important;
+  }
+
+  .presentation-stage.is-kong-guided .viz-guided-score-rank li > b {
+    font-size: 3.5rem !important;
+  }
+
+  .presentation-stage.is-kong-guided .viz-mule-boundary-groups {
+    grid-template-columns: 1.1fr 2.4fr 0.7fr !important;
+  }
+
+  .presentation-stage.is-kong-guided .viz-mule-boundary section:nth-child(2) ol {
+    grid-template-columns: repeat(3, minmax(0, 1fr)) !important;
+  }
+
+  .presentation-stage.is-kong-guided .viz-mule-boundary h3 {
+    padding: 0.18rem 0.35rem !important;
+    font-size: 0.78rem !important;
+  }
+
+  .presentation-stage.is-kong-guided .viz-mule-boundary li {
+    grid-template-columns: 1.5rem minmax(0, 1fr) !important;
+    gap: 0.22rem !important;
+    padding: 0.2rem !important;
+  }
+
+  .presentation-stage.is-kong-guided .viz-mule-boundary strong {
+    font-size: 0.9rem !important;
+    line-height: 1.05 !important;
+  }
+
+  .presentation-stage.is-kong-guided .viz-mule-boundary p {
+    margin-top: 0.08rem !important;
+    font-size: 0.78rem !important;
+    line-height: 1.05 !important;
+  }
+
+  .presentation-stage.is-kong-guided .viz-mule-wave-list {
+    grid-template-columns: repeat(6, minmax(0, 1fr)) !important;
+  }
+
+  .presentation-stage.is-kong-guided .viz-mule-wave-list li {
+    grid-template-columns: 1.35rem minmax(0, 1fr) !important;
+    grid-template-rows: auto 1fr !important;
+    gap: 0.16rem !important;
+    padding: 0.22rem !important;
+  }
+
+  .presentation-stage.is-kong-guided .viz-mule-wave-list li > span {
+    grid-row: 1 / span 2 !important;
+  }
+
+  .presentation-stage.is-kong-guided .viz-mule-wave-list strong,
+  .presentation-stage.is-kong-guided .viz-mule-wave-list p {
+    grid-column: 2 !important;
+  }
+
+  .presentation-stage.is-kong-guided .viz-mule-wave-list strong {
+    font-size: 0.9rem !important;
+    line-height: 1.05 !important;
+  }
+
+  .presentation-stage.is-kong-guided .viz-mule-wave-list p {
+    font-size: 0.76rem !important;
+    line-height: 1.05 !important;
+  }
+
+  .presentation-stage.is-kong-guided .viz-kps-outcome-list {
+    grid-template-columns: repeat(3, minmax(0, 1fr)) !important;
+  }
+
+  .presentation-stage.is-kong-guided .viz-kps-outcome-list > li {
+    grid-template-columns: 2.5rem minmax(0, 1fr) !important;
+    gap: 0.3rem !important;
+    padding: 0.28rem !important;
+  }
+
+  .presentation-stage.is-kong-guided .viz-kps-outcome-list .viz-kps-copy {
+    gap: 0.22rem !important;
+  }
+
+  .presentation-stage.is-kong-guided .viz-kps-outcome-list .viz-kps-copy > strong {
+    font-size: 0.95rem !important;
+    line-height: 1.05 !important;
+  }
+
+  .presentation-stage.is-kong-guided .viz-kps-outcome-list .viz-kps-copy p {
+    font-size: 0.76rem !important;
+    line-height: 1.08 !important;
+  }
+
+  .presentation-stage.is-kong-guided .diagram-frame .diagram-summary,
+  .presentation-stage.is-kong-guided .diagram-frame .diagram-summary[hidden] {
+    display: none !important;
+  }
+
+  .presentation-stage.is-kong-guided .diagram-frame .diagram-scroll,
+  .presentation-stage.is-kong-guided .diagram-frame .diagram-scroll[hidden] {
+    height: 100% !important;
+    display: block !important;
+    overflow: hidden !important;
+  }
+
+  .presentation-stage.is-kong-guided .diagram-frame .diagram-scroll svg {
+    width: 100% !important;
+    height: 100% !important;
+    max-width: 100% !important;
+    max-height: 100% !important;
+    display: block;
+    margin: 0 auto;
+  }
+
+  .presentation-stage.is-kong-guided .diagram-frame.has-authored-overview .diagram-summary,
+  .presentation-stage.is-kong-guided .diagram-frame.has-authored-overview .diagram-summary[hidden] {
+    height: 100% !important;
+    display: block !important;
+  }
+
+  .presentation-stage.is-kong-guided .diagram-frame.has-authored-overview .diagram-scroll,
+  .presentation-stage.is-kong-guided .diagram-frame.has-authored-overview .diagram-scroll[hidden] {
+    display: none !important;
   }
 }

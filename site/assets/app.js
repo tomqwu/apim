@@ -291,6 +291,7 @@
           </div>
           <div class="hero-actions">
             <a class="action-link is-primary" href="${itemHref(kongPlatform)}">Open the Kong platform strategy <span aria-hidden="true">↗</span></a>
+            <a class="action-link is-primary" href="#/present/kong-platform-journey-guided/0">Start the guided Kong evaluation <span aria-hidden="true">→</span></a>
             <a class="action-link is-primary" href="#/present/kong-platform-journey/0">Start the Kong platform journey <span aria-hidden="true">→</span></a>
             <a class="action-link" href="#/architecture">Inspect the target architecture <span aria-hidden="true">→</span></a>
             <a class="action-link" href="#/present/kong-technical-deep-dive/0">Start the technical deep dive <span aria-hidden="true">→</span></a>
@@ -704,6 +705,7 @@
           </div>
           <div class="hero-actions">
             <a class="action-link is-primary" href="${itemHref(kongPlatform)}">Open the canonical platform strategy <span aria-hidden="true">↗</span></a>
+            <a class="action-link is-primary" href="#/present/kong-platform-journey-guided/0">Start the guided Kong evaluation <span aria-hidden="true">→</span></a>
             <a class="action-link is-primary" href="#/present/kong-platform-journey/0">Start the Kong platform journey <span aria-hidden="true">→</span></a>
             <a class="action-link" href="#/present/kong-technical-deep-dive/0">Start the Kong technical deep dive <span aria-hidden="true">→</span></a>
           </div>
@@ -1666,7 +1668,7 @@
     return Math.max(1, element.clientWidth - padding);
   }
 
-  function configureDiagram(target, svg, label) {
+  function configureDiagram(target, svg, label, options = {}) {
     const geometry = diagramGeometry(svg);
     const isPreview = target.classList.contains("architecture-preview");
     const isPresentation = target.classList.contains("slide-diagram");
@@ -1674,8 +1676,10 @@
     const initialWidth = diagramContentWidth(target);
     const semanticSummary = String(target.dataset.diagramSummary || "").trim();
     const semanticFigureId = String(target.dataset.diagramId || label || "Canonical model").trim();
+    const authoredOverview = String(options.authoredOverview || "").trim();
+    const hasAuthoredOverview = Boolean(authoredOverview);
     const denseOverview = geometry.labelSize * Math.min(1, initialWidth / geometry.width) < minimumLabel;
-    const hasSemanticSummary = Boolean(semanticSummary);
+    const hasSemanticSummary = Boolean(semanticSummary || hasAuthoredOverview);
 
     if (isPreview) {
       const previewStyles = getComputedStyle(target);
@@ -1730,9 +1734,9 @@
       return button;
     };
     const summaryButton = hasSemanticSummary
-      ? makeButton("Takeaway", "summary", "Show the authored takeaway for this diagram")
+      ? makeButton(hasAuthoredOverview ? "Overview" : "Takeaway", "summary", hasAuthoredOverview ? "Show the source-derived architecture overview" : "Show the authored takeaway for this diagram")
       : null;
-    const overview = makeButton("Overview", "overview", "Show the whole diagram at the available width");
+    const overview = makeButton(hasAuthoredOverview ? "Full model" : "Overview", "overview", "Show the whole canonical diagram at the available width");
     const readable = makeButton("Readable", "readable", "Open a readable, scrollable inspection view");
     const actual = makeButton("100%", "actual", "Show the diagram at its natural size");
     const out = makeButton("−", "out", "Zoom out");
@@ -1746,7 +1750,11 @@
     toolbar.append(expand, note, status);
     const summaryPanel = document.createElement("div");
     summaryPanel.className = "diagram-summary";
-    if (hasSemanticSummary) {
+    if (hasAuthoredOverview) {
+      summaryPanel.classList.add("has-authored-overview");
+      summaryPanel.innerHTML = window.DOMPurify ? window.DOMPurify.sanitize(authoredOverview) : authoredOverview;
+      target.classList.add("has-authored-overview");
+    } else if (hasSemanticSummary) {
       const kicker = document.createElement("span");
       kicker.textContent = `${semanticFigureId} · decision brief`;
       const heading = document.createElement("strong");
@@ -1787,7 +1795,7 @@
     const update = () => {
       scale = setDiagramWidth(svg, geometry.width, scale);
       const modeLabel = mode === "summary" ? "Summary" : mode === "overview" ? "Overview" : mode === "readable" ? "Readable" : mode === "actual" ? "Actual size" : "Custom";
-      status.value = mode === "summary" ? "Summary · full model available" : `${modeLabel} · ${Math.round(scale * 100)}%`;
+      status.value = mode === "summary" ? `${hasAuthoredOverview ? "Overview" : "Summary"} · full model available` : `${modeLabel} · ${Math.round(scale * 100)}%`;
       status.textContent = status.value;
       if (summaryButton) summaryButton.setAttribute("aria-pressed", String(mode === "summary"));
       overview.setAttribute("aria-pressed", String(mode === "overview"));
@@ -1806,7 +1814,7 @@
       viewport.tabIndex = ["summary", "overview"].includes(mode) ? -1 : 0;
       const renderedLabel = geometry.labelSize * scale;
       note.textContent = mode === "summary"
-        ? "Decision brief"
+        ? hasAuthoredOverview ? "Source-derived overview" : "Decision brief"
         : mode === "overview" && renderedLabel < minimumLabel
         ? "Whole model · choose Readable to inspect labels"
         : mode === "overview" ? "Whole model" : "Scroll the canvas to inspect detail";
@@ -1945,6 +1953,7 @@
       return;
     }
     try {
+      const authoredOverview = target.querySelector("template[data-diagram-overview]")?.innerHTML || "";
       window.mermaid.initialize({
         startOnLoad: false,
         securityLevel: "strict",
@@ -2004,7 +2013,7 @@
         svg.removeAttribute("aria-hidden");
         svg.setAttribute("role", "img");
         svg.setAttribute("aria-labelledby", `${titleId} ${descriptionId}`);
-        configureDiagram(target, svg, label);
+        configureDiagram(target, svg, label, { authoredOverview });
       }
     } catch (error) {
       target.innerHTML = `<div class="error-state"><h1>Diagram source could not render.</h1><p>${escapeHtml(error.message)}</p><pre class="code-view"><code>${escapeHtml(text)}</code></pre></div>`;
@@ -2172,6 +2181,62 @@
         };
         return chartMarkup("studyRoadmap", slicedRoadmap, { ...options, presentation: true });
       }
+      case "guidedEvaluation": {
+        const guidedOptions = {
+          ...options,
+          viewId: slide.viewId,
+          phaseId: slide.phaseId,
+          evidenceState: slide.evidenceState,
+          sourceClass: slide.sourceClass,
+          rowIds: slide.rowIds,
+          optionIds: slide.optionIds,
+        };
+        const inlineFigure = (figure, kind = "KPS") => {
+          const mermaid = figure?.mermaid || "";
+          const figureId = figure?.figureId || slide.figureId || `${kind} figure`;
+          return mermaid
+            ? `<div class="slide-diagram is-guided-canonical" data-slide-inline-mermaid="${escapeHtml(mermaid)}" data-diagram-id="${escapeHtml(figureId)}" data-diagram-summary="${escapeHtml(figure?.title || slide.body || "")}"><p>Rendering canonical ${escapeHtml(figureId)}…</p></div>`
+            : `<p class="visual-empty">The canonical ${escapeHtml(figureId)} model is unavailable.</p>`;
+        };
+        if (slide.viewId === "architecture") {
+          const figure = visuals.kongPlatformStrategy?.architecture;
+          const overview = visuals.kongPlatformStrategy?.guidedArchitectureOverview;
+          const mermaid = figure?.mermaid || "";
+          const overviewMarkup = chartMarkup("guidedArchitectureOverview", overview, { presentation: true, compact: true });
+          return mermaid
+            ? `<div class="slide-diagram is-guided-canonical" data-slide-inline-mermaid="${escapeHtml(mermaid)}" data-diagram-id="KPS-1" data-diagram-summary="${escapeHtml(figure?.title || slide.body || "")}"><template data-diagram-overview>${overviewMarkup}</template><p>Rendering the KGE-09 overview and canonical KPS-1 inspection model…</p></div>`
+            : overviewMarkup;
+        }
+        if (["state-trust", "degraded", "operating-model", "assurance"].includes(slide.viewId)) {
+          const figure = (visuals.kongPlatformStrategy?.figures || []).find((item) => item.figureId === slide.figureId);
+          return inlineFigure(figure, "KPS");
+        }
+        if (slide.viewId === "coexistence") {
+          const figure = (visuals.muleMigration?.figures || []).find((item) => item.figureId === slide.figureId);
+          return inlineFigure(figure, "MULE");
+        }
+        if (slide.viewId === "adoption") {
+          const roadmap = visuals.kongPlatformStrategy?.roadmap || {};
+          return chartMarkup("kongPlatformRoadmap", { ...roadmap, phases: selected(roadmap.phases) }, guidedOptions);
+        }
+        if (slide.viewId === "migration-boundary") {
+          const migration = visuals.muleMigration || {};
+          return chartMarkup("muleMigrationBoundary", { ...migration, responsibilities: selected(migration.responsibilities) }, guidedOptions);
+        }
+        if (slide.viewId === "waves") {
+          const migration = visuals.muleMigration || {};
+          return chartMarkup("muleMigrationWaves", { ...migration, waves: selected(migration.waves) }, guidedOptions);
+        }
+        if (["outcomes-1", "outcomes-2"].includes(slide.viewId)) {
+          const outcomes = visuals.kongPlatformStrategy?.outcomes || {};
+          return chartMarkup("kongPlatformOutcomes", { ...outcomes, rows: selected(outcomes.rows) }, guidedOptions);
+        }
+        return chartMarkup("guidedEvaluation", {
+          ...(visuals.guidedEvaluation || {}),
+          platformOptions: visuals.kongMulticloud || {},
+          platformFit: visuals.kongPlatformStrategy?.fit || {},
+        }, guidedOptions);
+      }
       case "kongPlatformFit": {
         const fit = visuals.kongPlatformStrategy?.fit || {};
         return chartMarkup("kongPlatformFit", { ...fit, rows: selected(fit.rows, "projectionId") }, options);
@@ -2268,12 +2333,16 @@
   function activatePresentationFrame() {
     const slideMain = document.querySelector(".presentation-stage .slide-main");
     if (!slideMain) return;
+    const comparison = document.querySelector(".presentation-stage .viz-guided-comparison-wrap");
     const surfaces = [
-      [slideMain, "Expanded slide detail. Scroll vertically to inspect the opened evidence."],
-      [document.querySelector(".presentation-stage .slide-aside-content"), "Additional slide context. Scroll vertically to inspect the complete cue and source framing."],
+      [slideMain, "Expanded slide detail. Scroll vertically to inspect the opened evidence.", "vertical"],
+      [document.querySelector(".presentation-stage .slide-aside-content"), "Additional slide context. Scroll vertically to inspect the complete cue and source framing.", "vertical"],
+      [comparison, `${comparison?.dataset.comparisonLabel || "Supplied product comparison"}. Scroll horizontally to compare every product.`, "horizontal"],
     ].filter(([surface]) => surface);
-    const syncSurface = (surface, label) => {
-      const scrollable = surface.scrollHeight > surface.clientHeight + 2;
+    const syncSurface = (surface, label, axis) => {
+      const scrollable = axis === "horizontal"
+        ? surface.scrollWidth > surface.clientWidth + 2
+        : surface.scrollHeight > surface.clientHeight + 2;
       surface.tabIndex = scrollable ? 0 : -1;
       if (scrollable) {
         surface.setAttribute("role", "region");
@@ -2281,11 +2350,47 @@
       } else {
         surface.removeAttribute("role");
         surface.removeAttribute("aria-label");
-        surface.scrollTop = 0;
+        if (axis === "horizontal") surface.scrollLeft = 0;
+        else surface.scrollTop = 0;
+      }
+      if (axis === "horizontal") {
+        const cue = surface.parentElement?.querySelector(":scope > .viz-guided-scroll-cue");
+        if (cue) cue.hidden = !scrollable;
       }
     };
-    const sync = () => surfaces.forEach(([surface, label]) => syncSurface(surface, label));
-    surfaces.forEach(([surface]) => surface.addEventListener("toggle", () => requestAnimationFrame(sync), true));
+    const sync = () => surfaces.forEach(([surface, label, axis]) => syncSurface(surface, label, axis));
+    surfaces.forEach(([surface, , axis]) => {
+      surface.addEventListener("toggle", () => requestAnimationFrame(sync), true);
+      if (axis === "horizontal") {
+        surface.addEventListener("keydown", (event) => {
+          if (!["ArrowLeft", "ArrowRight", "Home", "End"].includes(event.key)) return;
+          event.preventDefault();
+          event.stopPropagation();
+          if (event.key === "Home") surface.scrollLeft = 0;
+          else if (event.key === "End") surface.scrollLeft = surface.scrollWidth;
+          else surface.scrollLeft += (event.key === "ArrowRight" ? 1 : -1) * Math.max(48, surface.clientWidth * 0.18);
+        });
+      } else {
+        surface.addEventListener("keydown", (event) => {
+          if (!["ArrowUp", "ArrowDown", "PageUp", "PageDown", "Home", "End", " "].includes(event.key)) return;
+          event.preventDefault();
+          event.stopPropagation();
+          if (event.key === "Home") {
+            surface.scrollTop = 0;
+            return;
+          }
+          if (event.key === "End") {
+            surface.scrollTop = surface.scrollHeight;
+            return;
+          }
+          const backwards = event.key === "ArrowUp" || event.key === "PageUp" || event.shiftKey && event.key === " ";
+          const step = ["ArrowUp", "ArrowDown"].includes(event.key)
+            ? Math.max(48, surface.clientHeight * 0.18)
+            : Math.max(64, surface.clientHeight * 0.7);
+          surface.scrollTop += backwards ? -step : step;
+        });
+      }
+    });
     const observer = new ResizeObserver(sync);
     surfaces.forEach(([surface]) => observer.observe(surface));
     requestAnimationFrame(sync);
@@ -2326,24 +2431,34 @@
     }
     const slide = slides[index];
     const source = state.manifest.items.find((item) => item.id === slide.sourceId);
-    const sourceLocator = source
-      ? (() => {
-          const numberedStudy = source.path.match(/^docs\/(\d+)-/);
-          return numberedStudy ? `docs/${numberedStudy[1]}` : source.path;
-        })()
-      : "";
-    const isJourneyDeck = deck?.theme === "kong-journey";
+    const sourceLocatorFor = (sourceItem) => {
+      if (!sourceItem) return "";
+      const numberedStudy = sourceItem.path.match(/^docs\/(\d+)-/);
+      return numberedStudy ? `docs/${numberedStudy[1]}` : sourceItem.path;
+    };
+    const sourceLocator = sourceLocatorFor(source);
+    const isGuidedDeck = deck?.theme === "kong-guided";
+    const isLegacyJourneyDeck = deck?.theme === "kong-journey";
+    const isJourneyDeck = isLegacyJourneyDeck || isGuidedDeck;
     const visualSlide = isJourneyDeck && slide.visual === "kongJourneySpine"
       ? { ...slide, journeyPhases: deck.journeyPhases || [] }
       : slide;
     const stageClass = slide.key === "industry-practices"
       ? " is-industry-practices"
+      : isGuidedDeck
+        ? " is-kong-platform is-kong-journey is-kong-guided"
       : isJourneyDeck
         ? " is-kong-platform is-kong-journey"
       : deck?.theme === "kong-platform" || slide.key.startsWith("kong-platform-") || slide.key.startsWith("kong-technical-")
         ? " is-kong-platform"
         : "";
-    const narrativeClass = ["architectureDiagram", "kongPlatformArchitecture", "kongTechnicalFigure", "muleMigrationFigure"].includes(visualSlide.visual)
+    const guidedDiagramViews = new Set(["architecture", "state-trust", "degraded", "operating-model", "coexistence", "assurance"]);
+    const guidedRoadmapViews = new Set(["adoption", "migration-boundary", "waves", "outcomes-1", "outcomes-2"]);
+    const narrativeClass = visualSlide.visual === "guidedEvaluation" && guidedDiagramViews.has(visualSlide.viewId)
+      ? " is-diagram"
+      : visualSlide.visual === "guidedEvaluation" && guidedRoadmapViews.has(visualSlide.viewId)
+        ? " is-roadmap"
+      : ["architectureDiagram", "kongPlatformArchitecture", "kongTechnicalFigure", "muleMigrationFigure"].includes(visualSlide.visual)
       ? " is-diagram"
       : ["roadmap", "kongPlatformRoadmap"].includes(visualSlide.visual)
         ? " is-roadmap"
@@ -2351,25 +2466,63 @@
           ? " is-roadmap"
         : visualSlide.visual === "sourceBalance"
           ? " is-matrix is-source-balance"
-        : ["statusMatrix", "recommendation", "governance", "problemMatrix", "practiceFramework", "scenarioMatrix", "maturitySequence", "kongPlatformFit", "kongSelectedOption", "kongOptions", "kongJourneySpine", "kongPlatformCases", "kongPlatformOutcomes", "muleMigrationBoundary", "muleMigrationWaves"].includes(visualSlide.visual)
+        : ["statusMatrix", "recommendation", "governance", "problemMatrix", "practiceFramework", "scenarioMatrix", "maturitySequence", "kongPlatformFit", "kongSelectedOption", "kongOptions", "kongJourneySpine", "kongPlatformCases", "kongPlatformOutcomes", "muleMigrationBoundary", "muleMigrationWaves", "guidedEvaluation"].includes(visualSlide.visual)
           ? " is-matrix"
           : "";
     document.body.classList.add("is-presenting");
     const contextLabel = context?.shortLabel || "";
     setPageTitle(`${index + 1}. ${slide.title}${contextLabel ? ` — ${contextLabel}` : ""}`);
     setActiveNav("");
-    const journeyPhases = ["Options", "Architecture", "Adoption", "Migration", "Production"];
-    const journeyPhaseIndex = index <= 2 ? 0 : index <= 5 ? 1 : index <= 7 ? 2 : index <= 10 ? 3 : 4;
+    const configuredPhases = Array.isArray(deck?.journeyPhases) ? deck.journeyPhases : [];
+    const journeyPhases = configuredPhases.length
+      ? configuredPhases
+      : ["Options", "Architecture", "Adoption", "Migration", "Production"].map((label, phaseIndex) => ({ id: String(phaseIndex + 1).padStart(2, "0"), label }));
+    const explicitPhaseIndex = journeyPhases.findIndex((phase) => phase.id === slide.phaseId);
+    const startKeyPhaseIndex = journeyPhases.reduce((matchedIndex, phase, phaseIndex) => {
+      if (!phase.startKey) return matchedIndex;
+      const startIndex = slides.findIndex((candidate) => candidate.key === phase.startKey);
+      return startIndex >= 0 && startIndex <= index ? phaseIndex : matchedIndex;
+    }, -1);
+    const legacyJourneyPhaseIndex = index <= 2 ? 0 : index <= 5 ? 1 : index <= 7 ? 2 : index <= 10 ? 3 : 4;
+    const journeyPhaseIndex = explicitPhaseIndex >= 0
+      ? explicitPhaseIndex
+      : startKeyPhaseIndex >= 0
+        ? startKeyPhaseIndex
+        : Math.min(legacyJourneyPhaseIndex, journeyPhases.length - 1);
     const journeySpine = isJourneyDeck
-      ? `<ol class="journey-phase-spine" aria-label="Kong platform journey phases">${journeyPhases.map((phase, phaseIndex) => `<li class="${phaseIndex < journeyPhaseIndex ? "is-complete" : phaseIndex === journeyPhaseIndex ? "is-current" : ""}" ${phaseIndex === journeyPhaseIndex ? 'aria-current="step"' : ""}><span>${String(phaseIndex + 1).padStart(2, "0")}</span><b>${escapeHtml(phase)}</b></li>`).join("")}</ol>`
+      ? `<ol class="journey-phase-spine" style="--journey-phase-count:${journeyPhases.length}" aria-label="${isGuidedDeck ? "Guided Kong evaluation phases" : "Kong platform journey phases"}">${journeyPhases.map((phase, phaseIndex) => `<li class="${phaseIndex < journeyPhaseIndex ? "is-complete" : phaseIndex === journeyPhaseIndex ? "is-current" : ""}" ${phaseIndex === journeyPhaseIndex ? 'aria-current="step"' : ""}><span>${escapeHtml(phase.id || String(phaseIndex + 1).padStart(2, "0"))}</span><b>${escapeHtml(phase.phase || phase.label)}</b></li>`).join("")}</ol>`
       : "";
+    const guidedRepoReferences = isGuidedDeck
+      ? [...new Set([slide.sourceId, ...(Array.isArray(slide.sourceIds) ? slide.sourceIds : [])].filter(Boolean))]
+          .map((sourceId) => state.manifest.items.find((item) => item.id === sourceId))
+          .filter(Boolean)
+      : [];
+    const guidedOfficialReferences = isGuidedDeck && Array.isArray(slide.officialReferences)
+      ? slide.officialReferences.filter((reference) => reference?.label && /^https:\/\//.test(reference?.url || ""))
+      : [];
+    const guidedReferenceMarkup = isGuidedDeck
+      ? `<div class="slide-reference-actions">
+          ${source ? `<a class="slide-source" href="${itemHref(source)}" aria-label="Open repository source: ${escapeHtml(source.title)}">Source · ${escapeHtml(sourceLocator)} <span aria-hidden="true">↗</span></a>` : ""}
+          <details class="slide-references">
+            <summary aria-label="Open ${guidedRepoReferences.length + guidedOfficialReferences.length} references for this slide">References · ${guidedRepoReferences.length + guidedOfficialReferences.length}</summary>
+            <div class="slide-reference-menu">
+              <span>Repository studies</span>
+              ${guidedRepoReferences.map((reference) => `<a href="${itemHref(reference)}">${escapeHtml(sourceLocatorFor(reference))} · ${escapeHtml(reference.title)}</a>`).join("")}
+              <span>Official documentation</span>
+              ${guidedOfficialReferences.map((reference) => `<a href="${escapeHtml(reference.url)}" target="_blank" rel="noreferrer">${escapeHtml(reference.label)} <span aria-hidden="true">↗</span></a>`).join("")}
+            </div>
+          </details>
+        </div>`
+      : source
+        ? `<a class="slide-source" href="${itemHref(source)}" aria-label="Open canonical source: ${escapeHtml(source.title)}">Source · ${escapeHtml(sourceLocator)} <span aria-hidden="true">↗</span></a>`
+        : "";
     const journeyProof = isJourneyDeck
       ? `<aside class="slide-aside journey-proof-strip">
           <div class="slide-aside-content">
             <div class="slide-metric"><strong>${escapeHtml(slide.metric)}</strong><span>${escapeHtml(slide.metricLabel)}</span></div>
-            <div class="journey-proof-copy"><span>Why it matters</span><p class="slide-body">${escapeHtml(slide.body)}</p></div>
+            <div class="journey-proof-copy"><span>${isGuidedDeck ? "Decision cue" : "Why it matters"}</span><p class="slide-body">${escapeHtml(slide.body)}</p></div>
           </div>
-          ${source ? `<a class="slide-source" href="${itemHref(source)}" aria-label="Open canonical source: ${escapeHtml(source.title)}">Source · ${escapeHtml(sourceLocator)} <span aria-hidden="true">↗</span></a>` : ""}
+          ${guidedReferenceMarkup}
         </aside>`
       : `<aside class="slide-aside">
           <div class="slide-aside-content">
@@ -2379,12 +2532,21 @@
           </div>
           ${source ? `<a class="slide-source" href="${itemHref(source)}">Open supporting source <span aria-hidden="true">↗</span></a>` : ""}
         </aside>`;
+    const guidedEvidence = isGuidedDeck
+      ? `<div class="guided-evidence-ribbon" aria-label="Evidence and source classification">
+          <span><b>Evidence</b>${escapeHtml(slide.evidenceState || "Not classified")}</span>
+          <span><b>Source class</b>${escapeHtml(slide.sourceClass || "Not classified")}</span>
+          ${slide.asOf ? `<span><b>As of</b>${escapeHtml(slide.asOf)}</span>` : ""}
+          ${slide.evidenceInterpretation ? `<p>${escapeHtml(slide.evidenceInterpretation)}</p>` : ""}
+        </div>`
+      : "";
     main.innerHTML = `
       <section class="presentation-stage${stageClass}" aria-label="Presentation slide ${index + 1} of ${slides.length}">
-        <article class="presentation-slide${isJourneyDeck ? " is-journey-slide" : ""}">
+        <article class="presentation-slide${isJourneyDeck ? " is-journey-slide" : ""}${isGuidedDeck ? " is-guided-slide" : ""}">
           ${journeySpine}
           <div class="slide-main">
             <span class="eyebrow">${escapeHtml(slide.eyebrow)}${audience ? ` / ${escapeHtml(audience.shortLabel)} lens` : deck ? ` / ${escapeHtml(deck.shortLabel)} deck` : ""}</span>
+            ${guidedEvidence}
             <div class="slide-narrative${narrativeClass}">
               <h1 class="slide-title">${escapeHtml(slide.title)}</h1>
               <div class="slide-visual">${presentationVisualMarkup(visualSlide, source, isJourneyDeck)}</div>
@@ -2641,8 +2803,13 @@
       return;
     }
     if (event.key === "Escape") {
+      const openReferences = document.querySelector(".slide-references[open]");
       const expandedDiagram = document.querySelector(".diagram-frame.is-expanded");
-      if (expandedDiagram) {
+      if (openReferences) {
+        event.preventDefault();
+        openReferences.open = false;
+        openReferences.querySelector("summary")?.focus();
+      } else if (expandedDiagram) {
         event.preventDefault();
         expandedDiagram.dispatchEvent(new CustomEvent("diagram-close-request", {
           detail: { restoreFocus: true },
@@ -2658,7 +2825,7 @@
     if (document.body.classList.contains("is-presenting")) {
       const interactive = event.target instanceof Element && event.target.closest("a, button, input, select, textarea, summary, [contenteditable='true']");
       if (interactive) return;
-      const scrollSurface = event.target instanceof Element && event.target.closest(".slide-main[tabindex='0'], .slide-aside-content[tabindex='0'], .diagram-scroll[tabindex='0'], .table-wrap[tabindex='0']");
+      const scrollSurface = event.target instanceof Element && event.target.closest(".slide-main[tabindex='0'], .slide-aside-content[tabindex='0'], .diagram-scroll[tabindex='0'], .table-wrap[tabindex='0'], .viz-guided-comparison-wrap[tabindex='0']");
       const verticalScrollKey = ["ArrowDown", "ArrowUp", "PageDown", "PageUp", " "].includes(event.key);
       const horizontalScrollKey = ["ArrowRight", "ArrowLeft"].includes(event.key);
       if (scrollSurface && verticalScrollKey && scrollSurface.scrollHeight > scrollSurface.clientHeight + 2) return;

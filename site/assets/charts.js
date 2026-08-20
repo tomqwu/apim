@@ -463,6 +463,289 @@
     </figure>`;
   }
 
+  function guidedRows(section, fallbackKeys = []) {
+    if (Array.isArray(section)) return section;
+    if (!section || typeof section !== "object") return [];
+    if (Array.isArray(section.rows)) return section.rows;
+    for (const key of fallbackKeys) {
+      if (Array.isArray(section[key])) return section[key];
+    }
+    return [];
+  }
+
+  function guidedMeta(data, section, options = {}) {
+    const provenance = section?.provenance || data?.provenance || {
+      sourceId: data?.sourceId,
+      sourcePath: data?.sourcePath,
+    };
+    const evidence = options.evidenceState || section?.evidenceState || "";
+    const sourceClass = options.sourceClass || section?.sourceClass || "";
+    if (!evidence && !sourceClass && !provenance?.sourceId && !provenance?.sourceHref) return "";
+    return `<figcaption class="viz-guided-meta" aria-label="Evidence and source">
+      <span>${evidence ? `<b>Evidence</b>${escapeHtml(evidence)}` : ""}</span>
+      <span>${sourceClass ? `<b>Source class</b>${escapeHtml(sourceClass)}` : ""}</span>
+      ${sourceLink(provenance, "Open canonical source")}
+    </figcaption>`;
+  }
+
+  function guidedFrame(view, data, section, options, body, labelText) {
+    return `<figure class="viz viz-guided is-${escapeHtml(slug(view))}" aria-label="${escapeHtml(labelText || options.title || "Guided evaluation visual")}">
+      <div class="viz-guided-frame">${body}</div>
+      ${guidedMeta(data, section, options)}
+    </figure>`;
+  }
+
+  function guidedCover(data, options) {
+    const section = data?.phases || {};
+    const phases = guidedRows(section, ["phases"]);
+    if (!phases.length) return empty();
+    const body = `<ol class="viz-guided-phases">${phases.map((phase, index) => `<li>
+      <span>${escapeHtml(phase.id || String(index + 1).padStart(2, "0"))}</span>
+      <strong>${escapeHtml(phase.phase || phase.label)}</strong>
+      <p>${escapeHtml(phase.audienceDecision || phase.outcome || "")}</p>
+    </li>`).join("")}</ol>`;
+    return guidedFrame("cover", data, section, options, body, options.title || "Guided decision phases");
+  }
+
+  function guidedTargetModel(data, options) {
+    const section = data?.targetModel || {};
+    const rows = guidedRows(section, ["lanes"]);
+    if (!rows.length) return empty();
+    const lanes = rows.reduce((groups, row) => {
+      const lane = row.lane || row.label || "Target input";
+      const current = groups.find((group) => group.lane === lane);
+      if (current) current.rows.push(row);
+      else groups.push({ lane, rows: [row] });
+      return groups;
+    }, []);
+    const body = `<div class="viz-guided-target">${lanes.map((lane) => {
+      const laneRows = guidedRows(lane, ["inputs", "items"]);
+      return `<section>
+        <h3>${escapeHtml(lane.lane || lane.label)}</h3>
+        <ol>${laneRows.map((row) => `<li><strong>${escapeHtml(row.input || row.label)}</strong></li>`).join("")}</ol>
+      </section>`;
+    }).join("")}</div>`;
+    return guidedFrame("target-model", data, section, options, body, options.title || "Stated target operating model");
+  }
+
+  function guidedWeights(data, options) {
+    const section = data?.weights || {};
+    const rows = guidedRows(section);
+    if (!rows.length) return empty();
+    const weightValue = (row) => Math.max(0, number(String(row.weight ?? 0).replace("%", "")));
+    const maxWeight = Math.max(...rows.map(weightValue), 1);
+    const body = `<ol class="viz-guided-weights">${rows.map((row) => {
+      const weight = weightValue(row);
+      return `<li>
+        <span>${escapeHtml(row.id || "")}</span>
+        <strong>${escapeHtml(row.category || row.label)}</strong>
+        <div class="viz-guided-weight-track" role="img" aria-label="${escapeHtml(`${row.category || row.label}: ${weight}%`)}"><i style="--guided-weight:${(weight / maxWeight) * 100}%"></i></div>
+        <b>${escapeHtml(`${weight}%`)}</b>
+      </li>`;
+    }).join("")}</ol>`;
+    return guidedFrame("weights", data, section, options, body, options.title || "Supplied weighting model");
+  }
+
+  function guidedOptions(data, options) {
+    const section = data?.options || {};
+    const requested = Array.isArray(options.rowIds) ? new Set(options.rowIds) : null;
+    const rows = guidedRows(section).filter((row) => !requested || requested.has(row.id));
+    if (!rows.length) return empty();
+    const body = `<div class="viz-guided-options">${rows.map((row) => `<article>
+      <span>${escapeHtml(row.id || "")}</span>
+      <strong>${escapeHtml(row.archetype || row.label)}</strong>
+      <p data-label="Strongest when">${escapeHtml(row.presentationStrongestWhen || row.strongestWhen || row.strength || "")}</p>
+      <p data-label="Concern to test">${escapeHtml(row.presentationConcern || row.concern || row.test || "")}</p>
+      <small>${escapeHtml(row.role || row.decisionRole || "")}</small>
+    </article>`).join("")}</div>`;
+    return guidedFrame("options", data, section, options, body, options.title || "Conditional operating-model archetypes");
+  }
+
+  function guidedScores(data, options, audit = false) {
+    const section = data?.scoring || {};
+    const rows = guidedRows(section);
+    if (!rows.length) return empty();
+    const names = [
+      { key: "kong", inputKey: "kongInput", weightedKey: "kongWeighted", label: "Kong" },
+      { key: "apigee", inputKey: "apigeeInput", weightedKey: "apigeeWeighted", label: "Apigee" },
+      { key: "muleSoft", inputKey: "muleSoftInput", weightedKey: "muleSoftWeighted", label: "MuleSoft" },
+    ];
+    if (!audit) {
+      const totals = section.totals || {};
+      const maximum = Math.max(number(data?.weights?.weightTotal), ...names.map((item) => number(totals[item.key])), 1);
+      const body = `<ol class="viz-guided-score-rank">${names
+        .map((item) => ({ ...item, value: number(totals[item.key]) }))
+        .sort((a, b) => b.value - a.value)
+        .map((item, index) => `<li>
+          <span>${String(index + 1).padStart(2, "0")}</span>
+          <strong>${escapeHtml(item.label)}</strong>
+          <div role="img" aria-label="${escapeHtml(`${item.label}: ${item.value}`)}"><i style="--guided-score:${(item.value / maximum) * 100}%"></i></div>
+          <b>${escapeHtml(item.value)}</b>
+        </li>`).join("")}</ol>`;
+      return guidedFrame("score", data, section, options, body, options.title || "Supplied weighted totals");
+    }
+    const displayedTotals = section.displayedTotals || {};
+    const body = `<div class="viz-guided-audit" role="table" aria-label="${escapeHtml(options.title || "Raw scoring audit")}">
+      <div class="viz-guided-audit-head" role="row"><span role="columnheader">Category</span><span role="columnheader">Weight</span>${names.map((item) => `<span role="columnheader">${escapeHtml(item.label)}</span>`).join("")}</div>
+      ${rows.map((row) => `<div class="viz-guided-audit-row" role="row">
+        <strong role="cell">${escapeHtml(row.category || row.label)}</strong>
+        <span role="cell">${escapeHtml(row.weight)}</span>
+        ${names.map((item) => `<span role="cell"><b>${escapeHtml(row[item.inputKey])}</b></span>`).join("")}
+      </div>`).join("")}
+      <div class="viz-guided-audit-total is-supplied" role="row"><strong role="cell">Supplied displayed total</strong><span role="cell">—</span>${names.map((item) => `<b role="cell">${escapeHtml(displayedTotals[item.key] ?? "")}</b>`).join("")}</div>
+      <div class="viz-guided-audit-total" role="row"><strong role="cell">Recalculated total</strong><span role="cell">${escapeHtml(data?.weights?.weightTotal || "")}</span>${names.map((item) => `<b role="cell">${escapeHtml(section.totals?.[item.key] ?? "")}</b>`).join("")}</div>
+    </div>`;
+    return guidedFrame("score-audit", data, section, options, body, options.title || "Raw scoring audit");
+  }
+
+  function guidedAuthorization(data, options) {
+    const section = data?.authorization || data?.boundedAuthorization || data?.decision || {};
+    const rows = guidedRows(section);
+    if (!rows.length) return empty();
+    const body = `<div class="viz-guided-authorization">
+      <section class="is-authorize"><span>Authorize now</span><ul>${rows.map((row) => `<li><strong>${escapeHtml(row.decision || row.label)}</strong><p>${escapeHtml(row.authorizeNow || row.authorize || "")}</p></li>`).join("")}</ul></section>
+      <section class="is-hold"><span>Not authorized</span><ul>${rows.map((row) => `<li><strong>${escapeHtml(row.decision || row.label)}</strong><p>${escapeHtml(row.doNotAuthorize || row.hold || "")}</p></li>`).join("")}</ul></section>
+    </div>`;
+    return guidedFrame("decision", data, section, options, body, options.title || "Bounded authorization");
+  }
+
+  function guidedBoundary(data, options) {
+    const explicit = data?.boundaries || data?.boundary || {};
+    const section = guidedRows(explicit).length ? explicit : data?.platformOptions || {};
+    const requested = new Set(Array.isArray(options.optionIds) ? options.optionIds : []);
+    const rows = guidedRows(section, ["options"])
+      .filter((row) => !requested.size || requested.has(row.id))
+      .slice(0, 3);
+    if (!rows.length) return empty();
+    const body = `<div class="viz-guided-boundaries">${rows.map((row, index) => `<article>
+      <span>${escapeHtml(row.id || String(index + 1).padStart(2, "0"))}</span>
+      <strong>${escapeHtml(row.boundary || row.journeyLabel || row.label)}</strong>
+      <p>${escapeHtml(row.description || row.journeyBoundary || row.placement || "")}</p>
+      <small>${escapeHtml(row.role || row.journeyRole || "")}</small>
+    </article>`).join("")}</div>`;
+    return guidedFrame("boundary", data, section, options, body, options.title || "Operating-boundary choices");
+  }
+
+  function guidedDuty(data, options) {
+    const explicit = data?.duties || data?.duty || {};
+    const section = guidedRows(explicit).length ? explicit : data?.platformFit || {};
+    const requested = new Set(Array.isArray(options.rowIds) ? options.rowIds : []);
+    const rows = guidedRows(section)
+      .filter((row) => !requested.size || requested.has(row.id) || requested.has(row.projectionId))
+      .slice(0, 2);
+    if (!rows.length) return empty();
+    const body = `<div class="viz-guided-duty">${rows.map((row) => `<article>
+      <span>${escapeHtml(row.id || row.projectionId || "")}</span>
+      <strong>${escapeHtml(row.duty || row.outcome || row.label)}</strong>
+      <p data-label="Fit">${escapeHtml(row.fit || row.reason || row.mechanism || "")}</p>
+      <p data-label="Permanent duty">${escapeHtml(row.permanentDuty || row.concern || row.counterfactual || "")}</p>
+    </article>`).join("")}</div>`;
+    return guidedFrame("duty", data, section, options, body, options.title || "Fit and permanent operating duty");
+  }
+
+  function guidedProofBoundary(data, options) {
+    const section = data?.proofBoundary || {};
+    const rows = guidedRows(section, ["systems"]);
+    if (!rows.length) return empty();
+    const body = `<div class="viz-guided-proof-boundary">${rows.map((row) => `<article>
+      <strong>${escapeHtml(row.evidenceSystem || row.system || row.label)}</strong>
+      <b>${escapeHtml(row.currentState || row.state || "")}</b>
+      <p data-label="Can support">${escapeHtml(row.canSupport || row.supports || "")}</p>
+      <p data-label="Cannot support">${escapeHtml(row.cannotSupport || row.doesNotSupport || row.cannot || "")}</p>
+    </article>`).join("")}</div>`;
+    return guidedFrame("proof-boundary", data, section, options, body, options.title || "Current proof boundary");
+  }
+
+  function guidedProofProgramme(data, options) {
+    const section = data?.proofProgramme || {};
+    const requested = new Set(Array.isArray(options.rowIds) ? options.rowIds : []);
+    const rows = guidedRows(section).filter((row) => !requested.size || requested.has(row.id));
+    if (!rows.length) return empty();
+    const body = `<ol class="viz-guided-programme">${rows.map((row) => `<li>
+      <span>${escapeHtml(row.id || "")}</span>
+      <strong>${escapeHtml(row.workstream || row.label)}</strong>
+      <p>${escapeHtml(row.presentationSummary || row.scope || row.requiredScope || "")}</p>
+    </li>`).join("")}</ol>`;
+    return guidedFrame("proof-programme", data, section, options, body, options.title || "Target-aligned proof programme");
+  }
+
+  function guidedComparison(data, options, comparisonKey) {
+    const section = data?.comparisons?.[comparisonKey] || {};
+    const requested = new Set(Array.isArray(options.rowIds) ? options.rowIds : []);
+    const rows = guidedRows(section).filter((row) => !requested.size || requested.has(row.id));
+    if (!rows.length) return empty();
+    const tableLabel = options.title || "Supplied comparison input";
+    const body = `<div class="viz-guided-comparison-wrap" tabindex="-1" data-comparison-label="${escapeHtml(tableLabel)}">
+      <table class="viz-guided-comparison">
+        <caption>${escapeHtml(tableLabel)}</caption>
+        <thead><tr><th scope="col">Dimension</th><th scope="col">Kong</th><th scope="col">Apigee</th><th scope="col">MuleSoft</th></tr></thead>
+        <tbody>${rows.map((row) => `<tr>
+          <th scope="row"><span>${escapeHtml(row.id || "")}</span>${escapeHtml(row.criterion || row.label)}</th>
+          <td>${escapeHtml(row.kong || row.kongInput || "")}</td>
+          <td>${escapeHtml(row.apigee || row.apigeeInput || "")}</td>
+          <td>${escapeHtml(row.mulesoft || row.muleSoft || row.mulesoftInput || "")}</td>
+        </tr>`).join("")}</tbody>
+      </table>
+    </div><p class="viz-guided-scroll-cue" aria-hidden="true" hidden>↔ Scroll to compare supplied inputs; evidence obligations remain in the canonical source</p>`;
+    return guidedFrame(`comparison-${comparisonKey}`, data, section, options, body, options.title || "Supplied comparison input");
+  }
+
+  function guidedArchitectureOverview(data) {
+    const control = data?.controlZone || {};
+    const controlNodes = Array.isArray(control.nodes) ? control.nodes : [];
+    const lanes = Array.isArray(data?.lanes) ? data.lanes : [];
+    if (controlNodes.length !== 3 || lanes.length !== 3) return empty("The KGE-09 architecture overview is unavailable.");
+    const node = (item, extraClass = "") => `<article class="viz-guided-architecture-node ${escapeHtml(extraClass)}">
+      <strong>${escapeHtml(item?.label || "")}</strong>
+      <span>${escapeHtml(item?.detail || "")}</span>
+    </article>`;
+    const controlFlow = (labelText) => `<span class="viz-guided-architecture-control-flow" aria-hidden="true"><b>${escapeHtml(labelText)}</b></span>`;
+    const laneSummary = lanes.map((lane) => `${lane.dataPlane?.label || "Data plane"} serves ${lane.target?.label || "its local target"}`).join("; ");
+    return `<figure class="viz-guided-architecture-overview" role="img" aria-label="${escapeHtml(`One enterprise control zone distributes configuration to three data-plane cells. ${laneSummary}. Evidence remains local to each lane.`)}">
+      <div class="viz-guided-architecture-head" aria-hidden="true">
+        <span>${escapeHtml(control.label || "Enterprise control zone")}</span>
+        <div><span>${escapeHtml(data.dataPlaneLabel || "Distributed data-plane cells")}</span><span>${escapeHtml(data.targetLabel || "Local services and evidence")}</span></div>
+      </div>
+      <div class="viz-guided-architecture-map" aria-hidden="true">
+        <section class="viz-guided-architecture-control">
+          ${node(controlNodes[0], "is-authority")}
+          ${controlFlow("approved intent")}
+          ${node(controlNodes[1], "is-control-plane")}
+          ${controlFlow("management state")}
+          ${node(controlNodes[2], "is-state")}
+        </section>
+        <div class="viz-guided-architecture-fanout">${lanes.map((_, index) => `<span>${index === 0 ? "<b>configuration</b>" : ""}</span>`).join("")}</div>
+        <ol class="viz-guided-architecture-lanes">${lanes.map((lane) => `<li>
+          ${node(lane.dataPlane, "is-data-plane")}
+          <span class="viz-guided-architecture-request"><b>proxy</b></span>
+          ${node(lane.target, "is-local-target")}
+        </li>`).join("")}</ol>
+      </div>
+    </figure>`;
+  }
+
+  function guidedEvaluation(data, options = {}) {
+    const rawView = String(options.viewId || options.view || "cover");
+    const view = rawView.replace(/^kong-guided-/, "").replace(/^guided-/, "").replace(/^compare-/, "comparison-");
+    switch (view) {
+      case "cover": return guidedCover(data, options);
+      case "target-model": return guidedTargetModel(data, options);
+      case "weights": return guidedWeights(data, options);
+      case "options": return guidedOptions(data, options);
+      case "score": return guidedScores(data, options);
+      case "decision": return guidedAuthorization(data, options);
+      case "boundary": return guidedBoundary(data, options);
+      case "duty": return guidedDuty(data, options);
+      case "proof-boundary": return guidedProofBoundary(data, options);
+      case "proof-programme": return guidedProofProgramme(data, options);
+      case "comparison-architecture": return guidedComparison(data, options, "architecture");
+      case "comparison-management": return guidedComparison(data, options, "management");
+      case "comparison-economics": return guidedComparison(data, options, "economics");
+      case "score-audit": return guidedScores(data, options, true);
+      default: return empty(`Unknown guided-evaluation view: ${rawView}`);
+    }
+  }
+
   function composition(data, options = {}) {
     const sections = data?.bySection || (Array.isArray(data) ? data : []);
     const types = data?.byType || [];
@@ -546,7 +829,43 @@
 
   function criteriaOverview(data, options = {}) {
     if (!data || typeof data !== "object") return empty();
-    return `<div class="viz-overview">${donut(data.statuses || [], { ...options, compact: true, total: data.total, centerLabel: "criteria" })}${stackedBars(data.categories || [], { ...options, compact: true, keys: ["mandatory", "weighted"] })}</div>`;
+    const statuses = series(data.statuses || []);
+    const categories = Array.isArray(data.categories) ? data.categories : [];
+    const criteriaTotal = number(data.total) || total(statuses) || categories.reduce((sum, row) => sum + number(row.total), 0);
+    const unknownTotal = seriesValue(statuses, "Unknown");
+    const mandatoryTotal = number(data.mandatory) || categories.reduce((sum, row) => sum + number(row.mandatory), 0);
+    const weightedTotal = number(data.weighted) || categories.reduce((sum, row) => sum + number(row.weighted), 0);
+    const allUnknown = criteriaTotal > 0 && unknownTotal === criteriaTotal;
+    const statusCopy = allUnknown
+      ? `All ${criteriaTotal} criteria retain Unknown status. No criterion-level result is presented as progress.`
+      : `${unknownTotal} of ${criteriaTotal} criteria retain Unknown status.`;
+    const domainRows = categories.map((row) => {
+      const mandatory = number(row.mandatory);
+      const weighted = number(row.weighted);
+      const rowTotal = number(row.total) || mandatory + weighted;
+      const rowLabel = row.label || row.id;
+      return `<li aria-label="${escapeHtml(rowLabel)}: ${mandatory} mandatory, ${weighted} weighted, ${rowTotal} total">
+        <strong>${escapeHtml(rowLabel)}</strong>
+        <span class="is-mandatory"><small>M</small><b>${mandatory}</b></span>
+        <span class="is-weighted"><small>W</small><b>${weighted}</b></span>
+        <span class="is-total"><small>&Sigma;</small><b>${rowTotal}</b></span>
+      </li>`;
+    }).join("");
+    return `<figure class="viz viz-criteria-overview ${options.compact ? "is-compact" : ""}" aria-label="${escapeHtml(options.title || "Criteria evidence state and composition")}">
+      <section class="viz-criteria-state" aria-label="Evidence status">
+        <span class="viz-subhead">Evidence status</span>
+        <div class="viz-criteria-status"><strong>${unknownTotal}</strong><span><b>Unknown</b><small>of ${criteriaTotal} criteria</small></span></div>
+        <p>${escapeHtml(statusCopy)}</p>
+      </section>
+      <section class="viz-criteria-composition" aria-label="Criterion composition">
+        <header>
+          <span class="viz-subhead">Criterion composition</span>
+          <p><span><strong>${mandatoryTotal}</strong> mandatory</span><span><strong>${weightedTotal}</strong> weighted</span></p>
+        </header>
+        <div class="viz-criteria-key" aria-label="Allocation key"><span><b>M</b> mandatory</span><span><b>W</b> weighted</span><span><b>&Sigma;</b> total</span></div>
+        <ul class="viz-criteria-domains" aria-label="Criterion allocation by domain">${domainRows}</ul>
+      </section>
+    </figure>`;
   }
 
   function recommendation(data, options = {}) {
@@ -725,6 +1044,8 @@
     kongJourneySpine,
     muleMigrationBoundary,
     muleMigrationWaves,
+    guidedEvaluation,
+    guidedArchitectureOverview,
     composition,
     sourceBalance,
     sources: sourceBalance,
@@ -781,6 +1102,8 @@
       kongJourneySpine: visuals?.kongPlatformJourney,
       muleMigrationBoundary: visuals?.muleMigration,
       muleMigrationWaves: visuals?.muleMigration,
+      guidedEvaluation: visuals?.guidedEvaluation,
+      guidedArchitectureOverview: visuals?.kongPlatformStrategy?.guidedArchitectureOverview,
     };
     return map[name] ?? visuals?.[name];
   }
@@ -820,6 +1143,8 @@
     kongJourneySpine,
     muleMigrationBoundary,
     muleMigrationWaves,
+    guidedEvaluation,
+    guidedArchitectureOverview,
     composition,
     sourceBalance,
     pocStatus,

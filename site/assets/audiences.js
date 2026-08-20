@@ -89,7 +89,7 @@
     const compact = { compact: true };
     switch (audience.visual) {
       case "executive":
-        return chart(charts, "criteriaOverview", visuals.criteria || {}, { ...compact, title: "Decision readiness" });
+        return chart(charts, "criteriaOverview", visuals.criteria || {}, compact);
       case "directors":
         return chart(charts, "roadmap", visuals.repositoryRoadmap || {}, { title: "Repository maturity sequence" });
       case "architects": {
