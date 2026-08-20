@@ -73,6 +73,11 @@ KONG_PLATFORM_FIT_SLIDE_ROWS = {
     "kong-platform-fit-fallback": ("KPS-FIT-07",),
 }
 REMOVED_KONG_PLATFORM_FIT_SLIDE_KEYS = frozenset({"kong-platform-fit-1", "kong-platform-fit-2"})
+POC_STATUS_COUNTS = {"Automated": 5, "Not run": 11}
+POC_TEST_IDS = (
+    *(f"POC-{index:03d}" for index in range(1, 7)),
+    *(f"POC-{index}" for index in range(101, 111)),
+)
 SHA256_PATTERN = re.compile(r"[0-9a-f]{64}")
 REVISION_PATTERN = re.compile(r"[0-9a-f]{40,64}")
 
@@ -235,6 +240,64 @@ def under(base: Path, relative: PurePosixPath, label: str) -> Path:
 
 def unique(values: list[str], label: str) -> None:
     require(len(values) == len(set(values)), f"{label} contains duplicate values")
+
+
+def validate_poc_projection(manifest: dict[str, Any]) -> None:
+    """Bind the PoC visual to the canonical aggregate status register."""
+    visuals = manifest.get("visuals")
+    require(isinstance(visuals, dict), "visuals must be an object")
+    poc = visuals.get("poc")
+    require(isinstance(poc, dict), "visuals.poc must be an object")
+
+    total = poc.get("total")
+    require(type(total) is int and total > 0, "visuals.poc.total must be a positive integer")
+
+    by_status = poc.get("byStatus")
+    require(isinstance(by_status, list) and bool(by_status), "visuals.poc.byStatus must be a non-empty list")
+    require(all(isinstance(item, dict) for item in by_status), "visuals.poc.byStatus entries must be objects")
+    status_labels: list[str] = []
+    status_counts: list[int] = []
+    for item in by_status:
+        label = item.get("label")
+        value = item.get("value")
+        require(isinstance(label, str) and bool(label), "visuals.poc.byStatus labels must be non-empty strings")
+        require(type(value) is int and value >= 0, f"visuals.poc.byStatus value for {label} must be a non-negative integer")
+        status_labels.append(label)
+        status_counts.append(value)
+    unique(status_labels, "visuals.poc.byStatus labels")
+    require(sum(status_counts) == total, "visuals.poc.byStatus counts must sum to visuals.poc.total")
+    declared_statuses = dict(zip(status_labels, status_counts))
+    require(
+        declared_statuses == POC_STATUS_COUNTS,
+        "visuals.poc.byStatus must be exactly Automated=5 and Not run=11",
+    )
+
+    tests = poc.get("tests")
+    require(isinstance(tests, list), "visuals.poc.tests must be a list")
+    require(len(tests) == total, "visuals.poc.tests length must equal visuals.poc.total")
+    require(all(isinstance(test, dict) for test in tests), "visuals.poc.tests entries must be objects")
+    test_ids: list[str] = []
+    test_statuses: list[str] = []
+    for test in tests:
+        test_id = test.get("id")
+        status = test.get("status")
+        require(isinstance(test_id, str) and bool(test_id), "visuals.poc.tests IDs must be non-empty strings")
+        require(isinstance(status, str) and status in declared_statuses, f"visuals.poc.tests status for {test_id} is undeclared")
+        test_ids.append(test_id)
+        test_statuses.append(status)
+    unique(test_ids, "visuals.poc.tests IDs")
+    require(
+        len(test_ids) == len(POC_TEST_IDS) and set(test_ids) == set(POC_TEST_IDS),
+        "visuals.poc.tests IDs must be exactly POC-001 through POC-006 and POC-101 through POC-110",
+    )
+    observed_statuses = {
+        label: sum(status == label for status in test_statuses)
+        for label in declared_statuses
+    }
+    require(
+        observed_statuses == declared_statuses,
+        "visuals.poc.tests status counts must match visuals.poc.byStatus",
+    )
 
 
 def validate_kong_platform_fit_slides(
@@ -538,6 +601,7 @@ def validate_routes_and_audiences(
     require(indices == list(range(len(presentation))), "presentation indices must be unique and contiguous from zero")
     for slide in presentation:
         require(slide.get("sourceId") in by_id, f"slide {slide.get('key')} references an unknown sourceId")
+    validate_poc_projection(manifest)
     validate_kong_platform_fit_slides(manifest, presentation)
 
     all_routes = set(document_routes)

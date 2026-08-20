@@ -102,6 +102,28 @@ def load_pages_verifier_module() -> Any:
     return module
 
 
+def poc_projection_fixture() -> dict[str, Any]:
+    tests = [
+        *(
+            {"id": f"POC-{index:03d}", "status": "Automated"}
+            for index in range(1, 6)
+        ),
+        {"id": "POC-006", "status": "Not run"},
+        *(
+            {"id": f"POC-{index}", "status": "Not run"}
+            for index in range(101, 111)
+        ),
+    ]
+    return {
+        "total": 16,
+        "byStatus": [
+            {"label": "Not run", "value": 11},
+            {"label": "Automated", "value": 5},
+        ],
+        "tests": tests,
+    }
+
+
 class TemporaryWorkflowRepository:
     """A minimal canonical repository with deterministic Git history."""
 
@@ -890,6 +912,84 @@ class CanonicalContractTests(WorkflowTestCase):
         self.assertIn('H4 -. re-enter pilot extension .-> S4', mermaid)
         self.assertNotRegex(mermaid, r"(?m)^\s*X\s*(?:-->|-\.)")
         self.assertNotIn("HOLD / REWORK / STOP", mermaid)
+
+    def test_poc_status_projection_uses_one_ratio_and_grouped_scenario_ids(self) -> None:
+        app = (SOURCE_ROOT / "site/assets/app.js").read_text(encoding="utf-8")
+        styles = (SOURCE_ROOT / "site/assets/styles.css").read_text(encoding="utf-8")
+        readme = (SOURCE_ROOT / "poc/README.md").read_text(encoding="utf-8")
+        build_spec = importlib.util.spec_from_file_location("build_site_poc_contract", SOURCE_ROOT / "scripts/build_site.py")
+        assert build_spec and build_spec.loader
+        build_site = importlib.util.module_from_spec(build_spec)
+        build_spec.loader.exec_module(build_site)
+        poc = build_site.poc_visuals()
+        by_status = {str(item["label"]): int(item["value"]) for item in poc["byStatus"]}
+        node = next(
+            (
+                candidate
+                for candidate in (
+                    Path("/usr/bin/node"),
+                    Path("/bin/node"),
+                    Path("/usr/local/bin/node"),
+                    Path("/opt/homebrew/bin/node"),
+                )
+                if candidate.is_file() and os.access(candidate, os.X_OK)
+            ),
+            None,
+        )
+        self.assertIsNotNone(node, "Node.js is required to validate the reusable chart renderer")
+        script = r'''
+global.window = {};
+require("./site/assets/charts.js");
+const data = JSON.parse(require("fs").readFileSync(0, "utf8"));
+const full = window.ApiStudyCharts.render("pocStatus", data, {title: "PoC scenario state"});
+const compact = window.ApiStudyCharts.render("pocStatus", data, {title: "PoC scenario state", compact: true});
+process.stdout.write(JSON.stringify({full, compact}));
+'''
+        observed = subprocess.run(
+            [str(node), "-e", script],
+            cwd=SOURCE_ROOT,
+            check=False,
+            capture_output=True,
+            input=json.dumps(poc),
+            text=True,
+        )
+        self.assertEqual(0, observed.returncode, observed.stderr)
+        payload = json.loads(observed.stdout)
+        full = payload["full"]
+        compact = payload["compact"]
+
+        self.assertIn('class="viz-poc-score"', full)
+        self.assertIn('class="viz-poc-rail"', full)
+        self.assertIn('class="viz-poc-cohorts"', full)
+        self.assertNotIn("viz-donut", full)
+        self.assertIn(
+            f'aria-label="{by_status["Automated"]} Automated, {by_status["Not run"]} Not run"',
+            full,
+        )
+        self.assertLess(full.index("automated baseline"), full.index("not run"))
+        self.assertNotIn("Automated · 5", full)
+        for scenario_id in [str(test["id"]) for test in poc["tests"]]:
+            with self.subTest(scenario_id=scenario_id):
+                self.assertEqual(1, full.count(scenario_id))
+                self.assertNotIn(scenario_id, compact)
+
+        self.assertIn("five have automated local-baseline evidence and 11 are not run", readme)
+        self.assertIn("pocScenarioHeadline", app)
+        self.assertIn('pocStatusCount("Automated")', app)
+        self.assertIn('pocStatusCount("Not run")', app)
+        self.assertNotIn("Five baseline checks are automated; eleven scenarios are not run", app)
+        self.assertIn("Automation does not equal representative evidence", app)
+        self.assertIn("aggregate status-register items", app)
+        self.assertGreaterEqual(app.count("Open scenario register"), 2)
+        self.assertIn('findByPath("poc/test-plan.md")', app)
+        self.assertRegex(
+            app,
+            r'(?s)function renderLab\(\) \{.*?const pocPlan = findByPath\("poc/test-plan\.md"\);.*?Open scenario register',
+        )
+        self.assertNotIn("Automated, scripted, and not-run tests", app)
+        self.assertIn(".viz-poc-cohorts", styles)
+        self.assertIn(".presentation-stage .viz-poc-rail > .is-automated", styles)
+        self.assertRegex(styles, r"(?s)@media \(max-width: 760px\).*?\.viz-poc-cohorts\s*\{\s*grid-template-columns: 1fr;")
 
     def test_kong_fit_projection_is_four_bounded_complete_story_frames(self) -> None:
         fit_keys = (
@@ -2573,6 +2673,55 @@ class BuildInputBoundaryTests(WorkflowTestCase):
 
 
 class ManifestRuntimeDependencyTests(WorkflowTestCase):
+    def test_poc_projection_contract_rejects_local_and_pages_manifest_drift(self) -> None:
+        repository = self.repository()
+        validator = repository.load_module("scripts/validate_site_manifest.py")
+        verifier = load_pages_verifier_module()
+        valid = {"visuals": {"poc": poc_projection_fixture()}}
+
+        validator.validate_poc_projection(valid)
+        verifier.validate_poc_projection(valid)
+
+        invalid_cases = (
+            ("non-positive total", "positive integer", "positive integer"),
+            ("duplicate status label", "contains duplicate", "must be unique"),
+            ("status sum", "must sum", "must sum"),
+            ("canonical status count", "exactly Automated=5", "exactly Automated=5"),
+            ("test length", "length must equal", "length must equal"),
+            ("duplicate test ID", "contains duplicate", "must be unique"),
+            ("canonical test IDs", "must be exactly POC-001", "must be exactly POC-001"),
+            ("undeclared test status", "is undeclared", "is undeclared"),
+            ("test status aggregate", "status counts must match", "status counts must match"),
+        )
+        for case, local_error, pages_error in invalid_cases:
+            with self.subTest(case=case):
+                invalid = json.loads(json.dumps(valid))
+                poc = invalid["visuals"]["poc"]
+                if case == "non-positive total":
+                    poc["total"] = False
+                elif case == "duplicate status label":
+                    poc["byStatus"][1]["label"] = "Not run"
+                elif case == "status sum":
+                    poc["byStatus"][0]["value"] = 10
+                elif case == "canonical status count":
+                    poc["byStatus"][0]["value"] = 10
+                    poc["byStatus"][1]["value"] = 6
+                elif case == "test length":
+                    poc["tests"].pop()
+                elif case == "duplicate test ID":
+                    poc["tests"][-1]["id"] = poc["tests"][0]["id"]
+                elif case == "canonical test IDs":
+                    poc["tests"][-1]["id"] = "POC-111"
+                elif case == "undeclared test status":
+                    poc["tests"][0]["status"] = "Scripted"
+                else:
+                    poc["tests"][0]["status"] = "Not run"
+
+                with self.assertRaisesRegex(validator.ValidationError, local_error):
+                    validator.validate_poc_projection(invalid)
+                with self.assertRaisesRegex(verifier.VerificationError, pages_error):
+                    verifier.validate_poc_projection(invalid)
+
     def test_named_presentation_deck_contract_and_route_inventory(self) -> None:
         repository = self.repository()
         validator = repository.load_module("scripts/validate_site_manifest.py")
@@ -2624,7 +2773,10 @@ class ManifestRuntimeDependencyTests(WorkflowTestCase):
                 *fit_slides,
                 {"index": 5, "key": "technical", "sourceId": "source"},
             ],
-            "visuals": {"kongPlatformStrategy": {"fit": {"rows": fit_rows}}},
+            "visuals": {
+                "poc": poc_projection_fixture(),
+                "kongPlatformStrategy": {"fit": {"rows": fit_rows}},
+            },
             "audiences": [
                 {
                     "id": "architects",
