@@ -202,6 +202,7 @@
     const industryPractices = findByPath("docs/45-api-management-industry-practices.md");
     const kongMulticloud = findByPath("docs/44-kong-multicloud-study-roadmap.md");
     const kongPlatform = findByPath("docs/47-kong-enterprise-platform-strategy.md");
+    const kongFacilitatorGuide = findByPath("docs/49-kong-guided-evaluation-facilitator-guide.md");
     const pocPlan = findByPath("poc/test-plan.md");
     const kongPlatformVisual = visuals.kongPlatformStrategy || {};
     const problemTotal = Number(visuals.industryProblems?.total) || 0;
@@ -292,6 +293,7 @@
           <div class="hero-actions">
             <a class="action-link is-primary" href="${itemHref(kongPlatform)}">Open the Kong platform strategy <span aria-hidden="true">↗</span></a>
             <a class="action-link is-primary" href="#/present/kong-platform-journey-guided/0">Start the guided Kong evaluation <span aria-hidden="true">→</span></a>
+            ${kongFacilitatorGuide ? `<a class="action-link is-primary" href="${itemHref(kongFacilitatorGuide)}">Open the facilitator guide <span aria-hidden="true">↗</span></a>` : ""}
             <a class="action-link is-primary" href="#/present/kong-platform-journey/0">Start the Kong platform journey <span aria-hidden="true">→</span></a>
             <a class="action-link" href="#/architecture">Inspect the target architecture <span aria-hidden="true">→</span></a>
             <a class="action-link" href="#/present/kong-technical-deep-dive/0">Start the technical deep dive <span aria-hidden="true">→</span></a>
@@ -679,6 +681,7 @@
     const industryPractices = findByPath("docs/45-api-management-industry-practices.md");
     const kongMulticloud = findByPath("docs/44-kong-multicloud-study-roadmap.md");
     const kongPlatform = findByPath("docs/47-kong-enterprise-platform-strategy.md");
+    const kongFacilitatorGuide = findByPath("docs/49-kong-guided-evaluation-facilitator-guide.md");
     setPageTitle("Architecture");
     setActiveNav("architecture");
     main.innerHTML = `
@@ -706,6 +709,7 @@
           <div class="hero-actions">
             <a class="action-link is-primary" href="${itemHref(kongPlatform)}">Open the canonical platform strategy <span aria-hidden="true">↗</span></a>
             <a class="action-link is-primary" href="#/present/kong-platform-journey-guided/0">Start the guided Kong evaluation <span aria-hidden="true">→</span></a>
+            ${kongFacilitatorGuide ? `<a class="action-link is-primary" href="${itemHref(kongFacilitatorGuide)}">Open the facilitator guide <span aria-hidden="true">↗</span></a>` : ""}
             <a class="action-link is-primary" href="#/present/kong-platform-journey/0">Start the Kong platform journey <span aria-hidden="true">→</span></a>
             <a class="action-link" href="#/present/kong-technical-deep-dive/0">Start the Kong technical deep dive <span aria-hidden="true">→</span></a>
           </div>
@@ -1022,6 +1026,7 @@
 
     const sections = groups.map(({ heading, children }, index) => {
       const headingTitle = heading.textContent.replace(/\s+/g, " ").trim();
+      heading.setAttribute("aria-label", headingTitle);
       const section = document.createElement("section");
       section.className = "document-section";
       section.dataset.sectionOpen = String(index < 2);
@@ -1036,7 +1041,7 @@
       toggle.dataset.documentSectionToggle = "";
       toggle.setAttribute("aria-controls", body.id);
       toggle.setAttribute("aria-expanded", String(index < 2));
-      toggle.setAttribute("aria-label", `${index < 2 ? "Close" : "Open"} ${headingTitle} section`);
+      toggle.setAttribute("aria-label", `${index < 2 ? "Collapse" : "Expand"} section: ${headingTitle}`);
       toggle.innerHTML = `<span class="when-closed">Open section</span><span class="when-open">Close section</span>`;
       container.insertBefore(section, heading);
       section.append(heading, body);
@@ -1059,7 +1064,7 @@
       section.dataset.sectionOpen = String(open);
       if (body) body.hidden = !open;
       toggle?.setAttribute("aria-expanded", String(open));
-      toggle?.setAttribute("aria-label", `${open ? "Close" : "Open"} ${section.dataset.sectionTitle} section`);
+      toggle?.setAttribute("aria-label", `${open ? "Collapse" : "Expand"} section: ${section.dataset.sectionTitle}`);
     };
     sections.forEach((section) => {
       section.querySelector("[data-document-section-toggle]")?.addEventListener("click", () => {

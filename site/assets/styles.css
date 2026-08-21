@@ -7541,6 +7541,14 @@ body.is-presenting .site-footer {
     transform: translateX(-50%);
   }
 
+  .document-shell .prose > .document-section-controls {
+    position: static;
+    left: auto;
+    width: 100%;
+    max-width: 100%;
+    transform: none;
+  }
+
   .prose > .document-visual-context.is-inline .document-visual-grid {
     grid-template-columns: repeat(2, minmax(0, 1fr));
   }
@@ -7548,6 +7556,17 @@ body.is-presenting .site-footer {
   .document-visual .viz-roadmap-list {
     grid-template-columns: repeat(var(--phase-count, 7), minmax(0, 1fr));
     overflow: visible;
+  }
+}
+
+@media (min-width: 1200px) and (max-width: 1439px) {
+  .document-shell .prose > .artifact-shell,
+  .document-shell .prose .document-section-body > .artifact-shell {
+    position: static;
+    left: auto;
+    width: 100%;
+    max-width: 100%;
+    transform: none;
   }
 }
 

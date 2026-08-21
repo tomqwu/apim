@@ -465,6 +465,8 @@ docs/48-kong-guided-evaluation.md,https://developer.konghq.com/gateway/version-s
 docs/48-kong-guided-evaluation.md,https://docs.cloud.google.com/apigee/docs/hybrid/v1.16/what-is-hybrid),https://docs.cloud.google.com/apigee/docs/hybrid/v1.16/what-is-hybrid,registered,G-005,docs.cloud.google.com
 docs/48-kong-guided-evaluation.md,https://docs.mulesoft.com/gateway/latest/),https://docs.mulesoft.com/gateway/latest,contextual,,docs.mulesoft.com
 docs/48-kong-guided-evaluation.md,https://learn.microsoft.com/en-us/azure/api-management/self-hosted-gateway-overview),https://learn.microsoft.com/en-us/azure/api-management/self-hosted-gateway-overview,registered,M-002,learn.microsoft.com
+docs/49-kong-guided-evaluation-facilitator-guide.md,https://github.com/tomqwu/apim/blob/main/presentations/kong-platform-journey-guided.pptx),https://github.com/tomqwu/apim/blob/main/presentations/kong-platform-journey-guided.pptx,contextual,,github.com
+docs/49-kong-guided-evaluation-facilitator-guide.md,https://tomqwu.github.io/apim/#/present/kong-platform-journey-guided/0),https://tomqwu.github.io/apim,contextual,,tomqwu.github.io
 poc/real-world-scenarios.md,https://cert-manager.io/docs/usage/certificate/)),https://cert-manager.io/docs/usage/certificate,contextual,,cert-manager.io
 poc/real-world-scenarios.md,https://docs.cloudfoundry.org/devguide/deploy-apps/routes-domains.html)),https://docs.cloudfoundry.org/devguide/deploy-apps/routes-domains.html,contextual,,docs.cloudfoundry.org
 poc/real-world-scenarios.md,https://docs.mulesoft.com/mule-runtime/latest/mule-high-availability-ha-clusters),https://docs.mulesoft.com/mule-runtime/latest/mule-high-availability-ha-clusters,registered,MU-005,docs.mulesoft.com
