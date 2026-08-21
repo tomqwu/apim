@@ -8917,6 +8917,14 @@ body.is-presenting .site-footer {
   font-weight: 600;
 }
 
+.viz-guided-architecture-control-flow.is-approved-intent {
+  color: var(--guided-violet);
+}
+
+.viz-guided-architecture-control-flow.is-management-state {
+  color: var(--guided-muted);
+}
+
 .viz-guided-architecture-fanout {
   position: relative;
   z-index: 1;
