@@ -13,11 +13,11 @@ This report is generated from the article corpus by `scripts/validate_source_cov
 
 | Measure | Count |
 |---|---:|
-| Article files scanned | 70 |
-| Article files containing external citations | 49 |
-| Unique external citations | 271 |
+| Article files scanned | 71 |
+| Article files containing external citations | 50 |
+| Unique external citations | 272 |
 | Unique registered citations used by articles | 36 |
-| Unique contextual citations awaiting promotion if decision-bearing | 235 |
+| Unique contextual citations awaiting promotion if decision-bearing | 236 |
 | Latest access date in authoritative register | 2026-08-17 |
 
 ## Coverage by article
@@ -68,6 +68,7 @@ This report is generated from the article corpus by `scripts/validate_source_cov
 | `docs/45-api-management-industry-practices.md` | 7 | 36 | promotion debt visible |
 | `docs/47-kong-enterprise-platform-strategy.md` | 5 | 21 | promotion debt visible |
 | `docs/48-kong-guided-evaluation.md` | 4 | 4 | promotion debt visible |
+| `docs/49-kong-guided-evaluation-facilitator-guide.md` | 0 | 2 | promotion debt visible |
 | `poc/real-world-scenarios.md` | 4 | 9 | promotion debt visible |
 | `research/apigee.md` | 3 | 12 | promotion debt visible |
 | `research/azure-apim.md` | 5 | 3 | promotion debt visible |
@@ -97,10 +98,11 @@ This table helps evidence owners batch promotion and freshness work. A high coun
 | `istio.io` | 4 |
 | `csrc.nist.gov` | 3 |
 | `docs.cloudfoundry.org` | 3 |
+| `github.com` | 3 |
 | `aws.amazon.com` | 2 |
 | `cert-manager.io` | 2 |
-| `github.com` | 2 |
 | `hl7.org` | 2 |
+| `tomqwu.github.io` | 2 |
 | `tyk.io` | 2 |
 | `www.osfi-bsif.gc.ca` | 2 |
 | `blog.modelcontextprotocol.io` | 1 |
@@ -110,7 +112,6 @@ This table helps evidence owners batch promotion and freshness work. A high coun
 | `openid.net` | 1 |
 | `owasp.org` | 1 |
 | `slsa.dev` | 1 |
-| `tomqwu.github.io` | 1 |
 | `www.asyncapi.com` | 1 |
 | `www.atlassian.com` | 1 |
 | `www.hl7.org` | 1 |

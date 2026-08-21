@@ -56,6 +56,8 @@ REPOSITORY_FIXTURES = (
     "docs/46-study-publication-workflow.md",
     "docs/47-kong-enterprise-platform-strategy.md",
     "docs/48-kong-guided-evaluation.md",
+    "docs/49-kong-guided-evaluation-facilitator-guide.md",
+    "presentations/README.md",
     "presentations/kong-platform-journey-guided.pptx",
     "templates/study-intake-template.md",
     ".agents/skills/publish-api-study/SKILL.md",
@@ -869,6 +871,57 @@ class CanonicalContractTests(WorkflowTestCase):
             self.assertEqual(5, len(score_widths))
             self.assertGreaterEqual(score_widths[-1], 1_143_000)
 
+    def test_guided_facilitator_guide_is_indexed_and_linked_from_entry_points(self) -> None:
+        guide_path = "docs/49-kong-guided-evaluation-facilitator-guide.md"
+        with tempfile.TemporaryDirectory(prefix="guided-facilitator-guide-") as temporary:
+            output = Path(temporary) / "site"
+            result = subprocess.run(
+                (
+                    sys.executable,
+                    "-I",
+                    str(SOURCE_ROOT / "scripts" / "build_site.py"),
+                    "--output",
+                    str(output),
+                ),
+                cwd=SOURCE_ROOT,
+                capture_output=True,
+                text=True,
+                check=False,
+            )
+            self.assertEqual(0, result.returncode, result.stdout + result.stderr)
+            manifest = json.loads((output / "content-manifest.json").read_text(encoding="utf-8"))
+            guide = next(item for item in manifest["items"] if item["path"] == guide_path)
+            self.assertEqual("docs-49-kong-guided-evaluation-facilitator-guide", guide["id"])
+            self.assertEqual("#/doc/docs-49-kong-guided-evaluation-facilitator-guide", guide["route"])
+            self.assertEqual(
+                (SOURCE_ROOT / guide_path).read_bytes(),
+                (output / "content" / guide_path).read_bytes(),
+            )
+
+        source = (SOURCE_ROOT / guide_path).read_text(encoding="utf-8")
+        self.assertIn("## Choose the meeting route", source)
+        self.assertIn("## Challenge-handling protocol", source)
+        self.assertIn("## Slide-by-slide facilitation index", source)
+        self.assertIn("## Decision, evidence, and parking-lot ledgers", source)
+        self.assertIn("## Stop and hold rules", source)
+        self.assertIn("enterprise IAM is covered", source)
+        self.assertIn("join/move/leave", source)
+        self.assertEqual(
+            tuple(f"KGE-{index:02d}" for index in range(1, 26)),
+            tuple(dict.fromkeys(re.findall(r"KGE-\d{2}", source))),
+        )
+        app = (SOURCE_ROOT / "site/assets/app.js").read_text(encoding="utf-8")
+        self.assertIn(f'findByPath("{guide_path}")', app)
+        self.assertEqual(2, app.count("Open the facilitator guide"))
+        self.assertIn('heading.setAttribute("aria-label", headingTitle)', app)
+        self.assertIn('"Collapse" : "Expand"} section:', app)
+        styles = (SOURCE_ROOT / "site/assets/styles.css").read_text(encoding="utf-8")
+        self.assertIn("@media (min-width: 1200px) and (max-width: 1439px)", styles)
+        self.assertRegex(
+            styles,
+            r"\.document-shell \.prose \.document-section-body > \.artifact-shell\s*\{[^}]*width: 100%;[^}]*max-width: 100%;[^}]*transform: none;",
+        )
+
     def test_independent_review_comment_contract_is_exact_and_copyable(self) -> None:
         required_lines = (
             "Accepted head SHA:",
@@ -960,7 +1013,8 @@ class CanonicalContractTests(WorkflowTestCase):
         self.assertIn('function inlineDiagramContract', app)
         self.assertIn('function enhanceDocumentSections', app)
         self.assertIn('section.dataset.sectionTitle = headingTitle', app)
-        self.assertIn('`${open ? "Close" : "Open"} ${section.dataset.sectionTitle} section`', app)
+        self.assertIn('heading.setAttribute("aria-label", headingTitle)', app)
+        self.assertIn('`${open ? "Collapse" : "Expand"} section: ${section.dataset.sectionTitle}`', app)
         self.assertIn('headings.length >= 7', app)
         self.assertIn('proseLength >= 20000', app)
         self.assertIn('open only the evidence you need', app)

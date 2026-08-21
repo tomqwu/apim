@@ -6,6 +6,8 @@ This directory contains portable presentation companions generated from the repo
 
 [`kong-platform-journey-guided.pptx`](kong-platform-journey-guided.pptx) is the 25-slide PowerPoint companion to the native Pages presentation at `#/present/kong-platform-journey-guided/0`.
 
+Use the [Kong guided evaluation facilitator guide](../docs/49-kong-guided-evaluation-facilitator-guide.md) alongside either projection. It provides timed routes, challenge branches, decision and parking-lot ledgers, evidence language, stop rules, and a 25-slide facilitation index; it does not replace the embedded speaker notes.
+
 Both projections follow the canonical [Kong guided evaluation](../docs/48-kong-guided-evaluation.md). The story combines:
 
 - sanitized stakeholder evaluation inputs and corrected score arithmetic;
