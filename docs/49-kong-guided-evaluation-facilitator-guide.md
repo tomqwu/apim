@@ -8,7 +8,7 @@
 | Intended users | Meeting chair, presenter, facilitator, scribe, evidence steward, timekeeper, decision owners, and named technical or commercial challengers |
 | Scope | Complete speaker notes for all 25 slides; meeting routes; bounded side talks; challenge navigation; evidence-safe responses; decision capture; parking-lot control; stop rules; and closing protocol for the Kong guided evaluation |
 | Evidence state | Facilitation guidance derived from the canonical guided evaluation and its presentation notes; no new product fact, executed result, commercial conclusion, or production authorization |
-| As-of date | 2026-08-20; use the current canonical study and deck revision when facilitating |
+| As-of date | 2026-08-21; use the current canonical study and deck revision when facilitating |
 | Next gate | Record an explicit approve, amend, or hold decision; name owners, artifacts, thresholds, reviewers, due gates, and stop rules for every authorized proof item |
 
 ## Use this guide with the presentation
@@ -22,6 +22,9 @@ This document is the **complete canonical facilitation and speaker-notes compani
 - [Inspect the Kong platform strategy](47-kong-enterprise-platform-strategy.md)
 - [Inspect the Kong option register](44-kong-multicloud-study-roadmap.md)
 - [Inspect the migration strategy](35-mule-migration-strategy.md)
+- [Inspect the Apigee A0–A6 migration roadmap](50-apigee-migration-strategy.md)
+- [Use the Kong terminology crosswalk](../research/glossary.md#kong-terminology-crosswalk)
+- [Inspect the Traceable security-adjunct evidence boundary](48-kong-guided-evaluation.md#traceable-by-harness-security-adjunct-feasibility)
 - [Inspect the current PoC evidence boundary](../poc/README.md)
 
 If this guide, the PowerPoint, or the native presentation differs from a canonical study, the canonical study wins. Do not publicly link the raw supplied input; the sanitized guided evaluation preserves the admissible decision context.
@@ -33,12 +36,12 @@ The meeting succeeds only when it produces a decision record, not when it reache
 1. an explicit **approve, amend, or hold** answer for the bounded direction;
 2. a precise statement of what is authorized now and what remains unauthorized;
 3. confirmed, amended, or rejected target-model assumptions;
-4. named owners for the operating boundary, permanent duties, migration safety, and six proof workstreams;
+4. accountable public roles for the operating boundary, permanent duties, Mule and Apigee migration safety, the seven proof workstreams, scoring governance, terminology enablement, and independent review;
 5. a closure artifact, threshold, independent reviewer, due gate, and stop rule for every material evidence gap;
 6. recorded dissent and the evidence that could change the answer; and
 7. an agreed next decision forum and date.
 
-The meeting does **not** authorize critical production scale, prove a universal product ranking, convert supplied scores into observed evidence, commit synthetic roadmap dates, or declare documented capability to be executed behavior.
+The meeting does **not** authorize critical production scale, prove a universal product ranking, change a score to preserve a preferred order, convert supplied scores into observed evidence, count a third-party integration as native gateway proof, commit synthetic roadmap dates, or declare documented capability to be executed behavior.
 
 ## Roles in the room
 
@@ -49,7 +52,7 @@ The meeting does **not** authorize critical production scale, prove a universal 
 | Scribe | Maintains the decision, evidence-gap, action, dissent, and parking-lot ledgers in real time. |
 | Evidence steward | Challenges unsupported promotion from stakeholder input or documentation to proof; confirms source, result, version, topology, and limitations. |
 | Timekeeper | Enforces segment timeboxes and signals when a challenge must be assigned, parked, or moved to the appendix. |
-| Accountable challengers | Security/IAM, architecture, platform/database, SRE, migration, domain, sourcing, FinOps, service-management, and assurance leads test the claims they will own. |
+| Accountable challengers | Security/IAM, architecture, platform/database, SRE, Mule and Apigee migration, domain, sourcing, FinOps, service-management, privacy, product enablement, and independent-assurance leads test the claims their roles will own. |
 
 Before opening slide 1, name the chair, scribe, evidence steward, and timekeeper. A meeting without a decision owner should be converted to a working session and must not produce an authorization.
 
@@ -71,6 +74,8 @@ Room rules:
 - Keep **documented**, **proposed**, **not run**, **executed**, and **accepted** visibly distinct.
 - For every challenge, record what is known, what is unknown, the decision impact, the closure artifact or test, the owner, and the due gate.
 - Never settle an evidence gap by changing a score in the room.
+- Keep the original scorecard intact as historical input; any recalculation is a governed follow-up with exact options, approved dimensions and weights, a rubric, evidence floor, confidence treatment, scorer panel, sensitivity, dissent, and sign-off.
+- Treat Traceable by Harness as a third-party security-adjunct hypothesis. It earns no platform score and supports no security, traceability, cost, or production conclusion until GEP-07 is executed and independently reviewed.
 - Do not average away a failed or unknown mandatory gate with a strong weighted category.
 - Appendix slides 22–25 are challenge-on-demand audit material. Do not make them the default close.
 
@@ -98,7 +103,7 @@ The native deck uses zero-based routes: presentation slide `N` is route `N−1`.
 | Options and bounded decision | 4–8 | 20 min | Approve or amend the leading target, custody benchmark, true exit, and funded duties. |
 | Architecture and adoption | 9–13 | 19 min | Confirm topology questions, degraded-state policy, accountable owners, and gate sequence. |
 | Migration | 14–16 | 12 min | Approve the responsibility taxonomy, coexistence, route-back, and wave gates. |
-| Production proof | 17–21 | 22 min | Accept the evidence baseline, fund GEP-01–06, and pre-commit possible outcomes. |
+| Production proof | 17–21 | 22 min | Accept the evidence baseline, fund GEP-01–07, and pre-commit possible outcomes. |
 | Decision recap | Return to 6 and 21 | 5 min | Read back approve/amend/hold, owners, evidence requests, stop rules, and dissent. |
 | Appendix | 22–25 | On demand | Resolve an audit challenge without displacing the decision close. |
 
@@ -123,7 +128,7 @@ Use slides [1](https://tomqwu.github.io/apim/#/present/kong-platform-journey-gui
 
 ### 45-minute migration route
 
-Use slides [1](https://tomqwu.github.io/apim/#/present/kong-platform-journey-guided/0), [6](https://tomqwu.github.io/apim/#/present/kong-platform-journey-guided/5), [12](https://tomqwu.github.io/apim/#/present/kong-platform-journey-guided/11)–[18](https://tomqwu.github.io/apim/#/present/kong-platform-journey-guided/17), [20](https://tomqwu.github.io/apim/#/present/kong-platform-journey-guided/19), and [21](https://tomqwu.github.io/apim/#/present/kong-platform-journey-guided/20). Required output: responsibility ownership, cohort boundaries, business probes, route-back, reconciliation, wave gates, and migration proof owners.
+Use slides [1](https://tomqwu.github.io/apim/#/present/kong-platform-journey-guided/0), [6](https://tomqwu.github.io/apim/#/present/kong-platform-journey-guided/5), [12](https://tomqwu.github.io/apim/#/present/kong-platform-journey-guided/11)–[18](https://tomqwu.github.io/apim/#/present/kong-platform-journey-guided/17), [20](https://tomqwu.github.io/apim/#/present/kong-platform-journey-guided/19), and [21](https://tomqwu.github.io/apim/#/present/kong-platform-journey-guided/20). Required output: source-specific Mule or Apigee object/state ownership, cohort boundaries, business probes, identity and state reconciliation, route-back, wave gates, dependency-zero authority, and migration proof owners. Use the [Kong terminology crosswalk](../research/glossary.md#kong-terminology-crosswalk) when a familiar source-platform noun is being treated as a one-to-one target mapping.
 
 ### 30-minute executive route
 
@@ -148,15 +153,20 @@ When a challenge interrupts the planned route:
 | Challenge | Jump route | Evidence-safe response | Rejoin |
 |---|---|---|---:|
 | “This is a Kong sales deck” or “the answer was predetermined” | [1](https://tomqwu.github.io/apim/#/present/kong-platform-journey-guided/0) → [2](https://tomqwu.github.io/apim/#/present/kong-platform-journey-guided/1) → [4](https://tomqwu.github.io/apim/#/present/kong-platform-journey-guided/3) → [5](https://tomqwu.github.io/apim/#/present/kong-platform-journey-guided/4) | The supplied model explains preference; it does not provide independent proof. Record the condition or sensitivity that would reverse the direction. | 6, then 21 |
+| “Multicloud and lock-in were missing, so re-score it to make the result more convincing” | [3](https://tomqwu.github.io/apim/#/present/kong-platform-journey-guided/2) → [5](https://tomqwu.github.io/apim/#/present/kong-platform-journey-guided/4) → [25](https://tomqwu.github.io/apim/#/present/kong-platform-journey-guided/24) | These dimensions were compressed or absent only in the supplied eight-category scorecard; they already exist in the canonical matrix. Make the next calculation more auditable, not more favorable: approve exact options, mandatory gates, dimensions, weights/ranges, rubric, evidence floor, confidence, scorers, sensitivity, dissent, and decision rule before changing any total. | 6 |
 | “Why not Apigee, MuleSoft, or APIM?” | [4](https://tomqwu.github.io/apim/#/present/kong-platform-journey-guided/3) → [22](https://tomqwu.github.io/apim/#/present/kong-platform-journey-guided/21)–[24](https://tomqwu.github.io/apim/#/present/kong-platform-journey-guided/23) | Each is a conditional operating-model counterfactual. State when it becomes stronger and convert that condition into symmetric evidence. | 6 |
 | “Why self-managed rather than Konnect?” | [7](https://tomqwu.github.io/apim/#/present/kong-platform-journey-guided/6) → [8](https://tomqwu.github.io/apim/#/present/kong-platform-journey-guided/7) → [12](https://tomqwu.github.io/apim/#/present/kong-platform-journey-guided/11) → [20](https://tomqwu.github.io/apim/#/present/kong-platform-journey-guided/19) | Self-managed is a custody preference with permanent duty. Konnect is the same-vendor custody benchmark; a true non-Kong exit remains separate. | 21 |
+| “Who carries the control-plane liability?” | [8](https://tomqwu.github.io/apim/#/present/kong-platform-journey-guided/7) → [12](https://tomqwu.github.io/apim/#/present/kong-platform-journey-guided/11) → [24](https://tomqwu.github.io/apim/#/present/kong-platform-journey-guided/23) | The public study can allocate operational accountability and risk exposure for CP/PostgreSQL/PKI/plugin/license/audit/upgrade/restore/on-call duties. It does not make a legal-liability determination. Contractual allocation requires exact support and commercial evidence; legal liability requires counsel in the approved restricted process. | 6 or 21 |
 | “Does hybrid keep running if the control plane fails?” | [9](https://tomqwu.github.io/apim/#/present/kong-platform-journey-guided/8)–[11](https://tomqwu.github.io/apim/#/present/kong-platform-journey-guided/10) → [17](https://tomqwu.github.io/apim/#/present/kong-platform-journey-guided/16)–[19](https://tomqwu.github.io/apim/#/present/kong-platform-journey-guided/18) | Cached proxying does not prove restart, clean scale, mutation, urgent revoke, reconnect, recovery, or business correctness. | 21 |
 | “Terraform and decK already solve APIOps” | [10](https://tomqwu.github.io/apim/#/present/kong-platform-journey-guided/9) → [18](https://tomqwu.github.io/apim/#/present/kong-platform-journey-guided/17)–[19](https://tomqwu.github.io/apim/#/present/kong-platform-journey-guided/18) | Tool presence is documented mechanism. The target must prove authority, deletion scope, promotion, drift, rollback, active digest, and reconciliation. | 21 |
 | “Gateway authentication passed, so enterprise IAM is covered” | [10](https://tomqwu.github.io/apim/#/present/kong-platform-journey-guided/9) → [12](https://tomqwu.github.io/apim/#/present/kong-platform-journey-guided/11) → [18](https://tomqwu.github.io/apim/#/present/kong-platform-journey-guided/17) → [19](https://tomqwu.github.io/apim/#/present/kong-platform-journey-guided/18)–[21](https://tomqwu.github.io/apim/#/present/kong-platform-journey-guided/20) | One authentication path does not prove organization-wide access lifecycle. Workforce, workload, consumer, and service-account inventory; join/move/leave; revoke and rotate; expiring break-glass; negative tests; attribution; owners; and independent review remain unproved. | 21 |
 | “Why not migrate Mule packages directly?” | [14](https://tomqwu.github.io/apim/#/present/kong-platform-journey-guided/13)–[16](https://tomqwu.github.io/apim/#/present/kong-platform-journey-guided/15) | The migration unit is responsibility and state. Edge extensibility does not prove that durable or stateful business logic belongs in the gateway. | 20, then 21 |
+| “Can we migrate Apigee by exporting proxy bundles?” | [16](https://tomqwu.github.io/apim/#/present/kong-platform-journey-guided/15) → [22](https://tomqwu.github.io/apim/#/present/kong-platform-journey-guided/21) | A proxy bundle is source evidence, not the full migration denominator. A0–A6 must also reconcile shared flows/policies, products/apps/credentials, KVM/quota/cache, targets/TLS, environment and hostname attachment, portal, analytics/audit, and Hybrid runtime dependencies before route-back or dependency zero can be claimed. | 21 |
+| “What Kong object replaces this Mule or Apigee object?” | [4](https://tomqwu.github.io/apim/#/present/kong-platform-journey-guided/3) → [16](https://tomqwu.github.io/apim/#/present/kong-platform-journey-guided/15) | Use the terminology crosswalk as a nearest analogue, never a one-to-one conversion. Map behavior, state, authority, lifecycle, evidence, and ownership; then prove semantic parity. | 16, then 21 |
 | “The PoC already proves it” | [17](https://tomqwu.github.io/apim/#/present/kong-platform-journey-guided/16) → [18](https://tomqwu.github.io/apim/#/present/kong-platform-journey-guided/17) | Five local checks ran and eleven did not; the 28 atomic cases are separate and unexecuted; target E3/E4 evidence remains zero. | 19–21 |
 | “Kong documents MCP, A2A, and AI routing, so AI fit is proved” | [18](https://tomqwu.github.io/apim/#/present/kong-platform-journey-guided/17) → [23](https://tomqwu.github.io/apim/#/present/kong-platform-journey-guided/22) | Documentation permits a test design. The separately versioned agentic study cannot inflate confidence in the core gateway decision. | 19, then 21 |
-| “Kong is cheaper” or “lock-in is low” | [8](https://tomqwu.github.io/apim/#/present/kong-platform-journey-guided/7) → [24](https://tomqwu.github.io/apim/#/present/kong-platform-journey-guided/23) → [20](https://tomqwu.github.io/apim/#/present/kong-platform-journey-guided/19) | Require quotes, labor, infrastructure, HA/DR, telemetry, support, migration, dual run, custody switch, and clean exit evidence. | 21 |
+| “Traceable makes Kong security and traceability fit proven” | [18](https://tomqwu.github.io/apim/#/present/kong-platform-journey-guided/17) → [20](https://tomqwu.github.io/apim/#/present/kong-platform-journey-guided/19) → [23](https://tomqwu.github.io/apim/#/present/kong-platform-journey-guided/22) | Traceable is a third-party adjunct with an `E1` plugin/agent integration path, not a gateway contender or native capability verdict. GEP-07 must resolve exact BOM/support, data path, protocol/body/streaming coverage, sync/async and fail behavior, overhead/scaling, privacy, evidence correlation, upgrade/rollback, uninstall, and comparison with the security baseline. | 19, then 21 |
+| “Kong is cheaper” or “lock-in is low” | [8](https://tomqwu.github.io/apim/#/present/kong-platform-journey-guided/7) → [24](https://tomqwu.github.io/apim/#/present/kong-platform-journey-guided/23) → [20](https://tomqwu.github.io/apim/#/present/kong-platform-journey-guided/19) | Require exact meters and quotes, labor, infrastructure, HA/DR, telemetry, security adjuncts, support, migration, dual run, incident exposure, custody switch, representative non-source rebuild, and clean-exit evidence. | 21 |
 | “Can we approve production now?” | [6](https://tomqwu.github.io/apim/#/present/kong-platform-journey-guided/5) → [17](https://tomqwu.github.io/apim/#/present/kong-platform-journey-guided/16)–[21](https://tomqwu.github.io/apim/#/present/kong-platform-journey-guided/20) | No. The admissible decision is a reversible foundation and proof programme. Critical scale requires reviewed target-shaped evidence. | 21 |
 
 ## Slide-by-slide facilitation index
@@ -169,17 +179,17 @@ Use the index below as the compact discussion control. The complete point-of-use
 |---|---|---|---|
 | [1 · KGE-01](https://tomqwu.github.io/apim/#/present/kong-platform-journey-guided/0) | Establish a decision-and-proof meeting. Ask whether the room accepts bounded direction plus proof as the decision question. | “Is this predetermined?” Stakeholder direction is not independent proof. | Capture decision owner and non-goals. Never skip. Disputed assumptions → 2; aligned → 6. |
 | [2 · KGE-02](https://tomqwu.github.io/apim/#/present/kong-platform-journey-guided/1) | Confirm or amend the stated target inputs and their owners. | “This is not our current state.” Correct: these are target inputs to confirm, not observed inventory. | Material dispute means hold scoring and create an owner/evidence action. |
-| [3 · KGE-03](https://tomqwu.github.io/apim/#/present/kong-platform-journey-guided/2) | Approve the weights, missing dimensions, and sensitivity work. | “The model is subjective.” It has no rubric, named scorers, confidence, or sensitivity. | Record alternate weights/ranges and dissent. Implications → 4; raw audit → 25. |
+| [3 · KGE-03](https://tomqwu.github.io/apim/#/present/kong-platform-journey-guided/2) | Approve the governed re-score specification—not new ratings—including multicloud, robustness, security/traceability, reversibility, full TCO, and control-plane responsibility. | These dimensions are missing or compressed only in the supplied scorecard, not the canonical matrix. Weights, ratings, evidence floor, scorers, and sensitivity remain `TBD`. | Assign decision owner, enterprise-architecture, FinOps, and independent-assurance roles; raw audit → 25; decision → 6. |
 
 ### Phase 2 — Options and decision
 
 | Slide | Facilitation job and ask | Likely challenge and evidence reminder | Capture, branch, or rejoin |
 |---|---|---|---|
 | [4 · KGE-04](https://tomqwu.github.io/apim/#/present/kong-platform-journey-guided/3) | Agree the business conditions under which each option becomes stronger. | “The feature list is biased or incomplete.” These are conditional archetypes, not a rank. | Convert product debate into symmetric evidence; appendix → 22–24; return → 6. |
-| [5 · KGE-05](https://tomqwu.github.io/apim/#/present/kong-platform-journey-guided/4) | Treat the corrected score as directional preference input only. | “93 proves fit.” Correct arithmetic is 93, 85.5, and 77, but confidence and sensitivity are missing. | Record acceptance of arithmetic and limits. Audit → 25; decision → 6. |
-| [6 · KGE-06](https://tomqwu.github.io/apim/#/present/kong-platform-journey-guided/5) | Decide separately on `KP-SMH1`, one reversible foundation, GEP-01–06, custody/exit benchmarks, and the block on critical scale. | “Why choose before PoC?” The authorization is foundation plus proof, not production. | Record approve/amend/hold for every row and dissent. Return here at close. |
+| [5 · KGE-05](https://tomqwu.github.io/apim/#/present/kong-platform-journey-guided/4) | Preserve the historical score and approve only the controls for a future governed recalculation. | “Make the score more convincing.” Correct arithmetic is 93, 85.5, and 77; no expanded total exists until exact options, rubric, evidence, weights, confidence, scorers, sensitivity, and dissent close. | Record the historical score’s permitted use and the governed re-score owner roles. Audit → 25; decision → 6. |
+| [6 · KGE-06](https://tomqwu.github.io/apim/#/present/kong-platform-journey-guided/5) | Decide separately on `KP-SMH1`, one reversible foundation, GEP-01–07, custody/exit benchmarks, and the block on critical scale. | “Why choose before PoC?” The authorization is foundation plus proof, not production. | Record approve/amend/hold for every row and dissent. Return here at close. |
 | [7 · KGE-07](https://tomqwu.github.io/apim/#/present/kong-platform-journey-guided/6) | Confirm self-managed lead, Konnect custody benchmark, and a true non-Kong exit as distinct boundaries. | “Konnect is the exit.” It is a same-vendor custody switch, not platform exit. | Name exact-option, custody-benchmark, and exit owners. Continue → 8. |
-| [8 · KGE-08](https://tomqwu.github.io/apim/#/present/kong-platform-journey-guided/7) | Confirm permanent control-plane, database, PKI, release, restore, support, and on-call ownership. | “Cached DP continuity removes the duty.” It is narrower than mutation, recovery, and 24×7 ownership. | Capture RACI, capacity, sourcing, and TCO gaps. No accountable owner = HOLD. |
+| [8 · KGE-08](https://tomqwu.github.io/apim/#/present/kong-platform-journey-guided/7) | Confirm role ownership and funded capacity for control-plane, PostgreSQL, PKI, plugin/license, release, restore, audit, support, and on-call duty. | “Who carries the liability?” The slide allocates operating accountability and risk exposure; legal liability requires counsel and exact contracts. | Capture public role RACI, capacity, sourcing, support, and TCO gaps. No accountable owner = HOLD. |
 
 ### Phase 3 — Architecture and adoption
 
@@ -197,26 +207,26 @@ Use the index below as the compact discussion control. The complete point-of-use
 |---|---|---|---|
 | [14 · KGE-14](https://tomqwu.github.io/apim/#/present/kong-platform-journey-guided/13) | Adopt the responsibility and durable-state taxonomy. | “Move Mule packages to Kong.” Only gateway policy is unambiguous; facade is conditional and other duties need owned destinations. | Name inventory, classification, destination, and state-authority owners. Continue → 15. |
 | [15 · KGE-15](https://tomqwu.github.io/apim/#/present/kong-platform-journey-guided/14) | Require bounded cohorts, parity probes, reconciliation, and route-back. | “Dual run is too costly” or “the edge must already be Kong.” The stable-edge pattern is product-neutral and safety-driven. | Capture cohort, business-verifier, route-back, and evidence-retention owners. Continue → 16. |
-| [16 · KGE-16](https://tomqwu.github.io/apim/#/present/kong-platform-journey-guided/15) | Agree evidence entry and exit controls for M0–M5. | “Give counts and committed dates.” Elapsed time and object count do not prove parity or dependency zero. | Capture per-wave evidence and retirement authority. Unknown state or irreversible cutover = HOLD. |
+| [16 · KGE-16](https://tomqwu.github.io/apim/#/present/kong-platform-journey-guided/15) | Agree source-specific evidence controls for Mule M0–M5 and Apigee A0–A6. | “Exported proxies are the Apigee roadmap.” Bundles omit product/app/credential, KVM/quota/cache, portal, analytics, placement, and Hybrid state. Names are not semantic mappings. | Capture source archetype, object/state denominator, terminology mapping, per-wave evidence, route-back, and dependency-zero authority. |
 
 ### Phase 5 — Production proof
 
 | Slide | Facilitation job and ask | Likely challenge and evidence reminder | Capture, branch, or rejoin |
 |---|---|---|---|
 | [17 · KGE-17](https://tomqwu.github.io/apim/#/present/kong-platform-journey-guided/16) | Establish the exact current evidence baseline. | “5/16 means 31% ready” or “28 means more completed proof.” The 16 register and 28 atomic cases are non-additive; target E3/E4 is zero. | Capture agreement or disputed result IDs. Continue → 18. |
-| [18 · KGE-18](https://tomqwu.github.io/apim/#/present/kong-platform-journey-guided/17) | Authorize GEP-01–06 with owner, environment/BOM, measure, threshold, raw artifact, reviewer, and stop rule. | “Documentation already proves 3.14” or “AI should decide.” All workstreams are not run; exact version/entitlement/support must be frozen; agentic proof stays separate. | Missing threshold, artifact, reviewer, or stop rule = HOLD. AI branch → 23; rejoin → 19. |
+| [18 · KGE-18](https://tomqwu.github.io/apim/#/present/kong-platform-journey-guided/17) | Authorize GEP-01–07 with role owner, environment/BOM, measure, threshold, raw artifact, reviewer, and stop rule. | Traceable is an `E1` third-party adjunct hypothesis, not platform proof; GEP-07 must resolve exact versions/support, data and failure paths, coverage, overhead, privacy, lifecycle, and baseline parity. | Missing threshold, artifact, reviewer, or stop rule = HOLD. Traceable/AI branch → 23; outcomes → 19–20. |
 | [19 · KGE-19](https://tomqwu.github.io/apim/#/present/kong-platform-journey-guided/18) | Agree thresholds, artifacts, cadence, and owners for KO-1–KO-5. | “The mechanism should be enough.” These are proposed target forms, not achieved results. | Capture missing thresholds and artifact schemas. Continue → 20. |
-| [20 · KGE-20](https://tomqwu.github.io/apim/#/present/kong-platform-journey-guided/19) | Agree KO-6–KO-11 and identify the most likely scale blocker. | “Technical health is enough.” Admission also includes evidence safety, adoption, toil, exit, and estate truth. | Capture likely blocker, owner, data, cadence, cost model, and exit rehearsal. Continue → 21. |
+| [20 · KGE-20](https://tomqwu.github.io/apim/#/present/kong-platform-journey-guided/19) | Agree KO-6–KO-11 and identify the most likely scale blocker; treat KO-7 as security traceability and evidence safety, not a product label. | “Traceable provides traceability, so KO-7 passes.” A mechanism cannot substitute for request/config/security/business correlation, quantified gaps, and prohibited-field control. | Capture likely blocker, outcome owner, data, cadence, evidence gaps, adjunct dependency, cost model, and exit rehearsal. |
 | [21 · KGE-21](https://tomqwu.github.io/apim/#/present/kong-platform-journey-guided/20) | Pre-commit scale, narrow, switch custody, exit, and hold authority. | “The selection is already fixed.” No outcome is preselected; negative evidence must change scope or direction. | Capture decision rights and non-waivable gates. Return to 6 and close. |
 
 ### Phase 6 — Audit appendix
 
 | Slide | Facilitation job and ask | Likely challenge and evidence reminder | Capture, branch, or rejoin |
 |---|---|---|---|
-| [22 · KGE-22](https://tomqwu.github.io/apim/#/present/kong-platform-journey-guided/21) | Turn disputed architecture/delivery labels into proof questions. | Supplied labels are edition- and version-sensitive and unverified. | Add evidence backlog; do not rescore in the room. Rejoin → 4 or 6. |
-| [23 · KGE-23](https://tomqwu.github.io/apim/#/present/kong-platform-journey-guided/22) | Assign owners and artifacts for management, developer-experience, customization, and AI claims. | AI and product claims change with edition, version, topology, and date. | Capture exact use cases and version/plugin matrix. Workstream → 18; economics → 24. |
-| [24 · KGE-24](https://tomqwu.github.io/apim/#/present/kong-platform-journey-guided/23) | Assign TCO, custody, support, migration, and exit evidence. | “License price is TCO” or “low lock-in is obvious.” No commercial or clean-exit proof exists. | Name FinOps/sourcing owner and assumptions. Outcomes → 21; scoring → 25. |
-| [25 · KGE-25](https://tomqwu.github.io/apim/#/present/kong-platform-journey-guided/24) | Decide whether the scorecard remains a governance input and audit its arithmetic. | Corrected arithmetic does not create a rubric, confidence model, sensitivity, or benchmark. | Capture scorer, rubric, confidence, sensitivity, and sign-off. Never finish here; return → 6 or 21. |
+| [22 · KGE-22](https://tomqwu.github.io/apim/#/present/kong-platform-journey-guided/21) | Turn architecture, multicloud, scalability, and robustness labels into symmetric proof questions. | Supplied labels are edition- and version-sensitive; scalability and robustness remain explicitly unscored. | Assign architecture/SRE evidence roles; do not rescore in the room. Rejoin → 4 or 6. |
+| [23 · KGE-23](https://tomqwu.github.io/apim/#/present/kong-platform-journey-guided/22) | Assign evidence for management, AI, and security traceability, including GEP-07 Kong-plus-Traceable. | A documented plugin/agent path is feasibility, not a gateway score, security result, or production recommendation. | Capture exact BOM/use cases, support, data/failure path, performance, lifecycle, artifact, reviewer, and role owner. Workstream → 18. |
+| [24 · KGE-24](https://tomqwu.github.io/apim/#/present/kong-platform-journey-guided/23) | Assign normalized pricing, lock-in/rebuild, control-plane duty, adjunct, migration, dual-run, and exit evidence. | Public price pages and architecture labels do not create comparable TCO or reversibility evidence. | Assign FinOps, sourcing, platform/SRE, and migration owner roles. Outcomes → 21; scoring → 25. |
+| [25 · KGE-25](https://tomqwu.github.io/apim/#/present/kong-platform-journey-guided/24) | Preserve the historical audit and approve the governed re-score controls, not new totals. | Corrected arithmetic does not create exact options, mandatory gates, rubric, evidence confidence, sensitivity, bounds, or regret analysis. | Assign independent scoring-assurance roles and due gate. Never finish here; return → 6 or 21. |
 
 ## Complete speaker notes and side talks
 
@@ -353,19 +363,19 @@ HOLD scoring when a material target input is disputed without an owner. Park onl
 - **Native route:** [Open slide 3](https://tomqwu.github.io/apim/#/present/kong-platform-journey-guided/2) (`#/present/kong-platform-journey-guided/2`)
 - **Timebox:** 4 minutes
 - **Evidence state:** Stakeholder input
-- **Meeting job:** Approve the weight model’s use, missing dimensions, sensitivity ranges, and dissent record.
+- **Meeting job:** Approve the governed re-score specification and role ownership without assigning new product ratings or changing the historical score.
 
 ##### Purpose
 
-Make the decision model transparent before showing a result.
+Make the historical weighting model transparent and expose the dimensions required for a governed re-score.
 
 ##### Talk track
 
-Eight weighted categories sum to 100%. Developer experience and multicloud appear in the narrative but not as distinct weights. Migration effort and operating labor are also absent, so the score is a directional preference model, not a full business case.
+Eight supplied categories sum to 100%, and Kubernetes plus GitOps carry 35%. Multicloud, robustness, reversibility/vendor dependency, fully allocated TCO, and control-plane operating responsibility are absent or compressed in that simplified model, but they are already present in the canonical 120-criterion matrix. The proposed `GRS-01`–`GRS-06` specification exposes them without duplicating the taxonomy. Its weights and ratings remain `TBD`.
 
 ##### Ask
 
-Confirm the weights and add sensitivity ranges before using them as an approval mechanism.
+Approve the re-score dimensions, exact-option boundary, mandatory gates, evidence floor, role-based scorer and approver panel, weight ranges, confidence treatment, sensitivity method, dissent rule, and permitted decision use. Do not assign ratings in this meeting.
 
 ##### Bridge
 
@@ -373,32 +383,34 @@ Now compare operating-model fit rather than treating these products as interchan
 
 ##### Caveat
 
-Ratings lack a documented rubric, named scorers, evidence confidence, product edition and sensitivity analysis.
+The proposed re-score is pending, not a revised ranking. Ratings still lack an approved rubric, score-capable evidence, exact options, scorer panel, confidence, common-evidence treatment, bounds, maximum-regret analysis, and sensitivity approval.
 
 ##### Sources
 
 - Canonical weighting record: [Kong guided evaluation — Supplied weighting model](48-kong-guided-evaluation.md#supplied-weighting-model).
+- Feedback-to-criteria mapping and pending controls: [Meeting-feedback assurance crosswalk](48-kong-guided-evaluation.md#meeting-feedback-assurance-crosswalk) and [Proposed governed re-score](48-kong-guided-evaluation.md#proposed-governed-re-score).
+- Existing score governance: [Decision-matrix scoring guide](../decision-matrix/scoring-guide.md).
 - Official contextual mechanism (`E1` only): [Kong deployment topologies](https://developer.konghq.com/gateway/deployment-topologies/) and [Kong hybrid mode](https://developer.konghq.com/gateway/hybrid-mode/).
 
 ##### Listen for
 
-“The model is subjective,” “Kubernetes and GitOps bias the answer,” or a demand to use the displayed weights without sensitivity.
+“The model is subjective,” “Kubernetes and GitOps bias the answer,” “multicloud and lock-in were omitted from the whole assessment,” or “re-score it to make the recommendation more convincing.”
 
 ##### Evidence-safe response
 
-The weights are stakeholder choices. Kubernetes plus GitOps carrying 35% explains much of the preference, but it does not establish confidence, economics, migration feasibility, or production fit.
+The original weights are stakeholder choices and remain an audit record. The missing concerns already exist in the canonical matrix; the gap is their visibility in the simplified scorecard. The correction is a more auditable decision process, not a more favorable total. No score changes until exact options, mandatory gates, dimensions, weights/ranges, rubric, evidence floor, confidence, scorers, sensitivity, and dissent are approved.
 
 ##### Follow-up probe
 
-Which missing dimension or plausible weight range could change the direction, and who will approve that sensitivity?
+Which proposed dimension could change the authorization, what score-capable evidence would it require, and which decision-owner, enterprise-architecture, FinOps, and independent-assurance roles approve the method?
 
 ##### Decision impact
 
-If an approved plausible sensitivity reverses the result, the direction cannot be treated as stable without an explicit business choice.
+Until the governed model is approved and run, the historical ranking can explain preference but cannot establish rank stability. If plausible ranges, evidence confidence, bounds, or maximum regret reverse the direction, the room must make that trade-off explicitly.
 
 ##### Capture
 
-Record weights, ranges, missing dimensions, scorers, confidence rules, dissent, and the sensitivity owner.
+Record the accepted `GRS-01`–`GRS-06` dimensions, exact options, mandatory gates, evidence floor, rubric owner, weight/range approver, scorer roles, confidence and unknown treatment, sensitivity and bounds method, dissent, due gate, and permitted decision use. Use public roles only; keep named-person assignment in the approved restricted system.
 
 ##### Branch/rejoin
 
@@ -406,7 +418,7 @@ Branch to slide 5 for score implications or slide 25 for the raw audit. Rejoin a
 
 ##### HOLD/park
 
-HOLD score-based authorization when material weights, scorers, or sensitivity remain unowned. Park detailed recalculation only with an approved rubric and slide-6 re-entry.
+HOLD score-based authorization while any exact option, mandatory gate, dimension, weight/range, rubric, evidence floor, confidence rule, scorer role, sensitivity method, dissent rule, or approval authority remains unresolved. Park recalculation only with a governed work item and slide-6 re-entry.
 
 ### Phase 2 — Options and decision
 
@@ -471,13 +483,13 @@ Branch to slides 22–24 for supplied comparison inputs. Rejoin at slide 6; do n
 
 HOLD if an agreed mandatory condition favors another option and no comparative proof is authorized. Park feature detail only as a symmetric evidence request.
 
-#### KGE-05 · The supplied model puts Kong first—before evidence confidence is applied
+#### KGE-05 · Preserve the historical score; govern the re-score
 
 - **Phase:** `KGE-P2 — Options and decision`
 - **Native route:** [Open slide 5](https://tomqwu.github.io/apim/#/present/kong-platform-journey-guided/4) (`#/present/kong-platform-journey-guided/4`)
 - **Timebox:** 3 minutes
 - **Evidence state:** Stakeholder input
-- **Meeting job:** Accept the corrected arithmetic while limiting the score to directional preference input.
+- **Meeting job:** Preserve the corrected historical arithmetic, define its permitted use, and authorize only the controls for a future governed recalculation.
 
 ##### Purpose
 
@@ -485,11 +497,11 @@ Use the scorecard transparently without overstating its evidentiary value.
 
 ##### Talk track
 
-The Kong total is 93. The same formula yields 85.5 for Apigee and 77 for MuleSoft, rather than 87 and 78 in the source results table. The ordering is unchanged, but the arithmetic and evidence limits matter.
+The historical inputs recalculate to 93 for Kong, 85.5 for Apigee, and 77 for MuleSoft rather than 87 and 78 in the source results table. Preserve those inputs and the correction for audit. Do not publish an expanded total until `GRS-01`–`GRS-06`, exact options, mandatory gates, rubric, score-capable evidence, weights, confidence, scorer panel, sensitivity, bounds, regret treatment, and dissent are approved.
 
 ##### Ask
 
-Treat the result as a directional preference to test, not a selection proof.
+Confirm that the historical score remains directional preference input only, then assign role ownership for a governed recalculation that is allowed to change—not preserve—the order.
 
 ##### Bridge
 
@@ -497,32 +509,33 @@ We can now state a bounded decision that preserves falsifiability.
 
 ##### Caveat
 
-No sensitivity analysis or confidence adjustment has been applied. Exact scores should stay out of external claims.
+No governed recalculation has been run. The added dimensions still have `TBD` weights and ratings, and the historical scores should not be presented as an independent benchmark, confidence percentage, or production-fit result.
 
 ##### Sources
 
 - Canonical arithmetic audit: [Kong guided evaluation — Supplied scoring audit](48-kong-guided-evaluation.md#supplied-scoring-audit).
+- Pending score governance: [Kong guided evaluation — Proposed governed re-score](48-kong-guided-evaluation.md#proposed-governed-re-score) and [Decision-matrix scoring guide](../decision-matrix/scoring-guide.md).
 - Official contextual mechanisms (`E1` only): [Kong deployment topologies](https://developer.konghq.com/gateway/deployment-topologies/), [Apigee hybrid 1.16](https://docs.cloud.google.com/apigee/docs/hybrid/v1.16/what-is-hybrid), [MuleSoft Omni Gateway](https://docs.mulesoft.com/gateway/latest/), and [Azure API Management self-hosted gateway](https://learn.microsoft.com/en-us/azure/api-management/self-hosted-gateway-overview).
 
 ##### Listen for
 
-“A score of 93 proves fit,” or “the corrected totals invalidate the whole exercise.”
+“A score of 93 proves fit,” “the corrected totals invalidate the whole exercise,” or “change the criteria and ratings until the recommendation is more convincing.”
 
 ##### Evidence-safe response
 
-The correction makes the input auditable; it does not create a rubric, confidence model, sensitivity analysis, or executed comparison. Arithmetic and evidence confidence are different questions.
+The correction makes the historical input auditable. It does not create exact options, mandatory-gate results, a rubric, common evidence, confidence, sensitivity, bounds, maximum regret, or an executed comparison. A governed re-score is valuable only if it can expose instability or reverse the direction; it must not be tuned to defend a preferred rank.
 
 ##### Follow-up probe
 
-Should this score remain a governance input, and what controls must exist before it can influence authorization?
+Should the historical score remain an explanatory input, what evidence ceiling applies, and which independent scoring-assurance role will attest that the future recalculation used the pre-approved method?
 
 ##### Decision impact
 
-The score may explain preference but cannot offset an unknown or failed mandatory gate.
+The score may explain preference but cannot offset an unknown or failed mandatory gate. Until the governed recalculation closes, no new total can influence option authorization.
 
 ##### Capture
 
-Record acceptance or dispute of the arithmetic, the permitted use of the score, and the controls required for recalculation.
+Record acceptance or dispute of the arithmetic, permitted use, exact-option and mandatory-gate prerequisites, approved dimensions and weight ranges, rubric, evidence floor, confidence/unknown treatment, scorer and approver roles, sensitivity, bounds/regret method, dissent, assurance reviewer, and due gate.
 
 ##### Branch/rejoin
 
@@ -530,7 +543,7 @@ Branch to slide 25 for raw inputs; rejoin at slide 6.
 
 ##### HOLD/park
 
-HOLD any attempt to convert the score into production approval. Park recalculation only with named scorers, rubric, confidence, and sensitivity.
+HOLD any attempt to convert the historical score into selection or production approval, or to change weights/ratings before the governed method closes. Park recalculation only with public role owners, an approved specification, and a slide-6 re-entry.
 
 #### KGE-06 · Proceed with a bounded, reversible Kong foundation
 
@@ -583,7 +596,7 @@ This is the primary authority boundary; ambiguity here contaminates every later 
 
 ##### Capture
 
-Record approve/amend/hold for the exact target, foundation, GEP-01–06, custody benchmark, true exit, and production-scale block, including dissent.
+Record approve/amend/hold for the exact target, foundation, GEP-01–07, custody benchmark, true exit, and production-scale block, including dissent.
 
 ##### Branch/rejoin
 
@@ -654,25 +667,25 @@ Branch to slides 8 and 12 for duty or slide 24 for economics and exit. Rejoin at
 
 HOLD if the leading target lacks an exact boundary or if custody switch and platform exit are treated as the same control.
 
-#### KGE-08 · Self-managed control works only if the enterprise funds the duty
+#### KGE-08 · Control-plane custody transfers operating accountability
 
 - **Phase:** `KGE-P2 — Options and decision`
 - **Native route:** [Open slide 8](https://tomqwu.github.io/apim/#/present/kong-platform-journey-guided/7) (`#/present/kong-platform-journey-guided/7`)
 - **Timebox:** 4 minutes
 - **Evidence state:** Proposed target
-- **Meeting job:** Confirm permanent platform, database, PKI, release, restore, observability, support, and on-call ownership.
+- **Meeting job:** Confirm funded role ownership for permanent CP, PostgreSQL, PKI, plugin/license, release, restore, observability/audit, support, upgrade, and on-call accountability.
 
 ##### Purpose
 
-Make the cost side of the target operating boundary visible.
+Make the accountability, risk, and fully allocated cost side of the target operating boundary visible without making an unsupported legal conclusion.
 
 ##### Talk track
 
-The same custody that makes self-managed Kong attractive also creates permanent CP, database, PKI, upgrade, restore and 24×7 obligations. Those duties must have named owners and funded capacity.
+The same custody that makes self-managed Kong attractive transfers permanent CP, PostgreSQL, PKI, Admin API, plugin/license, audit, upgrade, restore, support, and 24×7 service duties to enterprise roles. Cached data-plane service narrows one failure consequence; it does not remove control-plane recovery, urgent mutation/revocation, clean-node scale, reconciliation, or service accountability.
 
 ##### Ask
 
-Confirm whether these duties belong inside the enterprise platform operating model.
+Confirm whether platform product, database/SRE, PKI/security, release engineering, service management, sourcing/FinOps, and support roles accept the duty, capacity, objectives, evidence, and escalation path.
 
 ##### Bridge
 
@@ -680,32 +693,33 @@ With the boundary explicit, the target topology becomes simple enough to explain
 
 ##### Caveat
 
-Control-plane outage continuity does not imply mutation, revocation or recovery guarantees; those are separate tests.
+This is an operating-accountability and risk-exposure statement. Contractual allocation depends on exact support and commercial evidence; legal liability requires counsel in the approved restricted process. Control-plane continuity does not imply mutation, revocation, clean-node admission, or recovery guarantees.
 
 ##### Sources
 
 - Canonical duty model: [Kong enterprise platform deployment strategy](47-kong-enterprise-platform-strategy.md) and [Kong guided evaluation](48-kong-guided-evaluation.md).
+- Terminology and non-equivalence: [Kong terminology crosswalk](../research/glossary.md#kong-terminology-crosswalk).
 - Official documented mechanisms (`E1` only): [Kong hybrid mode](https://developer.konghq.com/gateway/hybrid-mode/) and [Kong Gateway version support policy](https://developer.konghq.com/gateway/version-support-policy/).
 
 ##### Listen for
 
-“Cached data-plane continuity removes the duty,” “the vendor owns this,” or an assumption that the current team can absorb it without capacity evidence.
+“Cached data-plane continuity removes the duty,” “the vendor owns this,” “who carries the liability?” or an assumption that the current team can absorb it without capacity evidence.
 
 ##### Evidence-safe response
 
-Cached proxying is narrower than mutation, revocation, clean-node scale, reconciliation, recovery, and 24×7 service accountability. Vendor support does not transfer those duties.
+Cached proxying is narrower than mutation, revocation, clean-node scale, reconciliation, recovery, and 24×7 service accountability. Vendor support can supply an escalation path but does not transfer the enterprise service duty. The public decision can allocate operational ownership and cost; it cannot adjudicate legal liability.
 
 ##### Follow-up probe
 
-Who owns each permanent duty, with what funded capacity, response objective, restore evidence, and escalation path?
+Which public role owns each permanent duty, with what funded capacity, response/recovery objective, restore and upgrade evidence, vendor escalation path, contractual assumption, and decision authority during degraded state?
 
 ##### Decision impact
 
-Without accountable and funded duty, the self-managed target is non-admissible regardless of documented capability.
+Without accountable and funded duty, the self-managed target is non-admissible regardless of documented capability. If contractual or legal allocation could change the answer, hold that branch for sourcing or counsel evidence rather than resolving it through architecture language.
 
 ##### Capture
 
-Record RACI, staffing and sourcing gaps, on-call coverage, restore ownership, capacity assumptions, and TCO evidence requests.
+Record public role RACI, staffing and sourcing gaps, on-call coverage, restore/upgrade ownership, response objectives, support handoff, capacity assumptions, fully allocated TCO evidence, and any restricted contractual/legal referral. Do not publish named-person assignments.
 
 ##### Branch/rejoin
 
@@ -713,7 +727,7 @@ Branch to slides 9–12 for architecture and ownership or slides 20 and 24 for s
 
 ##### HOLD/park
 
-HOLD when any control-plane, database, PKI, release, restore, observability, support, or on-call duty lacks an accountable funded owner.
+HOLD when any CP, PostgreSQL, PKI, plugin/license, release, restore, audit/observability, upgrade, support, or on-call duty lacks an accountable funded role, measurable objective, evidence obligation, or escalation path. Do not park unresolved operating accountability as a legal question.
 
 ### Phase 3 — Architecture and adoption
 
@@ -1054,8 +1068,8 @@ This is a migration doctrine. Actual destination selection requires workload-lev
 
 ##### Sources
 
-- Canonical migration and decision content: [Mule migration strategy](35-mule-migration-strategy.md) and [Kong guided evaluation](48-kong-guided-evaluation.md).
-- Official contextual mechanisms (`E1` only): [MuleSoft Omni Gateway](https://docs.mulesoft.com/gateway/latest/) and [Kong deployment topologies](https://developer.konghq.com/gateway/deployment-topologies/).
+- Canonical migration and decision content: [Mule migration strategy](35-mule-migration-strategy.md), [Kong terminology crosswalk](../research/glossary.md#kong-terminology-crosswalk), and [Kong guided evaluation](48-kong-guided-evaluation.md).
+- Official contextual mechanisms (`E1` only): [MuleSoft Omni Gateway](https://docs.mulesoft.com/gateway/latest/), [Kong entities](https://developer.konghq.com/gateway/entities/), [Kong plugin scope](https://developer.konghq.com/gateway/entities/plugin/), [Kong deployment topologies](https://developer.konghq.com/gateway/deployment-topologies/), [Apigee proxy-bundle export and import](https://docs.cloud.google.com/apigee/docs/api-platform/fundamentals/download-api-proxies), and [Apigee proxy configuration](https://docs.cloud.google.com/apigee/docs/api-platform/reference/api-proxy-configuration-reference).
 
 ##### Listen for
 
@@ -1116,7 +1130,7 @@ The coexistence figure deliberately says stable API edge; the source migration s
 ##### Sources
 
 - Canonical coexistence and decision content: [Mule migration strategy](35-mule-migration-strategy.md) and [Kong guided evaluation](48-kong-guided-evaluation.md).
-- Official contextual mechanisms (`E1` only): [MuleSoft Omni Gateway](https://docs.mulesoft.com/gateway/latest/) and [Kong deployment topologies](https://developer.konghq.com/gateway/deployment-topologies/).
+- Official contextual mechanisms (`E1` only): [MuleSoft Omni Gateway](https://docs.mulesoft.com/gateway/latest/), [Kong entities](https://developer.konghq.com/gateway/entities/), [Kong plugin scope](https://developer.konghq.com/gateway/entities/plugin/), [Kong deployment topologies](https://developer.konghq.com/gateway/deployment-topologies/), [Apigee proxy-bundle export and import](https://docs.cloud.google.com/apigee/docs/api-platform/fundamentals/download-api-proxies), and [Apigee proxy configuration](https://docs.cloud.google.com/apigee/docs/api-platform/reference/api-proxy-configuration-reference).
 
 ##### Listen for
 
@@ -1146,25 +1160,25 @@ Branch to slide 14 for classification, slide 16 for wave controls, or slide 24 f
 
 HOLD a cohort without representative parity, business correctness, reconciliation, and route-back. Park cost optimization only after the safety boundary is preserved.
 
-#### KGE-16 · Migration advances on evidence—not time
+#### KGE-16 · Mule and Apigee migration advance on evidence—not time
 
 - **Phase:** `KGE-P4 — Migration`
 - **Native route:** [Open slide 16](https://tomqwu.github.io/apim/#/present/kong-platform-journey-guided/15) (`#/present/kong-platform-journey-guided/15`)
 - **Timebox:** 4 minutes
 - **Evidence state:** Proposed migration model
-- **Meeting job:** Agree evidence entry and exit controls for M0–M5 and name retirement authority.
+- **Meeting job:** Agree source-specific entry/exit controls for Mule M0–M5 and Apigee A0–A6, with route-back, reconciliation, and dependency-zero authority.
 
 ##### Purpose
 
-Sequence migration by evidence complexity rather than package count.
+Use one stable-edge and evidence-gate doctrine while preserving the different migration units and state boundaries of Mule and Apigee.
 
 ##### Talk track
 
-M0 establishes inventory and safety; M1 handles gateway-dominant work; M2 proves representative hard integrations; M3 establishes the domain factory; M4 resolves the connector and batch tail; M5 retires the shared runtime only after dependency zero.
+For Mule, M0 establishes inventory and safety; M1 handles gateway-dominant work; M2 proves representative hard integrations; M3 establishes the domain factory; M4 resolves the connector and batch tail; and M5 retires the shared runtime only after dependency zero. For Apigee, A0 inventories the complete object/state graph; A1 classifies semantic disposition; A2 builds a reversible target; A3 proves a hard representative slice; A4 runs bounded coexistence; A5 collects production-canary evidence; and A6 closes technical, operating, recovery, data, support, and commercial dependency zero.
 
 ##### Ask
 
-Adopt entry/exit evidence as the wave control, not elapsed time or migrated object count.
+Confirm the actual source archetype, choose the relevant rail, and adopt entry/exit evidence rather than elapsed time, package count, or exported proxy count. Assign migration architecture, API product, IAM/security, SRE, domain, FinOps/sourcing, and independent-review roles.
 
 ##### Bridge
 
@@ -1172,40 +1186,41 @@ The current PoC evidence is far earlier than these production gates.
 
 ##### Caveat
 
-These phases are scenario planning. They do not assert current programme progress or duration.
+These phases are proposed and not run. They do not assert current programme progress, duration, object count, converter success, or semantic parity. The terminology crosswalk supplies nearest analogues only; each mapping still requires behavior, state, lifecycle, authority, evidence, and ownership proof.
 
 ##### Sources
 
-- Canonical wave and decision content: [Mule migration strategy](35-mule-migration-strategy.md) and [Kong guided evaluation](48-kong-guided-evaluation.md).
-- Official contextual mechanisms (`E1` only): [MuleSoft Omni Gateway](https://docs.mulesoft.com/gateway/latest/) and [Kong deployment topologies](https://developer.konghq.com/gateway/deployment-topologies/).
+- Canonical wave and decision content: [Mule migration strategy](35-mule-migration-strategy.md), [Apigee migration strategy](50-apigee-migration-strategy.md#proposed-a0a6-migration-roadmap), and [Kong guided evaluation](48-kong-guided-evaluation.md).
+- Mapping aid: [Kong terminology crosswalk](../research/glossary.md#kong-terminology-crosswalk).
+- Official contextual mechanisms (`E1` only): [MuleSoft Omni Gateway](https://docs.mulesoft.com/gateway/latest/), [Apigee proxy-bundle export and import](https://docs.cloud.google.com/apigee/docs/api-platform/fundamentals/download-api-proxies), [Apigee proxy configuration](https://docs.cloud.google.com/apigee/docs/api-platform/reference/api-proxy-configuration-reference), [Kong entities](https://developer.konghq.com/gateway/entities/), [Kong plugin scope](https://developer.konghq.com/gateway/entities/plugin/), and [Kong deployment topologies](https://developer.konghq.com/gateway/deployment-topologies/).
 
 ##### Listen for
 
-“Give us committed counts and dates,” “object migration percentage proves progress,” or pressure to retire the shared runtime before dependency zero.
+“Give us committed counts and dates,” “object migration percentage proves progress,” “Apigee proxy export is the roadmap,” “this source object maps directly to a same-named Kong entity,” or pressure to retire the source before dependency zero.
 
 ##### Evidence-safe response
 
-Elapsed time and object count do not prove business parity, residual dependency, reconciliation, or safe retirement. Each wave advances only on owned entry and exit evidence.
+Elapsed time, package count, and proxy bundles do not prove business parity, identity/product state, KVM/quota/cache behavior, portal/evidence continuity, residual dependency, reconciliation, or safe retirement. A source term is a mapping prompt, not a semantic result. Each rail advances only on source-specific, owned entry and exit evidence.
 
 ##### Follow-up probe
 
-What evidence opens and closes each wave, who validates dependency zero, and who can stop or reverse retirement?
+Which source archetype and object/state denominator apply, what evidence opens and closes each wave, which business and identity/state probes govern route-back, who validates dependency zero, and which role can stop or reverse retirement?
 
 ##### Decision impact
 
-Time-led progression can produce irreversible cutover while state, parity, or residual dependency remains unknown.
+Time-led or proxy-only progression can produce irreversible cutover while semantics, identity, runtime state, evidence history, support, cost, or residual dependency remains unknown.
 
 ##### Capture
 
-Record per-wave entry and exit evidence, dependencies, representative cases, route-back condition, retirement authority, and unresolved assumptions.
+Record source archetype, reconciled object/state/traffic/owner denominator, terminology non-equivalences, per-wave entry and exit evidence, representative hard cases, identity/state authority, business probes, route-back and reconciliation conditions, dependency-zero definition, public role owners, independent reviewers, and unresolved assumptions.
 
 ##### Branch/rejoin
 
-Branch to slides 17–18 for the current evidence gap or slides 20–21 for outcome and retirement authority. Rejoin at slide 21.
+Branch to slides 14–15 for responsibility/coexistence, slides 17–18 for the current evidence gap, or slides 20–21 for outcome and retirement authority. Use the Apigee roadmap and terminology crosswalk as the detailed side talk; rejoin at slide 21.
 
 ##### HOLD/park
 
-HOLD when business parity, state authority, reconciliation, route-back, or dependency-zero evidence is missing. Do not park an irreversible cutover risk.
+HOLD when source archetype, object/state denominator, semantic parity, identity/state authority, business probes, reconciliation, route-back, or dependency-zero evidence is missing. An exported bundle or name mapping cannot close the hold. Do not park an irreversible cutover risk.
 
 ### Phase 5 — Production proof
 
@@ -1276,7 +1291,7 @@ HOLD any readiness percentage or production claim derived from these non-additiv
 - **Native route:** [Open slide 18](https://tomqwu.github.io/apim/#/present/kong-platform-journey-guided/17) (`#/present/kong-platform-journey-guided/17`)
 - **Timebox:** 6 minutes
 - **Evidence state:** Not run
-- **Meeting job:** Authorize GEP-01–06 with an exact environment, owner, measure, threshold, raw artifact, reviewer, and stop rule.
+- **Meeting job:** Authorize GEP-01–07 with an exact environment, public role owner, measure, threshold, raw artifact, independent reviewer, and stop rule.
 
 ##### Purpose
 
@@ -1284,11 +1299,11 @@ Turn the current evidence gap into an executable, target-shaped proof programme.
 
 ##### Talk track
 
-This is not a larger feature demonstration. Each workstream needs a representative environment, named owner, test method, measure, acceptance artifact, threshold and stop condition. The agentic-gateway study remains separate so emerging capabilities do not inflate confidence in the core gateway.
+This is not a larger feature demonstration. GEP-01–06 prove the target, APIOps, regional resilience, enterprise IAM, separate agentic study, and evidence-gated recommendation. GEP-07 is a separate security-adjunct feasibility line for Kong plus Traceable against the security team’s Mule baseline. Each workstream needs a representative environment, public role owner, exact BOM, method, measure, acceptance artifact, threshold, independent reviewer, and stop condition.
 
 ##### Ask
 
-Approve these six workstreams, their owners, capacity and evidence budget—not production scale.
+Approve these seven workstreams, their role owners, capacity, evidence budget, reviewers, and stop authority—not production scale and not a Traceable production recommendation.
 
 ##### Bridge
 
@@ -1296,40 +1311,41 @@ Once the proof scope is fixed, production readiness is judged through the outcom
 
 ##### Caveat
 
-These are required proof activities, not completed results. Verify the Kong Enterprise 3.14 edition, licensing and support status before claiming any capability; retain explicit not-run states.
+These are required proof activities, not completed results. For GEP-07, current documentation supports only an `E1` plugin/agent feasibility path. It does not certify the exact Kong Enterprise 3.14 patch, plugin/TPA/EDS BOM, topology, entitlement, support, performance, protocol/payload/streaming coverage, data handling, fail behavior, comparative parity, lifecycle, cost, or production outcome.
 
 ##### Sources
 
-- Canonical proof programme: [Kong guided evaluation — Six-workstream target-aligned proof programme](48-kong-guided-evaluation.md#six-workstream-target-aligned-proof-programme).
-- Official documented mechanisms (`E1` only): [Kong Gateway version support policy](https://developer.konghq.com/gateway/version-support-policy/), [Kong hybrid mode](https://developer.konghq.com/gateway/hybrid-mode/), [Kong Gateway monitoring](https://developer.konghq.com/gateway/monitoring/), and [Kong AI Gateway](https://developer.konghq.com/ai-gateway/).
+- Canonical proof programme: [Kong guided evaluation — Seven-workstream target-aligned proof programme](48-kong-guided-evaluation.md#seven-workstream-target-aligned-proof-programme).
+- Traceable evidence boundary: [Traceable by Harness security-adjunct feasibility](48-kong-guided-evaluation.md#traceable-by-harness-security-adjunct-feasibility).
+- Official documented mechanisms (`E1` only): [Kong Gateway version support policy](https://developer.konghq.com/gateway/version-support-policy/), [Kong hybrid mode](https://developer.konghq.com/gateway/hybrid-mode/), [Kong Gateway monitoring](https://developer.konghq.com/gateway/monitoring/), [Kong AI Gateway](https://developer.konghq.com/ai-gateway/), [Traceable Kong integration](https://docs.traceable.ai/docs/kong), and [Harness WAAP plugin](https://developer.konghq.com/plugins/harness-waap/).
 
 ##### Listen for
 
-“Documentation already proves 3.14,” “the existing PoC is enough,” “the programme is too broad,” or “AI capability should count toward the core decision.”
+“Documentation already proves 3.14,” “the existing PoC is enough,” “Traceable makes the security team’s Mule use case feasible by definition,” “add Traceable as a scored Kong capability,” “the programme is too broad,” or “AI capability should count toward the core decision.”
 
 ##### Evidence-safe response
 
-Documentation supports test design, not entitlement, configured behavior, target execution, or production outcome. Narrow a workstream only when the omitted decision risk is explicit; keep agentic proof separately versioned.
+Documentation supports test design, not entitlement, configured behavior, target execution, or production outcome. Traceable is a third-party adjunct rather than a gateway option or native score: freeze its Kong/plugin/TPA/EDS BOM and support, trace the request/response/security-decision/data paths, classify protocol/body/streaming coverage, execute sync/async and fail-open/closed cases, measure latency/CPU/memory/throughput and agent scaling, verify privacy and correlation, and rehearse upgrade, rollback, uninstall, and route-back. Keep both GEP-05 agentic proof and GEP-07 adjunct proof separately versioned.
 
 ##### Follow-up probe
 
-For each GEP workstream, what exact BOM and environment, measure, threshold, raw artifact, independent reviewer, and stop rule will change the decision?
+For each GEP workstream, what exact BOM/environment, measure, threshold, raw artifact, independent reviewer, and stop rule will change the decision? For GEP-07, which security architecture, platform product, SRE/performance, privacy, support, and independent-assurance roles own the test and the baseline comparison?
 
 ##### Decision impact
 
-Missing target fidelity or review controls leaves documented capability unable to advance into production evidence.
+Missing target fidelity or review controls leaves documented capability unable to advance into production evidence. Missing GEP-07 evidence excludes the adjunct from security, traceability, parity, price, and production conclusions; it does not by itself reject Kong as a gateway.
 
 ##### Capture
 
-For GEP-01–06, record owner, capacity, exact BOM/environment, method, measure, threshold, raw artifact, reviewer, due gate, and stop rule.
+For GEP-01–07, record public role owner, capacity, exact BOM/environment, method, measure, threshold, raw artifact, independent reviewer, due gate, and stop rule. For GEP-07 also record source baseline, plugin/agent versions and checksums, support statement, data classification and flow, mode/failure policy, coverage corpus, resource envelope, privacy control, support RACI, and rollback/removal evidence. Keep named-person mappings restricted.
 
 ##### Branch/rejoin
 
-Branch to slide 23 for the agentic study, slides 19–20 for outcome forms, or slide 24 for economics. Rejoin at slide 19 and then slide 21.
+Branch to slide 23 for agentic or Traceable mechanism questions, slide 20 for security traceability and evidence safety, or slide 24 for fully allocated economics. Rejoin at slide 19 and then slide 21.
 
 ##### HOLD/park
 
-HOLD any workstream missing its exact option, environment, measure, threshold, artifact, reviewer, or stop rule. Park scope detail only with those fields and a slide-19 re-entry.
+HOLD any workstream missing its exact option, environment, measure, threshold, artifact, reviewer, or stop rule. HOLD GEP-07 on unsupported BOM, unauthorized pass, prohibited data flow, unbounded overhead, unclassified required protocol/use case, unowned support seam, or no safe rollback/removal. Park scope detail only with those fields and a slide-19 re-entry.
 
 #### KGE-19 · Five reviewable outcomes anchor production proof
 
@@ -1398,7 +1414,7 @@ HOLD an outcome without an approved measure, threshold, raw artifact, reviewer, 
 - **Native route:** [Open slide 20](https://tomqwu.github.io/apim/#/present/kong-platform-journey-guided/19) (`#/present/kong-platform-journey-guided/19`)
 - **Timebox:** 4 minutes
 - **Evidence state:** Proposed acceptance contract
-- **Meeting job:** Agree KO-6–KO-11 and identify the most likely scale blocker across technology, evidence, adoption, toil, exit, and estate truth.
+- **Meeting job:** Agree KO-6–KO-11 and identify the most likely scale blocker across capacity, security traceability/evidence safety, adoption, toil, exit, and estate truth.
 
 ##### Purpose
 
@@ -1406,11 +1422,11 @@ Complete the production decision with non-functional and organizational outcomes
 
 ##### Talk track
 
-Capacity and evidence safety matter, but so do adoption, operating sustainability, exit readiness and accurate estate ownership. Telemetry must stay off the critical path, gaps must be quantified, and prohibited fields must remain absent.
+Capacity and evidence safety matter, but so do adoption, operating sustainability, exit readiness and accurate estate ownership. KO-7 is an outcome: administrative/configuration audit, request and security-decision correlation, business evidence, quantified produced/queued/dropped/delivered gaps, and prohibited-field control. Traceable may be one candidate mechanism, but no product name can make KO-7 pass.
 
 ##### Ask
 
-Confirm which outcome is currently the likely scale blocker and who owns its evidence.
+Confirm which outcome is currently the likely scale blocker, which public role owns it, and whether any Traceable dependency is being treated as a mechanism to prove rather than an achieved outcome.
 
 ##### Bridge
 
@@ -1418,40 +1434,41 @@ The final decision must preserve four outcomes: scale, narrow, switch custody or
 
 ##### Caveat
 
-These are acceptance categories; no result is asserted on this slide.
+These are acceptance categories; no result is asserted on this slide. GEP-07 evidence may inform KO-7 only inside its exact tested boundary and cannot substitute for configuration audit, signal-gap accounting, business correlation, or enterprise evidence controls.
 
 ##### Sources
 
 - Canonical outcome contract: [Kong enterprise platform deployment strategy](47-kong-enterprise-platform-strategy.md) and [Kong guided evaluation](48-kong-guided-evaluation.md).
-- Official documented mechanisms (`E1` only): [Kong hybrid mode](https://developer.konghq.com/gateway/hybrid-mode/), [Kong Gateway monitoring](https://developer.konghq.com/gateway/monitoring/), and [Kong AI Gateway](https://developer.konghq.com/ai-gateway/).
+- Traceable evidence boundary: [Kong guided evaluation — Traceable by Harness security-adjunct feasibility](48-kong-guided-evaluation.md#traceable-by-harness-security-adjunct-feasibility).
+- Official documented mechanisms (`E1` only): [Kong hybrid mode](https://developer.konghq.com/gateway/hybrid-mode/), [Kong Gateway monitoring](https://developer.konghq.com/gateway/monitoring/), [Kong AI Gateway](https://developer.konghq.com/ai-gateway/), [Traceable Kong integration](https://docs.traceable.ai/docs/kong), and [Harness WAAP plugin](https://developer.konghq.com/plugins/harness-waap/).
 
 ##### Listen for
 
-“Technical health is enough,” “cost and adoption can wait,” or “exit readiness is unnecessary once the platform is selected.”
+“Technical health is enough,” “Traceable means traceability is covered,” “cost and adoption can wait,” or “exit readiness is unnecessary once the platform is selected.”
 
 ##### Evidence-safe response
 
-Production admission is a whole-operating-system decision. Capacity, evidence safety, adoption, operating sustainability, exit, and estate ownership can each block scale even when proxy behavior is healthy.
+Production admission is a whole-operating-system decision. Capacity, security traceability/evidence safety, adoption, operating sustainability, exit, and estate ownership can each block scale even when proxy behavior is healthy. Traceable is an adjunct hypothesis with its own data, failure, coverage, performance, support, and lifecycle risks; it is not the definition of traceability.
 
 ##### Follow-up probe
 
-Which KO-6–KO-11 outcome is most likely to block scale, what data proves it, and who has authority to act on failure?
+Which KO-6–KO-11 outcome is most likely to block scale, what end-to-end data proves it, which gaps are quantified, and which role has authority to act on failure? If Traceable is proposed, which KO-7 fields remain outside it?
 
 ##### Decision impact
 
-Ignoring organizational and economic outcomes converts installation success into unsupported production confidence and weakens reversibility.
+Ignoring organizational, evidence, and economic outcomes converts installation success into unsupported production confidence and weakens reversibility. Treating one adjunct as the outcome can also hide audit, correlation, privacy, or signal-loss gaps.
 
 ##### Capture
 
-Record the likely blocker, owner, data source, cadence, evidence-safety control, toil and cost model, adoption measure, estate owner, and exit rehearsal.
+Record the likely blocker, public role owner, data source, correlation query, produced/queued/dropped/delivered accounting, prohibited-field control, cadence, adjunct dependency and limitation, toil and cost model, adoption measure, estate owner, and exit rehearsal.
 
 ##### Branch/rejoin
 
-Branch to slide 12 for ownership or slide 24 for economics and exit. Rejoin at slide 21.
+Branch to slide 12 for ownership, slide 18 or 23 for GEP-07 and Traceable, or slide 24 for economics and exit. Rejoin at slide 21.
 
 ##### HOLD/park
 
-HOLD scale when any mandatory outcome is failed, unknown, unowned, or offset by a weighted score. Park only a bounded target value with an owner and review date.
+HOLD scale when any mandatory outcome is failed, unknown, unowned, or offset by a weighted score or product label. HOLD KO-7 on unexplained signal gaps, prohibited data, broken correlation, unsafe failure behavior, or an unproved critical adjunct dependency. Park only a bounded target value with a role owner and review date.
 
 #### KGE-21 · Negative evidence must change the decision
 
@@ -1516,25 +1533,25 @@ HOLD when failed or unknown mandatory evidence cannot change the outcome. Do not
 
 ### Phase 6 — Audit appendix
 
-#### KGE-22 · Comparison input—architecture and delivery
+#### KGE-22 · Comparison input—architecture, multicloud and robustness
 
 - **Phase:** `KGE-P6 — Audit appendix`
 - **Native route:** [Open slide 22](https://tomqwu.github.io/apim/#/present/kong-platform-journey-guided/21) (`#/present/kong-platform-journey-guided/21`)
 - **Timebox:** On demand; 3-minute branch
 - **Evidence state:** Stakeholder input
-- **Meeting job:** Turn disputed architecture and delivery labels into versioned, symmetric proof questions without rescoring in the room.
+- **Meeting job:** Turn disputed architecture, delivery, multicloud, scalability, and robustness labels into versioned, symmetric proof questions without rescoring in the room.
 
 ##### Purpose
 
-Preserve the sanitized supplied evaluation’s architectural comparison without turning it into a dense main-story slide.
+Preserve the sanitized supplied evaluation’s architectural comparison while making the new multicloud, scalability, and robustness obligations explicit.
 
 ##### Talk track
 
-The supplied labels are shown explicitly as stakeholder assessments preserved in docs/48. Official documentation supports the high-level deployment models, but the relative ratings require an evidence rubric and versioned testing.
+The supplied labels remain stakeholder assessments preserved in docs/48. Official documentation supports high-level deployment mechanisms, not relative outcomes. GEC-19 keeps scalability and robustness explicitly unscored until equivalent target-shaped load, saturation, clean-node scale, failure, recovery, and reconciliation evidence exists. Multicloud must separate runtime placement from management dependency, sovereignty, failure independence, support, and operating cost.
 
 ##### Ask
 
-Use this table to identify proof questions, not to re-litigate the feature list in the room.
+Use this table to assign symmetric architecture/SRE proof questions, not to add favorable labels or ratings in the room.
 
 ##### Bridge
 
@@ -1542,32 +1559,33 @@ The next appendix page covers API management, experience and AI claims.
 
 ##### Caveat
 
-Qualitative ratings are not independently validated and may change by edition and release.
+Qualitative ratings are not independently validated and may change by exact edition, release, topology, entitlement, workload, region, dependency, and operating model. “Multicloud” and “scalable” are not scoreable yes/no features.
 
 ##### Sources
 
 - Canonical sanitized input: [Kong guided evaluation — Supplied comparison input: architecture and delivery](48-kong-guided-evaluation.md#supplied-comparison-input-architecture-and-delivery).
+- Feedback-to-proof mapping: [Meeting-feedback assurance crosswalk](48-kong-guided-evaluation.md#meeting-feedback-assurance-crosswalk) and [Proposed governed re-score](48-kong-guided-evaluation.md#proposed-governed-re-score).
 - Official documented mechanisms (`E1` only): [Kong deployment topologies](https://developer.konghq.com/gateway/deployment-topologies/), [Kong hybrid mode](https://developer.konghq.com/gateway/hybrid-mode/), [Kong AI Gateway](https://developer.konghq.com/ai-gateway/), [Apigee hybrid 1.16](https://docs.cloud.google.com/apigee/docs/hybrid/v1.16/what-is-hybrid), [MuleSoft Omni Gateway](https://docs.mulesoft.com/gateway/latest/), and [Azure API Management self-hosted gateway](https://learn.microsoft.com/en-us/azure/api-management/self-hosted-gateway-overview).
 
 ##### Listen for
 
-“Vendor documentation validates the relative labels,” or pressure to change qualitative ratings and rescore during the branch.
+“Vendor documentation validates the relative labels,” “Kubernetes proves multicloud,” “the product is known to scale,” or pressure to change qualitative ratings and rescore during the branch.
 
 ##### Evidence-safe response
 
-Official documentation supports bounded mechanism interpretation, not the relative product labels. Convert the disputed label into an exact version-, topology-, and outcome-specific evidence request.
+Official documentation supports bounded mechanism interpretation, not relative product labels. Runtime placement does not prove sovereignty, failure independence, or portability; generic scale claims do not prove business SLO, headroom, saturation order, recovery, or clean-node behavior. Convert each disputed label into an exact option-, topology-, workload-, failure-, and outcome-specific evidence request.
 
 ##### Follow-up probe
 
-Which criterion, exact option, edition, topology, use case, and executed artifact would confirm or falsify the label?
+Which canonical criterion, exact option, edition, topology, workload/fault profile, measure, threshold, and executed artifact would confirm or falsify the label under common evidence?
 
 ##### Decision impact
 
-A material architecture or delivery claim can change the conditional option direction, but not until symmetric evidence closes it.
+A material architecture, multicloud, scalability, or robustness result can change the conditional direction and future governed score, but not until symmetric evidence closes it.
 
 ##### Capture
 
-Record the claim, current evidence state, exact option boundary, required artifact, owner, reviewer, and due gate; do not change the score in the room.
+Record the claim, mapped canonical criterion, current evidence state, exact option boundary, workload/fault profile, measure, threshold, required artifact, architecture/SRE role owner, independent reviewer, and due gate; do not change the score in the room.
 
 ##### Branch/rejoin
 
@@ -1575,27 +1593,27 @@ Branch to slide 4 for option conditions, slide 18 for proof authorization, or sl
 
 ##### HOLD/park
 
-HOLD if a mandatory option condition depends on an unverified label. Park non-decision detail only with a versioned evidence request and slide-6 re-entry.
+HOLD if a mandatory option condition depends on an unverified label, generic scale claim, or unproved multicloud assumption. Park non-decision detail only with a versioned symmetric evidence request and slide-6 re-entry.
 
-#### KGE-23 · Comparison input—management, experience and AI
+#### KGE-23 · Comparison input—management, AI and security traceability
 
 - **Phase:** `KGE-P6 — Audit appendix`
 - **Native route:** [Open slide 23](https://tomqwu.github.io/apim/#/present/kong-platform-journey-guided/22) (`#/present/kong-platform-journey-guided/22`)
 - **Timebox:** On demand; 3-minute branch
-- **Evidence state:** Stakeholder input
-- **Meeting job:** Assign exact use cases, versions, entitlements, owners, and artifacts for management, developer-experience, customization, and AI claims.
+- **Evidence state:** Mixed documented mechanism and stakeholder input
+- **Meeting job:** Assign exact use cases, versions, entitlements, support boundaries, public role owners, and artifacts for management, developer experience, AI, customization, and GEP-07 Kong-plus-Traceable claims.
 
 ##### Purpose
 
-Preserve the management and experience claims while making their evidence status explicit.
+Preserve the management and experience claims while making emerging AI and third-party security-adjunct evidence boundaries explicit.
 
 ##### Talk track
 
-Lifecycle, governance, portal, developer experience, AI, customization, and best-fit claims must be tested against the required use cases. AI capabilities are changing rapidly and should always be dated and versioned.
+Lifecycle, governance, portal, developer experience, AI, customization, and best-fit claims must be tested against required use cases. GEC-20 records Kong-plus-Traceable as documented feasibility only: a plugin/agent path does not prove exact 3.14 support, security effectiveness, traceability, data safety, performance, scaling, comparative parity, cost, or safe lifecycle behavior.
 
 ##### Ask
 
-Move every unverified adjective into the proof backlog with an owner and artifact.
+Move every unverified adjective into the proof backlog with a public role owner, exact option/BOM, artifact, reviewer, and stop rule. Confirm that Traceable remains GEP-07 rather than a gateway option or score.
 
 ##### Bridge
 
@@ -1603,60 +1621,61 @@ The next appendix page covers lock-in, cost, the supplied overall recommendation
 
 ##### Caveat
 
-Product capability and commercial terms are edition- and date-dependent.
+Product, plugin, agent, entitlement, support, and commercial terms are edition-, version-, topology-, and date-dependent. Current Traceable/Kong documentation is `E1` mechanism evidence only.
 
 ##### Sources
 
 - Canonical sanitized input: [Kong guided evaluation — Supplied comparison input: management, experience, and AI](48-kong-guided-evaluation.md#supplied-comparison-input-management-experience-and-ai).
-- Official documented mechanisms (`E1` only): [Kong deployment topologies](https://developer.konghq.com/gateway/deployment-topologies/), [Kong AI Gateway](https://developer.konghq.com/ai-gateway/), [Apigee hybrid 1.16](https://docs.cloud.google.com/apigee/docs/hybrid/v1.16/what-is-hybrid), [MuleSoft Omni Gateway](https://docs.mulesoft.com/gateway/latest/), and [Azure API Management self-hosted gateway](https://learn.microsoft.com/en-us/azure/api-management/self-hosted-gateway-overview).
+- Canonical adjunct boundary: [Traceable by Harness security-adjunct feasibility](48-kong-guided-evaluation.md#traceable-by-harness-security-adjunct-feasibility).
+- Official documented mechanisms (`E1` only): [Kong deployment topologies](https://developer.konghq.com/gateway/deployment-topologies/), [Kong AI Gateway](https://developer.konghq.com/ai-gateway/), [Traceable Kong integration](https://docs.traceable.ai/docs/kong), [Harness WAAP plugin](https://developer.konghq.com/plugins/harness-waap/), [Traceable rule-evaluation matrix](https://docs.traceable.ai/docs/tracing-agents-rule-evaluation-for-protection), [Apigee hybrid 1.16](https://docs.cloud.google.com/apigee/docs/hybrid/v1.16/what-is-hybrid), [MuleSoft Omni Gateway](https://docs.mulesoft.com/gateway/latest/), and [Azure API Management self-hosted gateway](https://learn.microsoft.com/en-us/azure/api-management/self-hosted-gateway-overview).
 
 ##### Listen for
 
-“Kong documents MCP, A2A, and AI routing, so agentic fit is proved,” or an assumption that portal, lifecycle, customization, and developer-experience claims are self-validating.
+“Kong documents MCP, A2A, and AI routing, so agentic fit is proved,” “Traceable makes Kong secure and traceable,” “Traceable should increase Kong’s score,” or an assumption that portal, lifecycle, customization, and developer-experience claims are self-validating.
 
 ##### Evidence-safe response
 
-Documentation permits a versioned test design. Exact use cases, edition, plugin, entitlement, data flow, threat boundary, cost, safety behavior, and catalog lifecycle remain unproved; agentic evidence cannot inflate the core gateway decision.
+Documentation permits versioned test design. For Traceable, freeze the Kong/plugin/TPA/EDS BOM and support; map request, response, decision, and prohibited-field paths; execute sync/async and approved fail behavior; classify protocol/body/streaming coverage; measure latency/resources and scaling; verify privacy and correlation; and rehearse upgrade, rollback, uninstall, and route-back against the security baseline. Until then, the adjunct cannot support a platform score or security, traceability, cost, parity, or production conclusion. Agentic evidence likewise cannot inflate the core gateway decision.
 
 ##### Follow-up probe
 
-Which exact use case and version/plugin matrix matters, what is the expected outcome, and what artifact and reviewer would prove it?
+Which exact use case and version/plugin/agent matrix matters, what is the expected outcome and failure rule, and what artifact and independent reviewer would prove it? Which result belongs to gateway fit versus the adjunct only?
 
 ##### Decision impact
 
-An unbounded management or agentic claim can distort the platform direction, proof budget, security boundary, and economics.
+An unbounded management, agentic, or adjunct claim can distort the platform direction, proof budget, security/privacy boundary, evidence model, and economics.
 
 ##### Capture
 
-Record use case, version, plugin, entitlement, data flow, threat and privacy boundary, cost/latency measure, content-safety outcome, catalog lifecycle, artifact, and owner.
+Record use case, exact option/BOM and checksums, plugin/agent versions, entitlement/support, data and failure paths, protocol/body/streaming coverage, threat/privacy boundary, cost/latency/resource measure, content-safety or security outcome, evidence correlation, catalog/lifecycle, upgrade/rollback/removal, artifact, independent reviewer, and public role owner. Suggested GEP-07 roles are security architecture plus platform product, with SRE/performance, privacy, support, and independent security assurance.
 
 ##### Branch/rejoin
 
-Branch to slide 18 for GEP-05 or slide 24 for commercial implications. Rejoin at slide 19 and then slide 21.
+Branch to slide 18 for GEP-05 or GEP-07, slide 20 for KO-7 security traceability/evidence safety, or slide 24 for commercial implications. Rejoin at slide 19 and then slide 21.
 
 ##### HOLD/park
 
-HOLD a decision that depends on an unproved emerging feature, unsupported entitlement, unknown data flow, or critical safety/policy failure. Park only a separately versioned GEP-05 action.
+HOLD a decision that depends on an unproved emerging feature or adjunct, unsupported BOM/entitlement, unknown or prohibited data flow, unauthorized pass, unbounded overhead, unclassified required protocol/use case, critical safety/policy failure, unowned support seam, or no safe rollback/removal. Park only a separately versioned GEP-05 or GEP-07 action.
 
-#### KGE-24 · Comparison input—economics and evidence ceiling
+#### KGE-24 · Comparison input—pricing, lock-in and operating duty
 
 - **Phase:** `KGE-P6 — Audit appendix`
 - **Native route:** [Open slide 24](https://tomqwu.github.io/apim/#/present/kong-platform-journey-guided/23) (`#/present/kong-platform-journey-guided/23`)
 - **Timebox:** On demand; 3-minute branch
-- **Evidence state:** Stakeholder input
-- **Meeting job:** Assign fully allocated TCO, custody, support, migration, dual-run, switching, and clean-exit evidence.
+- **Evidence state:** Stakeholder input with documented pricing boundaries
+- **Meeting job:** Assign normalized pricing, fully allocated TCO, reversibility/vendor dependency, control-plane duty, security-adjunct, migration, dual-run, switching, and clean-exit evidence.
 
 ##### Purpose
 
-Expose the economic and exit claims as proof obligations rather than conclusions.
+Expose pricing, operating-duty, adjunct-cost, lock-in, and exit claims as separate proof obligations rather than conclusions.
 
 ##### Talk track
 
-Cost and lock-in cannot be inferred from topology. They require quotes, platform labor, HA/DR, support, observability, portal/product tooling, network and egress, migration effort, and an exit rehearsal.
+Public price pages define meters or quote boundaries, not a comparable price rank. Fully allocated TCO requires exact options and quotes plus infrastructure, PostgreSQL, PKI, platform/SRE/on-call labor, HA/DR, telemetry, portal/product tooling, network/egress, plugins and security adjuncts, support, migration, dual run, incident exposure, custody switch, and clean exit. Lock-in requires an observed representative non-source rebuild and a ledger of configuration/policy, identity/product state, data/analytics, plugin, procedure, support, and commercial dependencies.
 
 ##### Ask
 
-Assign owners and artifacts for TCO, custody and exit evidence.
+Assign public FinOps, sourcing, platform/SRE, security-adjunct, migration, and independent-review roles for the normalized low/base/high model, rebuild, custody switch, and clean-exit evidence.
 
 ##### Bridge
 
@@ -1664,32 +1683,33 @@ The final appendix page exposes the raw score inputs and corrected arithmetic.
 
 ##### Caveat
 
-Commercial terms and estate leverage are organization- and date-specific.
+Commercial terms and estate leverage are organization- and date-specific. Do not publish restricted quotes. The public record should expose meter/quote boundaries, assumptions, role ownership, evidence state, and disposition only. Operating accountability is not a legal-liability verdict.
 
 ##### Sources
 
 - Canonical sanitized input: [Kong guided evaluation — Supplied comparison input: economics and evidence ceiling](48-kong-guided-evaluation.md#supplied-comparison-input-economics-and-evidence-ceiling).
-- Official contextual mechanisms (`E1` only): [Kong deployment topologies](https://developer.konghq.com/gateway/deployment-topologies/), [Kong AI Gateway](https://developer.konghq.com/ai-gateway/), [Apigee hybrid 1.16](https://docs.cloud.google.com/apigee/docs/hybrid/v1.16/what-is-hybrid), [MuleSoft Omni Gateway](https://docs.mulesoft.com/gateway/latest/), and [Azure API Management self-hosted gateway](https://learn.microsoft.com/en-us/azure/api-management/self-hosted-gateway-overview).
+- Governed economics and reversibility dimensions: [Proposed governed re-score](48-kong-guided-evaluation.md#proposed-governed-re-score).
+- Official pricing and topology boundaries (`E1` only): [Kong pricing](https://konghq.com/pricing), [Apigee pricing](https://cloud.google.com/apigee/pricing), [MuleSoft pricing](https://www.mulesoft.com/anypoint-pricing), [Kong deployment topologies](https://developer.konghq.com/gateway/deployment-topologies/), [Apigee hybrid 1.16](https://docs.cloud.google.com/apigee/docs/hybrid/v1.16/what-is-hybrid), and [Traceable Kong integration](https://docs.traceable.ai/docs/kong).
 
 ##### Listen for
 
-“License price is TCO,” “Kong lock-in is low,” or “Konnect is sufficient exit evidence.”
+“The public price page proves Kong is cheaper,” “license price is TCO,” “Kong lock-in is low,” “the Traceable adjunct is free operationally,” “vendor support removes the control-plane duty,” or “Konnect is sufficient exit evidence.”
 
 ##### Evidence-safe response
 
-TCO requires licenses, labor, infrastructure, HA/DR, telemetry, support, migration, dual run, and exit. Konnect tests same-vendor custody, not a clean non-Kong rebuild.
+TCO requires exact quotes/meters, labor, infrastructure, HA/DR, telemetry, adjuncts, support, migration, dual run, incident exposure, and exit. Konnect tests same-vendor custody, not a clean non-Kong rebuild. Lock-in is observed rewrite, state/history loss, support/contract dependency, and route-back effort—not a feature label. Vendor support provides escalation; it does not erase enterprise operating accountability.
 
 ##### Follow-up probe
 
-Which cost boundary, workload volume, labor model, support assumption, switching event, and residual dependency will be measured?
+Which exact option and meter/quote boundary, workload volume, low/base/high horizon, labor model, infrastructure/HA/DR design, adjunct dependency, support assumption, incident exposure, switching event, representative rebuild, and residual dependency will be measured?
 
 ##### Decision impact
 
-Unproved economics or exit can make the self-managed benefit non-viable and can favor a custody switch, narrower scope, or different platform.
+Unproved economics, operating duty, adjunct cost, or exit can make the self-managed benefit non-viable and can favor a custody switch, narrower scope, or different platform. It also prevents the governed re-score from publishing a cost-efficiency or reversibility rating.
 
 ##### Capture
 
-Record FinOps and sourcing owners, model scope, quotes and assumptions, labor, HA/DR, telemetry, support, migration, dual-run, custody-switch, and non-Kong exit artifacts.
+Record public FinOps and sourcing role owners, model scope and horizon, restricted quote references and public assumptions, infrastructure, labor/on-call, HA/DR, telemetry, plugin/adjunct, support, migration, dual-run, incident, custody-switch, representative rebuild, non-Kong exit artifacts, independent reviewer, and due gate.
 
 ##### Branch/rejoin
 
@@ -1697,27 +1717,27 @@ Branch to slides 7–8 for custody and duty, slide 20 for sustainability, or sli
 
 ##### HOLD/park
 
-HOLD a cost or lock-in conclusion without a fully allocated model and executable exit evidence. Park commercial detail only in the approved restricted system with a public-safe closure record.
+HOLD a price, cost-efficiency, operating-duty, or lock-in conclusion without exact options, a normalized fully allocated model, and executable rebuild/exit evidence. Park commercial and legal detail only in the approved restricted system with a public-safe closure record.
 
-#### KGE-25 · Raw scoring inputs—retain for audit, not as production proof
+#### KGE-25 · Historical score audit; governed re-score pending
 
 - **Phase:** `KGE-P6 — Audit appendix`
 - **Native route:** [Open slide 25](https://tomqwu.github.io/apim/#/present/kong-platform-journey-guided/24) (`#/present/kong-platform-journey-guided/24`)
 - **Timebox:** On demand; 3-minute branch
 - **Evidence state:** Stakeholder input
-- **Meeting job:** Decide whether the scorecard remains a governance input and require rubric, confidence, sensitivity, and accountable sign-off.
+- **Meeting job:** Preserve the historical score audit, decide its permitted use, and require the full governed re-score contract before any expanded total is published.
 
 ##### Purpose
 
-Provide an auditable record of the source scorecard without elevating it above its evidence level.
+Provide an auditable record of the source scorecard while making the unfinished governed recalculation visible.
 
 ##### Talk track
 
-The inputs are preserved from the sanitized supplied evaluation. Recalculating weight times rating yields 93 for Kong, 85.5 for Apigee and 77 for MuleSoft. This appendix preserves transparency and makes the evidence backlog explicit.
+The inputs are preserved from the sanitized supplied evaluation. Recalculating weight times rating yields 93 for Kong, 85.5 for Apigee, and 77 for MuleSoft. Those values remain historical stakeholder input. `GRS-01`–`GRS-06` adds multicloud, scalability/robustness, security/IAM/traceability, reversibility/vendor dependency, fully allocated TCO, and control-plane operating responsibility to a future governed specification; every added weight and rating remains `TBD`.
 
 ##### Ask
 
-If the scorecard remains a governance artifact, add confidence, sensitivity and accountable sign-off.
+If the scorecard remains a governance artifact, approve exact options, mandatory gates, the scoring rubric, score-capable common evidence, dimensions and weights/ranges, confidence/unknown treatment, role-based scorers and approvers, sensitivity, lower/upper bounds, maximum regret, dissent, and independent sign-off. Do not calculate a new total in the room.
 
 ##### Bridge
 
@@ -1725,32 +1745,33 @@ Return to the bounded decision: direction plus proof, not critical scale.
 
 ##### Caveat
 
-Scores are illustrative author inputs, not an independent benchmark or production outcome.
+Scores are illustrative stakeholder inputs, not an independent benchmark or production outcome. The pending re-score cannot be tuned to preserve a preferred order, and unknown evidence cannot silently become zero or earn points.
 
 ##### Sources
 
 - Canonical sanitized arithmetic audit: [Kong guided evaluation — Supplied scoring audit](48-kong-guided-evaluation.md#supplied-scoring-audit).
-- Official contextual mechanisms (`E1` only): [Kong deployment topologies](https://developer.konghq.com/gateway/deployment-topologies/), [Kong AI Gateway](https://developer.konghq.com/ai-gateway/), [Apigee hybrid 1.16](https://docs.cloud.google.com/apigee/docs/hybrid/v1.16/what-is-hybrid), [MuleSoft Omni Gateway](https://docs.mulesoft.com/gateway/latest/), and [Azure API Management self-hosted gateway](https://learn.microsoft.com/en-us/azure/api-management/self-hosted-gateway-overview).
+- Pending recalculation contract: [Kong guided evaluation — Proposed governed re-score](48-kong-guided-evaluation.md#proposed-governed-re-score) and [Decision-matrix scoring guide](../decision-matrix/scoring-guide.md).
+- Official contextual mechanisms (`E1` only): [Kong deployment topologies](https://developer.konghq.com/gateway/deployment-topologies/), [Kong AI Gateway](https://developer.konghq.com/ai-gateway/), [Kong pricing](https://konghq.com/pricing), [Apigee hybrid 1.16](https://docs.cloud.google.com/apigee/docs/hybrid/v1.16/what-is-hybrid), [Apigee pricing](https://cloud.google.com/apigee/pricing), [MuleSoft Omni Gateway](https://docs.mulesoft.com/gateway/latest/), [MuleSoft pricing](https://www.mulesoft.com/anypoint-pricing), and [Azure API Management self-hosted gateway](https://learn.microsoft.com/en-us/azure/api-management/self-hosted-gateway-overview).
 
 ##### Listen for
 
-“Corrected arithmetic validates the ranking,” or pressure to change ratings in the room without an approved scoring process.
+“Corrected arithmetic validates the ranking,” “add the missing criteria and re-score now,” “make the comparison more convincing,” or pressure to change weights/ratings without an approved scoring process and score-capable evidence.
 
 ##### Evidence-safe response
 
-Correct arithmetic does not create a rubric, evidence confidence, sensitivity, benchmark, or production result. Amendments belong in a governed recalculation with named scorers and preserved dissent.
+Correct arithmetic does not create exact options, mandatory-gate results, a rubric, common evidence, confidence, sensitivity, bounds, maximum regret, benchmark, or production result. The answer becomes more convincing only by becoming more auditable and falsifiable. Amendments belong in a governed recalculation with public role scorers, independent assurance, and preserved dissent.
 
 ##### Follow-up probe
 
-Who owns the rubric, what confidence rules apply, which sensitivity ranges will be run, and who signs the resulting decision use?
+Which decision-owner, enterprise-architecture, FinOps, criterion-owner, scorer, and independent-assurance roles own the method; what evidence and confidence rules apply; which sensitivity, bounds, and regret analyses will run; and who approves the resulting decision use?
 
 ##### Decision impact
 
-An uncontrolled score can conceal mandatory unknowns and create false precision around a conditional direction.
+An uncontrolled score can conceal mandatory unknowns, reward missing evidence, and create false precision around a conditional direction. A governed result may confirm, narrow, reverse, or leave the direction unresolved.
 
 ##### Capture
 
-Record scorer, rubric, confidence, sensitivity, evidence links, dissent, permitted use, sign-off, and recalculation due gate.
+Record exact options, mandatory gates, `GRS-01`–`GRS-06` disposition, weight/range authority, rubric, common evidence floor, confidence and unknown handling, scorer and approver roles, sensitivity, lower/upper bounds, maximum regret, evidence links, dissent, permitted use, independent assurance, and recalculation due gate. Keep named-person assignments out of the public guide.
 
 ##### Branch/rejoin
 
@@ -1758,7 +1779,7 @@ Branch to slides 3–5 for weights, options, and arithmetic. Never close here; r
 
 ##### HOLD/park
 
-HOLD score-based authorization without rubric, confidence, sensitivity, and accountable sign-off. Park recalculation only with an owner and explicit re-entry at slide 6.
+HOLD score-based authorization without exact options, mandatory gates, approved dimensions/weights, rubric, score-capable evidence, confidence, scorer independence, sensitivity/bounds/regret, dissent, and accountable sign-off. Park recalculation only with role owners and explicit re-entry at slide 6.
 
 ## Decision, evidence, and parking-lot ledgers
 
@@ -1775,6 +1796,16 @@ Keep one visible ledger during the meeting. Do not hide unresolved challenge wor
 | Disposition | Open, approved, amended, held, closed, or resulting scope: scale, narrow, switch, exit, or hold. |
 
 Seed the ledger with four records: `D-001` for the bounded decision on slide 6; `E-001` for a not-run workstream on slide 18; `A-001` for a target or timeline assumption on slide 13; and `X-001` for a decision-changing counter-hypothesis on slide 21.
+
+Seed these public-safe follow-up actions when the corresponding scope remains authorized. Public artifacts use accountable roles only; named-person assignments belong in the approved restricted system.
+
+| Action ID | Public-safe action | Status to preserve | Accountable role and contributors | Due gate | Closure evidence |
+|---|---|---|---|---|---|
+| KGE-ACT-01 | Define and execute GEP-07 Kong-plus-Traceable feasibility against the security team’s Mule baseline | Requested follow-up; not executed | Security architecture and platform product; SRE/performance, privacy, support, and independent security assurance contribute | KP1/KP2 | Certified exact BOM/support, data/failure-path review, coverage corpus, raw security/performance/fault results, correlation, lifecycle, rollback/removal, and disposition |
+| KGE-ACT-02 | Approve the multicloud, scalability/robustness, security/traceability, reversibility/vendor-dependency, full-TCO, and control-plane-responsibility re-score dimensions | Requested follow-up; weights/ratings remain `TBD` | Decision owner and enterprise architecture with FinOps and independent assessment assurance | KP0 | Approved `GRS-01`–`GRS-06` specification, exact options, mandatory gates, rubric, evidence floor, confidence, weights/ranges, sensitivity, dissent, and decision rule |
+| KGE-ACT-03 | Execute and independently assure the governed recalculation | Proposed and unassigned until KGE-ACT-02 and score-capable evidence freeze | Independent assessment assurance with criterion owners and approved scorer/approver roles | After method and evidence freeze | Reproducible inputs/calculation, evidence links, lower/upper bounds, maximum regret, rank-stability sensitivity, dissent, reviewer record, and permitted use |
+| KGE-ACT-04 | Use and distribute the Kong terminology crosswalk for the stakeholder follow-up | Requested follow-up | Platform product enablement with Mule/Apigee migration architecture | Post-meeting enablement gate | Public crosswalk link, recorded non-equivalences, owner for unresolved mappings, and mapping evidence request |
+| KGE-ACT-05 | Apply the Apigee A0–A6 migration roadmap before any source wave design | Requested follow-up; roadmap is proposed and not run | Migration architecture with API product, IAM/security, SRE, domains, sourcing/FinOps, and independent assurance | Before Apigee wave authorization | Source-archetype and object/state denominator, semantic map, parity corpus, coexistence, reconciliation, route-back, and dependency-zero evidence contract |
 
 Parking-lot minimum fields:
 
@@ -1799,6 +1830,11 @@ Prefer:
 - “This has not been run in the frozen target…”
 - “The decision requested today is…”
 - “This evidence would cause us to narrow, switch, exit, or hold…”
+- “These concerns are absent or compressed in the supplied scorecard, not the canonical matrix.”
+- “The governed re-score is pending; no weight, rating, or total is being changed in this meeting.”
+- “Traceable documents a third-party integration path; GEP-07 must prove the required outcome in the exact target.”
+- “Self-managed custody transfers operating accountability and risk exposure; this is not a legal-liability determination.”
+- “The terminology crosswalk provides nearest analogues, not one-to-one migration mappings.”
 
 Avoid:
 
@@ -1811,6 +1847,11 @@ Avoid:
 - “Mule packages all move to Kong.”
 - “The roadmap dates are commitments.”
 - “The documented feature proves our configured behavior.”
+- “Traceable makes Kong security and traceability proven.”
+- “Traceable is another gateway contender or earns Kong platform points.”
+- “The re-score should make the recommendation more convincing.”
+- “An exported Apigee proxy bundle is the migration roadmap.”
+- “The architecture determines legal liability.”
 - Any Kong Enterprise 3.14 claim that omits the exact patch, entitlement, plugin, topology, support, and as-of boundary required by the decision.
 
 ## Stop and hold rules
@@ -1822,6 +1863,9 @@ Stop the decision or record **HOLD** when:
 - the exact target option, environment, measure, threshold, artifact, reviewer, or stop rule is not frozen—do not call the work proof;
 - a migration cohort lacks business parity, durable-state authority, reconciliation, or route-back;
 - an unknown or failed mandatory gate is being offset by a weighted score;
+- a historical score is being recalculated before exact options, added dimensions, weights/ranges, rubric, score-capable evidence, confidence, scorer independence, sensitivity/bounds/regret, and dissent rules are approved;
+- Traceable is being treated as a gateway option or as proof of security, traceability, parity, cost, or production fit without independently reviewed GEP-07 evidence;
+- an Apigee wave is being authorized from proxy bundles without the object/state denominator, semantic mapping, identity/state reconciliation, route-back, and dependency-zero contract;
 - the evidence does not preserve failed runs, gaps, dissent, and limitations; or
 - negative evidence is not permitted to narrow, switch custody, exit, or hold.
 
@@ -1833,7 +1877,8 @@ The chair should read back only:
 2. what remains explicitly unauthorized;
 3. which assumptions were amended or rejected;
 4. which evidence requests, owners, reviewers, thresholds, due gates, and stop rules were created; and
-5. whether the next state is proceed, amend, or hold.
+5. which public role owns each requested follow-up, including scoring governance, GEP-07, terminology enablement, and Apigee migration planning; and
+6. whether the next state is proceed, amend, or hold.
 
 Recommended close:
 
@@ -1850,6 +1895,10 @@ The complete slide sections above are the point-of-use facilitation and speaker-
 - [Kong enterprise platform deployment strategy](47-kong-enterprise-platform-strategy.md)
 - [Kong multicloud study roadmap](44-kong-multicloud-study-roadmap.md)
 - [Mule migration strategy](35-mule-migration-strategy.md)
+- [Apigee migration strategy](50-apigee-migration-strategy.md)
+- [Kong terminology crosswalk](../research/glossary.md#kong-terminology-crosswalk)
+- [Traceable by Harness security-adjunct feasibility](48-kong-guided-evaluation.md#traceable-by-harness-security-adjunct-feasibility)
+- [Traceable Kong integration documentation](https://docs.traceable.ai/docs/kong)
 - [Current PoC register and evidence boundary](../poc/README.md)
 - [Presentation artifact contract](../presentations/README.md)
 

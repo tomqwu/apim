@@ -13,12 +13,12 @@ This report is generated from the article corpus by `scripts/validate_source_cov
 
 | Measure | Count |
 |---|---:|
-| Article files scanned | 71 |
-| Article files containing external citations | 50 |
-| Unique external citations | 272 |
-| Unique registered citations used by articles | 36 |
-| Unique contextual citations awaiting promotion if decision-bearing | 236 |
-| Latest access date in authoritative register | 2026-08-17 |
+| Article files scanned | 72 |
+| Article files containing external citations | 52 |
+| Unique external citations | 284 |
+| Unique registered citations used by articles | 49 |
+| Unique contextual citations awaiting promotion if decision-bearing | 235 |
+| Latest access date in authoritative register | 2026-08-21 |
 
 ## Coverage by article
 
@@ -53,7 +53,7 @@ This report is generated from the article corpus by `scripts/validate_source_cov
 | `docs/26-networking-comparison.md` | 2 | 14 | promotion debt visible |
 | `docs/27-hybrid-multicloud-comparison.md` | 4 | 7 | promotion debt visible |
 | `docs/28-kubernetes-comparison.md` | 3 | 14 | promotion debt visible |
-| `docs/29-apiops-governance.md` | 3 | 7 | promotion debt visible |
+| `docs/29-apiops-governance.md` | 4 | 6 | promotion debt visible |
 | `docs/30-developer-portal-api-products.md` | 0 | 17 | promotion debt visible |
 | `docs/31-observability-comparison.md` | 2 | 10 | promotion debt visible |
 | `docs/32-performance-resilience.md` | 3 | 6 | promotion debt visible |
@@ -64,15 +64,17 @@ This report is generated from the article corpus by `scripts/validate_source_cov
 | `docs/41-enterprise-reference-case.md` | 3 | 9 | promotion debt visible |
 | `docs/42-public-failure-casebook.md` | 5 | 0 | registered citations only |
 | `docs/43-api-management-industry-problems.md` | 7 | 26 | promotion debt visible |
-| `docs/44-kong-multicloud-study-roadmap.md` | 9 | 18 | promotion debt visible |
+| `docs/44-kong-multicloud-study-roadmap.md` | 11 | 18 | promotion debt visible |
 | `docs/45-api-management-industry-practices.md` | 7 | 36 | promotion debt visible |
 | `docs/47-kong-enterprise-platform-strategy.md` | 5 | 21 | promotion debt visible |
-| `docs/48-kong-guided-evaluation.md` | 4 | 4 | promotion debt visible |
-| `docs/49-kong-guided-evaluation-facilitator-guide.md` | 4 | 6 | promotion debt visible |
+| `docs/48-kong-guided-evaluation.md` | 14 | 5 | promotion debt visible |
+| `docs/49-kong-guided-evaluation-facilitator-guide.md` | 13 | 7 | promotion debt visible |
+| `docs/50-apigee-migration-strategy.md` | 5 | 0 | registered citations only |
 | `poc/real-world-scenarios.md` | 4 | 9 | promotion debt visible |
 | `research/apigee.md` | 3 | 12 | promotion debt visible |
 | `research/azure-apim.md` | 5 | 3 | promotion debt visible |
-| `research/kong.md` | 13 | 42 | promotion debt visible |
+| `research/glossary.md` | 6 | 1 | promotion debt visible |
+| `research/kong.md` | 14 | 41 | promotion debt visible |
 | `research/mulesoft.md` | 2 | 18 | promotion debt visible |
 
 ## Contextual-source concentration
@@ -81,10 +83,10 @@ This table helps evidence owners batch promotion and freshness work. A high coun
 
 | Host | Article-link occurrences |
 |---|---:|
-| `developer.konghq.com` | 145 |
+| `developer.konghq.com` | 147 |
 | `docs.mulesoft.com` | 73 |
 | `learn.microsoft.com` | 44 |
-| `docs.cloud.google.com` | 31 |
+| `docs.cloud.google.com` | 30 |
 | `cloud.google.com` | 24 |
 | `gateway-api.sigs.k8s.io` | 15 |
 | `opentelemetry.io` | 11 |

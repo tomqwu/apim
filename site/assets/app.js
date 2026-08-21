@@ -2229,8 +2229,12 @@
           return chartMarkup("muleMigrationBoundary", { ...migration, responsibilities: selected(migration.responsibilities) }, guidedOptions);
         }
         if (slide.viewId === "waves") {
-          const migration = visuals.muleMigration || {};
-          return chartMarkup("muleMigrationWaves", { ...migration, waves: selected(migration.waves) }, guidedOptions);
+          const muleMigration = visuals.muleMigration || {};
+          const apigeeMigration = visuals.apigeeMigration || {};
+          return chartMarkup("dualMigrationRails", {
+            mule: { ...muleMigration, waves: selected(muleMigration.waves) },
+            apigee: apigeeMigration,
+          }, guidedOptions);
         }
         if (["outcomes-1", "outcomes-2"].includes(slide.viewId)) {
           const outcomes = visuals.kongPlatformStrategy?.outcomes || {};

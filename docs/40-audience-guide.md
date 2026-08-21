@@ -21,7 +21,9 @@ The stakeholder direction is now to proceed with Kong. Every briefing therefore 
 
 The seven canonical Kong fit conditions are presented as four bounded decision frames: control boundary and multicloud locality; management-loss continuity and portable runtime; evidence-producing change and bounded extension; and the Konnect custody fallback. Executive and platform-team briefings retain all four frames. The director briefing retains the first two frames, preserving its focus on the original first four conditions. Each technical frame must keep the mechanism, scenario-relative advantage, counterfactual, and proof visible; overview and comparison surfaces may use a concise synopsis with the complete contract available for deliberate inspection.
 
-The cross-role **Kong guided evaluation** is a separate 25-frame decision path for rooms that need the supplied preference model, conditional options, bounded Kong decision, architecture, adoption, migration, and production proof in one sequence. It begins with sanitized stakeholder inputs and corrected arithmetic, then switches to the canonical [Kong platform strategy](47-kong-enterprise-platform-strategy.md), [Kong option roadmap](44-kong-multicloud-study-roadmap.md), [Mule migration strategy](35-mule-migration-strategy.md), and [PoC evidence boundary](../poc/README.md). Its final appendix preserves the supplied comparison claims for audit without treating them as observed evidence. The companion PowerPoint and native Pages deck project the same [guided-evaluation contract](48-kong-guided-evaluation.md); neither creates alternate facts. Use the [facilitator guide](49-kong-guided-evaluation-facilitator-guide.md) as the complete meeting script: choose a timed route, deliver every slide's speaker notes, handle bounded side talks, record decisions and dissent, and return the room to the authorization or outcome gate.
+The cross-role **Kong guided evaluation** is a separate 25-frame decision path for rooms that need the supplied preference model, conditional options, bounded Kong decision, architecture, adoption, migration, and production proof in one sequence. It begins with sanitized stakeholder inputs and corrected historical arithmetic, then switches to the canonical [Kong platform strategy](47-kong-enterprise-platform-strategy.md), [Kong option roadmap](44-kong-multicloud-study-roadmap.md), [Mule migration strategy](35-mule-migration-strategy.md), [Apigee A0–A6 migration roadmap](50-apigee-migration-strategy.md), [Kong terminology crosswalk](../research/glossary.md#kong-terminology-crosswalk), and [PoC evidence boundary](../poc/README.md). Its final appendix preserves the supplied comparison claims for audit, exposes multicloud, scalability/robustness, security/traceability, reversibility, fully allocated TCO, and control-plane responsibility as governed follow-up dimensions, and keeps all new weights and ratings `TBD`. The companion PowerPoint and native Pages deck project the same [guided-evaluation contract](48-kong-guided-evaluation.md); neither creates alternate facts. Use the [facilitator guide](49-kong-guided-evaluation-facilitator-guide.md) as the complete meeting script: choose a timed route, deliver every slide's speaker notes, handle bounded side talks, record decisions and dissent, and return the room to the authorization or outcome gate.
+
+The public follow-up remains role-based. The decision owner, enterprise architecture, FinOps, and independent assessment assurance govern any recalculation; security architecture and platform product own the proposed GEP-07 Kong-plus-Traceable feasibility line with SRE/performance, privacy, support, and independent security review; platform product enablement owns terminology follow-up; and migration architecture coordinates the Apigee object/state roadmap with API product, IAM/security, SRE, domains, sourcing/FinOps, and assurance. Named-person mappings, commercial terms, and legal advice remain in approved restricted systems. Traceable is a third-party adjunct hypothesis, not a gateway contender or score; control-plane analysis allocates operating accountability and risk exposure, not legal liability.
 
 ## 1. Executives and VPs: decide
 
@@ -44,7 +46,7 @@ Recommended evidence path:
 13. [Delivery roadmap](36-implementation-roadmap.md)
 14. [Repository roadmap](39-repository-roadmap.md)
 
-The briefing should answer: what is known, what remains unknown, what can disqualify each named sequencing hypothesis, what investment is requested now, and who owns the next gate.
+The briefing should answer: what is known, what remains unknown, what can disqualify each named sequencing hypothesis, what investment is requested now, who owns the next gate, and whether the room is approving a governed re-score method rather than a preferred result. Keep fully allocated TCO, reversibility, and control-plane operating accountability visible.
 
 ## 2. Directors: mobilize
 
@@ -65,7 +67,7 @@ Recommended evidence path:
 11. [Workshop programme](../workshops/README.md)
 12. [Migration factory](../mule-migration/migration-factory.md)
 
-The briefing should produce accountable public roles or owner IDs, a restricted named-person map, capacity, dependencies, environments, commercial inputs, due dates, and evidence required at the next funding gate.
+The briefing should produce accountable public roles or owner IDs, a restricted named-person map, capacity, dependencies, environments, commercial inputs, due dates, and evidence required at the next funding gate. Include the GEP-07 adjunct experiment, the Apigee A0–A6 planning denominator when applicable, terminology enablement, and independent score-assurance work without representing any as executed.
 
 ## 3. Architects: design
 
@@ -86,7 +88,7 @@ Recommended evidence path:
 11. [High availability and disaster recovery](../architecture/ha-dr-architecture.md)
 12. [Architecture decisions](../adr/README.md)
 
-The briefing should confirm capability boundaries, constraints, transition assumptions, candidate topologies, and the evidence needed to approve an architecture decision.
+The briefing should confirm capability boundaries, constraints, transition assumptions, candidate topologies, and the evidence needed to approve an architecture decision. Use the terminology crosswalk as a non-equivalence checklist, distinguish operational accountability from legal liability, and treat Kong-plus-Traceable as a separately versioned security mechanism to prove.
 
 ## 4. Developers: build and consume
 
@@ -107,7 +109,7 @@ Recommended evidence path:
 11. [Migration strategy](35-mule-migration-strategy.md)
 12. [Migration patterns](../mule-migration/migration-patterns.md)
 
-The briefing should expose time-to-first-call, ownership, contract checks, approval, promotion, rollback, policy boundaries, discovery, access, credential rotation, and support.
+The briefing should expose time-to-first-call, ownership, contract checks, approval, promotion, rollback, policy boundaries, discovery, access, credential rotation, and support. When migration is discussed, map source-platform behavior and state rather than assuming a Mule, Apigee, or Kong noun is interchangeable.
 
 ## 5. DevOps and SRE: operate and recover
 
@@ -128,7 +130,7 @@ Recommended evidence path:
 11. [Kubernetes PoC](../poc/kubernetes/README.md)
 12. [Validation report](../reports/validation-report.md)
 
-The briefing should agree the SLO, RTO, RPO, scale and failure profile, telemetry and redaction requirements, operational ownership, support boundary, and durable evidence format.
+The briefing should agree the SLO, RTO, RPO, scale and failure profile, telemetry and redaction requirements, operational ownership, support boundary, and durable evidence format. If GEP-07 is admitted, include exact plugin/agent failure behavior, protocol/body/streaming coverage, latency/resource/scaling envelope, prohibited-field handling, evidence correlation, and rollback/removal.
 
 ## 6. API platform teams: enable and govern
 
@@ -149,7 +151,7 @@ Recommended evidence path:
 11. [Decision matrix](../decision-matrix/README.md)
 12. [Repository roadmap](39-repository-roadmap.md)
 
-The briefing should define the service catalogue, paved road, tenancy model, standard and exception ownership, onboarding SLO, support tiers, upgrade responsibility, staffing, and unit economics.
+The briefing should define the service catalogue, paved road, tenancy model, standard and exception ownership, onboarding SLO, support tiers, upgrade responsibility, staffing, and unit economics. It should also own the public terminology crosswalk, adjunct admission pattern, fully allocated platform cost, and source-specific Mule/Apigee migration contracts.
 
 ## Cross-audience handoffs
 
@@ -158,6 +160,10 @@ The briefing should define the service catalogue, paved road, tenancy model, sta
 - Platform teams define operational standards; DevOps and SRE prove and run them.
 - Platform teams provide the paved road; developers judge whether producer and consumer journeys are usable.
 - Directors coordinate capacity and dependencies across every group without replacing the accountable technical or business owner.
+- The decision owner, enterprise architecture, FinOps, and independent assessment assurance approve the score method; criterion owners supply evidence but do not tune weights or ratings to preserve a rank.
+- Security architecture and platform product define GEP-07; SRE/performance, privacy, support, and independent security assurance determine whether the exact adjunct boundary passes.
+- Platform product enablement publishes terminology guidance; migration architecture owns unresolved non-equivalence and source-object/state disposition.
+- Apigee migration requires API product, IAM/security, SRE, domains, sourcing/FinOps, and assurance to close the A0–A6 object/state, coexistence, route-back, and dependency-zero contract.
 
 ## Facilitation rules
 
@@ -167,3 +173,5 @@ The briefing should define the service catalogue, paved road, tenancy model, sta
 4. Move detailed product facts to the canonical source path instead of duplicating them in audience material.
 5. Record owner, due date, acceptance authority, and exit evidence for every action that can change the decision.
 6. End with the explicit approval, rejection, evidence sprint, or escalation required from the room.
+7. Preserve the historical score and govern any recalculation; do not change criteria, weights, or ratings to make a preferred conclusion more convincing.
+8. Treat third-party integrations as mechanisms to prove, not native platform scores, and treat exported proxy bundles or terminology matches as source evidence rather than migration results.
