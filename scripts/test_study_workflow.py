@@ -2469,7 +2469,12 @@ process.stdout.write(window.ApiStudyCharts.render("criteriaOverview", data, {com
             ("mapping", "exact 2/2/2/2/4/2 mapping"),
             ("question ID", "exact KGE-P1-Q01 through KGE-P6-Q02 order"),
             ("question phase", "phaseId is invalid"),
-            ("hold rule", "must retain every canonical text field"),
+            ("question slide semantics", "exact canonical doc49 semantic tuple"),
+            ("question target semantics", "exact canonical doc49 semantic tuple"),
+            ("question hold semantics", "exact canonical doc49 semantic tuple"),
+            ("question mandatory semantics", "exact canonical doc49 semantic tuple"),
+            ("question evidence semantics", "exact canonical doc49 semantic tuple"),
+            ("question choice-set semantics", "exact canonical doc49 semantic tuple"),
             ("choice outcome", "invalid outcome"),
             ("public roles", "exact controlled public-role order"),
             ("review fields", "fields must match the exact v2 schema"),
@@ -2506,8 +2511,18 @@ process.stdout.write(window.ApiStudyCharts.render("criteriaOverview", data, {com
                     invalid_assessment["questions"][0]["id"] = "KGE-P1-Q99"
                 elif case == "question phase":
                     invalid_assessment["questions"][0]["phaseId"] = "KGE-P2"
-                elif case == "hold rule":
-                    invalid_assessment["questions"][0]["holdRule"] = "  "
+                elif case == "question slide semantics":
+                    invalid_assessment["questions"][0]["slideIds"] = ["KGE-02"]
+                elif case == "question target semantics":
+                    invalid_assessment["questions"][0]["targetIds"][-1] = "KGE-AUTH-99"
+                elif case == "question hold semantics":
+                    invalid_assessment["questions"][0]["holdRule"] = "HOLD only after a different condition."
+                elif case == "question mandatory semantics":
+                    invalid_assessment["questions"][0]["mandatory"] = False
+                elif case == "question evidence semantics":
+                    invalid_assessment["questions"][0]["minimumEvidence"] = "E2"
+                elif case == "question choice-set semantics":
+                    invalid_assessment["questions"][0]["choiceSetId"] = "KGE-CS-INPUT"
                 elif case == "choice outcome":
                     invalid_assessment["choiceSets"][0]["choices"][0]["outcome"] = "score"
                 elif case == "public roles":
@@ -2605,6 +2620,10 @@ process.stdout.write(window.ApiStudyCharts.render("criteriaOverview", data, {com
                 self.assertIn(hook, app_source)
         self.assertIn("ApiStudyAssessment", app_source)
         self.assertIn("#/present/kong-platform-journey-guided/summary", app_source)
+        self.assertIn(
+            "api.normalizeAssessment(contract, raw, { trimFreeText: immediate })",
+            app_source,
+        )
 
         with tempfile.TemporaryDirectory(prefix="kong-guided-assessment-runtime-") as temporary:
             output = Path(temporary) / "site"
@@ -2894,6 +2913,59 @@ for (const field of contract.reviewRequirements.responseExportFields) {
   );
 }
 
+const trailingSessionValue = "Decision record alpha ";
+const trailingResponseValue = "Public rationale alpha ";
+const transientNormalized = api.normalizeAssessment(contract, rawSession({
+  ...resolved,
+  [passQuestion.id]: responseFor(passQuestion, "pass", {rationale: trailingResponseValue}),
+}, {label: trailingSessionValue}), {trimFreeText: false});
+assert.equal(
+  transientNormalized.label,
+  trailingSessionValue,
+  "input-time normalization must preserve a trailing space while the user continues typing",
+);
+assert.equal(
+  transientNormalized.responses[passQuestion.id].rationale,
+  trailingResponseValue,
+  "response input-time normalization must preserve a trailing space while the user continues typing",
+);
+const obviousRestrictedTypingValue = ["typing", "example.com"].join("@");
+const restrictedDuringTyping = api.normalizeAssessment(contract, rawSession({
+  ...resolved,
+  [passQuestion.id]: responseFor(passQuestion, "pass", {rationale: obviousRestrictedTypingValue}),
+}, {label: obviousRestrictedTypingValue}), {trimFreeText: false});
+assert.equal(restrictedDuringTyping.label, "", "input-time normalization must still remove restricted session text");
+assert.equal(
+  restrictedDuringTyping.responses[passQuestion.id].rationale,
+  "",
+  "input-time normalization must still remove restricted response text",
+);
+let transientStored = "";
+const transientStore = api.createStore({
+  key: "assessment-v2-trailing-space-test",
+  storage: {
+    getItem() { return transientStored || null; },
+    setItem(key, value) { transientStored = value; },
+    removeItem() { transientStored = ""; },
+  },
+});
+transientStore.save(rawSession({
+  ...resolved,
+  [passQuestion.id]: responseFor(passQuestion, "pass", {rationale: obviousRestrictedTypingValue}),
+}, {label: obviousRestrictedTypingValue}));
+assert.ok(
+  !transientStored.includes(obviousRestrictedTypingValue),
+  "the persistence boundary must remove restricted text even when given an unnormalized value",
+);
+transientStore.save(transientNormalized);
+const persistedTransient = JSON.parse(transientStored);
+assert.equal(persistedTransient.label, trailingSessionValue.trim(), "persistence must trim transient session text");
+assert.equal(
+  persistedTransient.responses[passQuestion.id].rationale,
+  trailingResponseValue.trim(),
+  "persistence must trim transient response text",
+);
+
 const fixedSummary = api.summarizeAssessment(contract, fidelityNormalized, {
   generatedAt: "2026-08-21T15:00:00Z",
 });
@@ -2915,6 +2987,35 @@ for (const field of contract.reviewRequirements.responseExportFields) {
   assert.ok(
     markdownA.toLowerCase().includes(String(fidelityRaw.responses[passQuestion.id][field]).toLowerCase()),
     `Markdown must retain response ${field}`,
+  );
+}
+for (const [label, value] of [
+  ["Schema version (schemaVersion)", String(fixedSummary.schemaVersion)],
+  ["Deck ID (deckId)", fixedSummary.deckId],
+  ["Deck revision (deckRevision)", fixedSummary.deckRevision],
+  ["Created (createdAt)", fixedSummary.createdAt],
+  ["Updated (updatedAt)", fixedSummary.updatedAt],
+  ["Expires (expiresAt)", fixedSummary.expiresAt],
+  ["Generated (generatedAt)", fixedSummary.generatedAt],
+]) {
+  assert.ok(markdownA.includes(`- ${label}: ${value}`), `Markdown must identify ${label}`);
+}
+for (const question of fixedSummary.questions) {
+  assert.ok(markdownA.includes(`- Question ID (questionId): ${question.id}`), `Markdown must identify question ${question.id}`);
+  assert.ok(markdownA.includes(`- Phase ID (phaseId): ${question.phaseId}`), `Markdown must identify phase ${question.phaseId}`);
+  for (const slideId of question.slideIds) {
+    assert.ok(markdownA.includes(slideId), `Markdown must retain slide provenance ${slideId}`);
+  }
+  for (const targetId of question.targetIds) {
+    assert.ok(markdownA.includes(targetId), `Markdown must retain target provenance ${targetId}`);
+  }
+  assert.ok(
+    markdownA.includes(`- Choice value (choice): ${question.response.choice}`),
+    `Markdown must retain the stable choice value for ${question.id}`,
+  );
+  assert.ok(
+    markdownA.includes(`- Choice label: ${question.choiceLabel}`),
+    `Markdown must retain the display choice label for ${question.id}`,
   );
 }
 assert.match(markdownA, /2026-08-21T15:00:00Z/);
@@ -5283,6 +5384,7 @@ class DraftGateTests(WorkflowTestCase):
             "#/doc/workflow-test",
             "#/present/kong-platform-journey-guided/0",
             "#/present/kong-platform-journey-guided/24",
+            "#/present/kong-platform-journey-guided/summary",
         ]
         slide_keys = [f"kong-guided-{index:02d}" for index in range(1, 26)]
         role_ids = ["vp-executive", "directors", "architects", "developers", "devops-sre", "platform-teams"]
@@ -5305,6 +5407,7 @@ class DraftGateTests(WorkflowTestCase):
                             "audienceRoleIds": role_ids,
                             "presentationSlides": slide_keys,
                             "presentationRoute": "#/present/kong-platform-journey-guided/0",
+                            "summaryRoute": "#/present/kong-platform-journey-guided/summary",
                         }
                     ],
                 }

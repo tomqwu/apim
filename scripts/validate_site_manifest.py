@@ -505,6 +505,142 @@ def require(condition: bool, message: str) -> None:
         raise ValidationError(message)
 
 
+def canonical_kong_guided_assessment_question_semantics() -> tuple[tuple[Any, ...], ...]:
+    """Reparse doc49 and return its exact assessment-question semantics.
+
+    The site builder projects these rows into the manifest. Re-reading the
+    canonical Markdown here keeps validation independent from the projection
+    path and prevents a structurally valid manifest from changing a hold rule,
+    evidence floor, choice-set assignment, or target binding.
+    """
+
+    def markdown_row(line: str) -> list[str]:
+        stripped = line.strip()
+        if not stripped.startswith("|"):
+            return []
+        stripped = stripped[1:]
+        if stripped.endswith("|"):
+            stripped = stripped[:-1]
+        return [cell.replace(r"\|", "|").strip() for cell in re.split(r"(?<!\\)\|", stripped)]
+
+    def clean_inline(value: str) -> str:
+        value = re.sub(r"!\[[^\]]*\]\([^)]*\)", "", value)
+        value = re.sub(r"\[([^\]]+)\]\([^)]*\)", r"\1", value)
+        value = re.sub(r"[`*_>#|]", " ", value)
+        return re.sub(r"\s+", " ", value).strip(" -")
+
+    def stable_ids(value: str) -> tuple[str, ...]:
+        values: list[str] = []
+        for raw_part in value.split(";"):
+            part = clean_inline(raw_part)
+            if not part:
+                continue
+            range_match = re.fullmatch(
+                r"([A-Z][A-Z0-9-]*?)(\d+)\.\.([A-Z][A-Z0-9-]*?)(\d+)",
+                part,
+            )
+            if range_match is None:
+                if part not in values:
+                    values.append(part)
+                continue
+            start_prefix, start_text, end_prefix, end_text = range_match.groups()
+            start = int(start_text)
+            end = int(end_text)
+            require(
+                start_prefix == end_prefix and end >= start,
+                "canonical doc49 assessment table contains an invalid stable-ID range",
+            )
+            width = len(start_text) if start_text.startswith("0") else 0
+            for number in range(start, end + 1):
+                suffix = f"{number:0{width}d}" if width else str(number)
+                stable_id = f"{start_prefix}{suffix}"
+                if stable_id not in values:
+                    values.append(stable_id)
+        return tuple(values)
+
+    source = ROOT / KONG_GUIDED_ASSESSMENT_SOURCE_PATH
+    require(
+        source.is_file() and not source.is_symlink(),
+        "canonical doc49 assessment source must be a regular file",
+    )
+    try:
+        text = source.read_text(encoding="utf-8")
+    except (OSError, UnicodeDecodeError) as exc:
+        raise ValidationError("canonical doc49 assessment source cannot be read as UTF-8") from exc
+
+    section_matches = re.findall(
+        r"^##\s+Local interactive assessment contract\s*$([\s\S]*?)(?=^##\s+|\Z)",
+        text,
+        flags=re.MULTILINE | re.IGNORECASE,
+    )
+    require(
+        len(section_matches) == 1,
+        "canonical doc49 must contain one Local interactive assessment contract section",
+    )
+    section = section_matches[0]
+    expected_headers = KONG_GUIDED_ASSESSMENT_QUESTION_COLUMNS
+    tables: list[list[list[str]]] = []
+    lines = section.splitlines()
+    index = 0
+    while index + 1 < len(lines):
+        headers = markdown_row(lines[index])
+        separator = markdown_row(lines[index + 1])
+        if (
+            tuple(headers) != expected_headers
+            or len(separator) != len(headers)
+            or not all(re.fullmatch(r":?-{3,}:?", re.sub(r"\s+", "", cell)) for cell in separator)
+        ):
+            index += 1
+            continue
+        rows: list[list[str]] = []
+        cursor = index + 2
+        while cursor < len(lines):
+            cells = markdown_row(lines[cursor])
+            if not cells:
+                break
+            require(
+                len(cells) == len(expected_headers),
+                "canonical doc49 assessment question row must match the exact table width",
+            )
+            rows.append(cells)
+            cursor += 1
+        tables.append(rows)
+        index = cursor
+    require(
+        len(tables) == 1,
+        "canonical doc49 must contain one exact assessment-question table",
+    )
+
+    semantics: list[tuple[Any, ...]] = []
+    for cells in tables[0]:
+        row = dict(zip(expected_headers, cells))
+        mandatory_text = clean_inline(row["Mandatory"]).casefold()
+        require(
+            mandatory_text in {"true", "false"},
+            "canonical doc49 assessment Mandatory values must be true or false",
+        )
+        semantics.append(
+            (
+                clean_inline(row["Question ID"]),
+                clean_inline(row["Phase ID"]),
+                stable_ids(row["Slide IDs"]),
+                stable_ids(row["Existing target IDs"]),
+                clean_inline(row["Prompt"]),
+                clean_inline(row["Decision use"]),
+                clean_inline(row["Evidence boundary"]),
+                clean_inline(row["Minimum evidence"]),
+                mandatory_text == "true",
+                clean_inline(row["Choice set ID"]),
+                clean_inline(row["Hold rule"]),
+            )
+        )
+    require(
+        tuple(row[0] for row in semantics) == KONG_GUIDED_ASSESSMENT_QUESTION_IDS,
+        "canonical doc49 assessment question rows must preserve the exact frozen ID order",
+    )
+    return tuple(semantics)
+
+
 def run_git(*args: str) -> str:
     try:
         result = subprocess.run(
@@ -1345,6 +1481,25 @@ def validate_kong_guided_evaluation(
         all(question["choiceSetId"] in set(choice_set_ids) for question in questions),
         "guided assessment questions reference an unknown choice set",
     )
+    canonical_question_semantics = canonical_kong_guided_assessment_question_semantics()
+    for question, canonical_semantics in zip(questions, canonical_question_semantics, strict=True):
+        observed_semantics = (
+            question["id"],
+            question["phaseId"],
+            tuple(question["slideIds"]),
+            tuple(question["targetIds"]),
+            question["prompt"],
+            question["decisionUse"],
+            question["evidenceBoundary"],
+            question["minimumEvidence"],
+            question["mandatory"],
+            question["choiceSetId"],
+            question["holdRule"],
+        )
+        require(
+            observed_semantics == canonical_semantics,
+            f"guided assessment question {canonical_semantics[0]} must match its exact canonical doc49 semantic tuple",
+        )
 
     public_roles = assessment.get("publicRoles")
     require(

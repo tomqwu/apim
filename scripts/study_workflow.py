@@ -419,6 +419,13 @@ def verify_local_derived_routes(data: dict[str, Any]) -> None:
         )
         deck_ids.append(deck_id)
         available.update(f"#/present/{deck_id}/{index}" for index in range(len(selected)))
+        summary_route = deck.get("summaryRoute")
+        if summary_route is not None:
+            fail_unless(
+                summary_route == f"#/present/{deck_id}/summary",
+                "generated presentation deck summary route is invalid",
+            )
+            available.add(summary_route)
     fail_unless(
         len(deck_ids) == len(set(deck_ids)) and not set(deck_ids).intersection(audience_ids),
         "generated presentation deck IDs collide with another route context",

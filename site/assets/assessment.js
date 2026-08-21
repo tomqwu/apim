@@ -49,9 +49,10 @@
       .slice(0, limit);
   }
 
-  function publicSafeText(value, limit) {
-    const text = boundedText(value, limit).trim();
-    return restrictedPatterns.some(({ pattern }) => pattern.test(text)) ? "" : text;
+  function publicSafeText(value, limit, options = {}) {
+    const text = boundedText(value, limit);
+    const safe = restrictedPatterns.some(({ pattern }) => pattern.test(text)) ? "" : text;
+    return options.trim === false ? safe : safe.trim();
   }
 
   function privacyFinding(value) {
@@ -114,53 +115,55 @@
     };
   }
 
-  function normalizeResponse(question, rawResponse, choiceSets) {
+  function normalizeResponse(question, rawResponse, choiceSets, options = {}) {
     const source = rawResponse && typeof rawResponse === "object" ? rawResponse : {};
     const validChoices = new Set(choicesFor(question, choiceSets).map((choice) => cleanId(choice.value)));
     const choice = cleanId(source.choice);
     const evidenceLevel = cleanId(source.evidenceLevel).toUpperCase();
     const holdRuleStatus = cleanId(source.holdRuleStatus);
+    const textOptions = { trim: options.trimFreeText !== false };
     return {
       choice: validChoices.has(choice) ? choice : "",
       holdRuleStatus: HOLD_RULE_STATUSES.includes(holdRuleStatus) ? holdRuleStatus : "open",
       evidenceLevel: EVIDENCE_LEVELS.includes(evidenceLevel) ? evidenceLevel : "E0",
-      evidenceReference: publicSafeText(source.evidenceReference, limits.reference),
-      rationale: publicSafeText(source.rationale ?? source.notes, limits.rationale),
+      evidenceReference: publicSafeText(source.evidenceReference, limits.reference, textOptions),
+      rationale: publicSafeText(source.rationale ?? source.notes, limits.rationale, textOptions),
       ownerRole: cleanPublicRole(source.ownerRole),
-      dueGate: publicSafeText(source.dueGate, limits.gate),
+      dueGate: publicSafeText(source.dueGate, limits.gate, textOptions),
       criterionId: cleanRecordId(source.criterionId),
       optionId: cleanRecordId(source.optionId),
-      evidenceRequest: publicSafeText(source.evidenceRequest, limits.request),
+      evidenceRequest: publicSafeText(source.evidenceRequest, limits.request, textOptions),
       restrictedReferenceId: cleanRecordId(source.restrictedReferenceId),
-      dissent: publicSafeText(source.dissent, limits.record),
-      nextForum: publicSafeText(source.nextForum, limits.gate),
+      dissent: publicSafeText(source.dissent, limits.record, textOptions),
+      nextForum: publicSafeText(source.nextForum, limits.gate, textOptions),
     };
   }
 
-  function normalizeAssessment(contract, raw = {}) {
+  function normalizeAssessment(contract, raw = {}, options = {}) {
     const source = raw && typeof raw === "object" ? raw : {};
     const choiceSets = choiceSetsFor(contract);
+    const textOptions = { trim: options.trimFreeText !== false };
     const responses = {};
     questionsFor(contract).forEach((question) => {
       const questionId = cleanId(question.id);
-      responses[questionId] = normalizeResponse(question, source.responses?.[questionId], choiceSets);
+      responses[questionId] = normalizeResponse(question, source.responses?.[questionId], choiceSets, options);
     });
     return {
       schemaVersion: SCHEMA_VERSION,
       deckId: cleanId(source.deckId || contract?.deckId || "kong-platform-journey-guided"),
       deckRevision: cleanRecordId(contract?.deckRevision),
-      label: publicSafeText(source.label, limits.label),
+      label: publicSafeText(source.label, limits.label, textOptions),
       meetingDecision: MEETING_DECISIONS.includes(cleanId(source.meetingDecision).toLowerCase())
         ? cleanId(source.meetingDecision).toLowerCase()
         : "",
       decisionOwnerRole: cleanPublicRole(source.decisionOwnerRole),
-      authorizedScope: publicSafeText(source.authorizedScope, limits.scope),
-      unauthorizedScope: publicSafeText(source.unauthorizedScope, limits.scope),
-      assumptions: publicSafeText(source.assumptions, limits.record),
-      actions: publicSafeText(source.actions, limits.record),
-      dissent: publicSafeText(source.dissent, limits.record),
-      nextForum: publicSafeText(source.nextForum, limits.gate),
-      holdReason: publicSafeText(source.holdReason, limits.record),
+      authorizedScope: publicSafeText(source.authorizedScope, limits.scope, textOptions),
+      unauthorizedScope: publicSafeText(source.unauthorizedScope, limits.scope, textOptions),
+      assumptions: publicSafeText(source.assumptions, limits.record, textOptions),
+      actions: publicSafeText(source.actions, limits.record, textOptions),
+      dissent: publicSafeText(source.dissent, limits.record, textOptions),
+      nextForum: publicSafeText(source.nextForum, limits.gate, textOptions),
+      holdReason: publicSafeText(source.holdReason, limits.record, textOptions),
       createdAt: cleanDate(source.createdAt),
       updatedAt: cleanDate(source.updatedAt),
       expiresAt: cleanDate(source.expiresAt),
@@ -174,7 +177,7 @@
   }
 
   function fieldResolved(record, field) {
-    if (!record?.[field]) return false;
+    if (!record?.[field] || (typeof record[field] === "string" && !record[field].trim())) return false;
     if (["ownerRole", "decisionOwnerRole"].includes(field)) return record[field] !== "Unassigned role";
     if (field === "holdRuleStatus") return record[field] === "closed";
     return true;
@@ -396,12 +399,17 @@
     const lines = [
       "# Guided evaluation meeting summary",
       "",
+      `- Schema version (schemaVersion): ${Number(report.schemaVersion || SCHEMA_VERSION)}`,
+      `- Deck ID (deckId): ${markdownText(report.deckId || "Not recorded")}`,
       `- Meeting: ${markdownText(report.label || "Not labelled")}`,
-      `- Deck revision: ${markdownText(report.deckRevision || "Not recorded")}`,
+      `- Deck revision (deckRevision): ${markdownText(report.deckRevision || "Not recorded")}`,
       `- Meeting decision: ${markdownText(report.meetingDecision || "Not captured")}`,
       `- Decision owner role: ${markdownText(report.decisionOwnerRole || "Not assigned")}`,
       `- Decision state: ${markdownText(String(report.decisionState || "amend").toUpperCase())}`,
-      `- Generated: ${markdownText(report.generatedAt || "Not recorded")}`,
+      `- Created (createdAt): ${markdownText(report.createdAt || "Not recorded")}`,
+      `- Updated (updatedAt): ${markdownText(report.updatedAt || "Not recorded")}`,
+      `- Expires (expiresAt): ${markdownText(report.expiresAt || "Not recorded")}`,
+      `- Generated (generatedAt): ${markdownText(report.generatedAt || "Not recorded")}`,
       `- Responses: ${Number(report.counts?.answered || 0)} of ${Number(report.counts?.total || 0)}`,
       "",
       "## Decision record",
@@ -419,7 +427,13 @@
       "",
     ];
     (Array.isArray(report.phases) ? report.phases : []).forEach((phase) => {
-      lines.push(`## ${markdownText(phase.phaseId || "Unassigned phase")}`, "");
+      lines.push(
+        `## ${markdownText(phase.phaseId || "Unassigned phase")}`,
+        "",
+        `- Phase ID (phaseId): ${markdownText(phase.phaseId || "Not recorded")}`,
+        `- Question IDs (questionIds): ${phase.questionIds?.length ? phase.questionIds.map(markdownText).join(", ") : "None recorded"}`,
+        "",
+      );
       const phaseQuestions = (Array.isArray(report.questions) ? report.questions : [])
         .filter((question) => (phase.questionIds || []).includes(question.id));
       phaseQuestions.forEach((question) => {
@@ -428,7 +442,12 @@
           "",
           markdownText(question.prompt || "Question"),
           "",
-          `- Choice: ${markdownText(question.choiceLabel || question.response?.choice || "Unanswered")}`,
+          `- Question ID (questionId): ${markdownText(question.id || "Not recorded")}`,
+          `- Phase ID (phaseId): ${markdownText(question.phaseId || phase.phaseId || "Not recorded")}`,
+          `- Slide IDs (slideIds): ${question.slideIds?.length ? question.slideIds.map(markdownText).join(", ") : "None recorded"}`,
+          `- Target IDs (targetIds): ${question.targetIds?.length ? question.targetIds.map(markdownText).join(", ") : "None recorded"}`,
+          `- Choice value (choice): ${markdownText(question.response?.choice || "Unanswered")}`,
+          `- Choice label: ${markdownText(question.choiceLabel || "Unanswered")}`,
           `- Hold rule: ${markdownText(question.holdRule || "Not recorded")}`,
           `- Hold-rule disposition: ${markdownText(question.response?.holdRuleStatus || "open")}`,
           `- Evidence: ${markdownText(question.response?.evidenceLevel || "E0")} (minimum ${markdownText(question.minimumEvidence || "E0")})`,

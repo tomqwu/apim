@@ -2867,7 +2867,7 @@
       };
     } else return;
     const originalValue = target.value;
-    state.assessmentSession = api.normalizeAssessment(contract, raw);
+    state.assessmentSession = api.normalizeAssessment(contract, raw, { trimFreeText: immediate });
     const normalizedValue = sessionField
       ? state.assessmentSession[sessionField]
       : state.assessmentSession.responses?.[questionId]?.[responseField];
