@@ -803,9 +803,15 @@ class CanonicalContractTests(WorkflowTestCase):
 
         pptx = SOURCE_ROOT / "presentations" / "kong-platform-journey-guided.pptx"
         drawing = "http://schemas.openxmlformats.org/drawingml/2006/main"
+        presentation = "http://schemas.openxmlformats.org/presentationml/2006/main"
         office_relationships = "http://schemas.openxmlformats.org/officeDocument/2006/relationships"
         package_relationships = "http://schemas.openxmlformats.org/package/2006/relationships"
-        namespaces = {"a": drawing, "r": office_relationships, "pr": package_relationships}
+        namespaces = {
+            "a": drawing,
+            "p": presentation,
+            "r": office_relationships,
+            "pr": package_relationships,
+        }
 
         with zipfile.ZipFile(pptx) as archive:
             members = set(archive.namelist())
@@ -898,6 +904,55 @@ class CanonicalContractTests(WorkflowTestCase):
             ]
             self.assertEqual(5, len(score_widths))
             self.assertGreaterEqual(score_widths[-1], 1_143_000)
+
+            architecture_slide = ET.fromstring(archive.read("ppt/slides/slide9.xml"))
+            shape_left_edges = {}
+            for shape in architecture_slide.findall(".//p:sp", namespaces):
+                properties = shape.find("./p:nvSpPr/p:cNvPr", namespaces)
+                transform = shape.find("./p:spPr/a:xfrm", namespaces)
+                if properties is None or transform is None:
+                    continue
+                offset = transform.find("./a:off", namespaces)
+                if offset is not None:
+                    shape_left_edges[properties.attrib["id"]] = int(offset.attrib["x"])
+
+            architecture_connectors = []
+            for connector in architecture_slide.findall(".//p:cxnSp", namespaces):
+                connection_properties = connector.find(
+                    "./p:nvCxnSpPr/p:cNvCxnSpPr",
+                    namespaces,
+                )
+                transform = connector.find("./p:spPr/a:xfrm", namespaces)
+                if connection_properties is None or transform is None:
+                    continue
+                start = connection_properties.find("./a:stCxn", namespaces)
+                end = connection_properties.find("./a:endCxn", namespaces)
+                offset = transform.find("./a:off", namespaces)
+                extent = transform.find("./a:ext", namespaces)
+                if start is not None and end is not None and offset is not None and extent is not None:
+                    architecture_connectors.append((start.attrib, end.attrib, offset.attrib, extent.attrib))
+
+            approval_connector = next(
+                connector
+                for connector in architecture_connectors
+                if connector[0].get("id") == "16" and connector[1].get("id") == "10"
+            )
+            self.assertEqual("1", approval_connector[0].get("idx"))
+            self.assertEqual("1", approval_connector[1].get("idx"))
+            approval_right_edge = int(approval_connector[2]["x"]) + int(approval_connector[3]["cx"])
+            self.assertEqual(shape_left_edges["16"], approval_right_edge)
+            self.assertEqual(shape_left_edges["10"], approval_right_edge)
+            self.assertLess(int(approval_connector[2]["x"]), approval_right_edge)
+            self.assertTrue(
+                any(
+                    start.get("id") == "10"
+                    and start.get("idx") == "2"
+                    and end.get("id") == "13"
+                    and end.get("idx") == "0"
+                    for start, end, _, _ in architecture_connectors
+                ),
+                "slide 9 must preserve a separate control-plane to PostgreSQL persistence arrow",
+            )
 
     def test_guided_facilitator_guide_is_indexed_and_linked_from_entry_points(self) -> None:
         guide_path = "docs/49-kong-guided-evaluation-facilitator-guide.md"
@@ -2074,9 +2129,19 @@ process.stdout.write(window.ApiStudyCharts.render("criteriaOverview", data, {com
         self.assertIn('chartMarkup("guidedArchitectureOverview"', app)
         self.assertIn('makeButton(hasAuthoredOverview ? "Overview" : "Takeaway"', app)
         self.assertIn("function guidedArchitectureOverview(data)", charts)
+        self.assertIn(
+            'controlFlow("approved intent", "gitops-trust", "kong-control-plane", "is-approved-intent")',
+            charts,
+        )
+        self.assertIn(
+            'controlFlow("management state", "kong-control-plane", "postgresql-ha", "is-management-state")',
+            charts,
+        )
         self.assertIn('class="viz-guided-architecture-fanout"', charts)
+        self.assertIn('index === 1 ? "<b>configuration</b>" : ""', charts)
         self.assertIn('class="viz-guided-architecture-lanes"', charts)
         self.assertRegex(styles, r"(?s)\.viz-guided-architecture-map\s*\{[^}]*grid-template-columns:")
+        self.assertRegex(styles, r"(?s)\.viz-guided-architecture-control-flow\.is-approved-intent\s*\{[^}]*color:\s*var\(--guided-violet\)")
         self.assertRegex(styles, r"(?s)\.viz-guided-architecture-fanout::before\s*\{[^}]*border-left:")
         self.assertRegex(styles, r"(?s)\.viz-guided-architecture-lanes > li\s*\{[^}]*grid-template-columns:")
         self.assertIn("row.presentationStrongestWhen || row.strongestWhen", charts)

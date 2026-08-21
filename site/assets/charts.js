@@ -765,7 +765,7 @@
       <strong>${escapeHtml(item?.label || "")}</strong>
       <span>${escapeHtml(item?.detail || "")}</span>
     </article>`;
-    const controlFlow = (labelText) => `<span class="viz-guided-architecture-control-flow" aria-hidden="true"><b>${escapeHtml(labelText)}</b></span>`;
+    const controlFlow = (labelText, from, to, edgeClass) => `<span class="viz-guided-architecture-control-flow ${escapeHtml(edgeClass)}" data-edge-from="${escapeHtml(from)}" data-edge-to="${escapeHtml(to)}" aria-hidden="true"><b>${escapeHtml(labelText)}</b></span>`;
     const laneSummary = lanes.map((lane) => `${lane.dataPlane?.label || "Data plane"} serves ${lane.target?.label || "its local target"}`).join("; ");
     return `<figure class="viz-guided-architecture-overview" role="img" aria-label="${escapeHtml(`One enterprise control zone distributes configuration to three data-plane cells. ${laneSummary}. Evidence remains local to each lane.`)}">
       <div class="viz-guided-architecture-head" aria-hidden="true">
@@ -775,12 +775,12 @@
       <div class="viz-guided-architecture-map" aria-hidden="true">
         <section class="viz-guided-architecture-control">
           ${node(controlNodes[0], "is-authority")}
-          ${controlFlow("approved intent")}
+          ${controlFlow("approved intent", "gitops-trust", "kong-control-plane", "is-approved-intent")}
           ${node(controlNodes[1], "is-control-plane")}
-          ${controlFlow("management state")}
+          ${controlFlow("management state", "kong-control-plane", "postgresql-ha", "is-management-state")}
           ${node(controlNodes[2], "is-state")}
         </section>
-        <div class="viz-guided-architecture-fanout">${lanes.map((_, index) => `<span>${index === 0 ? "<b>configuration</b>" : ""}</span>`).join("")}</div>
+        <div class="viz-guided-architecture-fanout">${lanes.map((_, index) => `<span>${index === 1 ? "<b>configuration</b>" : ""}</span>`).join("")}</div>
         <ol class="viz-guided-architecture-lanes">${lanes.map((lane) => `<li>
           ${node(lane.dataPlane, "is-data-plane")}
           <span class="viz-guided-architecture-request"><b>proxy</b></span>
