@@ -122,11 +122,11 @@ KONG_PLATFORM_JOURNEY_SOURCE_IDS = (
     "poc-readme",
 )
 KONG_PLATFORM_JOURNEY_PHASES = (
-    ("01", "Options", "Fix custody, runtime, and evidence ownership"),
-    ("02", "Architecture", "Separate management state from request execution"),
-    ("03", "Adoption", "Turn installation into a paved, supportable platform"),
-    ("04", "Migration", "Move representative slices with route-back; retire only after dependency zero"),
-    ("05", "Production", "Scale only accepted patterns; narrow, switch, or exit otherwise"),
+    ("01", "Options", "Fix custody, runtime, and evidence ownership", "kong-journey-decision"),
+    ("02", "Architecture", "Separate management state from request execution", "kong-platform-architecture"),
+    ("03", "Adoption", "Turn installation into a paved, supportable platform", "kong-technical-operating-model"),
+    ("04", "Migration", "Move representative slices with route-back; retire only after dependency zero", "kong-journey-migration-boundary"),
+    ("05", "Production", "Scale only accepted patterns; narrow, switch, or exit otherwise", "kong-journey-proof"),
 )
 KONG_GUIDED_DECK_ID = "kong-platform-journey-guided"
 KONG_GUIDED_THEME = "kong-guided"
@@ -485,6 +485,25 @@ def unique(values: list[str], label: str) -> None:
     require(len(values) == len(set(values)), f"{label} contains duplicate values")
 
 
+def validate_journey_phase_starts(deck: dict[str, Any], selected_slides: list[str], label: str) -> None:
+    """Ensure every declared phase resolves to one ordered route inside its deck."""
+    phases = deck.get("journeyPhases", [])
+    require(isinstance(phases, list), f"{label} journeyPhases must be a list")
+    if not phases:
+        return
+    require(all(isinstance(phase, dict) for phase in phases), f"{label} journey phases must be objects")
+    phase_ids = [phase.get("id") for phase in phases]
+    start_keys = [phase.get("startKey") for phase in phases]
+    require(all(isinstance(phase_id, str) and phase_id for phase_id in phase_ids), f"{label} journey phase IDs must be non-empty strings")
+    require(all(isinstance(start_key, str) and start_key for start_key in start_keys), f"{label} journey phase startKeys must be non-empty strings")
+    unique(phase_ids, f"{label} journey phase IDs")
+    unique(start_keys, f"{label} journey phase startKeys")
+    require(all(start_key in selected_slides for start_key in start_keys), f"{label} journey phase startKeys must reference selected slides")
+    start_indices = [selected_slides.index(start_key) for start_key in start_keys]
+    require(start_indices[0] == 0, f"{label} journey phases must begin with the first selected slide")
+    require(start_indices == sorted(start_indices), f"{label} journey phase starts must increase strictly")
+
+
 def validate_poc_projection(manifest: dict[str, Any]) -> None:
     """Bind the PoC visual to the canonical aggregate status register."""
     visuals = manifest.get("visuals")
@@ -705,13 +724,13 @@ def validate_kong_platform_journey(
     phases = deck.get("journeyPhases")
     require(isinstance(phases, list), "Kong platform journey journeyPhases must be a list")
     observed_phases = tuple(
-        (phase.get("id"), phase.get("label"), phase.get("outcome"))
+        (phase.get("id"), phase.get("label"), phase.get("outcome"), phase.get("startKey"))
         for phase in phases
         if isinstance(phase, dict)
     )
     require(
         len(observed_phases) == len(phases) and observed_phases == KONG_PLATFORM_JOURNEY_PHASES,
-        "Kong platform journey phases must match the exact five-stage spine",
+        "Kong platform journey phases must match the exact five-stage spine and start keys",
     )
 
     slides_by_key = {slide.get("key"): slide for slide in presentation if isinstance(slide, dict)}
@@ -1680,6 +1699,7 @@ def validate_routes_and_audiences(
             type(deck.get("slideTotal")) is int and deck["slideTotal"] == len(selected_slides),
             f"presentation deck {deck_id} slideTotal must equal its presentation slide count",
         )
+        validate_journey_phase_starts(deck, selected_slides, f"presentation deck {deck_id}")
         selected_source_ids = {
             slide["sourceId"] for slide in presentation if slide["key"] in selected_slides
         }

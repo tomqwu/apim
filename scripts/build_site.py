@@ -2638,7 +2638,7 @@ def make_presentation_decks(
         slide_keys: tuple[str, ...],
         exit_route: str,
         theme: str = "",
-        journey_phases: tuple[tuple[str, str], ...] = (),
+        journey_phases: tuple[tuple[str, str, str], ...] = (),
         journey_phase_records: tuple[dict[str, str], ...] = (),
     ) -> dict[str, object]:
         if len(set(slide_keys)) != len(slide_keys):
@@ -2664,17 +2664,20 @@ def make_presentation_decks(
                     source_ids.append(source_id)
                     source_paths.append(source_path)
         phase_records = [dict(phase) for phase in journey_phase_records]
+        if not phase_records:
+            phase_records = [
+                {"id": f"{index:02d}", "label": label, "outcome": outcome, "startKey": start_key}
+                for index, (label, outcome, start_key) in enumerate(journey_phases, start=1)
+            ]
         if phase_records:
             if len({phase.get("id", "") for phase in phase_records}) != len(phase_records):
                 raise ValueError(f"Presentation deck {deck_id} repeats a journey phase ID")
             invalid_start_keys = [phase.get("startKey", "") for phase in phase_records if phase.get("startKey") not in slide_keys]
             if invalid_start_keys:
                 raise ValueError(f"Presentation deck {deck_id} has invalid journey phase starts: {invalid_start_keys}")
-        else:
-            phase_records = [
-                {"id": f"{index:02d}", "label": label, "outcome": outcome}
-                for index, (label, outcome) in enumerate(journey_phases, start=1)
-            ]
+            start_indices = [slide_keys.index(str(phase["startKey"])) for phase in phase_records]
+            if start_indices[0] != 0 or start_indices != sorted(set(start_indices)):
+                raise ValueError(f"Presentation deck {deck_id} journey phase starts must begin at zero and increase strictly")
         return {
             "id": deck_id,
             "kind": "deck",
@@ -2765,11 +2768,11 @@ def make_presentation_decks(
             exit_route="#/overview",
             theme="kong-journey",
             journey_phases=(
-                ("Options", "Fix custody, runtime, and evidence ownership"),
-                ("Architecture", "Separate management state from request execution"),
-                ("Adoption", "Turn installation into a paved, supportable platform"),
-                ("Migration", "Move representative slices with route-back; retire only after dependency zero"),
-                ("Production", "Scale only accepted patterns; narrow, switch, or exit otherwise"),
+                ("Options", "Fix custody, runtime, and evidence ownership", "kong-journey-decision"),
+                ("Architecture", "Separate management state from request execution", "kong-platform-architecture"),
+                ("Adoption", "Turn installation into a paved, supportable platform", "kong-technical-operating-model"),
+                ("Migration", "Move representative slices with route-back; retire only after dependency zero", "kong-journey-migration-boundary"),
+                ("Production", "Scale only accepted patterns; narrow, switch, or exit otherwise", "kong-journey-proof"),
             ),
         ),
         deck(

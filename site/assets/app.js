@@ -2423,6 +2423,12 @@
     return "#/overview";
   }
 
+  function presentationSlideHref(context, index) {
+    return context
+      ? `#/present/${encodeURIComponent(context.id)}/${index}`
+      : `#/present/${index}`;
+  }
+
   function renderPresentation(rawIndex, contextId = "") {
     const { audience, deck, context, slides } = presentationContext(contextId);
     if (!slides.length) {
@@ -2482,20 +2488,30 @@
     const journeyPhases = configuredPhases.length
       ? configuredPhases
       : ["Options", "Architecture", "Adoption", "Migration", "Production"].map((label, phaseIndex) => ({ id: String(phaseIndex + 1).padStart(2, "0"), label }));
+    const journeyPhaseStarts = journeyPhases.map((phase) => slides.findIndex((candidate) => candidate.key === phase.startKey));
     const explicitPhaseIndex = journeyPhases.findIndex((phase) => phase.id === slide.phaseId);
     const startKeyPhaseIndex = journeyPhases.reduce((matchedIndex, phase, phaseIndex) => {
-      if (!phase.startKey) return matchedIndex;
-      const startIndex = slides.findIndex((candidate) => candidate.key === phase.startKey);
+      const startIndex = journeyPhaseStarts[phaseIndex];
       return startIndex >= 0 && startIndex <= index ? phaseIndex : matchedIndex;
     }, -1);
-    const legacyJourneyPhaseIndex = index <= 2 ? 0 : index <= 5 ? 1 : index <= 7 ? 2 : index <= 10 ? 3 : 4;
     const journeyPhaseIndex = explicitPhaseIndex >= 0
       ? explicitPhaseIndex
       : startKeyPhaseIndex >= 0
         ? startKeyPhaseIndex
-        : Math.min(legacyJourneyPhaseIndex, journeyPhases.length - 1);
+        : 0;
     const journeySpine = isJourneyDeck
-      ? `<ol class="journey-phase-spine" style="--journey-phase-count:${journeyPhases.length}" aria-label="${isGuidedDeck ? "Guided Kong evaluation phases" : "Kong platform journey phases"}">${journeyPhases.map((phase, phaseIndex) => `<li class="${phaseIndex < journeyPhaseIndex ? "is-complete" : phaseIndex === journeyPhaseIndex ? "is-current" : ""}" ${phaseIndex === journeyPhaseIndex ? 'aria-current="step"' : ""}><span>${escapeHtml(phase.id || String(phaseIndex + 1).padStart(2, "0"))}</span><b>${escapeHtml(phase.phase || phase.label)}</b></li>`).join("")}</ol>`
+      ? `<nav class="journey-phase-nav" aria-label="${isGuidedDeck ? "Guided Kong evaluation phases" : "Kong platform journey phases"}"><ol class="journey-phase-spine" style="--journey-phase-count:${journeyPhases.length}">${journeyPhases.map((phase, phaseIndex) => {
+          const phaseLabel = phase.phase || phase.label;
+          const phaseStartIndex = journeyPhaseStarts[phaseIndex];
+          const isCurrentPhase = phaseIndex === journeyPhaseIndex;
+          const phaseId = phase.id || String(phaseIndex + 1).padStart(2, "0");
+          const phaseIdMarkup = phaseId.startsWith("KGE-")
+            ? `<span class="journey-phase-id-prefix">${escapeHtml(phaseId.slice(0, 4))}</span>${escapeHtml(phaseId.slice(4))}`
+            : escapeHtml(phaseId);
+          const phasePosition = `Phase ${phaseIndex + 1} of ${journeyPhases.length}: ${phaseLabel}`;
+          const phaseAction = isCurrentPhase ? `Restart at slide ${phaseStartIndex + 1}` : `Go to slide ${phaseStartIndex + 1}`;
+          return `<li class="${phaseIndex < journeyPhaseIndex ? "is-prior" : isCurrentPhase ? "is-current" : ""}"><a href="${presentationSlideHref(context, phaseStartIndex)}" aria-label="${escapeHtml(`${isCurrentPhase ? "Current " : ""}${phasePosition}. ${phaseAction}.`)}" title="${escapeHtml(`${phaseLabel} · slide ${phaseStartIndex + 1}`)}" ${isCurrentPhase ? 'aria-current="step"' : ""}><span aria-hidden="true">${phaseIdMarkup}</span><b>${escapeHtml(phaseLabel)}</b></a></li>`;
+        }).join("")}</ol></nav>`
       : "";
     const guidedRepoReferences = isGuidedDeck
       ? [...new Set([slide.sourceId, ...(Array.isArray(slide.sourceIds) ? slide.sourceIds : [])].filter(Boolean))]
@@ -2585,7 +2601,7 @@
     const { context, slides } = presentationContext(contextId);
     if (!slides.length) return;
     const next = Math.min(Math.max(current + delta, 0), slides.length - 1);
-    if (next !== current) location.hash = context ? `#/present/${context.id}/${next}` : `#/present/${next}`;
+    if (next !== current) location.hash = presentationSlideHref(context, next);
   }
 
   async function toggleFullscreen() {

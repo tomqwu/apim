@@ -4678,9 +4678,16 @@ body.is-presenting .site-footer {
   grid-template-rows: 3.5rem minmax(0, 1fr) auto;
 }
 
-.journey-phase-spine {
+.journey-phase-nav {
   grid-column: 1;
   grid-row: 1;
+  min-width: 0;
+  min-height: 0;
+}
+
+.journey-phase-spine {
+  width: 100%;
+  height: 100%;
   display: grid;
   grid-template-columns: repeat(var(--journey-phase-count, 5), minmax(0, 1fr));
   margin: 0;
@@ -4691,23 +4698,51 @@ body.is-presenting .site-footer {
 
 .journey-phase-spine li {
   min-width: 0;
+  min-height: 0;
+  border-left: 1px solid #343730;
+  color: #858b82;
+}
+
+.journey-phase-spine li > a {
+  width: 100%;
+  height: 100%;
+  min-height: 44px;
   display: flex;
   gap: 0.65rem;
   align-items: center;
-  padding: 0.7rem 0.8rem;
-  border-left: 1px solid #343730;
-  color: #858b82;
+  box-sizing: border-box;
+  padding: 0.35rem 0.8rem;
+  color: inherit;
   font-family: var(--mono);
   font-size: 1rem;
+  line-height: 1.1;
   letter-spacing: 0.06em;
+  text-decoration: none;
   text-transform: uppercase;
+}
+
+.journey-phase-spine li > a > span {
+  flex: 0 0 auto;
+  white-space: nowrap;
+}
+
+.journey-phase-spine li:not(.is-current) > a:hover {
+  color: #fff8ef;
+  background: rgb(255 255 255 / 8%);
+}
+
+.journey-phase-spine li > a:focus-visible {
+  position: relative;
+  z-index: 1;
+  outline: 3px solid #fff8ef;
+  outline-offset: -4px;
 }
 
 .journey-phase-spine li:last-child {
   border-right: 1px solid #343730;
 }
 
-.journey-phase-spine li.is-complete {
+.journey-phase-spine li.is-prior {
   color: #bdc2b8;
 }
 
@@ -5171,9 +5206,9 @@ body.is-presenting .site-footer {
     padding: 0 1rem;
   }
 
-  .journey-phase-spine li {
+  .journey-phase-spine li > a {
     gap: 0.35rem;
-    padding: 0.55rem 0.35rem;
+    padding: 0.3rem 0.35rem;
     font-size: 1rem;
   }
 
@@ -5318,14 +5353,20 @@ body.is-presenting .site-footer {
     grid-template-rows: auto auto auto;
   }
 
+  .presentation-stage.is-kong-journey .journey-phase-nav {
+    margin-right: var(--mobile-control-rail);
+  }
+
   .presentation-stage.is-kong-journey .journey-phase-spine {
     grid-template-columns: repeat(var(--journey-phase-count, 5), minmax(0, 1fr));
-    margin-right: var(--mobile-control-rail);
     padding: 0;
   }
 
   .journey-phase-spine li {
     min-height: 3rem;
+  }
+
+  .journey-phase-spine li > a {
     justify-content: center;
     padding: 0.35rem;
   }
@@ -7983,9 +8024,20 @@ body.is-presenting .site-footer {
     break-after: page;
   }
 
+  .presentation-stage.is-kong-journey .journey-phase-nav,
   .presentation-stage.is-kong-journey .journey-phase-spine {
     min-height: 0;
+  }
+
+  .presentation-stage.is-kong-journey .journey-phase-spine {
     padding: 0 0.3in;
+  }
+
+  .presentation-stage.is-kong-journey .journey-phase-spine li > a {
+    min-height: 0;
+    color: inherit !important;
+    text-decoration: none !important;
+    outline: 0 !important;
   }
 
   .presentation-stage.is-kong-journey .is-journey-slide > .slide-main {
@@ -8106,7 +8158,7 @@ body.is-presenting .site-footer {
   background: transparent;
 }
 
-.presentation-stage.is-kong-guided .journey-phase-spine li.is-complete {
+.presentation-stage.is-kong-guided .journey-phase-spine li.is-prior {
   color: var(--guided-ink);
   box-shadow: inset 0 -3px 0 var(--guided-violet);
 }
@@ -8115,6 +8167,15 @@ body.is-presenting .site-footer {
   color: var(--guided-ink);
   background: var(--guided-yellow);
   box-shadow: none;
+}
+
+.presentation-stage.is-kong-guided .journey-phase-spine li:not(.is-current) > a:hover {
+  color: var(--guided-ink);
+  background: rgb(95 56 215 / 12%);
+}
+
+.presentation-stage.is-kong-guided .journey-phase-spine li > a:focus-visible {
+  outline-color: var(--guided-violet);
 }
 
 .presentation-stage.is-kong-guided .journey-phase-spine span,
@@ -9320,7 +9381,7 @@ body.is-presenting .site-footer {
     font-size: clamp(2.2rem, 4vw, 3.25rem);
   }
 
-  .presentation-stage.is-kong-guided .journey-phase-spine li {
+  .presentation-stage.is-kong-guided .journey-phase-spine li > a {
     font-size: 0.78rem;
   }
 
@@ -9365,9 +9426,13 @@ body.is-presenting .site-footer {
 /* Keep the six-phase rail inside its reserved row at compact desktop widths.
    The full phase name remains in the accessibility tree and in the slide eyebrow. */
 @media screen and (min-width: 761px) and (max-width: 1279px) {
-  .presentation-stage.is-kong-guided .journey-phase-spine li {
+  .presentation-stage.is-kong-guided .journey-phase-spine li > a {
     justify-content: center;
     font-size: 1rem;
+  }
+
+  .presentation-stage.is-kong-guided .journey-phase-id-prefix {
+    display: none;
   }
 
   .presentation-stage.is-kong-guided .journey-phase-spine li b {
@@ -9432,6 +9497,10 @@ body.is-presenting .site-footer {
 @media screen and (max-width: 760px) {
   .presentation-stage.is-kong-guided .presentation-slide.is-guided-slide {
     background-image: none;
+  }
+
+  .presentation-stage.is-kong-guided .journey-phase-id-prefix {
+    display: none;
   }
 
   .presentation-stage.is-kong-guided .journey-phase-spine {
