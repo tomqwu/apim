@@ -17,6 +17,11 @@
     searchReturnFocus: null,
     toastTimer: null,
     printSnapshot: null,
+    assessmentStore: null,
+    assessmentSession: null,
+    assessmentSaveTimer: null,
+    assessmentReturnFocus: null,
+    assessmentLastSlideIndex: 0,
   };
 
   const sectionDescriptions = {
@@ -292,7 +297,7 @@
           </div>
           <div class="hero-actions">
             <a class="action-link is-primary" href="${itemHref(kongPlatform)}">Open the Kong platform strategy <span aria-hidden="true">↗</span></a>
-            <a class="action-link is-primary" href="#/present/kong-platform-journey-guided/0">Start the guided Kong evaluation <span aria-hidden="true">→</span></a>
+            <a class="action-link is-primary" href="#/present/kong-platform-journey-guided/0">Start the interactive Kong assessment <span aria-hidden="true">→</span></a>
             ${kongFacilitatorGuide ? `<a class="action-link is-primary" href="${itemHref(kongFacilitatorGuide)}">Open the facilitator guide <span aria-hidden="true">↗</span></a>` : ""}
             <a class="action-link is-primary" href="#/present/kong-platform-journey/0">Start the Kong platform journey <span aria-hidden="true">→</span></a>
             <a class="action-link" href="#/architecture">Inspect the target architecture <span aria-hidden="true">→</span></a>
@@ -708,7 +713,7 @@
           </div>
           <div class="hero-actions">
             <a class="action-link is-primary" href="${itemHref(kongPlatform)}">Open the canonical platform strategy <span aria-hidden="true">↗</span></a>
-            <a class="action-link is-primary" href="#/present/kong-platform-journey-guided/0">Start the guided Kong evaluation <span aria-hidden="true">→</span></a>
+            <a class="action-link is-primary" href="#/present/kong-platform-journey-guided/0">Start the interactive Kong assessment <span aria-hidden="true">→</span></a>
             ${kongFacilitatorGuide ? `<a class="action-link is-primary" href="${itemHref(kongFacilitatorGuide)}">Open the facilitator guide <span aria-hidden="true">↗</span></a>` : ""}
             <a class="action-link is-primary" href="#/present/kong-platform-journey/0">Start the Kong platform journey <span aria-hidden="true">→</span></a>
             <a class="action-link" href="#/present/kong-technical-deep-dive/0">Start the Kong technical deep dive <span aria-hidden="true">→</span></a>
@@ -2433,6 +2438,500 @@
       : `#/present/${index}`;
   }
 
+  function guidedAssessmentContract() {
+    const contract = state.manifest?.visuals?.guidedEvaluation?.assessmentContract;
+    return contract?.schemaVersion === 2 && Array.isArray(contract.questions) ? contract : null;
+  }
+
+  function guidedAssessmentDeck() {
+    return (state.manifest?.presentationDecks || []).find((deck) => deck.id === "kong-platform-journey-guided") || null;
+  }
+
+  function assessmentTimestamp() {
+    return new Date().toISOString();
+  }
+
+  function assessmentExpiry(timestamp = assessmentTimestamp()) {
+    const expiry = new Date(timestamp);
+    expiry.setDate(expiry.getDate() + 30);
+    return expiry.toISOString();
+  }
+
+  function freshAssessmentSession() {
+    const contract = guidedAssessmentContract();
+    const api = window.ApiStudyAssessment;
+    if (!contract || !api) return null;
+    const now = assessmentTimestamp();
+    return api.normalizeAssessment(contract, {
+      schemaVersion: 2,
+      deckId: "kong-platform-journey-guided",
+      label: "",
+      meetingDecision: "",
+      decisionOwnerRole: "",
+      authorizedScope: "",
+      unauthorizedScope: "",
+      assumptions: "",
+      actions: "",
+      dissent: "",
+      nextForum: "",
+      holdReason: "",
+      createdAt: now,
+      updatedAt: now,
+      expiresAt: assessmentExpiry(now),
+      responses: {},
+    });
+  }
+
+  function initializeGuidedAssessment() {
+    const contract = guidedAssessmentContract();
+    const api = window.ApiStudyAssessment;
+    if (!contract || !api?.createStore || !api?.normalizeAssessment) return;
+    state.assessmentStore = api.createStore({ deckId: "kong-platform-journey-guided" });
+    const stored = state.assessmentStore.load();
+    state.assessmentSession = stored
+      ? api.normalizeAssessment(contract, stored)
+      : freshAssessmentSession();
+  }
+
+  function assessmentSummary() {
+    const contract = guidedAssessmentContract();
+    const api = window.ApiStudyAssessment;
+    if (!contract || !state.assessmentSession || !api?.summarizeAssessment) return null;
+    return api.summarizeAssessment(contract, state.assessmentSession, { generatedAt: assessmentTimestamp() });
+  }
+
+  function assessmentQuestionsForPhase(phaseId) {
+    const contract = guidedAssessmentContract();
+    if (!contract) return [];
+    const configured = contract.phaseQuestionIds?.[phaseId];
+    const ids = Array.isArray(configured) ? configured : [];
+    if (ids.length) {
+      const byId = new Map(contract.questions.map((question) => [question.id, question]));
+      return ids.map((id) => byId.get(id)).filter(Boolean);
+    }
+    return contract.questions.filter((question) => question.phaseId === phaseId);
+  }
+
+  function assessmentChoiceSet(question) {
+    const sets = guidedAssessmentContract()?.choiceSets;
+    return Array.isArray(sets) ? sets.find((set) => set.id === question.choiceSetId) || null : null;
+  }
+
+  function assessmentPhaseLabel(deck, phaseId) {
+    const phase = (deck?.journeyPhases || []).find((candidate) => candidate.id === phaseId);
+    return phase?.phase || phase?.label || phaseId || "Unassigned phase";
+  }
+
+  function assessmentRoleOptions(selected = "") {
+    const roles = guidedAssessmentContract()?.publicRoles;
+    const values = Array.isArray(roles) ? roles : [];
+    return `<option value="">Select a public role</option>${values.map((role) => (
+      `<option value="${escapeHtml(role)}"${selected === role ? " selected" : ""}>${escapeHtml(role)}</option>`
+    )).join("")}`;
+  }
+
+  function assessmentGapLabel(gap) {
+    const labels = {
+      evidence: "Evidence level below minimum",
+      evidenceReference: "Evidence reference required",
+      rationale: "Rationale required",
+      ownerRole: "Owner role required",
+      dueGate: "Due gate required",
+      holdRuleStatus: "Hold rule remains open",
+      meetingDecision: "Meeting decision required",
+      decisionOwnerRole: "Decision owner role required",
+      authorizedScope: "Authorized scope required",
+      unauthorizedScope: "Unauthorized scope required",
+      nextForum: "Next forum required",
+      holdReason: "Hold reason required",
+    };
+    return labels[gap] || gap;
+  }
+
+  function assessmentStatusLabel(questionSummary) {
+    if (!questionSummary || questionSummary.status === "unanswered") return "Unanswered";
+    if (questionSummary.gaps.length) return assessmentGapLabel(questionSummary.gaps[0]);
+    const labels = {
+      pass: "Accepted for decision use",
+      amend: "Amend",
+      hold: "Hold",
+      unknown: "Unknown",
+      "not-applicable": "Not applicable",
+      inform: "Informational",
+    };
+    return labels[questionSummary.status] || questionSummary.status;
+  }
+
+  function renderAssessmentQuestion(question, questionSummary, index) {
+    const response = state.assessmentSession?.responses?.[question.id] || {};
+    const choiceSet = assessmentChoiceSet(question);
+    const choices = Array.isArray(choiceSet?.choices) ? choiceSet.choices : [];
+    const inputPrefix = `assessment-${slug(question.id)}-${index}`;
+    const statusClass = questionSummary?.gaps?.length || ["hold", "unknown"].includes(questionSummary?.status)
+      ? " is-gap"
+      : questionSummary?.status === "pass"
+        ? " is-complete"
+        : "";
+    return `
+      <fieldset class="assessment-question${statusClass}" data-assessment-question-card="${escapeHtml(question.id)}">
+        <legend><span>${escapeHtml(question.id)}</span>${escapeHtml(question.prompt)}</legend>
+        <div class="assessment-question-meta">
+          <span>${question.mandatory ? "Mandatory" : "Supporting"}</span>
+          <span>Minimum evidence · ${escapeHtml(question.minimumEvidence || "E0")}</span>
+          <strong data-assessment-question-status>${escapeHtml(assessmentStatusLabel(questionSummary))}</strong>
+        </div>
+        ${question.decisionUse ? `<p class="assessment-decision-use"><b>Decision use</b>${escapeHtml(question.decisionUse)}</p>` : ""}
+        <div class="assessment-hold-rule" role="note">
+          <b>Hold rule</b>
+          <p>${escapeHtml(question.holdRule || "This question cannot close without an explicit hold-rule disposition.")}</p>
+        </div>
+        <div class="assessment-field-grid">
+          <label class="assessment-field is-wide" for="${inputPrefix}-choice">
+            <span>Meeting answer${question.mandatory ? " (required)" : ""}</span>
+            <select id="${inputPrefix}-choice" data-assessment-question="${escapeHtml(question.id)}" data-assessment-field="choice">
+              <option value="">Unanswered — select a meeting answer</option>
+              ${choices.map((choice) => `<option value="${escapeHtml(choice.value)}"${response.choice === choice.value ? " selected" : ""}>${escapeHtml(choice.label)} · ${escapeHtml(choice.outcome)}</option>`).join("")}
+            </select>
+          </label>
+          <label class="assessment-field" for="${inputPrefix}-hold-rule">
+            <span>Hold-rule disposition${question.mandatory ? " (required)" : ""}</span>
+            <select id="${inputPrefix}-hold-rule" data-assessment-question="${escapeHtml(question.id)}" data-assessment-field="holdRuleStatus">
+              <option value="open"${response.holdRuleStatus !== "closed" ? " selected" : ""}>Open — HOLD remains</option>
+              <option value="closed"${response.holdRuleStatus === "closed" ? " selected" : ""}>Closed for governance review</option>
+            </select>
+          </label>
+          <label class="assessment-field" for="${inputPrefix}-evidence">
+            <span>Evidence level</span>
+            <select id="${inputPrefix}-evidence" data-assessment-question="${escapeHtml(question.id)}" data-assessment-field="evidenceLevel">
+              ${["E0", "E1", "E2", "E3", "E4"].map((level) => `<option value="${level}"${response.evidenceLevel === level ? " selected" : ""}>${level}${level === question.minimumEvidence ? " · minimum" : ""}</option>`).join("")}
+            </select>
+          </label>
+          <label class="assessment-field" for="${inputPrefix}-reference">
+            <span>Evidence reference</span>
+            <input id="${inputPrefix}-reference" type="text" maxlength="500" value="${escapeHtml(response.evidenceReference || "")}" data-assessment-question="${escapeHtml(question.id)}" data-assessment-field="evidenceReference" placeholder="Public-safe source or artifact ID">
+          </label>
+          <label class="assessment-field is-wide" for="${inputPrefix}-rationale">
+            <span>Rationale / notes${questionSummary?.status === "not-applicable" ? " (required for N/A)" : ""}</span>
+            <textarea id="${inputPrefix}-rationale" maxlength="2000" rows="3" data-assessment-question="${escapeHtml(question.id)}" data-assessment-field="rationale" placeholder="Capture the decision rationale without names or restricted evidence">${escapeHtml(response.rationale || "")}</textarea>
+          </label>
+          <label class="assessment-field" for="${inputPrefix}-owner">
+            <span>Owner role</span>
+            <select id="${inputPrefix}-owner" data-assessment-question="${escapeHtml(question.id)}" data-assessment-field="ownerRole">${assessmentRoleOptions(response.ownerRole || "")}</select>
+          </label>
+          <label class="assessment-field" for="${inputPrefix}-gate">
+            <span>Due gate</span>
+            <input id="${inputPrefix}-gate" type="text" maxlength="160" value="${escapeHtml(response.dueGate || "")}" data-assessment-question="${escapeHtml(question.id)}" data-assessment-field="dueGate" placeholder="Gate or review forum">
+          </label>
+        </div>
+        <details class="assessment-evidence-request">
+          <summary>Evidence request, IDs, dissent and forum</summary>
+          <div class="assessment-field-grid">
+            <label class="assessment-field" for="${inputPrefix}-criterion">
+              <span>Criterion ID</span>
+              <input id="${inputPrefix}-criterion" type="text" maxlength="120" value="${escapeHtml(response.criterionId || "")}" data-assessment-question="${escapeHtml(question.id)}" data-assessment-field="criterionId" placeholder="Controlled public criterion ID">
+            </label>
+            <label class="assessment-field" for="${inputPrefix}-option">
+              <span>Exact option ID</span>
+              <input id="${inputPrefix}-option" type="text" maxlength="120" value="${escapeHtml(response.optionId || "")}" data-assessment-question="${escapeHtml(question.id)}" data-assessment-field="optionId" placeholder="Controlled option or BOM ID">
+            </label>
+            <label class="assessment-field is-wide" for="${inputPrefix}-evidence-request">
+              <span>Evidence request</span>
+              <textarea id="${inputPrefix}-evidence-request" maxlength="2000" rows="2" data-assessment-question="${escapeHtml(question.id)}" data-assessment-field="evidenceRequest" placeholder="Artifact, measure, threshold and reviewer needed">${escapeHtml(response.evidenceRequest || "")}</textarea>
+            </label>
+            <label class="assessment-field" for="${inputPrefix}-restricted-reference">
+              <span>Restricted-reference ID</span>
+              <input id="${inputPrefix}-restricted-reference" type="text" maxlength="120" value="${escapeHtml(response.restrictedReferenceId || "")}" data-assessment-question="${escapeHtml(question.id)}" data-assessment-field="restrictedReferenceId" placeholder="ID only — never paste restricted content">
+            </label>
+            <label class="assessment-field" for="${inputPrefix}-next-forum">
+              <span>Next forum</span>
+              <input id="${inputPrefix}-next-forum" type="text" maxlength="160" value="${escapeHtml(response.nextForum || "")}" data-assessment-question="${escapeHtml(question.id)}" data-assessment-field="nextForum" placeholder="Governance forum or gate">
+            </label>
+            <label class="assessment-field is-wide" for="${inputPrefix}-dissent">
+              <span>Dissent</span>
+              <textarea id="${inputPrefix}-dissent" maxlength="3000" rows="2" data-assessment-question="${escapeHtml(question.id)}" data-assessment-field="dissent" placeholder="Neutral public-safe dissent; no names">${escapeHtml(response.dissent || "")}</textarea>
+            </label>
+          </div>
+        </details>
+        ${question.evidenceBoundary ? `<p class="assessment-evidence-boundary"><b>Evidence boundary</b>${escapeHtml(question.evidenceBoundary)}</p>` : ""}
+      </fieldset>`;
+  }
+
+  function renderAssessmentDrawer(deck, slide) {
+    const contract = guidedAssessmentContract();
+    const summary = assessmentSummary();
+    if (!contract || !summary) return "";
+    const phaseId = slide.phaseId || "";
+    const questions = assessmentQuestionsForPhase(phaseId);
+    const summaries = new Map(summary.questions.map((question) => [question.id, question]));
+    const storeStatus = state.assessmentStore?.status?.() || {};
+    return `
+      <aside class="assessment-drawer" id="guided-assessment-drawer" aria-labelledby="assessment-drawer-title" hidden data-assessment-drawer data-assessment-phase-id="${escapeHtml(phaseId)}">
+        <header class="assessment-drawer-header">
+          <div>
+            <span class="eyebrow">Local facilitation record</span>
+            <h2 id="assessment-drawer-title">${escapeHtml(assessmentPhaseLabel(deck, phaseId))}</h2>
+          </div>
+          <button type="button" class="assessment-close" data-assessment-close aria-label="Close assessment drawer">×</button>
+        </header>
+        <div class="assessment-local-warning" role="note" data-assessment-local-warning>
+          <strong>Local browser only</strong>
+          <p>This feature stores responses in this browser and does not submit them. Browser storage is not private or encrypted; do not enter names, credentials, customer identifiers, private topology, or restricted evidence.</p>
+          <p>Controlled role selectors prevent named-person assignments. Obvious email, private URL, IP, credential, phone and commercial-quote patterns are removed before storage or export; automated filtering is not exhaustive.</p>
+          <p>Meeting input never upgrades evidence. Production remains unauthorized until the defined evidence and approval gates close.</p>
+        </div>
+        ${storeStatus.issue ? `<p class="assessment-storage-warning" role="status" data-assessment-storage-warning>${escapeHtml(storeStatus.issue)}</p>` : `<p class="assessment-storage-warning" role="status" data-assessment-storage-warning hidden></p>`}
+        <nav class="assessment-view-tabs" aria-label="Assessment views">
+          <span aria-current="page">Phase · ${escapeHtml(assessmentPhaseLabel(deck, phaseId))}</span>
+          <a href="${escapeHtml(deck.summaryRoute || "#/present/kong-platform-journey-guided/summary")}">Review summary</a>
+        </nav>
+        <form class="assessment-form" data-assessment-form>
+          <section class="assessment-meeting-fields" aria-labelledby="assessment-meeting-title">
+            <h3 id="assessment-meeting-title">Meeting record</h3>
+            <div class="assessment-session-state is-wide" role="status" aria-live="polite">
+              <strong data-assessment-decision-state>${escapeHtml(summary.decisionState.toUpperCase())}</strong>
+              <span data-assessment-session-gaps>${summary.sessionGaps.length ? escapeHtml(summary.sessionGaps.map(assessmentGapLabel).join(" · ")) : "Session fields complete"}</span>
+            </div>
+            <label class="assessment-field" for="assessment-meeting-label">
+              <span>Meeting label</span>
+              <input id="assessment-meeting-label" type="text" maxlength="160" value="${escapeHtml(state.assessmentSession.label || "")}" data-assessment-session-field="label" placeholder="Public-safe forum label">
+            </label>
+            <label class="assessment-field" for="assessment-meeting-decision">
+              <span>Meeting decision (required)</span>
+              <select id="assessment-meeting-decision" data-assessment-session-field="meetingDecision">
+                <option value="">Select a disposition</option>
+                <option value="approve"${state.assessmentSession.meetingDecision === "approve" ? " selected" : ""}>Approve for governance review</option>
+                <option value="amend"${state.assessmentSession.meetingDecision === "amend" ? " selected" : ""}>Amend before review</option>
+                <option value="hold"${state.assessmentSession.meetingDecision === "hold" ? " selected" : ""}>Hold</option>
+              </select>
+            </label>
+            <label class="assessment-field" for="assessment-decision-owner-role">
+              <span>Decision owner role (required)</span>
+              <select id="assessment-decision-owner-role" data-assessment-session-field="decisionOwnerRole">${assessmentRoleOptions(state.assessmentSession.decisionOwnerRole || "")}</select>
+            </label>
+            <label class="assessment-field is-wide" for="assessment-authorized-scope">
+              <span>Authorized scope (required)</span>
+              <textarea id="assessment-authorized-scope" maxlength="3000" rows="2" data-assessment-session-field="authorizedScope" placeholder="What this forum may authorize">${escapeHtml(state.assessmentSession.authorizedScope || "")}</textarea>
+            </label>
+            <label class="assessment-field is-wide" for="assessment-unauthorized-scope">
+              <span>Explicitly unauthorized scope (required)</span>
+              <textarea id="assessment-unauthorized-scope" maxlength="3000" rows="2" data-assessment-session-field="unauthorizedScope" placeholder="What remains outside this meeting's authority">${escapeHtml(state.assessmentSession.unauthorizedScope || "")}</textarea>
+            </label>
+            <label class="assessment-field" for="assessment-next-forum">
+              <span>Next forum (required)</span>
+              <input id="assessment-next-forum" type="text" maxlength="160" value="${escapeHtml(state.assessmentSession.nextForum || "")}" data-assessment-session-field="nextForum" placeholder="Governance forum or gate">
+            </label>
+            <label class="assessment-field" for="assessment-hold-reason">
+              <span>Hold reason (required while HOLD)</span>
+              <textarea id="assessment-hold-reason" maxlength="3000" rows="2" data-assessment-session-field="holdReason" placeholder="Why the decision remains held">${escapeHtml(state.assessmentSession.holdReason || "")}</textarea>
+            </label>
+            <details class="assessment-meeting-ledger is-wide">
+              <summary>Assumptions, actions and dissent</summary>
+              <div class="assessment-field-grid">
+                <label class="assessment-field is-wide" for="assessment-assumptions">
+                  <span>Assumptions</span>
+                  <textarea id="assessment-assumptions" maxlength="3000" rows="2" data-assessment-session-field="assumptions" placeholder="Neutral, falsifiable assumptions">${escapeHtml(state.assessmentSession.assumptions || "")}</textarea>
+                </label>
+                <label class="assessment-field is-wide" for="assessment-actions">
+                  <span>Actions</span>
+                  <textarea id="assessment-actions" maxlength="3000" rows="2" data-assessment-session-field="actions" placeholder="Public role, closure artifact and due gate">${escapeHtml(state.assessmentSession.actions || "")}</textarea>
+                </label>
+                <label class="assessment-field is-wide" for="assessment-dissent">
+                  <span>Dissent</span>
+                  <textarea id="assessment-dissent" maxlength="3000" rows="2" data-assessment-session-field="dissent" placeholder="Neutral public-safe dissent; no names">${escapeHtml(state.assessmentSession.dissent || "")}</textarea>
+                </label>
+              </div>
+            </details>
+          </section>
+          <section class="assessment-phase-questions" aria-labelledby="assessment-phase-title">
+            <div class="assessment-section-heading">
+              <h3 id="assessment-phase-title">Phase questions</h3>
+              <span><b data-assessment-completed>${summary.counts.answered}</b> / ${summary.counts.total} answered</span>
+            </div>
+            ${questions.length
+              ? questions.map((question, index) => renderAssessmentQuestion(question, summaries.get(question.id), index)).join("")
+              : `<p class="assessment-empty">No assessment questions are assigned to this phase.</p>`}
+          </section>
+        </form>
+        <footer class="assessment-drawer-actions">
+          <span class="assessment-save-status" role="status" aria-live="polite" data-assessment-save-status data-assessment-status>Autosaves locally</span>
+          <button type="button" data-assessment-export="json" data-assessment-export-json>JSON</button>
+          <button type="button" data-assessment-export="markdown" data-assessment-export-markdown>Markdown</button>
+          <button type="button" class="is-danger" data-assessment-clear>Clear</button>
+        </footer>
+      </aside>`;
+  }
+
+  function setAssessmentDrawer(open, restoreFocus = false) {
+    const drawer = document.querySelector("[data-assessment-drawer]");
+    const trigger = document.querySelector("[data-assessment-open]");
+    if (!drawer || !trigger) return false;
+    if (open) {
+      state.assessmentReturnFocus = document.activeElement;
+      drawer.hidden = false;
+      trigger.setAttribute("aria-expanded", "true");
+      document.body.classList.add("has-assessment-drawer");
+      requestAnimationFrame(() => drawer.querySelector("[data-assessment-close]")?.focus());
+    } else {
+      drawer.hidden = true;
+      trigger.setAttribute("aria-expanded", "false");
+      document.body.classList.remove("has-assessment-drawer");
+      if (restoreFocus) (state.assessmentReturnFocus || trigger)?.focus?.();
+      state.assessmentReturnFocus = null;
+    }
+    return true;
+  }
+
+  function saveAssessment(immediate = false) {
+    clearTimeout(state.assessmentSaveTimer);
+    const persist = () => {
+      state.assessmentSaveTimer = null;
+      const api = window.ApiStudyAssessment;
+      const contract = guidedAssessmentContract();
+      if (!api || !contract || !state.assessmentSession || !state.assessmentStore) return;
+      const now = assessmentTimestamp();
+      state.assessmentSession = api.normalizeAssessment(contract, {
+        ...state.assessmentSession,
+        updatedAt: now,
+        expiresAt: assessmentExpiry(now),
+      });
+      const status = state.assessmentStore.save(state.assessmentSession);
+      const saveStatus = document.querySelector("[data-assessment-save-status]");
+      if (saveStatus) saveStatus.textContent = status.persistence === "localStorage" ? "Saved locally" : "Saved for this page session";
+      const warning = document.querySelector("[data-assessment-storage-warning]");
+      if (warning) {
+        warning.textContent = status.issue || "";
+        warning.hidden = !status.issue;
+      }
+    };
+    if (immediate) persist();
+    else {
+      const saveStatus = document.querySelector("[data-assessment-save-status]");
+      if (saveStatus) saveStatus.textContent = "Saving locally…";
+      state.assessmentSaveTimer = setTimeout(persist, 250);
+    }
+  }
+
+  function refreshAssessmentIndicators() {
+    const summary = assessmentSummary();
+    if (!summary) return;
+    document.querySelectorAll("[data-assessment-count], [data-assessment-completed]").forEach((element) => {
+      element.textContent = String(summary.counts.answered);
+    });
+    document.querySelectorAll("[data-assessment-decision-state]").forEach((element) => {
+      element.textContent = summary.decisionState.toUpperCase();
+    });
+    document.querySelectorAll("[data-assessment-session-gaps]").forEach((element) => {
+      element.textContent = summary.sessionGaps.length
+        ? summary.sessionGaps.map(assessmentGapLabel).join(" · ")
+        : "Session fields complete";
+    });
+    summary.questions.forEach((question) => {
+      const card = [...document.querySelectorAll("[data-assessment-question-card]")]
+        .find((candidate) => candidate.dataset.assessmentQuestionCard === question.id);
+      if (!card) return;
+      card.classList.toggle("is-gap", question.gaps.length > 0 || ["hold", "unknown"].includes(question.status));
+      card.classList.toggle("is-complete", question.status === "pass" && !question.gaps.length);
+      const status = card.querySelector("[data-assessment-question-status]");
+      if (status) status.textContent = assessmentStatusLabel(question);
+    });
+  }
+
+  function updateAssessmentValue(target, immediate = false) {
+    const api = window.ApiStudyAssessment;
+    const contract = guidedAssessmentContract();
+    if (!api || !contract || !state.assessmentSession) return;
+    const sessionField = target.dataset.assessmentSessionField;
+    const questionId = target.dataset.assessmentQuestion;
+    const responseField = target.dataset.assessmentField;
+    let raw = { ...state.assessmentSession };
+    const sessionFields = new Set([
+      "label", "meetingDecision", "decisionOwnerRole", "authorizedScope", "unauthorizedScope",
+      "assumptions", "actions", "dissent", "nextForum", "holdReason",
+    ]);
+    const responseFields = new Set([
+      "choice", "holdRuleStatus", "evidenceLevel", "evidenceReference", "rationale", "ownerRole",
+      "dueGate", "criterionId", "optionId", "evidenceRequest", "restrictedReferenceId", "dissent", "nextForum",
+    ]);
+    if (sessionField && sessionFields.has(sessionField)) {
+      raw[sessionField] = target.value;
+    } else if (questionId && responseFields.has(responseField) && state.assessmentSession.responses[questionId]) {
+      raw = {
+        ...raw,
+        responses: {
+          ...raw.responses,
+          [questionId]: {
+            ...raw.responses[questionId],
+            [responseField]: target.value,
+          },
+        },
+      };
+    } else return;
+    const originalValue = target.value;
+    state.assessmentSession = api.normalizeAssessment(contract, raw, { trimFreeText: immediate });
+    const normalizedValue = sessionField
+      ? state.assessmentSession[sessionField]
+      : state.assessmentSession.responses?.[questionId]?.[responseField];
+    if (typeof normalizedValue === "string" && normalizedValue !== originalValue) {
+      target.value = normalizedValue;
+      const finding = api.privacyFinding?.(originalValue);
+      announce(finding
+        ? `Removed ${finding} before local storage. Use a public role or controlled reference ID.`
+        : "Entry was not in the allowed public-safe format and was removed before local storage.");
+    }
+    refreshAssessmentIndicators();
+    saveAssessment(immediate);
+  }
+
+  function downloadAssessment(format) {
+    const api = window.ApiStudyAssessment;
+    const summary = assessmentSummary();
+    if (!api || !summary) return;
+    const isJson = format === "json";
+    const content = isJson ? api.exportAssessmentJson(summary) : api.exportAssessmentMarkdown(summary);
+    const blob = new Blob([content], { type: isJson ? "application/json;charset=utf-8" : "text/markdown;charset=utf-8" });
+    const url = URL.createObjectURL(blob);
+    const link = document.createElement("a");
+    const label = slug(summary.label || "guided-evaluation").slice(0, 60);
+    link.href = url;
+    link.download = `${label}-assessment.${isJson ? "json" : "md"}`;
+    document.body.append(link);
+    link.click();
+    link.remove();
+    setTimeout(() => URL.revokeObjectURL(url), 0);
+    announce(`${isJson ? "JSON" : "Markdown"} assessment downloaded.`);
+  }
+
+  function clearAssessment() {
+    const confirmed = window.confirm("Clear every locally saved guided-assessment response from this browser? Export first if you need a copy. This cannot be undone.");
+    if (!confirmed) return;
+    clearTimeout(state.assessmentSaveTimer);
+    state.assessmentSaveTimer = null;
+    state.assessmentStore?.clear?.();
+    state.assessmentSession = freshAssessmentSession();
+    document.body.classList.remove("has-assessment-drawer");
+    route();
+    announce("Local assessment responses cleared.");
+  }
+
+  function activateAssessmentUi() {
+    document.querySelector("[data-assessment-open]")?.addEventListener("click", () => setAssessmentDrawer(true));
+    document.querySelector("[data-assessment-close]")?.addEventListener("click", () => setAssessmentDrawer(false, true));
+    document.querySelector("[data-assessment-form]")?.addEventListener("submit", (event) => event.preventDefault());
+    document.querySelector("[data-assessment-form]")?.addEventListener("input", (event) => {
+      if (event.target instanceof HTMLInputElement || event.target instanceof HTMLTextAreaElement) updateAssessmentValue(event.target, false);
+    });
+    document.querySelector("[data-assessment-form]")?.addEventListener("change", (event) => {
+      if (event.target instanceof HTMLInputElement || event.target instanceof HTMLTextAreaElement || event.target instanceof HTMLSelectElement) {
+        updateAssessmentValue(event.target, true);
+      }
+    });
+    document.querySelectorAll("[data-assessment-export]").forEach((button) => {
+      button.addEventListener("click", () => downloadAssessment(button.dataset.assessmentExport));
+    });
+    document.querySelectorAll("[data-assessment-clear]").forEach((button) => button.addEventListener("click", clearAssessment));
+    document.querySelectorAll("[data-assessment-print]").forEach((button) => button.addEventListener("click", () => window.print()));
+  }
+
   function renderPresentation(rawIndex, contextId = "") {
     const { audience, deck, context, slides } = presentationContext(contextId);
     if (!slides.length) {
@@ -2453,6 +2952,7 @@
     };
     const sourceLocator = sourceLocatorFor(source);
     const isGuidedDeck = deck?.theme === "kong-guided";
+    if (isGuidedDeck) state.assessmentLastSlideIndex = index;
     const isLegacyJourneyDeck = deck?.theme === "kong-journey";
     const isJourneyDeck = isLegacyJourneyDeck || isGuidedDeck;
     const visualSlide = isJourneyDeck && slide.visual === "kongJourneySpine"
@@ -2565,6 +3065,11 @@
           ${slide.evidenceInterpretation ? `<p>${escapeHtml(slide.evidenceInterpretation)}</p>` : ""}
         </div>`
       : "";
+    const guidedAssessment = isGuidedDeck ? assessmentSummary() : null;
+    const guidedAssessmentButton = guidedAssessment
+      ? `<button type="button" class="assessment-launch" data-assessment-open aria-expanded="false" aria-controls="guided-assessment-drawer" aria-label="Open guided assessment. ${guidedAssessment.counts.answered} of ${guidedAssessment.counts.total} questions answered"><span>Assessment</span> <b><span data-assessment-count>${guidedAssessment.counts.answered}</span>/${guidedAssessment.counts.total}</b></button>`
+      : "";
+    const guidedAssessmentDrawer = isGuidedDeck ? renderAssessmentDrawer(deck, slide) : "";
     main.innerHTML = `
       <section class="presentation-stage${stageClass}" aria-label="Presentation slide ${index + 1} of ${slides.length}">
         <article class="presentation-slide${isJourneyDeck ? " is-journey-slide" : ""}${isGuidedDeck ? " is-guided-slide" : ""}">
@@ -2580,9 +3085,11 @@
           </div>
           ${journeyProof}
         </article>
+        ${guidedAssessmentDrawer}
         <div class="slide-controls" aria-label="Presentation controls">
           <button type="button" data-slide-prev aria-label="Previous slide" ${index === 0 ? "disabled" : ""}>←</button>
-          <button type="button" data-slide-next aria-label="Next slide" ${index === slides.length - 1 ? "disabled" : ""}>→</button>
+          <button type="button" data-slide-next aria-label="${isGuidedDeck && index === slides.length - 1 ? "Review assessment summary" : "Next slide"}" ${index === slides.length - 1 && !isGuidedDeck ? "disabled" : ""}>→</button>
+          ${guidedAssessmentButton}
           <button type="button" data-fullscreen aria-label="Toggle fullscreen">⛶</button>
           <a href="${presentationExitHref(audience, deck)}" aria-label="Exit presentation">×</a>
         </div>
@@ -2592,8 +3099,146 @@
     document.querySelector("[data-slide-prev]").addEventListener("click", () => moveSlide(-1));
     document.querySelector("[data-slide-next]").addEventListener("click", () => moveSlide(1));
     document.querySelector("[data-fullscreen]").addEventListener("click", toggleFullscreen);
+    if (isGuidedDeck) activateAssessmentUi();
     renderPresentationDiagram();
     activatePresentationFrame();
+  }
+
+  function assessmentQuestionHref(context, slides, question) {
+    const slideIds = Array.isArray(question.slideIds) ? question.slideIds : [];
+    const index = slides.findIndex((slide) => slideIds.includes(slide.slideId));
+    return presentationSlideHref(context, index >= 0 ? index : 0);
+  }
+
+  function renderAssessmentSummary(contextId) {
+    const { audience, deck, context, slides } = presentationContext(contextId);
+    const contract = guidedAssessmentContract();
+    const summary = assessmentSummary();
+    if (audience || deck?.theme !== "kong-guided" || !contract || !summary) {
+      document.body.classList.remove("is-presenting", "has-assessment-drawer");
+      renderNotFound("No guided assessment summary is configured.");
+      return;
+    }
+    document.body.classList.add("is-presenting");
+    document.body.classList.remove("has-assessment-drawer");
+    setPageTitle("Guided evaluation summary");
+    setActiveNav("");
+    const statusLabels = {
+      hold: "HOLD — required decisions or evidence gaps remain",
+      amend: "AMEND — meeting input still needs revision",
+      reviewable: "REVIEWABLE — ready for governance review, not production authorization",
+    };
+    const questionById = new Map(summary.questions.map((question) => [question.id, question]));
+    const phaseMarkup = summary.phases.map((phase, phaseIndex) => {
+      const questions = phase.questionIds.map((id) => questionById.get(id)).filter(Boolean);
+      const phaseDomId = `assessment-summary-${slug(phase.phaseId)}`;
+      return `
+        <section class="assessment-summary-phase" id="${phaseDomId}" aria-labelledby="${phaseDomId}-title">
+          <header>
+            <div><span>Phase ${String(phaseIndex + 1).padStart(2, "0")}</span><h2 id="${phaseDomId}-title" tabindex="-1">${escapeHtml(assessmentPhaseLabel(deck, phase.phaseId))}</h2></div>
+            <p>${phase.answered} answered · ${phase.unanswered} unanswered · ${phase.gaps} evidence/rationale gaps</p>
+          </header>
+          <div class="assessment-summary-question-list">
+            ${questions.map((question) => `
+              <article class="assessment-summary-question is-${escapeHtml(slug(question.status))}">
+                <header>
+                  <span>${escapeHtml(question.id)}</span>
+                  <strong>${escapeHtml(assessmentStatusLabel(question))}</strong>
+                </header>
+                <h3>${escapeHtml(question.prompt)}</h3>
+                <dl>
+                  <div><dt>Meeting answer</dt><dd>${escapeHtml(question.choiceLabel || "Unanswered")}</dd></div>
+                  <div><dt>Hold rule</dt><dd>${escapeHtml(question.holdRule || "Not recorded")}</dd></div>
+                  <div><dt>Hold-rule disposition</dt><dd>${escapeHtml(question.response.holdRuleStatus || "open")}</dd></div>
+                  <div><dt>Evidence</dt><dd>${escapeHtml(question.response.evidenceLevel)} · minimum ${escapeHtml(question.minimumEvidence)}</dd></div>
+                  <div><dt>Evidence reference</dt><dd>${escapeHtml(question.response.evidenceReference || "Not captured")}</dd></div>
+                  <div><dt>Criterion / option</dt><dd>${escapeHtml([question.response.criterionId, question.response.optionId].filter(Boolean).join(" / ") || "Not captured")}</dd></div>
+                  <div><dt>Evidence request</dt><dd>${escapeHtml(question.response.evidenceRequest || "Not captured")}</dd></div>
+                  <div><dt>Restricted-reference ID</dt><dd>${escapeHtml(question.response.restrictedReferenceId || "Not captured")}</dd></div>
+                  <div><dt>Rationale / notes</dt><dd>${escapeHtml(question.response.rationale || "Not captured")}</dd></div>
+                  <div><dt>Owner role</dt><dd>${escapeHtml(question.response.ownerRole || "Not assigned")}</dd></div>
+                  <div><dt>Due gate</dt><dd>${escapeHtml(question.response.dueGate || "Not assigned")}</dd></div>
+                  <div><dt>Dissent</dt><dd>${escapeHtml(question.response.dissent || "None recorded")}</dd></div>
+                  <div><dt>Next forum</dt><dd>${escapeHtml(question.response.nextForum || "Not assigned")}</dd></div>
+                  <div><dt>Open gaps</dt><dd>${question.gaps.length ? escapeHtml(question.gaps.map(assessmentGapLabel).join(", ")) : "None recorded"}</dd></div>
+                </dl>
+                <a href="${assessmentQuestionHref(context, slides, question)}">Open source slide <span aria-hidden="true">→</span></a>
+              </article>`).join("")}
+          </div>
+        </section>`;
+    }).join("");
+    const storeStatus = state.assessmentStore?.status?.() || {};
+    main.innerHTML = `
+      <section class="presentation-stage is-kong-platform is-kong-journey is-kong-guided is-assessment-summary" aria-label="Guided evaluation assessment summary" data-assessment-summary>
+        <article class="assessment-summary-page">
+          <header class="assessment-summary-hero">
+            <div>
+              <span class="eyebrow">Guided evaluation · local meeting record</span>
+              <h1>Review the meeting inputs.</h1>
+              <p>This is a facilitation summary, not a numeric readiness score or product-evidence ranking.</p>
+            </div>
+            <div class="assessment-decision-state is-${escapeHtml(summary.decisionState)}">
+              <span>Decision state</span>
+              <strong>${escapeHtml(statusLabels[summary.decisionState] || summary.decisionState)}</strong>
+            </div>
+          </header>
+          <div class="assessment-local-warning" role="note" data-assessment-local-warning>
+            <strong>Local browser only</strong>
+            <p>This feature stores responses in this browser and does not submit them. Browser storage is not private or encrypted; do not enter names, credentials, customer identifiers, private topology, or restricted evidence.</p>
+            <p>Controlled role selectors prevent named-person assignments. Obvious email, private URL, IP, credential, phone and commercial-quote patterns are removed before storage or export; automated filtering is not exhaustive.</p>
+            <p>Meeting input never upgrades evidence. Production remains unauthorized until the defined evidence and approval gates close.</p>
+          </div>
+          ${storeStatus.issue ? `<p class="assessment-storage-warning" role="status">${escapeHtml(storeStatus.issue)}</p>` : ""}
+          <section class="assessment-summary-meeting" aria-labelledby="assessment-summary-meeting-title">
+            <div><span>Meeting label</span><h2 id="assessment-summary-meeting-title">${escapeHtml(summary.label || "Not labelled")}</h2></div>
+            <div><span>Meeting decision</span><p>${escapeHtml(summary.meetingDecision || "Not captured")}</p><small>Owner · ${escapeHtml(summary.decisionOwnerRole || "Not assigned")}</small><small>Deck · ${escapeHtml(summary.deckRevision || "Not recorded")}</small></div>
+            <dl>
+              <div><dt>Answered</dt><dd>${summary.counts.answered} / ${summary.counts.total}</dd></div>
+              <div><dt>Unanswered</dt><dd>${summary.counts.unanswered}</dd></div>
+              <div><dt>Decision holds</dt><dd>${summary.holds.length}</dd></div>
+              <div><dt>Open gaps</dt><dd>${summary.counts.gaps}</dd></div>
+            </dl>
+          </section>
+          <section class="assessment-summary-decision-record" aria-labelledby="assessment-summary-decision-record-title">
+            <header><span>Governance record</span><h2 id="assessment-summary-decision-record-title">Decision boundaries and follow-through</h2></header>
+            <dl>
+              <div><dt>Authorized scope</dt><dd>${escapeHtml(summary.authorizedScope || "Not captured")}</dd></div>
+              <div><dt>Unauthorized scope</dt><dd>${escapeHtml(summary.unauthorizedScope || "Not captured")}</dd></div>
+              <div><dt>Assumptions</dt><dd>${escapeHtml(summary.assumptions || "None recorded")}</dd></div>
+              <div><dt>Actions</dt><dd>${escapeHtml(summary.actions || "None recorded")}</dd></div>
+              <div><dt>Dissent</dt><dd>${escapeHtml(summary.dissent || "None recorded")}</dd></div>
+              <div><dt>Next forum</dt><dd>${escapeHtml(summary.nextForum || "Not captured")}</dd></div>
+              <div><dt>Hold reason</dt><dd>${escapeHtml(summary.holdReason || "Not applicable")}</dd></div>
+              <div><dt>Session gaps</dt><dd>${summary.sessionGaps?.length ? escapeHtml(summary.sessionGaps.map(assessmentGapLabel).join(", ")) : "None recorded"}</dd></div>
+            </dl>
+          </section>
+          <nav class="assessment-summary-phase-nav" aria-label="Jump to assessment phase">
+            ${summary.phases.map((phase) => `<button type="button" data-assessment-phase-jump="assessment-summary-${escapeHtml(slug(phase.phaseId))}">${escapeHtml(assessmentPhaseLabel(deck, phase.phaseId))}</button>`).join("")}
+          </nav>
+          <div class="assessment-summary-phases">${phaseMarkup}</div>
+          <footer class="assessment-summary-safeguard">
+            <strong>Authorization boundary</strong>
+            <p>${escapeHtml(summary.safeguards.productionAuthorization)}</p>
+          </footer>
+        </article>
+        <div class="assessment-summary-actions" aria-label="Assessment summary actions">
+          <a href="${presentationSlideHref(context, Math.min(Math.max(state.assessmentLastSlideIndex, 0), slides.length - 1))}">Back to slides</a>
+          <button type="button" data-assessment-export="json" data-assessment-export-json>Export JSON</button>
+          <button type="button" data-assessment-export="markdown" data-assessment-export-markdown>Export Markdown</button>
+          <button type="button" data-assessment-print>Print</button>
+          <button type="button" class="is-danger" data-assessment-clear>Clear local data</button>
+          <a href="${presentationExitHref(audience, deck)}">Exit</a>
+        </div>
+      </section>`;
+    document.querySelectorAll("[data-assessment-phase-jump]").forEach((button) => {
+      button.addEventListener("click", () => {
+        const target = document.getElementById(button.dataset.assessmentPhaseJump);
+        const reducedMotion = window.matchMedia?.("(prefers-reduced-motion: reduce)")?.matches;
+        target?.scrollIntoView({ behavior: reducedMotion ? "auto" : "smooth", block: "start" });
+        target?.querySelector("h2")?.focus({ preventScroll: true });
+      });
+    });
+    activateAssessmentUi();
   }
 
   function moveSlide(delta) {
@@ -2601,11 +3246,17 @@
     if (route.name !== "present") return;
     const hasContext = route.parts.length > 1;
     const contextId = hasContext ? route.parts[0] : "";
+    const isSummary = hasContext && route.parts[1] === "summary";
     const current = Number.parseInt(route.parts[hasContext ? 1 : 0] || "0", 10) || 0;
-    const { context, slides } = presentationContext(contextId);
+    const { context, deck, slides } = presentationContext(contextId);
     if (!slides.length) return;
+    if (isSummary) {
+      if (delta < 0) location.hash = presentationSlideHref(context, Math.min(Math.max(state.assessmentLastSlideIndex, 0), slides.length - 1));
+      return;
+    }
     const next = Math.min(Math.max(current + delta, 0), slides.length - 1);
     if (next !== current) location.hash = presentationSlideHref(context, next);
+    else if (delta > 0 && deck?.summaryRoute) location.hash = deck.summaryRoute;
   }
 
   async function toggleFullscreen() {
@@ -2636,6 +3287,7 @@
     closeSearch(false);
     document.querySelector(".diagram-frame.is-expanded [data-diagram-action='expand']")?.click();
     document.body.classList.remove("has-expanded-diagram");
+    document.body.classList.remove("has-assessment-drawer");
     const current = parseRoute();
     if (current.name !== "present") document.body.classList.remove("is-presenting");
     switch (current.name) {
@@ -2650,7 +3302,9 @@
       case "present": {
         const genericRoute = current.parts.length === 1 && /^\d+$/.test(current.parts[0]);
         const contextualRoute = current.parts.length === 2 && /^\d+$/.test(current.parts[1]);
-        if (contextualRoute) renderPresentation(current.parts[1], current.parts[0]);
+        const assessmentSummaryRoute = current.parts.length === 2 && current.parts[1] === "summary";
+        if (assessmentSummaryRoute) renderAssessmentSummary(current.parts[0]);
+        else if (contextualRoute) renderPresentation(current.parts[1], current.parts[0]);
         else if (genericRoute) renderPresentation(current.parts[0]);
         else {
           document.body.classList.remove("is-presenting");
@@ -2801,6 +3455,7 @@
       const response = await fetch("content-manifest.json", { cache: "no-cache" });
       if (!response.ok) throw new Error(`Manifest request returned ${response.status}`);
       state.manifest = await response.json();
+      initializeGuidedAssessment();
       route();
     } catch (error) {
       setPageTitle("Build required");
@@ -2817,6 +3472,9 @@
   document.querySelectorAll("[data-search-close]").forEach((button) => button.addEventListener("click", () => closeSearch()));
   globalSearch.addEventListener("input", updateGlobalSearch);
   window.addEventListener("hashchange", route);
+  window.addEventListener("pagehide", () => {
+    if (state.assessmentSaveTimer) saveAssessment(true);
+  });
   window.addEventListener("beforeprint", preparePrintArtifacts);
   window.addEventListener("afterprint", restorePrintArtifacts);
   document.addEventListener("keydown", (event) => {
@@ -2828,9 +3486,13 @@
       return;
     }
     if (event.key === "Escape") {
+      const openAssessmentDrawer = document.querySelector("[data-assessment-drawer]:not([hidden])");
       const openReferences = document.querySelector(".slide-references[open]");
       const expandedDiagram = document.querySelector(".diagram-frame.is-expanded");
-      if (openReferences) {
+      if (openAssessmentDrawer) {
+        event.preventDefault();
+        setAssessmentDrawer(false, true);
+      } else if (openReferences) {
         event.preventDefault();
         openReferences.open = false;
         openReferences.querySelector("summary")?.focus();
@@ -2855,7 +3517,10 @@
       const horizontalScrollKey = ["ArrowRight", "ArrowLeft"].includes(event.key);
       if (scrollSurface && verticalScrollKey && scrollSurface.scrollHeight > scrollSurface.clientHeight + 2) return;
       if (scrollSurface && horizontalScrollKey && scrollSurface.scrollWidth > scrollSurface.clientWidth + 2) return;
-      if (["ArrowRight", "PageDown", " "].includes(event.key)) {
+      if (event.key === " " && event.shiftKey) {
+        event.preventDefault();
+        moveSlide(-1);
+      } else if (["ArrowRight", "PageDown", " "].includes(event.key)) {
         event.preventDefault();
         moveSlide(1);
       } else if (["ArrowLeft", "PageUp"].includes(event.key)) {

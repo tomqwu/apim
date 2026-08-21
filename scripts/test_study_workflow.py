@@ -71,6 +71,7 @@ REPOSITORY_FIXTURES = (
     "scripts/test_study_workflow.py",
     "scripts/validate_site_manifest.py",
     "scripts/verify_pages.py",
+    "site/assets/assessment.js",
 )
 
 # Hermetic repositories must resolve provenance from their own Git history.
@@ -2027,6 +2028,11 @@ process.stdout.write(window.ApiStudyCharts.render("criteriaOverview", data, {com
         self.assertEqual(62, len(manifest["presentation"]))
         self.assertEqual(63, sum(len(audience["presentationSlides"]) for audience in manifest["audiences"]))
         self.assertEqual(180, 62 + 63 + sum(item["slideTotal"] for item in manifest["presentationDecks"]))
+        self.assertEqual(
+            181,
+            62 + 63 + sum(item["slideTotal"] for item in manifest["presentationDecks"])
+            + sum("summaryRoute" in item for item in manifest["presentationDecks"]),
+        )
 
         items_by_id = {item["id"]: item for item in manifest["items"]}
         document_routes = {item["route"] for item in manifest["items"]}
@@ -2261,6 +2267,865 @@ process.stdout.write(window.ApiStudyCharts.render("criteriaOverview", data, {com
                     validator.validate_kong_guided_evaluation(invalid, invalid["presentation"])
                 with self.assertRaisesRegex(verifier.VerificationError, error):
                     verifier.validate_kong_guided_evaluation(invalid, invalid["presentation"])
+
+    def test_guided_assessment_manifest_contract_is_exact_and_falsifiable(self) -> None:
+        expected_phase_questions = {
+            "KGE-P1": ("KGE-P1-Q01", "KGE-P1-Q02"),
+            "KGE-P2": ("KGE-P2-Q01", "KGE-P2-Q02"),
+            "KGE-P3": ("KGE-P3-Q01", "KGE-P3-Q02"),
+            "KGE-P4": ("KGE-P4-Q01", "KGE-P4-Q02"),
+            "KGE-P5": ("KGE-P5-Q01", "KGE-P5-Q02", "KGE-P5-Q03", "KGE-P5-Q04"),
+            "KGE-P6": ("KGE-P6-Q01", "KGE-P6-Q02"),
+        }
+        expected_question_ids = tuple(
+            question_id
+            for phase_id in expected_phase_questions
+            for question_id in expected_phase_questions[phase_id]
+        )
+        expected_choice_set_ids = (
+            "KGE-CS-AUTHORIZATION",
+            "KGE-CS-INPUT",
+            "KGE-CS-COUNTERFACTUAL",
+            "KGE-CS-REVIEW",
+            "KGE-CS-SOURCE",
+            "KGE-CS-EVIDENCE",
+            "KGE-CS-CONTRACT",
+            "KGE-CS-CLAIM",
+        )
+        expected_public_roles = (
+            "Decision owner",
+            "Enterprise architecture",
+            "Platform product",
+            "Security architecture",
+            "IAM",
+            "SRE/performance",
+            "FinOps",
+            "Migration lead",
+            "Independent assurance",
+            "Legal/procurement",
+            "Service owner",
+            "Unassigned role",
+        )
+        expected_review_requirements = {
+            "sessionRequired": [
+                "meetingDecision", "decisionOwnerRole", "authorizedScope",
+                "unauthorizedScope", "nextForum",
+            ],
+            "mandatoryResponseRequired": [
+                "rationale", "ownerRole", "dueGate", "holdRuleStatus",
+            ],
+            "evidenceClaimRequired": ["evidenceReference"],
+            "holdStateRequired": ["holdReason"],
+            "sessionExportFields": [
+                "deckRevision", "meetingDecision", "decisionOwnerRole",
+                "authorizedScope", "unauthorizedScope", "assumptions", "actions",
+                "dissent", "nextForum", "holdReason",
+            ],
+            "responseExportFields": [
+                "choice", "evidenceLevel", "evidenceReference", "criterionId",
+                "optionId", "evidenceRequest", "restrictedReferenceId", "rationale",
+                "ownerRole", "dueGate", "holdRuleStatus", "dissent", "nextForum",
+            ],
+            "privacyControls": [
+                "controlled-role-selectors",
+                "remove-obvious-email-patterns",
+                "remove-obvious-private-url-patterns",
+                "remove-obvious-ip-address-patterns",
+                "remove-obvious-credential-patterns",
+                "remove-obvious-phone-number-patterns",
+                "remove-obvious-commercial-quote-patterns",
+                "automated-filtering-not-exhaustive",
+            ],
+        }
+        summary_route = "#/present/kong-platform-journey-guided/summary"
+
+        with tempfile.TemporaryDirectory(prefix="kong-guided-assessment-contract-") as temporary:
+            output = Path(temporary) / "site"
+            built = subprocess.run(
+                (
+                    sys.executable,
+                    "-I",
+                    str(SOURCE_ROOT / "scripts" / "build_site.py"),
+                    "--output",
+                    str(output),
+                ),
+                cwd=SOURCE_ROOT,
+                capture_output=True,
+                text=True,
+                check=False,
+            )
+            self.assertEqual(0, built.returncode, built.stdout + built.stderr)
+            manifest = json.loads((output / "content-manifest.json").read_text(encoding="utf-8"))
+
+        validator = load_site_validator_module()
+        verifier = load_pages_verifier_module()
+        validator.validate_kong_guided_evaluation(manifest, manifest["presentation"])
+        verifier.validate_kong_guided_evaluation(manifest, manifest["presentation"])
+
+        guided = manifest["visuals"]["guidedEvaluation"]
+        assessment = guided["assessmentContract"]
+        self.assertEqual(
+            {
+                "schemaVersion", "deckRevision", "sourcePath", "sourceId", "sourceClass",
+                "evidenceState", "asOf", "questions", "phaseQuestionIds", "choiceSets",
+                "reviewRequirements", "publicRoles", "provenance",
+            },
+            set(assessment),
+        )
+        self.assertEqual(2, assessment["schemaVersion"])
+        self.assertEqual(manifest["sourceRevision"], assessment["deckRevision"])
+        self.assertEqual(
+            "docs/49-kong-guided-evaluation-facilitator-guide.md",
+            assessment["sourcePath"],
+        )
+        self.assertEqual(
+            "docs-49-kong-guided-evaluation-facilitator-guide",
+            assessment["sourceId"],
+        )
+        self.assertEqual("meeting-facilitation-guide", assessment["sourceClass"])
+        self.assertEqual("2026-08-21", assessment["asOf"])
+        self.assertEqual(
+            expected_phase_questions,
+            {
+                phase_id: tuple(question_ids)
+                for phase_id, question_ids in assessment["phaseQuestionIds"].items()
+            },
+        )
+        questions = assessment["questions"]
+        self.assertEqual(14, len(questions))
+        self.assertEqual(expected_question_ids, tuple(question["id"] for question in questions))
+        self.assertEqual(
+            {
+                "id", "phaseId", "slideIds", "targetIds", "prompt", "decisionUse",
+                "evidenceBoundary", "minimumEvidence", "mandatory", "choiceSetId", "holdRule",
+            },
+            set(questions[0]),
+        )
+        self.assertTrue(all(set(question) == set(questions[0]) for question in questions))
+        self.assertTrue(
+            all(isinstance(question["holdRule"], str) and question["holdRule"].strip() for question in questions)
+        )
+        self.assertTrue(all(question["minimumEvidence"] in {"E1", "E2", "E3"} for question in questions))
+        self.assertEqual(
+            expected_choice_set_ids,
+            tuple(choice_set["id"] for choice_set in assessment["choiceSets"]),
+        )
+        self.assertEqual(
+            {"pass", "inform", "amend", "hold", "unknown", "not-applicable"},
+            {
+                choice["outcome"]
+                for choice_set in assessment["choiceSets"]
+                for choice in choice_set["choices"]
+            },
+        )
+        self.assertEqual(expected_public_roles, tuple(assessment["publicRoles"]))
+        self.assertEqual(expected_review_requirements, assessment["reviewRequirements"])
+        self.assertEqual(
+            (
+                assessment["sourcePath"],
+                assessment["sourceId"],
+                (assessment["sourcePath"],),
+                (assessment["sourceId"],),
+                "Local interactive assessment contract",
+                (
+                    "Manifest field", "Applies when", "Canonical values", "Rule",
+                ),
+                assessment["sourceClass"],
+                assessment["evidenceState"],
+                assessment["asOf"],
+            ),
+            (
+                assessment["provenance"]["sourcePath"],
+                assessment["provenance"]["sourceId"],
+                tuple(assessment["provenance"]["sourcePaths"]),
+                tuple(assessment["provenance"]["sourceIds"]),
+                assessment["provenance"]["sourceHeading"],
+                tuple(assessment["provenance"]["reviewRequirementsTableColumns"]),
+                assessment["provenance"]["sourceClass"],
+                assessment["provenance"]["evidenceState"],
+                assessment["provenance"]["asOf"],
+            ),
+        )
+        self.assertNotIn('"readinessPercent"', json.dumps(guided, sort_keys=True))
+
+        deck = next(
+            item
+            for item in manifest["presentationDecks"]
+            if item["id"] == "kong-platform-journey-guided"
+        )
+        self.assertEqual(summary_route, deck["summaryRoute"])
+        by_id = {item["id"]: item for item in manifest["items"]}
+        document_routes = {item["route"] for item in manifest["items"]}
+        local_routes = validator.validate_routes_and_audiences(manifest, by_id, document_routes)
+        deployed_routes = verifier.validated_route_inventory(manifest, manifest["items"])
+        for routes in (local_routes, deployed_routes):
+            self.assertIn(summary_route, routes)
+            self.assertEqual(1, sum(route.endswith("/summary") for route in routes))
+
+        invalid_cases = (
+            ("contract fields", "fields must match the exact v2 schema"),
+            ("schema", "schemaVersion must be 2"),
+            ("deck revision", "deckRevision must equal manifest sourceRevision"),
+            ("mapping", "exact 2/2/2/2/4/2 mapping"),
+            ("question ID", "exact KGE-P1-Q01 through KGE-P6-Q02 order"),
+            ("question phase", "phaseId is invalid"),
+            ("question slide semantics", "exact canonical doc49 semantic tuple"),
+            ("question target semantics", "exact canonical doc49 semantic tuple"),
+            ("question hold semantics", "exact canonical doc49 semantic tuple"),
+            ("question mandatory semantics", "exact canonical doc49 semantic tuple"),
+            ("question evidence semantics", "exact canonical doc49 semantic tuple"),
+            ("question choice-set semantics", "exact canonical doc49 semantic tuple"),
+            ("choice outcome", "invalid outcome"),
+            ("public roles", "exact controlled public-role order"),
+            ("review fields", "fields must match the exact v2 schema"),
+            ("session required", "sessionRequired fields are invalid"),
+            ("mandatory response", "mandatoryResponseRequired fields are invalid"),
+            ("evidence claim", "evidenceClaimRequired fields are invalid"),
+            ("hold state", "holdStateRequired fields are invalid"),
+            ("session export", "sessionExportFields are invalid"),
+            ("response export", "responseExportFields are invalid"),
+            ("privacy controls", "privacyControls are invalid"),
+            ("provenance", "exact canonical doc49 tables"),
+            ("provenance fields", "exact public-safe v2 schema"),
+            ("readiness", "must not contain readinessPercent"),
+            ("summary route", "summaryRoute is invalid"),
+        )
+        for case, error in invalid_cases:
+            with self.subTest(case=case):
+                invalid = json.loads(json.dumps(manifest))
+                invalid_assessment = invalid["visuals"]["guidedEvaluation"]["assessmentContract"]
+                invalid_deck = next(
+                    item
+                    for item in invalid["presentationDecks"]
+                    if item["id"] == "kong-platform-journey-guided"
+                )
+                if case == "contract fields":
+                    invalid_assessment["sourceRevision"] = manifest["sourceRevision"]
+                elif case == "schema":
+                    invalid_assessment["schemaVersion"] = 3
+                elif case == "deck revision":
+                    invalid_assessment["deckRevision"] = "0" * len(manifest["sourceRevision"])
+                elif case == "mapping":
+                    invalid_assessment["phaseQuestionIds"]["KGE-P5"].pop()
+                elif case == "question ID":
+                    invalid_assessment["questions"][0]["id"] = "KGE-P1-Q99"
+                elif case == "question phase":
+                    invalid_assessment["questions"][0]["phaseId"] = "KGE-P2"
+                elif case == "question slide semantics":
+                    invalid_assessment["questions"][0]["slideIds"] = ["KGE-02"]
+                elif case == "question target semantics":
+                    invalid_assessment["questions"][0]["targetIds"][-1] = "KGE-AUTH-99"
+                elif case == "question hold semantics":
+                    invalid_assessment["questions"][0]["holdRule"] = "HOLD only after a different condition."
+                elif case == "question mandatory semantics":
+                    invalid_assessment["questions"][0]["mandatory"] = False
+                elif case == "question evidence semantics":
+                    invalid_assessment["questions"][0]["minimumEvidence"] = "E2"
+                elif case == "question choice-set semantics":
+                    invalid_assessment["questions"][0]["choiceSetId"] = "KGE-CS-INPUT"
+                elif case == "choice outcome":
+                    invalid_assessment["choiceSets"][0]["choices"][0]["outcome"] = "score"
+                elif case == "public roles":
+                    invalid_assessment["publicRoles"][0:2] = reversed(invalid_assessment["publicRoles"][0:2])
+                elif case == "review fields":
+                    invalid_assessment["reviewRequirements"]["sessionRequiredFields"] = []
+                elif case == "session required":
+                    invalid_assessment["reviewRequirements"]["sessionRequired"].pop()
+                elif case == "mandatory response":
+                    invalid_assessment["reviewRequirements"]["mandatoryResponseRequired"].pop()
+                elif case == "evidence claim":
+                    invalid_assessment["reviewRequirements"]["evidenceClaimRequired"] = []
+                elif case == "hold state":
+                    invalid_assessment["reviewRequirements"]["holdStateRequired"] = []
+                elif case == "session export":
+                    invalid_assessment["reviewRequirements"]["sessionExportFields"].append("label")
+                elif case == "response export":
+                    invalid_assessment["reviewRequirements"]["responseExportFields"].reverse()
+                elif case == "privacy controls":
+                    invalid_assessment["reviewRequirements"]["privacyControls"].pop()
+                elif case == "provenance":
+                    invalid_assessment["provenance"]["sourceHeading"] = "Wrong heading"
+                elif case == "provenance fields":
+                    invalid_assessment["provenance"]["deckRevision"] = manifest["sourceRevision"]
+                elif case == "readiness":
+                    invalid["visuals"]["guidedEvaluation"]["readinessPercent"] = 100
+                else:
+                    invalid_deck["summaryRoute"] = "#/present/kong-platform-journey-guided/25"
+                with self.assertRaisesRegex(validator.ValidationError, error):
+                    validator.validate_kong_guided_evaluation(invalid, invalid["presentation"])
+                with self.assertRaisesRegex(verifier.VerificationError, error):
+                    verifier.validate_kong_guided_evaluation(invalid, invalid["presentation"])
+
+    def test_guided_assessment_runtime_is_local_pure_and_evidence_bounded(self) -> None:
+        assessment_path = SOURCE_ROOT / "site" / "assets" / "assessment.js"
+        self.assertTrue(assessment_path.is_file(), "the local assessment runtime asset is required")
+        assessment_source = assessment_path.read_text(encoding="utf-8")
+        app_source = (SOURCE_ROOT / "site" / "assets" / "app.js").read_text(encoding="utf-8")
+        index_source = (SOURCE_ROOT / "site" / "index.html").read_text(encoding="utf-8")
+        self.assertIn("assets/assessment.js", load_site_validator_module().REQUIRED_ASSET_PATHS)
+        self.assertIn("assets/assessment.js", load_pages_verifier_module().REQUIRED_ASSETS)
+
+        assessment_tag = '<script defer src="assets/assessment.js"></script>'
+        app_tag = '<script defer src="assets/app.js"></script>'
+        self.assertIn(assessment_tag, index_source)
+        self.assertIn(app_tag, index_source)
+        self.assertLess(index_source.index(assessment_tag), index_source.index(app_tag))
+
+        forbidden_assessment_calls = {
+            "fetch": r"(?<![\w$.])fetch\s*\(",
+            "XMLHttpRequest": r"\bXMLHttpRequest\b",
+            "WebSocket": r"\bWebSocket\b",
+            "sendBeacon": r"\bsendBeacon\s*\(",
+            "requestSubmit": r"\brequestSubmit\s*\(",
+            "form.submit": r"\.submit\s*\(",
+        }
+        for label, pattern in forbidden_assessment_calls.items():
+            with self.subTest(local_only=label):
+                self.assertNotRegex(assessment_source, pattern)
+        self.assertIn('fetch("content-manifest.json", { cache: "no-cache" })', app_source)
+        self.assertNotRegex(
+            app_source,
+            r"(?s)fetch\s*\([^)]*(?:assessmentSession|assessmentContract|responses)",
+        )
+        for pattern in (
+            r"\bXMLHttpRequest\b",
+            r"\bWebSocket\b",
+            r"\bsendBeacon\s*\(",
+            r"\brequestSubmit\s*\(",
+            r"\.submit\s*\(",
+        ):
+            self.assertNotRegex(app_source, pattern)
+        self.assertIn(
+            'document.querySelector("[data-assessment-form]")?.addEventListener("submit", (event) => event.preventDefault())',
+            app_source,
+        )
+        self.assertNotRegex(
+            app_source,
+            r"(?s)<form(?=[^>]*data-assessment-form)[^>]*\baction\s*=",
+        )
+
+        for hook in (
+            "data-assessment-open",
+            "data-assessment-close",
+            "data-assessment-local-warning",
+            "data-assessment-form",
+            "data-assessment-question",
+            "data-assessment-status",
+            "data-assessment-summary",
+            "data-assessment-export-json",
+            "data-assessment-export-markdown",
+            "data-assessment-clear",
+        ):
+            with self.subTest(ui_hook=hook):
+                self.assertIn(hook, app_source)
+        self.assertIn("ApiStudyAssessment", app_source)
+        self.assertIn("#/present/kong-platform-journey-guided/summary", app_source)
+        self.assertIn(
+            "api.normalizeAssessment(contract, raw, { trimFreeText: immediate })",
+            app_source,
+        )
+
+        with tempfile.TemporaryDirectory(prefix="kong-guided-assessment-runtime-") as temporary:
+            output = Path(temporary) / "site"
+            built = subprocess.run(
+                (
+                    sys.executable,
+                    "-I",
+                    str(SOURCE_ROOT / "scripts" / "build_site.py"),
+                    "--output",
+                    str(output),
+                ),
+                cwd=SOURCE_ROOT,
+                capture_output=True,
+                text=True,
+                check=False,
+            )
+            self.assertEqual(0, built.returncode, built.stdout + built.stderr)
+            manifest = json.loads((output / "content-manifest.json").read_text(encoding="utf-8"))
+        contract = manifest["visuals"]["guidedEvaluation"]["assessmentContract"]
+
+        node = next(
+            (
+                candidate
+                for candidate in (
+                    Path("/usr/bin/node"),
+                    Path("/bin/node"),
+                    Path("/usr/local/bin/node"),
+                    Path("/opt/homebrew/bin/node"),
+                )
+                if candidate.is_file() and os.access(candidate, os.X_OK)
+            ),
+            None,
+        )
+        self.assertIsNotNone(node, "Node.js is required to validate the assessment runtime")
+        script = r'''
+const assert = require("node:assert/strict");
+const fs = require("node:fs");
+global.window = {};
+for (const target of [globalThis, global.window]) {
+  for (const name of ["localStorage", "sessionStorage", "document"]) {
+    Object.defineProperty(target, name, {
+      configurable: true,
+      get() { throw new Error(`${name} must not be required by the pure assessment module`); },
+    });
+  }
+}
+const loaded = require("./site/assets/assessment.js");
+const api = window.ApiStudyAssessment || globalThis.ApiStudyAssessment || loaded;
+for (const name of [
+  "normalizeAssessment", "summarizeAssessment",
+  "exportAssessmentJson", "exportAssessmentMarkdown", "createStore",
+]) {
+  assert.equal(typeof api[name], "function", `${name} must be exported`);
+}
+
+const contract = JSON.parse(fs.readFileSync(0, "utf8"));
+const originalContract = JSON.parse(JSON.stringify(contract));
+assert.equal(contract.schemaVersion, 2);
+const expectedPublicRoles = [
+  "Decision owner", "Enterprise architecture", "Platform product", "Security architecture",
+  "IAM", "SRE/performance", "FinOps", "Migration lead", "Independent assurance",
+  "Legal/procurement", "Service owner", "Unassigned role",
+];
+assert.deepEqual(contract.publicRoles, expectedPublicRoles);
+const choiceSetById = new Map(contract.choiceSets.map((choiceSet) => [choiceSet.id, choiceSet]));
+function choiceFor(question, outcome) {
+  return choiceSetById.get(question.choiceSetId).choices.find((choice) => choice.outcome === outcome);
+}
+function questionFor(outcome, mandatoryOnly = false) {
+  return contract.questions.find(
+    (question) => (!mandatoryOnly || question.mandatory) && choiceFor(question, outcome),
+  );
+}
+function responseFor(question, outcome, overrides = {}) {
+  const selected = choiceFor(question, outcome);
+  assert.ok(selected, `${question.id} must expose ${outcome}`);
+  return {
+    choice: selected.value,
+    evidenceLevel: "E4",
+    evidenceReference: "PUBLIC-EVIDENCE-01",
+    criterionId: "CRIT-001",
+    optionId: "GEO-KONG",
+    evidenceRequest: "Execute target test alpha",
+    restrictedReferenceId: "RESTRICTED-REF-001",
+    rationale: "Public rationale alpha",
+    ownerRole: "Independent assurance",
+    dueGate: "Gate alpha",
+    holdRuleStatus: "closed",
+    dissent: "Response dissent alpha",
+    nextForum: "Assurance forum alpha",
+    ...overrides,
+  };
+}
+function rawSession(responses, overrides = {}) {
+  return {
+    schemaVersion: 2,
+    deckId: "kong-platform-journey-guided",
+    deckRevision: contract.deckRevision,
+    label: "Decision record alpha",
+    meetingDecision: "approve",
+    decisionOwnerRole: "Decision owner",
+    authorizedScope: "Foundation and proof alpha",
+    unauthorizedScope: "Production rollout alpha",
+    assumptions: "Assumption alpha",
+    actions: "Action alpha",
+    dissent: "Session dissent alpha",
+    nextForum: "Architecture review alpha",
+    holdReason: "No active hold alpha",
+    createdAt: "2026-08-21T14:00:00Z",
+    updatedAt: "2026-08-21T14:30:00Z",
+    expiresAt: "2026-08-28T14:00:00Z",
+    ...overrides,
+    responses,
+  };
+}
+function normalize(responses, overrides = {}) {
+  return api.normalizeAssessment(contract, rawSession(responses, overrides));
+}
+function summarize(responses, overrides = {}) {
+  return api.summarizeAssessment(contract, normalize(responses, overrides), {
+    generatedAt: "2026-08-21T15:00:00Z",
+  });
+}
+function resolvedResponses() {
+  return Object.fromEntries(contract.questions.map((question) => {
+    const outcome = choiceFor(question, "pass") ? "pass" : "inform";
+    return [question.id, responseFor(question, outcome)];
+  }));
+}
+function questionGap(summary, questionId, type) {
+  return summary.gaps.some((gap) => gap.questionId === questionId && gap.types.includes(type));
+}
+
+const empty = summarize({});
+assert.equal(empty.counts.total, 14);
+assert.equal(empty.counts.answered, 0);
+assert.equal(empty.counts.unanswered, 14);
+assert.equal(empty.counts.unknown, 0, "unanswered must remain distinct from unknown");
+assert.equal(empty.decisionState, "hold", "mandatory unanswered questions must hold");
+assert.equal(empty.reviewable, false);
+assert.equal(empty.questions.filter((question) => question.status === "unanswered").length, 14);
+
+const unknownQuestion = questionFor("unknown", true);
+assert.ok(unknownQuestion, "a mandatory unknown disposition is required");
+const oneUnknown = summarize({
+  [unknownQuestion.id]: responseFor(unknownQuestion, "unknown"),
+});
+assert.equal(oneUnknown.counts.answered, 1);
+assert.equal(oneUnknown.counts.unanswered, 13);
+assert.equal(oneUnknown.counts.unknown, 1);
+assert.equal(
+  oneUnknown.questions.find((question) => question.id === unknownQuestion.id).status,
+  "unknown",
+);
+assert.equal(oneUnknown.decisionState, "hold");
+assert.ok(oneUnknown.holds.includes(unknownQuestion.id));
+
+const resolved = resolvedResponses();
+const resolvedSummary = summarize(resolved);
+assert.equal(resolvedSummary.decisionState, "reviewable");
+assert.equal(resolvedSummary.reviewable, true);
+assert.equal(resolvedSummary.counts.evidenceSupported, 14);
+assert.deepEqual(resolvedSummary.holds, []);
+assert.deepEqual(resolvedSummary.gaps, []);
+assert.match(resolvedSummary.safeguards.evidenceAuthority, /does not upgrade evidence/i);
+assert.equal(resolvedSummary.readinessPercent, undefined);
+assert.equal(resolvedSummary.counts.readinessPercent, undefined);
+
+for (const field of contract.reviewRequirements.sessionRequired) {
+  const blankRequired = summarize(resolved, {[field]: ""});
+  assert.equal(blankRequired.reviewable, false, `blank session ${field} must block REVIEWABLE`);
+  assert.equal(blankRequired.decisionState, "hold");
+  assert.ok(blankRequired.sessionGaps.includes(field));
+}
+const unassignedDecisionOwner = summarize(resolved, {decisionOwnerRole: "Unassigned role"});
+assert.equal(unassignedDecisionOwner.reviewable, false, "Unassigned role is not a resolved decision owner");
+assert.equal(unassignedDecisionOwner.decisionState, "hold");
+assert.ok(unassignedDecisionOwner.sessionGaps.includes("decisionOwnerRole"));
+
+const passQuestion = questionFor("pass", true);
+assert.ok(passQuestion, "a mandatory affirmative disposition is required");
+for (const field of contract.reviewRequirements.mandatoryResponseRequired) {
+  const missing = {
+    ...resolved,
+    [passQuestion.id]: responseFor(passQuestion, "pass", {[field]: ""}),
+  };
+  const blankRequired = summarize(missing);
+  assert.equal(blankRequired.reviewable, false, `blank mandatory response ${field} must block REVIEWABLE`);
+  assert.equal(blankRequired.decisionState, "hold");
+  assert.ok(questionGap(blankRequired, passQuestion.id, field));
+}
+const unassignedOwner = summarize({
+  ...resolved,
+  [passQuestion.id]: responseFor(passQuestion, "pass", {ownerRole: "Unassigned role"}),
+});
+assert.equal(unassignedOwner.reviewable, false, "Unassigned role is not a resolved response owner");
+assert.equal(unassignedOwner.decisionState, "hold");
+assert.ok(questionGap(unassignedOwner, passQuestion.id, "ownerRole"));
+const openHoldRule = summarize({
+  ...resolved,
+  [passQuestion.id]: responseFor(passQuestion, "pass", {holdRuleStatus: "open"}),
+});
+assert.equal(openHoldRule.reviewable, false, "an open canonical hold rule must block REVIEWABLE");
+assert.ok(questionGap(openHoldRule, passQuestion.id, "holdRuleStatus"));
+
+const missingEvidenceReference = summarize({
+  ...resolved,
+  [passQuestion.id]: responseFor(passQuestion, "pass", {evidenceReference: ""}),
+});
+assert.equal(missingEvidenceReference.reviewable, false);
+assert.equal(missingEvidenceReference.decisionState, "hold");
+assert.ok(questionGap(missingEvidenceReference, passQuestion.id, "evidenceReference"));
+
+const holdQuestion = questionFor("hold", true);
+assert.ok(holdQuestion, "a mandatory hold disposition is required");
+const heldWithoutReason = summarize({
+  ...resolved,
+  [holdQuestion.id]: responseFor(holdQuestion, "hold"),
+}, {holdReason: ""});
+assert.equal(heldWithoutReason.decisionState, "hold");
+assert.equal(heldWithoutReason.reviewable, false);
+assert.ok(heldWithoutReason.holds.includes(holdQuestion.id));
+assert.ok(heldWithoutReason.sessionGaps.includes("holdReason"), "HOLD requires holdReason");
+const heldWithReason = summarize({
+  ...resolved,
+  [holdQuestion.id]: responseFor(holdQuestion, "hold"),
+}, {holdReason: "Canonical hold remains open alpha"});
+assert.equal(heldWithReason.decisionState, "hold");
+assert.equal(heldWithReason.reviewable, false);
+assert.ok(!heldWithReason.sessionGaps.includes("holdReason"));
+
+const amendQuestion = questionFor("amend", true);
+assert.ok(amendQuestion, "a mandatory amend disposition is required");
+const amended = summarize({
+  ...resolved,
+  [amendQuestion.id]: responseFor(amendQuestion, "amend"),
+});
+assert.equal(amended.decisionState, "amend");
+assert.equal(amended.reviewable, false);
+
+const notApplicableQuestion = questionFor("not-applicable", false);
+assert.ok(notApplicableQuestion, "a not-applicable disposition is required");
+const notApplicable = summarize({
+  ...resolved,
+  [notApplicableQuestion.id]: responseFor(notApplicableQuestion, "not-applicable", {rationale: ""}),
+});
+assert.equal(notApplicable.reviewable, false);
+assert.ok(questionGap(notApplicable, notApplicableQuestion.id, "rationale"), "N/A requires rationale");
+
+const evidenceRank = ["E0", "E1", "E2", "E3", "E4"];
+const minimumIndex = evidenceRank.indexOf(passQuestion.minimumEvidence);
+assert.ok(minimumIndex > 0, "mandatory minimum evidence must be above E0");
+const insufficient = summarize({
+  ...resolved,
+  [passQuestion.id]: responseFor(passQuestion, "pass", {
+    evidenceLevel: evidenceRank[minimumIndex - 1],
+  }),
+});
+assert.equal(insufficient.decisionState, "hold");
+assert.equal(insufficient.reviewable, false);
+assert.ok(questionGap(insufficient, passQuestion.id, "evidence"));
+assert.equal(insufficient.counts.evidenceSupported, 13);
+assert.equal(
+  insufficient.questions.find((question) => question.id === passQuestion.id).outcome,
+  "pass",
+  "evidence insufficiency must not rewrite or upgrade the meeting disposition",
+);
+
+const normalizedUnknownId = normalize({
+  ...resolved,
+  "KGE-P9-Q99": responseFor(passQuestion, "pass"),
+});
+assert.equal(normalizedUnknownId.responses["KGE-P9-Q99"], undefined);
+assert.deepEqual(Object.keys(normalizedUnknownId.responses), contract.questions.map((question) => question.id));
+
+const fidelityRaw = rawSession(resolved);
+const fidelityNormalized = api.normalizeAssessment(contract, fidelityRaw);
+for (const field of [...contract.reviewRequirements.sessionExportFields, "label"]) {
+  assert.equal(fidelityNormalized[field], fidelityRaw[field], `session ${field} must survive normalization`);
+}
+const fidelityResponse = fidelityNormalized.responses[passQuestion.id];
+for (const field of contract.reviewRequirements.responseExportFields) {
+  assert.equal(
+    fidelityResponse[field],
+    fidelityRaw.responses[passQuestion.id][field],
+    `response ${field} must survive normalization`,
+  );
+}
+
+const trailingSessionValue = "Decision record alpha ";
+const trailingResponseValue = "Public rationale alpha ";
+const transientNormalized = api.normalizeAssessment(contract, rawSession({
+  ...resolved,
+  [passQuestion.id]: responseFor(passQuestion, "pass", {rationale: trailingResponseValue}),
+}, {label: trailingSessionValue}), {trimFreeText: false});
+assert.equal(
+  transientNormalized.label,
+  trailingSessionValue,
+  "input-time normalization must preserve a trailing space while the user continues typing",
+);
+assert.equal(
+  transientNormalized.responses[passQuestion.id].rationale,
+  trailingResponseValue,
+  "response input-time normalization must preserve a trailing space while the user continues typing",
+);
+const obviousRestrictedTypingValue = ["typing", "example.com"].join("@");
+const restrictedDuringTyping = api.normalizeAssessment(contract, rawSession({
+  ...resolved,
+  [passQuestion.id]: responseFor(passQuestion, "pass", {rationale: obviousRestrictedTypingValue}),
+}, {label: obviousRestrictedTypingValue}), {trimFreeText: false});
+assert.equal(restrictedDuringTyping.label, "", "input-time normalization must still remove restricted session text");
+assert.equal(
+  restrictedDuringTyping.responses[passQuestion.id].rationale,
+  "",
+  "input-time normalization must still remove restricted response text",
+);
+let transientStored = "";
+const transientStore = api.createStore({
+  key: "assessment-v2-trailing-space-test",
+  storage: {
+    getItem() { return transientStored || null; },
+    setItem(key, value) { transientStored = value; },
+    removeItem() { transientStored = ""; },
+  },
+});
+transientStore.save(rawSession({
+  ...resolved,
+  [passQuestion.id]: responseFor(passQuestion, "pass", {rationale: obviousRestrictedTypingValue}),
+}, {label: obviousRestrictedTypingValue}));
+assert.ok(
+  !transientStored.includes(obviousRestrictedTypingValue),
+  "the persistence boundary must remove restricted text even when given an unnormalized value",
+);
+transientStore.save(transientNormalized);
+const persistedTransient = JSON.parse(transientStored);
+assert.equal(persistedTransient.label, trailingSessionValue.trim(), "persistence must trim transient session text");
+assert.equal(
+  persistedTransient.responses[passQuestion.id].rationale,
+  trailingResponseValue.trim(),
+  "persistence must trim transient response text",
+);
+
+const fixedSummary = api.summarizeAssessment(contract, fidelityNormalized, {
+  generatedAt: "2026-08-21T15:00:00Z",
+});
+const jsonA = api.exportAssessmentJson(fixedSummary);
+const jsonB = api.exportAssessmentJson(fixedSummary);
+const markdownA = api.exportAssessmentMarkdown(fixedSummary);
+const markdownB = api.exportAssessmentMarkdown(fixedSummary);
+assert.equal(jsonA, jsonB, "JSON export must be deterministic for a fixed summary");
+assert.equal(markdownA, markdownB, "Markdown export must be deterministic for a fixed summary");
+const parsedJson = JSON.parse(jsonA);
+assert.equal(parsedJson.generatedAt, "2026-08-21T15:00:00Z");
+const exportedQuestion = parsedJson.questions.find((question) => question.id === passQuestion.id);
+for (const field of [...contract.reviewRequirements.sessionExportFields, "label"]) {
+  assert.equal(parsedJson[field], fidelityRaw[field], `JSON must retain session ${field}`);
+  assert.ok(markdownA.toLowerCase().includes(String(fidelityRaw[field]).toLowerCase()), `Markdown must retain session ${field}`);
+}
+for (const field of contract.reviewRequirements.responseExportFields) {
+  assert.equal(exportedQuestion.response[field], fidelityRaw.responses[passQuestion.id][field], `JSON must retain response ${field}`);
+  assert.ok(
+    markdownA.toLowerCase().includes(String(fidelityRaw.responses[passQuestion.id][field]).toLowerCase()),
+    `Markdown must retain response ${field}`,
+  );
+}
+for (const [label, value] of [
+  ["Schema version (schemaVersion)", String(fixedSummary.schemaVersion)],
+  ["Deck ID (deckId)", fixedSummary.deckId],
+  ["Deck revision (deckRevision)", fixedSummary.deckRevision],
+  ["Created (createdAt)", fixedSummary.createdAt],
+  ["Updated (updatedAt)", fixedSummary.updatedAt],
+  ["Expires (expiresAt)", fixedSummary.expiresAt],
+  ["Generated (generatedAt)", fixedSummary.generatedAt],
+]) {
+  assert.ok(markdownA.includes(`- ${label}: ${value}`), `Markdown must identify ${label}`);
+}
+for (const question of fixedSummary.questions) {
+  assert.ok(markdownA.includes(`- Question ID (questionId): ${question.id}`), `Markdown must identify question ${question.id}`);
+  assert.ok(markdownA.includes(`- Phase ID (phaseId): ${question.phaseId}`), `Markdown must identify phase ${question.phaseId}`);
+  for (const slideId of question.slideIds) {
+    assert.ok(markdownA.includes(slideId), `Markdown must retain slide provenance ${slideId}`);
+  }
+  for (const targetId of question.targetIds) {
+    assert.ok(markdownA.includes(targetId), `Markdown must retain target provenance ${targetId}`);
+  }
+  assert.ok(
+    markdownA.includes(`- Choice value (choice): ${question.response.choice}`),
+    `Markdown must retain the stable choice value for ${question.id}`,
+  );
+  assert.ok(
+    markdownA.includes(`- Choice label: ${question.choiceLabel}`),
+    `Markdown must retain the display choice label for ${question.id}`,
+  );
+}
+assert.match(markdownA, /2026-08-21T15:00:00Z/);
+assert.doesNotMatch(jsonA, /readinessPercent/);
+assert.doesNotMatch(
+  markdownA,
+  /^\s*(?:[-#]\s*)?readiness(?:\s+(?:percent|percentage))?\s*:/im,
+  "Markdown must not invent a readiness metric while retaining canonical negative hold rules",
+);
+
+for (const role of contract.publicRoles) {
+  const roleResponses = {
+    ...resolved,
+    [passQuestion.id]: responseFor(passQuestion, "pass", {ownerRole: role}),
+  };
+  const normalizedRole = normalize(roleResponses, {decisionOwnerRole: role});
+  assert.equal(normalizedRole.decisionOwnerRole, role);
+  assert.equal(normalizedRole.responses[passQuestion.id].ownerRole, role);
+}
+const namedRole = normalize({
+  ...resolved,
+  [passQuestion.id]: responseFor(passQuestion, "pass", {ownerRole: "Alice Smith"}),
+}, {decisionOwnerRole: "Alice Smith"});
+assert.notEqual(namedRole.decisionOwnerRole, "Alice Smith");
+assert.notEqual(namedRole.responses[passQuestion.id].ownerRole, "Alice Smith");
+assert.ok(namedRole.decisionOwnerRole === "" || contract.publicRoles.includes(namedRole.decisionOwnerRole));
+assert.ok(namedRole.responses[passQuestion.id].ownerRole === "" || contract.publicRoles.includes(namedRole.responses[passQuestion.id].ownerRole));
+
+const unsafeTokens = [
+  "alice@example.com",
+  "https://" + ["portal", "internal"].join(".") + "/private",
+  ["10", "20", "30", "40"].join("."),
+  "api_key=supersecretvalue",
+];
+const unsafeResponses = {
+  ...resolved,
+  [passQuestion.id]: responseFor(passQuestion, "pass", {
+    evidenceReference: unsafeTokens[0],
+    rationale: unsafeTokens[1],
+    dueGate: unsafeTokens[2],
+    evidenceRequest: unsafeTokens[3],
+    ownerRole: "Alice Smith",
+  }),
+};
+const unsafeNormalized = normalize(unsafeResponses, {
+  label: unsafeTokens[0],
+  meetingDecision: unsafeTokens[1],
+  authorizedScope: unsafeTokens[2],
+  actions: unsafeTokens[3],
+  decisionOwnerRole: "Alice Smith",
+});
+const unsafeNormalizedText = JSON.stringify(unsafeNormalized);
+for (const token of [...unsafeTokens, "Alice Smith"]) {
+  assert.ok(!unsafeNormalizedText.includes(token), `${token} must be removed before storage`);
+}
+let stored = "";
+const storage = {
+  getItem() { return stored || null; },
+  setItem(key, value) { stored = value; },
+  removeItem() { stored = ""; },
+};
+const store = api.createStore({key: "assessment-v2-privacy-test", storage});
+store.save(unsafeNormalized);
+assert.ok(stored, "explicit local storage adapter must receive the normalized assessment");
+for (const token of [...unsafeTokens, "Alice Smith"]) {
+  assert.ok(!stored.includes(token), `${token} must not reach browser storage`);
+}
+const unsafeSummary = api.summarizeAssessment(contract, unsafeNormalized, {
+  generatedAt: "2026-08-21T15:00:00Z",
+});
+const unsafeExports = [
+  api.exportAssessmentJson(unsafeSummary),
+  api.exportAssessmentMarkdown(unsafeSummary),
+];
+for (const exported of unsafeExports) {
+  for (const token of [...unsafeTokens, "Alice Smith"]) {
+    assert.ok(!exported.includes(token), `${token} must not reach an export`);
+  }
+}
+
+const hostile = '<img src=x onerror=alert(1)><script>alert(2)</script>';
+const hostileResponses = {
+  ...resolved,
+  [passQuestion.id]: responseFor(passQuestion, "pass", {
+    evidenceReference: hostile,
+    rationale: hostile,
+    dueGate: hostile,
+  }),
+};
+const hostileSummary = summarize(hostileResponses);
+const hostileJson = api.exportAssessmentJson(hostileSummary);
+const hostileMarkdown = api.exportAssessmentMarkdown(hostileSummary);
+for (const [format, exported] of [["JSON", hostileJson], ["Markdown", hostileMarkdown]]) {
+  assert.doesNotMatch(exported, /<\s*\/?\s*(?:script|img)\b/i, `${format} must neutralize hostile HTML`);
+  assert.match(exported, /alert\(2\)/, `${format} must retain the public-safe text value`);
+}
+assert.deepEqual(contract, originalContract, "pure assessment operations must not mutate the canonical contract");
+
+process.stdout.write(JSON.stringify({ok: true}));
+'''
+        observed = subprocess.run(
+            [str(node), "-e", script],
+            cwd=SOURCE_ROOT,
+            check=False,
+            capture_output=True,
+            input=json.dumps(contract),
+            text=True,
+        )
+        self.assertEqual(0, observed.returncode, observed.stderr)
+        self.assertEqual({"ok": True}, json.loads(observed.stdout))
 
     def test_temporary_repositories_drop_outer_publication_provenance(self) -> None:
         original = {
@@ -4249,6 +5114,33 @@ class ManifestRuntimeDependencyTests(WorkflowTestCase):
                 self.assertIn(expected, combined)
                 self.assertNotIn("Traceback (most recent call last)", combined)
 
+        assessment_tag = '    <script defer src="assets/assessment.js"></script>'
+        app_tag = '    <script defer src="assets/app.js"></script>'
+        self.assertIn(f"{assessment_tag}\n{app_tag}", baseline)
+        index.write_text(
+            baseline.replace(
+                f"{assessment_tag}\n{app_tag}",
+                f"{app_tag}\n{assessment_tag}",
+                1,
+            ),
+            encoding="utf-8",
+        )
+        rebuilt = repository._run((str(repository.python_executable), str(builder)))
+        self.assertEqual(0, rebuilt.returncode, rebuilt.stdout + rebuilt.stderr)
+        observed = repository._run(
+            (
+                str(repository.python_executable),
+                str(validator),
+                "--output",
+                str(output),
+            )
+        )
+        self.assert_deterministic_error(
+            observed,
+            returncode=1,
+            contains="assets/assessment.js must load before assets/app.js",
+        )
+
 
 class StatePrerequisiteTests(WorkflowTestCase):
     def test_closed_checkpoint_rejects_all_mutation_commands(self) -> None:
@@ -4492,6 +5384,7 @@ class DraftGateTests(WorkflowTestCase):
             "#/doc/workflow-test",
             "#/present/kong-platform-journey-guided/0",
             "#/present/kong-platform-journey-guided/24",
+            "#/present/kong-platform-journey-guided/summary",
         ]
         slide_keys = [f"kong-guided-{index:02d}" for index in range(1, 26)]
         role_ids = ["vp-executive", "directors", "architects", "developers", "devops-sre", "platform-teams"]
@@ -4514,6 +5407,7 @@ class DraftGateTests(WorkflowTestCase):
                             "audienceRoleIds": role_ids,
                             "presentationSlides": slide_keys,
                             "presentationRoute": "#/present/kong-platform-journey-guided/0",
+                            "summaryRoute": "#/present/kong-platform-journey-guided/summary",
                         }
                     ],
                 }

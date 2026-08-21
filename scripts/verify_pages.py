@@ -31,6 +31,7 @@ GENERATED_AT_PATTERN = re.compile(r"\d{4}-\d{2}-\d{2}T\d{2}:\d{2}:\d{2}Z")
 REQUIRED_ASSETS = {
     "index.html",
     "404.html",
+    "assets/assessment.js",
     "assets/app.js",
     "assets/charts.js",
     "assets/styles.css",
@@ -180,6 +181,9 @@ KONG_GUIDED_PHASES = (
     ("KGE-P4", "Migration", "Move Mule responsibilities or the Apigee object/state graph through coexistence, route-back, and exit evidence", "kong-guided-migration-boundary"),
     ("KGE-P5", "Production proof", "Replace documented capability—including the Traceable adjunct—with executed target-shaped evidence and outcome gates", "kong-guided-proof-boundary"),
     ("KGE-P6", "Audit appendix", "Preserve supplied inputs, expose the Traceable feasibility line, and keep the governed re-score pending without promoting them to proof", "kong-guided-compare-architecture"),
+)
+KONG_GUIDED_ASSESSMENT_SUMMARY_ROUTE = (
+    "#/present/kong-platform-journey-guided/summary"
 )
 KONG_GUIDED_PHASE_BY_KEY = {
     key: phase_id
@@ -1072,6 +1076,18 @@ def validated_route_inventory(manifest: dict[str, Any], items: list[dict[str, An
         require(len(role_ids) == len(set(role_ids)), f"manifest presentation deck {deck_id} audienceRoleIds must be unique")
         require(deck.get("presentationRoute") == f"#/present/{deck_id}/0", f"manifest presentation deck {deck_id} presentationRoute is invalid")
         deck_routes = {f"#/present/{deck_id}/{index}" for index in range(len(selected))}
+        if deck_id == KONG_GUIDED_DECK_ID:
+            summary_route = deck.get("summaryRoute")
+            require(
+                summary_route == KONG_GUIDED_ASSESSMENT_SUMMARY_ROUTE,
+                "manifest guided presentation deck summaryRoute is invalid",
+            )
+            deck_routes.add(summary_route)
+        else:
+            require(
+                "summaryRoute" not in deck,
+                f"manifest presentation deck {deck_id} must not declare a summaryRoute",
+            )
         require(not routes.intersection(deck_routes), f"manifest presentation deck {deck_id} routes collide")
         routes.update(deck_routes)
         exit_route = deck.get("exitRoute")
