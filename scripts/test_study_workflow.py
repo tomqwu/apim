@@ -922,6 +922,253 @@ class CanonicalContractTests(WorkflowTestCase):
             r"\.document-shell \.prose \.document-section-body > \.artifact-shell\s*\{[^}]*width: 100%;[^}]*max-width: 100%;[^}]*transform: none;",
         )
 
+    def test_guided_facilitator_guide_has_complete_notes_and_discussion_contract(self) -> None:
+        guide_path = SOURCE_ROOT / "docs/49-kong-guided-evaluation-facilitator-guide.md"
+        with tempfile.TemporaryDirectory(prefix="guided-facilitator-notes-") as temporary:
+            output = Path(temporary) / "site"
+            result = subprocess.run(
+                (
+                    sys.executable,
+                    "-I",
+                    str(SOURCE_ROOT / "scripts" / "build_site.py"),
+                    "--output",
+                    str(output),
+                ),
+                cwd=SOURCE_ROOT,
+                capture_output=True,
+                text=True,
+                check=False,
+            )
+            self.assertEqual(0, result.returncode, result.stdout + result.stderr)
+            manifest = json.loads((output / "content-manifest.json").read_text(encoding="utf-8"))
+
+        deck = next(
+            candidate
+            for candidate in manifest["presentationDecks"]
+            if candidate["id"] == "kong-platform-journey-guided"
+        )
+        slides_by_key = {slide["key"]: slide for slide in manifest["presentation"]}
+        contract = [slides_by_key[key] for key in deck["presentationSlides"]]
+        self.assertEqual(25, len(contract))
+
+        guide = guide_path.read_text(encoding="utf-8")
+        h4_matches = tuple(re.finditer(r"(?m)^####[ \t]+(?P<heading>.+?)\s*$", guide))
+        detailed_matches = tuple(
+            match for match in h4_matches if re.search(r"\bKGE-\d{2}\b", match.group("heading"))
+        )
+        self.assertEqual(
+            tuple(f"KGE-{index:02d}" for index in range(1, 26)),
+            tuple(
+                re.search(r"\bKGE-\d{2}\b", match.group("heading")).group(0)
+                for match in detailed_matches
+            ),
+            "docs/49 must contain exactly 25 ordered detailed H4 sections for KGE-01 through KGE-25",
+        )
+
+        def section_for(match: re.Match[str]) -> str:
+            next_structural_heading = re.search(r"(?m)^#{1,4}[ \t]+", guide[match.end():])
+            end = (
+                match.end() + next_structural_heading.start()
+                if next_structural_heading is not None
+                else len(guide)
+            )
+            return guide[match.start():end]
+
+        def require_bold_metadata(section: str, label: str, slide_id: str) -> str:
+            field = re.search(
+                rf"(?m)^[ \t]*[-*+][ \t]+\*\*{re.escape(label)}:\*\*[ \t]*(?P<value>.*)$",
+                section,
+            )
+            self.assertIsNotNone(field, f"{slide_id} lacks the `{label}` metadata field")
+            value = field.group("value").strip()
+            self.assertTrue(value, f"{slide_id} has an empty `{label}` metadata field")
+            return value
+
+        def require_h5_field(section: str, label: str, slide_id: str) -> str:
+            headings = tuple(re.finditer(r"(?m)^#####[ \t]+(?P<label>.+?)[ \t]*$", section))
+            matching = tuple(match for match in headings if match.group("label") == label)
+            self.assertEqual(1, len(matching), f"{slide_id} must have one `##### {label}` section")
+            match = matching[0]
+            heading_index = headings.index(match)
+            end = headings[heading_index + 1].start() if heading_index + 1 < len(headings) else len(section)
+            value = section[match.end():end].strip()
+            self.assertTrue(value, f"{slide_id} has an empty `##### {label}` section")
+            return value
+
+        provenance_equivalents = (
+            ("The supplied Word document", "[SANITIZED-SUPPLIED-EVALUATION]"),
+            ("The sanitized supplied evaluation", "[SANITIZED-SUPPLIED-EVALUATION]"),
+            (
+                "The source document's qualitative ratings and cost/lock-in labels are supplied assessments",
+                "[SANITIZED-SUPPLIED-EVALUATION-RATINGS]",
+            ),
+            (
+                "The qualitative ratings and cost/lock-in labels preserved in the sanitized supplied evaluation are stakeholder assessments",
+                "[SANITIZED-SUPPLIED-EVALUATION-RATINGS]",
+            ),
+            (
+                "Preserve the source document's architectural comparison",
+                "Preserve [SANITIZED-SUPPLIED-EVALUATION-ARCHITECTURE]",
+            ),
+            (
+                "Preserve the architectural comparison from the sanitized supplied evaluation",
+                "Preserve [SANITIZED-SUPPLIED-EVALUATION-ARCHITECTURE]",
+            ),
+            (
+                "Preserve the sanitized supplied evaluation’s architectural comparison",
+                "Preserve [SANITIZED-SUPPLIED-EVALUATION-ARCHITECTURE]",
+            ),
+            (
+                "shown explicitly as supplied assessments",
+                "shown explicitly as [SANITIZED-SUPPLIED-EVALUATION-LABELS]",
+            ),
+            (
+                "shown explicitly as stakeholder assessments preserved in docs/48",
+                "shown explicitly as [SANITIZED-SUPPLIED-EVALUATION-LABELS]",
+            ),
+            ("the source scorecard", "the [SANITIZED-SUPPLIED-EVALUATION-SCORECARD]"),
+            (
+                "the sanitized supplied scorecard",
+                "the [SANITIZED-SUPPLIED-EVALUATION-SCORECARD]",
+            ),
+            (
+                "The inputs are copied from the supplied document.",
+                "[SANITIZED-SUPPLIED-EVALUATION-INPUTS]",
+            ),
+            (
+                "The inputs are preserved from the sanitized supplied evaluation.",
+                "[SANITIZED-SUPPLIED-EVALUATION-INPUTS]",
+            ),
+        )
+
+        def normalized_prose(value: str) -> str:
+            normalized = value
+            for phrase, replacement in provenance_equivalents:
+                normalized = normalized.replace(phrase, replacement)
+            return re.sub(r"\s+", " ", normalized).strip()
+
+        def source_is_represented(target: str, section: str) -> bool:
+            candidates = {target}
+            if target.startswith("docs/"):
+                candidates.add(target.removeprefix("docs/"))
+            elif target.startswith("poc/"):
+                candidates.add(f"../{target}")
+            return any(candidate in section for candidate in candidates)
+
+        drawing = "http://schemas.openxmlformats.org/drawingml/2006/main"
+        presentation = "http://schemas.openxmlformats.org/presentationml/2006/main"
+        namespaces = {"a": drawing, "p": presentation}
+        note_labels = ("Purpose", "Talk track", "Ask", "Bridge", "Caveat", "Sources")
+        discussion_labels = (
+            "Listen for",
+            "Evidence-safe response",
+            "Follow-up probe",
+            "Decision impact",
+            "Capture",
+            "Branch/rejoin",
+        )
+
+        pptx = SOURCE_ROOT / "presentations" / "kong-platform-journey-guided.pptx"
+        with zipfile.ZipFile(pptx) as archive:
+            for index, (match, slide_contract) in enumerate(
+                zip(detailed_matches, contract, strict=True),
+                start=1,
+            ):
+                slide_id = f"KGE-{index:02d}"
+                heading = match.group("heading")
+                section = section_for(match)
+                self.assertIn(slide_id, heading)
+                self.assertIn(
+                    slide_contract["title"],
+                    heading,
+                    f"{slide_id} H4 must use the canonical/native presentation title",
+                )
+                self.assertIn(slide_contract["phaseId"], require_bold_metadata(section, "Phase", slide_id))
+                self.assertIn(slide_contract["phaseLabel"], require_bold_metadata(section, "Phase", slide_id))
+                self.assertEqual(
+                    slide_contract["evidenceState"],
+                    require_bold_metadata(section, "Evidence state", slide_id),
+                )
+                expected_route = f"#/present/kong-platform-journey-guided/{index - 1}"
+                self.assertIn(
+                    expected_route,
+                    require_bold_metadata(section, "Native route", slide_id),
+                    f"{slide_id} route must resolve to presentation index {index - 1}",
+                )
+
+                notes = ET.fromstring(archive.read(f"ppt/notesSlides/notesSlide{index}.xml"))
+                body_shapes = []
+                for shape in notes.findall(".//p:sp", namespaces):
+                    placeholder = shape.find("./p:nvSpPr/p:nvPr/p:ph", namespaces)
+                    if placeholder is not None and placeholder.attrib.get("type") == "body":
+                        body_shapes.append(shape)
+                self.assertEqual(1, len(body_shapes), f"{slide_id} must have one notes body placeholder")
+                paragraphs = [
+                    "".join(text.text or "" for text in paragraph.findall(".//a:t", namespaces))
+                    for paragraph in body_shapes[0].findall("./p:txBody/a:p", namespaces)
+                ]
+                labels_in_notes = tuple(
+                    paragraph[1:-1]
+                    for paragraph in paragraphs
+                    if paragraph.startswith("[") and paragraph.endswith("]")
+                )
+                self.assertEqual(note_labels, labels_in_notes, f"{slide_id} notes block order drifted")
+                label_positions = {label: paragraphs.index(f"[{label}]") for label in note_labels}
+                extracted: dict[str, list[str]] = {}
+                for label_index, label in enumerate(note_labels):
+                    start = label_positions[label] + 1
+                    end = (
+                        label_positions[note_labels[label_index + 1]]
+                        if label_index + 1 < len(note_labels)
+                        else len(paragraphs)
+                    )
+                    extracted[label] = [paragraph for paragraph in paragraphs[start:end] if paragraph]
+
+                for label in note_labels[:-1]:
+                    self.assertEqual(1, len(extracted[label]), f"{slide_id} `{label}` must be one paragraph")
+                    guide_value = require_h5_field(section, label, slide_id)
+                    self.assertEqual(
+                        normalized_prose(extracted[label][0]),
+                        normalized_prose(guide_value),
+                        f"{slide_id} `{label}` drifted from its embedded PowerPoint note",
+                    )
+
+                self.assertTrue(extracted["Sources"], f"{slide_id} embedded sources are empty")
+                guide_sources = require_h5_field(section, "Sources", slide_id)
+                ppt_sources = tuple(
+                    source.removeprefix("- ")
+                    for source in extracted["Sources"]
+                    if source.startswith("- ")
+                )
+                self.assertEqual(
+                    len(extracted["Sources"]),
+                    len(ppt_sources),
+                    f"{slide_id} embedded sources must remain target-only list entries",
+                )
+                for target in (
+                    *ppt_sources,
+                    *slide_contract["sourcePaths"],
+                    *(reference["url"] for reference in slide_contract["officialReferences"]),
+                ):
+                    self.assertTrue(
+                        source_is_represented(target, guide_sources),
+                        f"{slide_id} Sources block lacks source target {target}",
+                    )
+
+                for label in discussion_labels:
+                    require_h5_field(section, label, slide_id)
+                hold_headings = tuple(
+                    label
+                    for label in ("HOLD/park", "HOLD or Park")
+                    if re.search(rf"(?m)^#####[ \t]+{re.escape(label)}[ \t]*$", section)
+                )
+                self.assertEqual(
+                    1,
+                    len(hold_headings),
+                    f"{slide_id} must have exactly one `##### HOLD/park` or `##### HOLD or Park` section",
+                )
+                require_h5_field(section, hold_headings[0], slide_id)
+
     def test_independent_review_comment_contract_is_exact_and_copyable(self) -> None:
         required_lines = (
             "Accepted head SHA:",

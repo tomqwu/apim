@@ -320,7 +320,7 @@ The PowerPoint and the native Pages deck project this same 25-frame contract. Th
 
 ## Presenter guidance
 
-Use the companion [Kong guided evaluation facilitator guide](49-kong-guided-evaluation-facilitator-guide.md) to choose a 30-, 45-, 60-, or 90-minute meeting route, navigate objections without promoting evidence, capture decisions and dissent, and apply explicit stop or hold rules. The PowerPoint notes remain the point-of-use talk track and source record for each slide.
+Use the companion [Kong guided evaluation facilitator guide](49-kong-guided-evaluation-facilitator-guide.md) as the complete public-safe meeting script: it contains the 30-, 45-, 60-, and 90-minute routes; all 25 slide-level purpose, talk-track, ask, bridge, caveat, and source blocks; bounded side discussions; decision capture; and explicit stop or hold rules. The PowerPoint embeds a synchronized concise projection of the same speaker notes for offline delivery. This study remains authoritative for slide facts, evidence states, and source interpretation.
 
 | Transition | Audience guidance |
 |---|---|

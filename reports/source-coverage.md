@@ -68,7 +68,7 @@ This report is generated from the article corpus by `scripts/validate_source_cov
 | `docs/45-api-management-industry-practices.md` | 7 | 36 | promotion debt visible |
 | `docs/47-kong-enterprise-platform-strategy.md` | 5 | 21 | promotion debt visible |
 | `docs/48-kong-guided-evaluation.md` | 4 | 4 | promotion debt visible |
-| `docs/49-kong-guided-evaluation-facilitator-guide.md` | 0 | 2 | promotion debt visible |
+| `docs/49-kong-guided-evaluation-facilitator-guide.md` | 4 | 6 | promotion debt visible |
 | `poc/real-world-scenarios.md` | 4 | 9 | promotion debt visible |
 | `research/apigee.md` | 3 | 12 | promotion debt visible |
 | `research/azure-apim.md` | 5 | 3 | promotion debt visible |
@@ -81,8 +81,8 @@ This table helps evidence owners batch promotion and freshness work. A high coun
 
 | Host | Article-link occurrences |
 |---|---:|
-| `developer.konghq.com` | 142 |
-| `docs.mulesoft.com` | 72 |
+| `developer.konghq.com` | 145 |
+| `docs.mulesoft.com` | 73 |
 | `learn.microsoft.com` | 44 |
 | `docs.cloud.google.com` | 31 |
 | `cloud.google.com` | 24 |
