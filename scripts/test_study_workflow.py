@@ -1397,6 +1397,13 @@ process.stdout.write(window.ApiStudyCharts.render("criteriaOverview", data, {com
         expected_responsibilities = ("G", "F", "T", "O", "M", "B", "C", "R")
         expected_waves = tuple(f"M{index}" for index in range(6))
         expected_figures = ("MULE-2", "MULE-3", "MULE-6")
+        expected_phases = (
+            ("01", "Options", "kong-journey-decision"),
+            ("02", "Architecture", "kong-platform-architecture"),
+            ("03", "Adoption", "kong-technical-operating-model"),
+            ("04", "Migration", "kong-journey-migration-boundary"),
+            ("05", "Production", "kong-journey-proof"),
+        )
 
         with tempfile.TemporaryDirectory(prefix="kong-platform-journey-") as temporary:
             output = Path(temporary) / "site"
@@ -1439,6 +1446,14 @@ process.stdout.write(window.ApiStudyCharts.render("criteriaOverview", data, {com
         self.assertEqual(expected_sources, tuple(journey["sourcePaths"]))
         self.assertEqual("#/present/kong-platform-journey/0", journey["presentationRoute"])
         self.assertEqual("#/overview", journey["exitRoute"])
+        self.assertEqual(
+            expected_phases,
+            tuple((phase["id"], phase["label"], phase["startKey"]) for phase in journey["journeyPhases"]),
+        )
+        self.assertEqual(
+            (0, 3, 6, 8, 11),
+            tuple(journey["presentationSlides"].index(phase["startKey"]) for phase in journey["journeyPhases"]),
+        )
 
         technical = next(deck for deck in manifest["presentationDecks"] if deck["id"] == "kong-technical-deep-dive")
         self.assertEqual("kong-platform", technical["theme"])
@@ -1515,11 +1530,30 @@ process.stdout.write(window.ApiStudyCharts.render("criteriaOverview", data, {com
         self.assertEqual(expected_waves, tuple(wave["id"] for wave in mule["waves"]))
         self.assertEqual(expected_figures, tuple(figure["figureId"] for figure in mule["figures"]))
 
+        items_by_id = {item["id"]: item for item in manifest["items"]}
+        document_routes = {item["route"] for item in manifest["items"]}
+        local_routes = validator.validate_routes_and_audiences(manifest, items_by_id, document_routes)
+        pages_routes = verifier.validated_route_inventory(manifest, manifest["items"])
+        for routes in (local_routes, pages_routes):
+            for phase_index in (0, 3, 6, 8, 11):
+                self.assertIn(f"#/present/kong-platform-journey/{phase_index}", routes)
+
+        invalid_phase_order = json.loads(json.dumps(manifest))
+        invalid_phase_deck = next(
+            deck for deck in invalid_phase_order["presentationDecks"] if deck["id"] == "kong-platform-journey"
+        )
+        invalid_phase_deck["journeyPhases"][3]["startKey"] = "kong-journey-selected-option"
+        with self.assertRaisesRegex(validator.ValidationError, "journey phase starts must increase strictly"):
+            validator.validate_routes_and_audiences(invalid_phase_order, items_by_id, document_routes)
+        with self.assertRaisesRegex(verifier.VerificationError, "journey phase starts must increase strictly"):
+            verifier.validated_route_inventory(invalid_phase_order, invalid_phase_order["items"])
+
         invalid_cases = (
             ("slide order", "exact 15-slide journey order"),
             ("theme", "theme must be kong-journey"),
             ("roles", "exact six-role order"),
             ("sources", "exact canonical source order"),
+            ("phase start", "five-stage spine and start keys"),
             ("decision visual", "decision slide must use kongJourneySpine"),
             ("roadmap visual", "roadmap slide must use kongPlatformRoadmap"),
             ("option ID", "exact KMC option order"),
@@ -1543,6 +1577,8 @@ process.stdout.write(window.ApiStudyCharts.render("criteriaOverview", data, {com
                     invalid_journey["audienceRoleIds"][0:2] = reversed(invalid_journey["audienceRoleIds"][0:2])
                 elif case == "sources":
                     invalid_journey["sourcePaths"][0:2] = reversed(invalid_journey["sourcePaths"][0:2])
+                elif case == "phase start":
+                    invalid_journey["journeyPhases"][2]["startKey"] = "kong-platform-roadmap"
                 elif case == "decision visual":
                     next(slide for slide in invalid["presentation"] if slide["key"] == "kong-journey-decision")["visual"] = "recommendation"
                 elif case == "roadmap visual":
@@ -1637,6 +1673,10 @@ process.stdout.write(window.ApiStudyCharts.render("criteriaOverview", data, {com
             phases,
             tuple((phase["id"], phase["label"], phase["startKey"]) for phase in deck["journeyPhases"]),
         )
+        self.assertEqual(
+            (0, 3, 8, 13, 16, 21),
+            tuple(deck["presentationSlides"].index(phase["startKey"]) for phase in deck["journeyPhases"]),
+        )
         self.assertEqual([15, 15, 25], [item["slideTotal"] for item in manifest["presentationDecks"]])
         self.assertEqual(62, len(manifest["presentation"]))
         self.assertEqual(63, sum(len(audience["presentationSlides"]) for audience in manifest["audiences"]))
@@ -1650,6 +1690,8 @@ process.stdout.write(window.ApiStudyCharts.render("criteriaOverview", data, {com
             self.assertIn("#/present/kong-platform-journey-guided/0", routes)
             self.assertIn("#/present/kong-platform-journey-guided/24", routes)
             self.assertNotIn("#/present/kong-platform-journey-guided/25", routes)
+            for phase_index in (0, 3, 8, 13, 16, 21):
+                self.assertIn(f"#/present/kong-platform-journey-guided/{phase_index}", routes)
 
         guided = manifest["visuals"]["guidedEvaluation"]
         self.assertEqual(tuple(f"GTM-{index:02d}" for index in range(1, 10)), tuple(row["id"] for row in guided["targetModel"]["rows"]))
@@ -1738,11 +1780,22 @@ process.stdout.write(window.ApiStudyCharts.render("criteriaOverview", data, {com
         self.assertIn('class="slide-reference-menu"', app)
         self.assertIn('document.querySelector(".slide-references[open]")', app)
         self.assertIn('openReferences.querySelector("summary")?.focus()', app)
+        self.assertIn("function presentationSlideHref(context, index)", app)
+        self.assertIn('<nav class="journey-phase-nav" aria-label=', app)
+        self.assertIn('href="${presentationSlideHref(context, phaseStartIndex)}"', app)
+        self.assertIn("isCurrentPhase ? 'aria-current=\"step\"' : \"\"", app)
+        self.assertNotRegex(app, r'<li[^>]*aria-current="step"')
+        self.assertIn('phaseIndex < journeyPhaseIndex ? "is-prior"', app)
+        self.assertNotIn('phaseIndex < journeyPhaseIndex ? "is-complete"', app)
+        self.assertIn("location.hash = presentationSlideHref(context, next)", app)
+        self.assertRegex(styles, r"(?s)\.journey-phase-spine li > a\s*\{[^}]*min-height:\s*44px;[^}]*color:\s*inherit;[^}]*text-decoration:\s*none;")
+        self.assertRegex(styles, r"(?s)\.journey-phase-spine li > a:focus-visible\s*\{[^}]*outline:")
+        self.assertRegex(styles, r"(?s)@media print.*?\.journey-phase-spine li > a\s*\{[^}]*color:\s*inherit !important;[^}]*text-decoration:\s*none !important;")
         self.assertRegex(styles, r"(?s)\.viz-guided-comparison\s*\{[^}]*min-width:\s*0;")
         self.assertRegex(styles, r"(?s)@media screen and \(min-width: 761px\) and \(max-width: 1199px\).*?\.viz-guided-comparison\s*\{\s*min-width:\s*100rem;")
         self.assertRegex(styles, r"(?s)@media screen and \(max-width: 760px\).*?\.viz-guided-comparison\s*\{\s*min-width:\s*70rem;")
         self.assertRegex(styles, r"(?s)@media screen and \(max-width: 760px\).*?\.guided-evidence-ribbon p\s*\{\s*flex: 0 1 auto;")
-        self.assertRegex(styles, r"(?s)@media screen and \(min-width: 761px\) and \(max-width: 1279px\).*?\.presentation-stage\.is-kong-guided \.journey-phase-spine li\s*\{[^}]*justify-content:\s*center;[^}]*font-size:\s*1rem;")
+        self.assertRegex(styles, r"(?s)@media screen and \(min-width: 761px\) and \(max-width: 1279px\).*?\.presentation-stage\.is-kong-guided \.journey-phase-spine li > a\s*\{[^}]*justify-content:\s*center;[^}]*font-size:\s*1rem;")
         self.assertRegex(styles, r"(?s)@media screen and \(min-width: 761px\) and \(max-width: 1279px\).*?\.presentation-stage\.is-kong-guided \.journey-phase-spine li b\s*\{[^}]*width:\s*1px;[^}]*clip-path:\s*inset\(50%\);")
         self.assertRegex(styles, r"(?s)@media screen and \(min-width: 1024px\) and \(max-width: 1199px\).*?\.presentation-stage\.is-kong-guided \.viz-guided-proof-boundary article\s*\{[^}]*padding:\s*0\.45rem;")
         self.assertRegex(styles, r"(?s)@media \(max-width: 760px\).*?\.presentation-stage:not\(\.is-kong-guided\) \.slide-diagram\.is-summary-mode\s*\{[^}]*height:\s*auto;")

@@ -81,7 +81,8 @@ The native deck uses zero-based routes: presentation slide `N` is route `N−1`.
 | Need | Control |
 |---|---|
 | Next / previous slide | On-screen controls, Right/Left Arrow, Page Down/Page Up, or Space/Shift+Space when focus is not inside an interactive or scrollable control |
-| Direct jump | Select a linked slide number in this guide or change the final route number |
+| Jump to a phase | Select a phase in the presentation's top menu to open that phase's first slide; Browser Back returns to the exact prior discussion slide |
+| Jump to an exact slide | Select a linked slide number in this guide or change the final route number |
 | Inspect a dense model | Use the slide's Overview/Takeaway, Readable, and Expand controls |
 | Close an expanded model | Escape or Close; focus returns to Expand |
 | Exit the presentation | Escape when no modal or disclosure is open |
