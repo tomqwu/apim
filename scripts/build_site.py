@@ -1465,8 +1465,13 @@ def apigee_migration_visuals(items: list[dict[str, object]]) -> dict[str, object
     }
 
 
-def guided_evaluation_visuals(items: list[dict[str, object]]) -> dict[str, object]:
+def guided_evaluation_visuals(
+    items: list[dict[str, object]],
+    deck_revision: str,
+) -> dict[str, object]:
     """Project the guided Kong evaluation, local assessment contract, and native deck."""
+    if not re.fullmatch(r"[0-9a-f]{40,64}", deck_revision):
+        raise ValueError("Guided assessment deck revision must be a full Git object ID")
     source_path = "docs/48-kong-guided-evaluation.md"
     facilitator_source_path = "docs/49-kong-guided-evaluation-facilitator-guide.md"
     text = safe_text(ROOT / source_path)
@@ -1497,6 +1502,15 @@ def guided_evaluation_visuals(items: list[dict[str, object]]) -> dict[str, objec
         facilitator_metadata.get("as-of date", ""),
     )
     facilitator_as_of = facilitator_as_of_match.group(0) if facilitator_as_of_match else ""
+    if not all(
+        (
+            facilitator_source_id,
+            facilitator_source_class,
+            facilitator_evidence_state,
+            facilitator_as_of,
+        )
+    ):
+        raise ValueError("Guided assessment source metadata or provenance is incomplete")
 
     def provenance(heading: str, columns: tuple[str, ...]) -> dict[str, object]:
         return {
@@ -1857,6 +1871,12 @@ def guided_evaluation_visuals(items: list[dict[str, object]]) -> dict[str, objec
         "Choice label",
         "Outcome",
     )
+    review_requirement_columns = (
+        "Manifest field",
+        "Applies when",
+        "Canonical values",
+        "Rule",
+    )
 
     def stable_ids(value: str) -> list[str]:
         """Expand semicolon-separated stable IDs and inclusive ``ID..ID`` ranges."""
@@ -1901,11 +1921,12 @@ def guided_evaluation_visuals(items: list[dict[str, object]]) -> dict[str, objec
             "prompt": clean_inline(row_value(row, "Prompt")),
             "decisionUse": clean_inline(row_value(row, "Decision use")),
             "evidenceBoundary": clean_inline(row_value(row, "Evidence boundary")),
+            "holdRule": clean_inline(row_value(row, "Hold rule")),
             "minimumEvidence": clean_inline(row_value(row, "Minimum evidence")),
             "mandatory": mandatory_text == "true",
             "choiceSetId": clean_inline(row_value(row, "Choice set ID")),
         }
-        if not clean_inline(row_value(row, "Hold rule")):
+        if not question["holdRule"]:
             raise ValueError(f"Assessment question {question['id']} has no hold rule")
         questions.append(question)
         phase_question_ids.setdefault(str(question["phaseId"]), []).append(str(question["id"]))
@@ -1959,6 +1980,110 @@ def guided_evaluation_visuals(items: list[dict[str, object]]) -> dict[str, objec
             raise ValueError("Assessment choice sets require an ID, label, and choices")
         if len(choice_values) != len(set(choice_values)):
             raise ValueError(f"Assessment choice set {choice_set['id']} repeats a choice value")
+
+    review_rows = markdown_table(assessment_section, review_requirement_columns)
+    expected_review_fields = [
+        "reviewRequirements.sessionRequired",
+        "reviewRequirements.mandatoryResponseRequired",
+        "reviewRequirements.evidenceClaimRequired",
+        "reviewRequirements.holdStateRequired",
+        "reviewRequirements.sessionExportFields",
+        "reviewRequirements.responseExportFields",
+        "reviewRequirements.privacyControls",
+        "publicRoles",
+    ]
+    parsed_review_values: dict[str, list[str]] = {}
+    for row in review_rows:
+        manifest_field = clean_inline(row_value(row, "Manifest field"))
+        values = [
+            clean_inline(value)
+            for value in row_value(row, "Canonical values").split(";")
+            if clean_inline(value)
+        ]
+        if not manifest_field or not values:
+            raise ValueError("Assessment reviewability rows require a manifest field and canonical values")
+        if not clean_inline(row_value(row, "Applies when")) or not clean_inline(row_value(row, "Rule")):
+            raise ValueError(f"Assessment reviewability row {manifest_field} requires a trigger and rule")
+        if manifest_field in parsed_review_values:
+            raise ValueError(f"Assessment reviewability field {manifest_field} is repeated")
+        parsed_review_values[manifest_field] = values
+    if list(parsed_review_values) != expected_review_fields:
+        raise ValueError("Assessment reviewability fields do not match the canonical v2 order")
+
+    expected_review_requirements = {
+        "sessionRequired": [
+            "meetingDecision",
+            "decisionOwnerRole",
+            "authorizedScope",
+            "unauthorizedScope",
+            "nextForum",
+        ],
+        "mandatoryResponseRequired": ["rationale", "ownerRole", "dueGate", "holdRuleStatus"],
+        "evidenceClaimRequired": ["evidenceReference"],
+        "holdStateRequired": ["holdReason"],
+        "sessionExportFields": [
+            "deckRevision",
+            "meetingDecision",
+            "decisionOwnerRole",
+            "authorizedScope",
+            "unauthorizedScope",
+            "assumptions",
+            "actions",
+            "dissent",
+            "nextForum",
+            "holdReason",
+        ],
+        "responseExportFields": [
+            "choice",
+            "evidenceLevel",
+            "evidenceReference",
+            "criterionId",
+            "optionId",
+            "evidenceRequest",
+            "restrictedReferenceId",
+            "rationale",
+            "ownerRole",
+            "dueGate",
+            "holdRuleStatus",
+            "dissent",
+            "nextForum",
+        ],
+        "privacyControls": [
+            "controlled-role-selectors",
+            "remove-obvious-email-patterns",
+            "remove-obvious-private-url-patterns",
+            "remove-obvious-ip-address-patterns",
+            "remove-obvious-credential-patterns",
+            "remove-obvious-phone-number-patterns",
+            "remove-obvious-commercial-quote-patterns",
+            "automated-filtering-not-exhaustive",
+        ],
+    }
+    review_requirements = {
+        field.removeprefix("reviewRequirements."): parsed_review_values[field]
+        for field in expected_review_fields
+        if field.startswith("reviewRequirements.")
+    }
+    public_roles = parsed_review_values["publicRoles"]
+    expected_public_roles = [
+        "Decision owner",
+        "Enterprise architecture",
+        "Platform product",
+        "Security architecture",
+        "IAM",
+        "SRE/performance",
+        "FinOps",
+        "Migration lead",
+        "Independent assurance",
+        "Legal/procurement",
+        "Service owner",
+        "Unassigned role",
+    ]
+    if review_requirements != expected_review_requirements:
+        raise ValueError("Assessment reviewability requirements do not match the canonical v2 contract")
+    if public_roles != expected_public_roles:
+        raise ValueError("Assessment public roles do not match the canonical controlled values")
+
     assessment_provenance = {
         "sourcePath": facilitator_source_path,
         "sourceId": facilitator_source_id,
@@ -1967,12 +2092,14 @@ def guided_evaluation_visuals(items: list[dict[str, object]]) -> dict[str, objec
         "sourceHeading": assessment_heading,
         "questionTableColumns": list(question_columns),
         "choiceSetTableColumns": list(choice_set_columns),
+        "reviewRequirementsTableColumns": list(review_requirement_columns),
         "sourceClass": facilitator_source_class,
         "evidenceState": facilitator_evidence_state,
         "asOf": facilitator_as_of,
     }
     assessment_contract = {
-        "schemaVersion": 1,
+        "schemaVersion": 2,
+        "deckRevision": deck_revision,
         "sourcePath": facilitator_source_path,
         "sourceId": facilitator_source_id,
         "sourceClass": facilitator_source_class,
@@ -1981,8 +2108,45 @@ def guided_evaluation_visuals(items: list[dict[str, object]]) -> dict[str, objec
         "questions": questions,
         "phaseQuestionIds": phase_question_ids,
         "choiceSets": choice_sets,
+        "reviewRequirements": review_requirements,
+        "publicRoles": public_roles,
         "provenance": assessment_provenance,
     }
+
+    expected_contract_keys = {
+        "schemaVersion",
+        "deckRevision",
+        "sourcePath",
+        "sourceId",
+        "sourceClass",
+        "evidenceState",
+        "asOf",
+        "questions",
+        "phaseQuestionIds",
+        "choiceSets",
+        "reviewRequirements",
+        "publicRoles",
+        "provenance",
+    }
+    expected_question_keys = {
+        "id",
+        "phaseId",
+        "slideIds",
+        "targetIds",
+        "prompt",
+        "decisionUse",
+        "evidenceBoundary",
+        "holdRule",
+        "minimumEvidence",
+        "mandatory",
+        "choiceSetId",
+    }
+    if set(assessment_contract) != expected_contract_keys:
+        raise ValueError("Assessment contract does not match the canonical v2 schema")
+    if not deck_revision or assessment_contract["deckRevision"] != deck_revision:
+        raise ValueError("Assessment contract deckRevision must equal the resolved build revision")
+    if any(set(question) != expected_question_keys for question in questions):
+        raise ValueError("Assessment questions do not match the canonical v2 schema")
 
     return {
         "sourcePath": source_path,
@@ -2098,7 +2262,10 @@ def visual_provenance(items: list[dict[str, object]]) -> dict[str, dict[str, obj
     return provenance
 
 
-def build_visuals(items: list[dict[str, object]]) -> dict[str, object]:
+def build_visuals(
+    items: list[dict[str, object]],
+    deck_revision: str,
+) -> dict[str, object]:
     """Build chart-ready data exclusively from tracked repository content."""
     return {
         "criteria": criteria_visuals(),
@@ -2116,7 +2283,7 @@ def build_visuals(items: list[dict[str, object]]) -> dict[str, object]:
         "kongPlatformStrategy": kong_platform_strategy_visuals(items),
         "muleMigration": mule_migration_visuals(items),
         "apigeeMigration": apigee_migration_visuals(items),
-        "guidedEvaluation": guided_evaluation_visuals(items),
+        "guidedEvaluation": guided_evaluation_visuals(items, deck_revision),
         "methodology": methodology_visuals(),
         "review": review_visuals(),
         "provenance": visual_provenance(items),
@@ -3125,7 +3292,7 @@ def build(output: Path) -> None:
     shutil.copy2(output / "index.html", output / "404.html")
     items = collect_items(output, content_sources)
     stats = build_stats(items)
-    visuals = build_visuals(items)
+    visuals = build_visuals(items, revision)
     validate_site_projection(stats, visuals)
     presentation = make_presentation(items, stats, visuals)
     presentation_decks = make_presentation_decks(items, presentation)

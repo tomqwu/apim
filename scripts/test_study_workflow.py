@@ -2292,6 +2292,51 @@ process.stdout.write(window.ApiStudyCharts.render("criteriaOverview", data, {com
             "KGE-CS-CONTRACT",
             "KGE-CS-CLAIM",
         )
+        expected_public_roles = (
+            "Decision owner",
+            "Enterprise architecture",
+            "Platform product",
+            "Security architecture",
+            "IAM",
+            "SRE/performance",
+            "FinOps",
+            "Migration lead",
+            "Independent assurance",
+            "Legal/procurement",
+            "Service owner",
+            "Unassigned role",
+        )
+        expected_review_requirements = {
+            "sessionRequired": [
+                "meetingDecision", "decisionOwnerRole", "authorizedScope",
+                "unauthorizedScope", "nextForum",
+            ],
+            "mandatoryResponseRequired": [
+                "rationale", "ownerRole", "dueGate", "holdRuleStatus",
+            ],
+            "evidenceClaimRequired": ["evidenceReference"],
+            "holdStateRequired": ["holdReason"],
+            "sessionExportFields": [
+                "deckRevision", "meetingDecision", "decisionOwnerRole",
+                "authorizedScope", "unauthorizedScope", "assumptions", "actions",
+                "dissent", "nextForum", "holdReason",
+            ],
+            "responseExportFields": [
+                "choice", "evidenceLevel", "evidenceReference", "criterionId",
+                "optionId", "evidenceRequest", "restrictedReferenceId", "rationale",
+                "ownerRole", "dueGate", "holdRuleStatus", "dissent", "nextForum",
+            ],
+            "privacyControls": [
+                "controlled-role-selectors",
+                "remove-obvious-email-patterns",
+                "remove-obvious-private-url-patterns",
+                "remove-obvious-ip-address-patterns",
+                "remove-obvious-credential-patterns",
+                "remove-obvious-phone-number-patterns",
+                "remove-obvious-commercial-quote-patterns",
+                "automated-filtering-not-exhaustive",
+            ],
+        }
         summary_route = "#/present/kong-platform-journey-guided/summary"
 
         with tempfile.TemporaryDirectory(prefix="kong-guided-assessment-contract-") as temporary:
@@ -2319,7 +2364,16 @@ process.stdout.write(window.ApiStudyCharts.render("criteriaOverview", data, {com
 
         guided = manifest["visuals"]["guidedEvaluation"]
         assessment = guided["assessmentContract"]
-        self.assertEqual(1, assessment["schemaVersion"])
+        self.assertEqual(
+            {
+                "schemaVersion", "deckRevision", "sourcePath", "sourceId", "sourceClass",
+                "evidenceState", "asOf", "questions", "phaseQuestionIds", "choiceSets",
+                "reviewRequirements", "publicRoles", "provenance",
+            },
+            set(assessment),
+        )
+        self.assertEqual(2, assessment["schemaVersion"])
+        self.assertEqual(manifest["sourceRevision"], assessment["deckRevision"])
         self.assertEqual(
             "docs/49-kong-guided-evaluation-facilitator-guide.md",
             assessment["sourcePath"],
@@ -2343,9 +2397,13 @@ process.stdout.write(window.ApiStudyCharts.render("criteriaOverview", data, {com
         self.assertEqual(
             {
                 "id", "phaseId", "slideIds", "targetIds", "prompt", "decisionUse",
-                "evidenceBoundary", "minimumEvidence", "mandatory", "choiceSetId",
+                "evidenceBoundary", "minimumEvidence", "mandatory", "choiceSetId", "holdRule",
             },
-            set.intersection(*(set(question) for question in questions)),
+            set(questions[0]),
+        )
+        self.assertTrue(all(set(question) == set(questions[0]) for question in questions))
+        self.assertTrue(
+            all(isinstance(question["holdRule"], str) and question["holdRule"].strip() for question in questions)
         )
         self.assertTrue(all(question["minimumEvidence"] in {"E1", "E2", "E3"} for question in questions))
         self.assertEqual(
@@ -2360,6 +2418,8 @@ process.stdout.write(window.ApiStudyCharts.render("criteriaOverview", data, {com
                 for choice in choice_set["choices"]
             },
         )
+        self.assertEqual(expected_public_roles, tuple(assessment["publicRoles"]))
+        self.assertEqual(expected_review_requirements, assessment["reviewRequirements"])
         self.assertEqual(
             (
                 assessment["sourcePath"],
@@ -2367,6 +2427,9 @@ process.stdout.write(window.ApiStudyCharts.render("criteriaOverview", data, {com
                 (assessment["sourcePath"],),
                 (assessment["sourceId"],),
                 "Local interactive assessment contract",
+                (
+                    "Manifest field", "Applies when", "Canonical values", "Rule",
+                ),
                 assessment["sourceClass"],
                 assessment["evidenceState"],
                 assessment["asOf"],
@@ -2377,6 +2440,7 @@ process.stdout.write(window.ApiStudyCharts.render("criteriaOverview", data, {com
                 tuple(assessment["provenance"]["sourcePaths"]),
                 tuple(assessment["provenance"]["sourceIds"]),
                 assessment["provenance"]["sourceHeading"],
+                tuple(assessment["provenance"]["reviewRequirementsTableColumns"]),
                 assessment["provenance"]["sourceClass"],
                 assessment["provenance"]["evidenceState"],
                 assessment["provenance"]["asOf"],
@@ -2399,12 +2463,25 @@ process.stdout.write(window.ApiStudyCharts.render("criteriaOverview", data, {com
             self.assertEqual(1, sum(route.endswith("/summary") for route in routes))
 
         invalid_cases = (
-            ("schema", "schemaVersion must be 1"),
+            ("contract fields", "fields must match the exact v2 schema"),
+            ("schema", "schemaVersion must be 2"),
+            ("deck revision", "deckRevision must equal manifest sourceRevision"),
             ("mapping", "exact 2/2/2/2/4/2 mapping"),
             ("question ID", "exact KGE-P1-Q01 through KGE-P6-Q02 order"),
             ("question phase", "phaseId is invalid"),
+            ("hold rule", "must retain every canonical text field"),
             ("choice outcome", "invalid outcome"),
+            ("public roles", "exact controlled public-role order"),
+            ("review fields", "fields must match the exact v2 schema"),
+            ("session required", "sessionRequired fields are invalid"),
+            ("mandatory response", "mandatoryResponseRequired fields are invalid"),
+            ("evidence claim", "evidenceClaimRequired fields are invalid"),
+            ("hold state", "holdStateRequired fields are invalid"),
+            ("session export", "sessionExportFields are invalid"),
+            ("response export", "responseExportFields are invalid"),
+            ("privacy controls", "privacyControls are invalid"),
             ("provenance", "exact canonical doc49 tables"),
+            ("provenance fields", "exact public-safe v2 schema"),
             ("readiness", "must not contain readinessPercent"),
             ("summary route", "summaryRoute is invalid"),
         )
@@ -2417,20 +2494,46 @@ process.stdout.write(window.ApiStudyCharts.render("criteriaOverview", data, {com
                     for item in invalid["presentationDecks"]
                     if item["id"] == "kong-platform-journey-guided"
                 )
-                if case == "schema":
-                    invalid_assessment["schemaVersion"] = 2
+                if case == "contract fields":
+                    invalid_assessment["sourceRevision"] = manifest["sourceRevision"]
+                elif case == "schema":
+                    invalid_assessment["schemaVersion"] = 3
+                elif case == "deck revision":
+                    invalid_assessment["deckRevision"] = "0" * len(manifest["sourceRevision"])
                 elif case == "mapping":
                     invalid_assessment["phaseQuestionIds"]["KGE-P5"].pop()
                 elif case == "question ID":
                     invalid_assessment["questions"][0]["id"] = "KGE-P1-Q99"
                 elif case == "question phase":
                     invalid_assessment["questions"][0]["phaseId"] = "KGE-P2"
+                elif case == "hold rule":
+                    invalid_assessment["questions"][0]["holdRule"] = "  "
                 elif case == "choice outcome":
                     invalid_assessment["choiceSets"][0]["choices"][0]["outcome"] = "score"
+                elif case == "public roles":
+                    invalid_assessment["publicRoles"][0:2] = reversed(invalid_assessment["publicRoles"][0:2])
+                elif case == "review fields":
+                    invalid_assessment["reviewRequirements"]["sessionRequiredFields"] = []
+                elif case == "session required":
+                    invalid_assessment["reviewRequirements"]["sessionRequired"].pop()
+                elif case == "mandatory response":
+                    invalid_assessment["reviewRequirements"]["mandatoryResponseRequired"].pop()
+                elif case == "evidence claim":
+                    invalid_assessment["reviewRequirements"]["evidenceClaimRequired"] = []
+                elif case == "hold state":
+                    invalid_assessment["reviewRequirements"]["holdStateRequired"] = []
+                elif case == "session export":
+                    invalid_assessment["reviewRequirements"]["sessionExportFields"].append("label")
+                elif case == "response export":
+                    invalid_assessment["reviewRequirements"]["responseExportFields"].reverse()
+                elif case == "privacy controls":
+                    invalid_assessment["reviewRequirements"]["privacyControls"].pop()
                 elif case == "provenance":
                     invalid_assessment["provenance"]["sourceHeading"] = "Wrong heading"
+                elif case == "provenance fields":
+                    invalid_assessment["provenance"]["deckRevision"] = manifest["sourceRevision"]
                 elif case == "readiness":
-                    invalid_assessment["readinessPercent"] = 100
+                    invalid["visuals"]["guidedEvaluation"]["readinessPercent"] = 100
                 else:
                     invalid_deck["summaryRoute"] = "#/present/kong-platform-journey-guided/25"
                 with self.assertRaisesRegex(validator.ValidationError, error):
@@ -2552,14 +2655,20 @@ const loaded = require("./site/assets/assessment.js");
 const api = window.ApiStudyAssessment || globalThis.ApiStudyAssessment || loaded;
 for (const name of [
   "normalizeAssessment", "summarizeAssessment",
-  "exportAssessmentJson", "exportAssessmentMarkdown",
+  "exportAssessmentJson", "exportAssessmentMarkdown", "createStore",
 ]) {
   assert.equal(typeof api[name], "function", `${name} must be exported`);
 }
 
 const contract = JSON.parse(fs.readFileSync(0, "utf8"));
 const originalContract = JSON.parse(JSON.stringify(contract));
-const questionById = new Map(contract.questions.map((question) => [question.id, question]));
+assert.equal(contract.schemaVersion, 2);
+const expectedPublicRoles = [
+  "Decision owner", "Enterprise architecture", "Platform product", "Security architecture",
+  "IAM", "SRE/performance", "FinOps", "Migration lead", "Independent assurance",
+  "Legal/procurement", "Service owner", "Unassigned role",
+];
+assert.deepEqual(contract.publicRoles, expectedPublicRoles);
 const choiceSetById = new Map(contract.choiceSets.map((choiceSet) => [choiceSet.id, choiceSet]));
 function choiceFor(question, outcome) {
   return choiceSetById.get(question.choiceSetId).choices.find((choice) => choice.outcome === outcome);
@@ -2576,29 +2685,46 @@ function responseFor(question, outcome, overrides = {}) {
     choice: selected.value,
     evidenceLevel: "E4",
     evidenceReference: "PUBLIC-EVIDENCE-01",
-    rationale: "Public-safe rationale",
-    ownerRole: "Evidence steward",
-    dueGate: "Next review gate",
+    criterionId: "CRIT-001",
+    optionId: "GEO-KONG",
+    evidenceRequest: "Execute target test alpha",
+    restrictedReferenceId: "RESTRICTED-REF-001",
+    rationale: "Public rationale alpha",
+    ownerRole: "Independent assurance",
+    dueGate: "Gate alpha",
+    holdRuleStatus: "closed",
+    dissent: "Response dissent alpha",
+    nextForum: "Assurance forum alpha",
     ...overrides,
   };
 }
-function rawSession(responses) {
+function rawSession(responses, overrides = {}) {
   return {
-    schemaVersion: 1,
+    schemaVersion: 2,
     deckId: "kong-platform-journey-guided",
-    label: "Deterministic public-safe workshop",
-    meetingDecision: "",
+    deckRevision: contract.deckRevision,
+    label: "Decision record alpha",
+    meetingDecision: "approve",
+    decisionOwnerRole: "Decision owner",
+    authorizedScope: "Foundation and proof alpha",
+    unauthorizedScope: "Production rollout alpha",
+    assumptions: "Assumption alpha",
+    actions: "Action alpha",
+    dissent: "Session dissent alpha",
+    nextForum: "Architecture review alpha",
+    holdReason: "No active hold alpha",
     createdAt: "2026-08-21T14:00:00Z",
     updatedAt: "2026-08-21T14:30:00Z",
     expiresAt: "2026-08-28T14:00:00Z",
+    ...overrides,
     responses,
   };
 }
-function normalize(responses) {
-  return api.normalizeAssessment(contract, rawSession(responses));
+function normalize(responses, overrides = {}) {
+  return api.normalizeAssessment(contract, rawSession(responses, overrides));
 }
-function summarize(responses) {
-  return api.summarizeAssessment(contract, normalize(responses), {
+function summarize(responses, overrides = {}) {
+  return api.summarizeAssessment(contract, normalize(responses, overrides), {
     generatedAt: "2026-08-21T15:00:00Z",
   });
 }
@@ -2608,13 +2734,17 @@ function resolvedResponses() {
     return [question.id, responseFor(question, outcome)];
   }));
 }
+function questionGap(summary, questionId, type) {
+  return summary.gaps.some((gap) => gap.questionId === questionId && gap.types.includes(type));
+}
 
 const empty = summarize({});
 assert.equal(empty.counts.total, 14);
 assert.equal(empty.counts.answered, 0);
 assert.equal(empty.counts.unanswered, 14);
-assert.equal(empty.counts.unknown, 0);
+assert.equal(empty.counts.unknown, 0, "unanswered must remain distinct from unknown");
 assert.equal(empty.decisionState, "hold", "mandatory unanswered questions must hold");
+assert.equal(empty.reviewable, false);
 assert.equal(empty.questions.filter((question) => question.status === "unanswered").length, 14);
 
 const unknownQuestion = questionFor("unknown", true);
@@ -2643,14 +2773,68 @@ assert.match(resolvedSummary.safeguards.evidenceAuthority, /does not upgrade evi
 assert.equal(resolvedSummary.readinessPercent, undefined);
 assert.equal(resolvedSummary.counts.readinessPercent, undefined);
 
+for (const field of contract.reviewRequirements.sessionRequired) {
+  const blankRequired = summarize(resolved, {[field]: ""});
+  assert.equal(blankRequired.reviewable, false, `blank session ${field} must block REVIEWABLE`);
+  assert.equal(blankRequired.decisionState, "hold");
+  assert.ok(blankRequired.sessionGaps.includes(field));
+}
+const unassignedDecisionOwner = summarize(resolved, {decisionOwnerRole: "Unassigned role"});
+assert.equal(unassignedDecisionOwner.reviewable, false, "Unassigned role is not a resolved decision owner");
+assert.equal(unassignedDecisionOwner.decisionState, "hold");
+assert.ok(unassignedDecisionOwner.sessionGaps.includes("decisionOwnerRole"));
+
+const passQuestion = questionFor("pass", true);
+assert.ok(passQuestion, "a mandatory affirmative disposition is required");
+for (const field of contract.reviewRequirements.mandatoryResponseRequired) {
+  const missing = {
+    ...resolved,
+    [passQuestion.id]: responseFor(passQuestion, "pass", {[field]: ""}),
+  };
+  const blankRequired = summarize(missing);
+  assert.equal(blankRequired.reviewable, false, `blank mandatory response ${field} must block REVIEWABLE`);
+  assert.equal(blankRequired.decisionState, "hold");
+  assert.ok(questionGap(blankRequired, passQuestion.id, field));
+}
+const unassignedOwner = summarize({
+  ...resolved,
+  [passQuestion.id]: responseFor(passQuestion, "pass", {ownerRole: "Unassigned role"}),
+});
+assert.equal(unassignedOwner.reviewable, false, "Unassigned role is not a resolved response owner");
+assert.equal(unassignedOwner.decisionState, "hold");
+assert.ok(questionGap(unassignedOwner, passQuestion.id, "ownerRole"));
+const openHoldRule = summarize({
+  ...resolved,
+  [passQuestion.id]: responseFor(passQuestion, "pass", {holdRuleStatus: "open"}),
+});
+assert.equal(openHoldRule.reviewable, false, "an open canonical hold rule must block REVIEWABLE");
+assert.ok(questionGap(openHoldRule, passQuestion.id, "holdRuleStatus"));
+
+const missingEvidenceReference = summarize({
+  ...resolved,
+  [passQuestion.id]: responseFor(passQuestion, "pass", {evidenceReference: ""}),
+});
+assert.equal(missingEvidenceReference.reviewable, false);
+assert.equal(missingEvidenceReference.decisionState, "hold");
+assert.ok(questionGap(missingEvidenceReference, passQuestion.id, "evidenceReference"));
+
 const holdQuestion = questionFor("hold", true);
 assert.ok(holdQuestion, "a mandatory hold disposition is required");
-const held = summarize({
+const heldWithoutReason = summarize({
   ...resolved,
   [holdQuestion.id]: responseFor(holdQuestion, "hold"),
-});
-assert.equal(held.decisionState, "hold");
-assert.ok(held.holds.includes(holdQuestion.id));
+}, {holdReason: ""});
+assert.equal(heldWithoutReason.decisionState, "hold");
+assert.equal(heldWithoutReason.reviewable, false);
+assert.ok(heldWithoutReason.holds.includes(holdQuestion.id));
+assert.ok(heldWithoutReason.sessionGaps.includes("holdReason"), "HOLD requires holdReason");
+const heldWithReason = summarize({
+  ...resolved,
+  [holdQuestion.id]: responseFor(holdQuestion, "hold"),
+}, {holdReason: "Canonical hold remains open alpha"});
+assert.equal(heldWithReason.decisionState, "hold");
+assert.equal(heldWithReason.reviewable, false);
+assert.ok(!heldWithReason.sessionGaps.includes("holdReason"));
 
 const amendQuestion = questionFor("amend", true);
 assert.ok(amendQuestion, "a mandatory amend disposition is required");
@@ -2668,15 +2852,8 @@ const notApplicable = summarize({
   [notApplicableQuestion.id]: responseFor(notApplicableQuestion, "not-applicable", {rationale: ""}),
 });
 assert.equal(notApplicable.reviewable, false);
-assert.ok(
-  notApplicable.gaps.some(
-    (gap) => gap.questionId === notApplicableQuestion.id && gap.types.includes("rationale"),
-  ),
-  "N/A without rationale must remain a gap",
-);
+assert.ok(questionGap(notApplicable, notApplicableQuestion.id, "rationale"), "N/A requires rationale");
 
-const passQuestion = questionFor("pass", true);
-assert.ok(passQuestion, "a mandatory affirmative disposition is required");
 const evidenceRank = ["E0", "E1", "E2", "E3", "E4"];
 const minimumIndex = evidenceRank.indexOf(passQuestion.minimumEvidence);
 assert.ok(minimumIndex > 0, "mandatory minimum evidence must be above E0");
@@ -2688,17 +2865,12 @@ const insufficient = summarize({
 });
 assert.equal(insufficient.decisionState, "hold");
 assert.equal(insufficient.reviewable, false);
-assert.ok(
-  insufficient.gaps.some(
-    (gap) => gap.questionId === passQuestion.id && gap.types.includes("evidence"),
-  ),
-  "insufficient evidence must remain an explicit gap",
-);
+assert.ok(questionGap(insufficient, passQuestion.id, "evidence"));
 assert.equal(insufficient.counts.evidenceSupported, 13);
 assert.equal(
   insufficient.questions.find((question) => question.id === passQuestion.id).outcome,
   "pass",
-  "evidence insufficiency must not rewrite the recorded meeting disposition",
+  "evidence insufficiency must not rewrite or upgrade the meeting disposition",
 );
 
 const normalizedUnknownId = normalize({
@@ -2708,7 +2880,21 @@ const normalizedUnknownId = normalize({
 assert.equal(normalizedUnknownId.responses["KGE-P9-Q99"], undefined);
 assert.deepEqual(Object.keys(normalizedUnknownId.responses), contract.questions.map((question) => question.id));
 
-const fixedSummary = api.summarizeAssessment(contract, normalize(resolved), {
+const fidelityRaw = rawSession(resolved);
+const fidelityNormalized = api.normalizeAssessment(contract, fidelityRaw);
+for (const field of [...contract.reviewRequirements.sessionExportFields, "label"]) {
+  assert.equal(fidelityNormalized[field], fidelityRaw[field], `session ${field} must survive normalization`);
+}
+const fidelityResponse = fidelityNormalized.responses[passQuestion.id];
+for (const field of contract.reviewRequirements.responseExportFields) {
+  assert.equal(
+    fidelityResponse[field],
+    fidelityRaw.responses[passQuestion.id][field],
+    `response ${field} must survive normalization`,
+  );
+}
+
+const fixedSummary = api.summarizeAssessment(contract, fidelityNormalized, {
   generatedAt: "2026-08-21T15:00:00Z",
 });
 const jsonA = api.exportAssessmentJson(fixedSummary);
@@ -2717,10 +2903,97 @@ const markdownA = api.exportAssessmentMarkdown(fixedSummary);
 const markdownB = api.exportAssessmentMarkdown(fixedSummary);
 assert.equal(jsonA, jsonB, "JSON export must be deterministic for a fixed summary");
 assert.equal(markdownA, markdownB, "Markdown export must be deterministic for a fixed summary");
-assert.equal(JSON.parse(jsonA).generatedAt, "2026-08-21T15:00:00Z");
+const parsedJson = JSON.parse(jsonA);
+assert.equal(parsedJson.generatedAt, "2026-08-21T15:00:00Z");
+const exportedQuestion = parsedJson.questions.find((question) => question.id === passQuestion.id);
+for (const field of [...contract.reviewRequirements.sessionExportFields, "label"]) {
+  assert.equal(parsedJson[field], fidelityRaw[field], `JSON must retain session ${field}`);
+  assert.ok(markdownA.toLowerCase().includes(String(fidelityRaw[field]).toLowerCase()), `Markdown must retain session ${field}`);
+}
+for (const field of contract.reviewRequirements.responseExportFields) {
+  assert.equal(exportedQuestion.response[field], fidelityRaw.responses[passQuestion.id][field], `JSON must retain response ${field}`);
+  assert.ok(
+    markdownA.toLowerCase().includes(String(fidelityRaw.responses[passQuestion.id][field]).toLowerCase()),
+    `Markdown must retain response ${field}`,
+  );
+}
 assert.match(markdownA, /2026-08-21T15:00:00Z/);
 assert.doesNotMatch(jsonA, /readinessPercent/);
-assert.doesNotMatch(markdownA, /readiness\s*(?:percent|%)/i);
+assert.doesNotMatch(
+  markdownA,
+  /^\s*(?:[-#]\s*)?readiness(?:\s+(?:percent|percentage))?\s*:/im,
+  "Markdown must not invent a readiness metric while retaining canonical negative hold rules",
+);
+
+for (const role of contract.publicRoles) {
+  const roleResponses = {
+    ...resolved,
+    [passQuestion.id]: responseFor(passQuestion, "pass", {ownerRole: role}),
+  };
+  const normalizedRole = normalize(roleResponses, {decisionOwnerRole: role});
+  assert.equal(normalizedRole.decisionOwnerRole, role);
+  assert.equal(normalizedRole.responses[passQuestion.id].ownerRole, role);
+}
+const namedRole = normalize({
+  ...resolved,
+  [passQuestion.id]: responseFor(passQuestion, "pass", {ownerRole: "Alice Smith"}),
+}, {decisionOwnerRole: "Alice Smith"});
+assert.notEqual(namedRole.decisionOwnerRole, "Alice Smith");
+assert.notEqual(namedRole.responses[passQuestion.id].ownerRole, "Alice Smith");
+assert.ok(namedRole.decisionOwnerRole === "" || contract.publicRoles.includes(namedRole.decisionOwnerRole));
+assert.ok(namedRole.responses[passQuestion.id].ownerRole === "" || contract.publicRoles.includes(namedRole.responses[passQuestion.id].ownerRole));
+
+const unsafeTokens = [
+  "alice@example.com",
+  "https://" + ["portal", "internal"].join(".") + "/private",
+  ["10", "20", "30", "40"].join("."),
+  "api_key=supersecretvalue",
+];
+const unsafeResponses = {
+  ...resolved,
+  [passQuestion.id]: responseFor(passQuestion, "pass", {
+    evidenceReference: unsafeTokens[0],
+    rationale: unsafeTokens[1],
+    dueGate: unsafeTokens[2],
+    evidenceRequest: unsafeTokens[3],
+    ownerRole: "Alice Smith",
+  }),
+};
+const unsafeNormalized = normalize(unsafeResponses, {
+  label: unsafeTokens[0],
+  meetingDecision: unsafeTokens[1],
+  authorizedScope: unsafeTokens[2],
+  actions: unsafeTokens[3],
+  decisionOwnerRole: "Alice Smith",
+});
+const unsafeNormalizedText = JSON.stringify(unsafeNormalized);
+for (const token of [...unsafeTokens, "Alice Smith"]) {
+  assert.ok(!unsafeNormalizedText.includes(token), `${token} must be removed before storage`);
+}
+let stored = "";
+const storage = {
+  getItem() { return stored || null; },
+  setItem(key, value) { stored = value; },
+  removeItem() { stored = ""; },
+};
+const store = api.createStore({key: "assessment-v2-privacy-test", storage});
+store.save(unsafeNormalized);
+assert.ok(stored, "explicit local storage adapter must receive the normalized assessment");
+for (const token of [...unsafeTokens, "Alice Smith"]) {
+  assert.ok(!stored.includes(token), `${token} must not reach browser storage`);
+}
+const unsafeSummary = api.summarizeAssessment(contract, unsafeNormalized, {
+  generatedAt: "2026-08-21T15:00:00Z",
+});
+const unsafeExports = [
+  api.exportAssessmentJson(unsafeSummary),
+  api.exportAssessmentMarkdown(unsafeSummary),
+];
+for (const exported of unsafeExports) {
+  for (const token of [...unsafeTokens, "Alice Smith"]) {
+    assert.ok(!exported.includes(token), `${token} must not reach an export`);
+  }
+}
 
 const hostile = '<img src=x onerror=alert(1)><script>alert(2)</script>';
 const hostileResponses = {
@@ -2728,7 +3001,6 @@ const hostileResponses = {
   [passQuestion.id]: responseFor(passQuestion, "pass", {
     evidenceReference: hostile,
     rationale: hostile,
-    ownerRole: hostile,
     dueGate: hostile,
   }),
 };

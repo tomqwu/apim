@@ -212,7 +212,7 @@ KONG_GUIDED_PHASES = (
     ("KGE-P5", "Production proof", "Replace documented capability—including the Traceable adjunct—with executed target-shaped evidence and outcome gates", "kong-guided-proof-boundary"),
     ("KGE-P6", "Audit appendix", "Preserve supplied inputs, expose the Traceable feasibility line, and keep the governed re-score pending without promoting them to proof", "kong-guided-compare-architecture"),
 )
-KONG_GUIDED_ASSESSMENT_SCHEMA_VERSION = 1
+KONG_GUIDED_ASSESSMENT_SCHEMA_VERSION = 2
 KONG_GUIDED_ASSESSMENT_SOURCE_PATH = "docs/49-kong-guided-evaluation-facilitator-guide.md"
 KONG_GUIDED_ASSESSMENT_SOURCE_ID = "docs-49-kong-guided-evaluation-facilitator-guide"
 KONG_GUIDED_ASSESSMENT_SOURCE_CLASS = "meeting-facilitation-guide"
@@ -238,6 +238,65 @@ KONG_GUIDED_ASSESSMENT_OUTCOMES = {
     "pass", "inform", "amend", "hold", "unknown", "not-applicable",
 }
 KONG_GUIDED_ASSESSMENT_EVIDENCE_LEVELS = {"E1", "E2", "E3"}
+KONG_GUIDED_ASSESSMENT_PUBLIC_ROLES = (
+    "Decision owner",
+    "Enterprise architecture",
+    "Platform product",
+    "Security architecture",
+    "IAM",
+    "SRE/performance",
+    "FinOps",
+    "Migration lead",
+    "Independent assurance",
+    "Legal/procurement",
+    "Service owner",
+    "Unassigned role",
+)
+KONG_GUIDED_ASSESSMENT_SESSION_REQUIRED = (
+    "meetingDecision", "decisionOwnerRole", "authorizedScope", "unauthorizedScope", "nextForum",
+)
+KONG_GUIDED_ASSESSMENT_MANDATORY_RESPONSE_REQUIRED = (
+    "rationale", "ownerRole", "dueGate", "holdRuleStatus",
+)
+KONG_GUIDED_ASSESSMENT_EVIDENCE_CLAIM_REQUIRED = ("evidenceReference",)
+KONG_GUIDED_ASSESSMENT_HOLD_STATE_REQUIRED = ("holdReason",)
+KONG_GUIDED_ASSESSMENT_SESSION_EXPORT_FIELDS = (
+    "deckRevision",
+    "meetingDecision",
+    "decisionOwnerRole",
+    "authorizedScope",
+    "unauthorizedScope",
+    "assumptions",
+    "actions",
+    "dissent",
+    "nextForum",
+    "holdReason",
+)
+KONG_GUIDED_ASSESSMENT_RESPONSE_EXPORT_FIELDS = (
+    "choice",
+    "evidenceLevel",
+    "evidenceReference",
+    "criterionId",
+    "optionId",
+    "evidenceRequest",
+    "restrictedReferenceId",
+    "rationale",
+    "ownerRole",
+    "dueGate",
+    "holdRuleStatus",
+    "dissent",
+    "nextForum",
+)
+KONG_GUIDED_ASSESSMENT_PRIVACY_CONTROLS = (
+    "controlled-role-selectors",
+    "remove-obvious-email-patterns",
+    "remove-obvious-private-url-patterns",
+    "remove-obvious-ip-address-patterns",
+    "remove-obvious-credential-patterns",
+    "remove-obvious-phone-number-patterns",
+    "remove-obvious-commercial-quote-patterns",
+    "automated-filtering-not-exhaustive",
+)
 KONG_GUIDED_ASSESSMENT_CHOICE_SET_IDS = (
     "KGE-CS-AUTHORIZATION",
     "KGE-CS-INPUT",
@@ -263,6 +322,9 @@ KONG_GUIDED_ASSESSMENT_QUESTION_COLUMNS = (
 )
 KONG_GUIDED_ASSESSMENT_CHOICE_COLUMNS = (
     "Choice set ID", "Label", "Choice value", "Choice label", "Outcome",
+)
+KONG_GUIDED_ASSESSMENT_REVIEW_REQUIREMENT_COLUMNS = (
+    "Manifest field", "Applies when", "Canonical values", "Rule",
 )
 KONG_GUIDED_ASSESSMENT_SUMMARY_ROUTE = (
     "#/present/kong-platform-journey-guided/summary"
@@ -1130,8 +1192,21 @@ def validate_kong_guided_evaluation(
     assessment = guided.get("assessmentContract")
     require(isinstance(assessment, dict), "guided assessmentContract must be an object")
     require(
+        set(assessment) == {
+            "schemaVersion", "deckRevision", "sourcePath", "sourceId", "sourceClass",
+            "evidenceState", "asOf", "questions", "phaseQuestionIds", "choiceSets",
+            "reviewRequirements", "publicRoles", "provenance",
+        },
+        "guided assessmentContract fields must match the exact v2 schema",
+    )
+    require(
         assessment.get("schemaVersion") == KONG_GUIDED_ASSESSMENT_SCHEMA_VERSION,
-        "guided assessmentContract schemaVersion must be 1",
+        "guided assessmentContract schemaVersion must be 2",
+    )
+    require(
+        isinstance(manifest.get("sourceRevision"), str)
+        and assessment.get("deckRevision") == manifest["sourceRevision"],
+        "guided assessmentContract deckRevision must equal manifest sourceRevision",
     )
     require(
         (
@@ -1183,11 +1258,18 @@ def validate_kong_guided_evaluation(
     for phase_id, expected_ids in KONG_GUIDED_ASSESSMENT_PHASE_QUESTION_IDS.items():
         for question_id in expected_ids:
             question = question_by_id[question_id]
+            require(
+                set(question) == {
+                    "id", "phaseId", "slideIds", "targetIds", "prompt", "decisionUse",
+                    "evidenceBoundary", "minimumEvidence", "mandatory", "choiceSetId", "holdRule",
+                },
+                f"guided assessment question {question_id} fields must match the exact v2 schema",
+            )
             nonempty_strings(
                 question,
                 (
                     "id", "phaseId", "prompt", "decisionUse", "evidenceBoundary",
-                    "minimumEvidence", "choiceSetId",
+                    "minimumEvidence", "choiceSetId", "holdRule",
                 ),
                 f"guided assessment question {question_id}",
             )
@@ -1264,8 +1346,67 @@ def validate_kong_guided_evaluation(
         "guided assessment questions reference an unknown choice set",
     )
 
+    public_roles = assessment.get("publicRoles")
+    require(
+        isinstance(public_roles, list)
+        and tuple(public_roles) == KONG_GUIDED_ASSESSMENT_PUBLIC_ROLES,
+        "guided assessment publicRoles must preserve the exact controlled public-role order",
+    )
+    review_requirements = assessment.get("reviewRequirements")
+    require(isinstance(review_requirements, dict), "guided assessment reviewRequirements must be an object")
+    require(
+        set(review_requirements) == {
+            "sessionRequired", "mandatoryResponseRequired", "evidenceClaimRequired",
+            "holdStateRequired", "sessionExportFields", "responseExportFields", "privacyControls",
+        },
+        "guided assessment reviewRequirements fields must match the exact v2 schema",
+    )
+    require(
+        tuple(review_requirements.get("sessionRequired", ()))
+        == KONG_GUIDED_ASSESSMENT_SESSION_REQUIRED,
+        "guided assessment sessionRequired fields are invalid",
+    )
+    require(
+        tuple(review_requirements.get("mandatoryResponseRequired", ()))
+        == KONG_GUIDED_ASSESSMENT_MANDATORY_RESPONSE_REQUIRED,
+        "guided assessment mandatoryResponseRequired fields are invalid",
+    )
+    require(
+        tuple(review_requirements.get("evidenceClaimRequired", ()))
+        == KONG_GUIDED_ASSESSMENT_EVIDENCE_CLAIM_REQUIRED,
+        "guided assessment evidenceClaimRequired fields are invalid",
+    )
+    require(
+        tuple(review_requirements.get("holdStateRequired", ()))
+        == KONG_GUIDED_ASSESSMENT_HOLD_STATE_REQUIRED,
+        "guided assessment holdStateRequired fields are invalid",
+    )
+    require(
+        tuple(review_requirements.get("sessionExportFields", ()))
+        == KONG_GUIDED_ASSESSMENT_SESSION_EXPORT_FIELDS,
+        "guided assessment sessionExportFields are invalid",
+    )
+    require(
+        tuple(review_requirements.get("responseExportFields", ()))
+        == KONG_GUIDED_ASSESSMENT_RESPONSE_EXPORT_FIELDS,
+        "guided assessment responseExportFields are invalid",
+    )
+    require(
+        tuple(review_requirements.get("privacyControls", ()))
+        == KONG_GUIDED_ASSESSMENT_PRIVACY_CONTROLS,
+        "guided assessment privacyControls are invalid",
+    )
+
     assessment_provenance = assessment.get("provenance")
     require(isinstance(assessment_provenance, dict), "guided assessment provenance must be an object")
+    require(
+        set(assessment_provenance) == {
+            "sourcePath", "sourceId", "sourcePaths", "sourceIds", "sourceHeading",
+            "questionTableColumns", "choiceSetTableColumns", "reviewRequirementsTableColumns",
+            "sourceClass", "evidenceState", "asOf",
+        },
+        "guided assessment provenance fields must match the exact public-safe v2 schema",
+    )
     require(
         (
             assessment_provenance.get("sourcePath"),
@@ -1275,6 +1416,7 @@ def validate_kong_guided_evaluation(
             assessment_provenance.get("sourceHeading"),
             tuple(assessment_provenance.get("questionTableColumns", ())),
             tuple(assessment_provenance.get("choiceSetTableColumns", ())),
+            tuple(assessment_provenance.get("reviewRequirementsTableColumns", ())),
             assessment_provenance.get("sourceClass"),
             assessment_provenance.get("evidenceState"),
             assessment_provenance.get("asOf"),
@@ -1287,6 +1429,7 @@ def validate_kong_guided_evaluation(
             "Local interactive assessment contract",
             KONG_GUIDED_ASSESSMENT_QUESTION_COLUMNS,
             KONG_GUIDED_ASSESSMENT_CHOICE_COLUMNS,
+            KONG_GUIDED_ASSESSMENT_REVIEW_REQUIREMENT_COLUMNS,
             KONG_GUIDED_ASSESSMENT_SOURCE_CLASS,
             KONG_GUIDED_ASSESSMENT_EVIDENCE_STATE,
             KONG_GUIDED_ASSESSMENT_AS_OF,

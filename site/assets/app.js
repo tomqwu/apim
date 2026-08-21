@@ -2440,7 +2440,7 @@
 
   function guidedAssessmentContract() {
     const contract = state.manifest?.visuals?.guidedEvaluation?.assessmentContract;
-    return contract?.schemaVersion === 1 && Array.isArray(contract.questions) ? contract : null;
+    return contract?.schemaVersion === 2 && Array.isArray(contract.questions) ? contract : null;
   }
 
   function guidedAssessmentDeck() {
@@ -2463,10 +2463,18 @@
     if (!contract || !api) return null;
     const now = assessmentTimestamp();
     return api.normalizeAssessment(contract, {
-      schemaVersion: 1,
+      schemaVersion: 2,
       deckId: "kong-platform-journey-guided",
       label: "",
       meetingDecision: "",
+      decisionOwnerRole: "",
+      authorizedScope: "",
+      unauthorizedScope: "",
+      assumptions: "",
+      actions: "",
+      dissent: "",
+      nextForum: "",
+      holdReason: "",
       createdAt: now,
       updatedAt: now,
       expiresAt: assessmentExpiry(now),
@@ -2514,10 +2522,35 @@
     return phase?.phase || phase?.label || phaseId || "Unassigned phase";
   }
 
+  function assessmentRoleOptions(selected = "") {
+    const roles = guidedAssessmentContract()?.publicRoles;
+    const values = Array.isArray(roles) ? roles : [];
+    return `<option value="">Select a public role</option>${values.map((role) => (
+      `<option value="${escapeHtml(role)}"${selected === role ? " selected" : ""}>${escapeHtml(role)}</option>`
+    )).join("")}`;
+  }
+
+  function assessmentGapLabel(gap) {
+    const labels = {
+      evidence: "Evidence level below minimum",
+      evidenceReference: "Evidence reference required",
+      rationale: "Rationale required",
+      ownerRole: "Owner role required",
+      dueGate: "Due gate required",
+      holdRuleStatus: "Hold rule remains open",
+      meetingDecision: "Meeting decision required",
+      decisionOwnerRole: "Decision owner role required",
+      authorizedScope: "Authorized scope required",
+      unauthorizedScope: "Unauthorized scope required",
+      nextForum: "Next forum required",
+      holdReason: "Hold reason required",
+    };
+    return labels[gap] || gap;
+  }
+
   function assessmentStatusLabel(questionSummary) {
     if (!questionSummary || questionSummary.status === "unanswered") return "Unanswered";
-    if (questionSummary.gaps.includes("rationale")) return "Rationale required";
-    if (questionSummary.gaps.includes("evidence")) return "Evidence gap";
+    if (questionSummary.gaps.length) return assessmentGapLabel(questionSummary.gaps[0]);
     const labels = {
       pass: "Accepted for decision use",
       amend: "Amend",
@@ -2548,12 +2581,23 @@
           <strong data-assessment-question-status>${escapeHtml(assessmentStatusLabel(questionSummary))}</strong>
         </div>
         ${question.decisionUse ? `<p class="assessment-decision-use"><b>Decision use</b>${escapeHtml(question.decisionUse)}</p>` : ""}
+        <div class="assessment-hold-rule" role="note">
+          <b>Hold rule</b>
+          <p>${escapeHtml(question.holdRule || "This question cannot close without an explicit hold-rule disposition.")}</p>
+        </div>
         <div class="assessment-field-grid">
           <label class="assessment-field is-wide" for="${inputPrefix}-choice">
             <span>Meeting answer${question.mandatory ? " (required)" : ""}</span>
             <select id="${inputPrefix}-choice" data-assessment-question="${escapeHtml(question.id)}" data-assessment-field="choice">
               <option value="">Unanswered — select a meeting answer</option>
               ${choices.map((choice) => `<option value="${escapeHtml(choice.value)}"${response.choice === choice.value ? " selected" : ""}>${escapeHtml(choice.label)} · ${escapeHtml(choice.outcome)}</option>`).join("")}
+            </select>
+          </label>
+          <label class="assessment-field" for="${inputPrefix}-hold-rule">
+            <span>Hold-rule disposition${question.mandatory ? " (required)" : ""}</span>
+            <select id="${inputPrefix}-hold-rule" data-assessment-question="${escapeHtml(question.id)}" data-assessment-field="holdRuleStatus">
+              <option value="open"${response.holdRuleStatus !== "closed" ? " selected" : ""}>Open — HOLD remains</option>
+              <option value="closed"${response.holdRuleStatus === "closed" ? " selected" : ""}>Closed for governance review</option>
             </select>
           </label>
           <label class="assessment-field" for="${inputPrefix}-evidence">
@@ -2572,13 +2616,42 @@
           </label>
           <label class="assessment-field" for="${inputPrefix}-owner">
             <span>Owner role</span>
-            <input id="${inputPrefix}-owner" type="text" maxlength="160" value="${escapeHtml(response.ownerRole || "")}" data-assessment-question="${escapeHtml(question.id)}" data-assessment-field="ownerRole" placeholder="Role, not a person">
+            <select id="${inputPrefix}-owner" data-assessment-question="${escapeHtml(question.id)}" data-assessment-field="ownerRole">${assessmentRoleOptions(response.ownerRole || "")}</select>
           </label>
           <label class="assessment-field" for="${inputPrefix}-gate">
             <span>Due gate</span>
             <input id="${inputPrefix}-gate" type="text" maxlength="160" value="${escapeHtml(response.dueGate || "")}" data-assessment-question="${escapeHtml(question.id)}" data-assessment-field="dueGate" placeholder="Gate or review forum">
           </label>
         </div>
+        <details class="assessment-evidence-request">
+          <summary>Evidence request, IDs, dissent and forum</summary>
+          <div class="assessment-field-grid">
+            <label class="assessment-field" for="${inputPrefix}-criterion">
+              <span>Criterion ID</span>
+              <input id="${inputPrefix}-criterion" type="text" maxlength="120" value="${escapeHtml(response.criterionId || "")}" data-assessment-question="${escapeHtml(question.id)}" data-assessment-field="criterionId" placeholder="Controlled public criterion ID">
+            </label>
+            <label class="assessment-field" for="${inputPrefix}-option">
+              <span>Exact option ID</span>
+              <input id="${inputPrefix}-option" type="text" maxlength="120" value="${escapeHtml(response.optionId || "")}" data-assessment-question="${escapeHtml(question.id)}" data-assessment-field="optionId" placeholder="Controlled option or BOM ID">
+            </label>
+            <label class="assessment-field is-wide" for="${inputPrefix}-evidence-request">
+              <span>Evidence request</span>
+              <textarea id="${inputPrefix}-evidence-request" maxlength="2000" rows="2" data-assessment-question="${escapeHtml(question.id)}" data-assessment-field="evidenceRequest" placeholder="Artifact, measure, threshold and reviewer needed">${escapeHtml(response.evidenceRequest || "")}</textarea>
+            </label>
+            <label class="assessment-field" for="${inputPrefix}-restricted-reference">
+              <span>Restricted-reference ID</span>
+              <input id="${inputPrefix}-restricted-reference" type="text" maxlength="120" value="${escapeHtml(response.restrictedReferenceId || "")}" data-assessment-question="${escapeHtml(question.id)}" data-assessment-field="restrictedReferenceId" placeholder="ID only — never paste restricted content">
+            </label>
+            <label class="assessment-field" for="${inputPrefix}-next-forum">
+              <span>Next forum</span>
+              <input id="${inputPrefix}-next-forum" type="text" maxlength="160" value="${escapeHtml(response.nextForum || "")}" data-assessment-question="${escapeHtml(question.id)}" data-assessment-field="nextForum" placeholder="Governance forum or gate">
+            </label>
+            <label class="assessment-field is-wide" for="${inputPrefix}-dissent">
+              <span>Dissent</span>
+              <textarea id="${inputPrefix}-dissent" maxlength="3000" rows="2" data-assessment-question="${escapeHtml(question.id)}" data-assessment-field="dissent" placeholder="Neutral public-safe dissent; no names">${escapeHtml(response.dissent || "")}</textarea>
+            </label>
+          </div>
+        </details>
         ${question.evidenceBoundary ? `<p class="assessment-evidence-boundary"><b>Evidence boundary</b>${escapeHtml(question.evidenceBoundary)}</p>` : ""}
       </fieldset>`;
   }
@@ -2603,6 +2676,7 @@
         <div class="assessment-local-warning" role="note" data-assessment-local-warning>
           <strong>Local browser only</strong>
           <p>This feature stores responses in this browser and does not submit them. Browser storage is not private or encrypted; do not enter names, credentials, customer identifiers, private topology, or restricted evidence.</p>
+          <p>Controlled role selectors prevent named-person assignments. Obvious email, private URL, IP, credential, phone and commercial-quote patterns are removed before storage or export; automated filtering is not exhaustive.</p>
           <p>Meeting input never upgrades evidence. Production remains unauthorized until the defined evidence and approval gates close.</p>
         </div>
         ${storeStatus.issue ? `<p class="assessment-storage-warning" role="status" data-assessment-storage-warning>${escapeHtml(storeStatus.issue)}</p>` : `<p class="assessment-storage-warning" role="status" data-assessment-storage-warning hidden></p>`}
@@ -2613,14 +2687,60 @@
         <form class="assessment-form" data-assessment-form>
           <section class="assessment-meeting-fields" aria-labelledby="assessment-meeting-title">
             <h3 id="assessment-meeting-title">Meeting record</h3>
+            <div class="assessment-session-state is-wide" role="status" aria-live="polite">
+              <strong data-assessment-decision-state>${escapeHtml(summary.decisionState.toUpperCase())}</strong>
+              <span data-assessment-session-gaps>${summary.sessionGaps.length ? escapeHtml(summary.sessionGaps.map(assessmentGapLabel).join(" · ")) : "Session fields complete"}</span>
+            </div>
             <label class="assessment-field" for="assessment-meeting-label">
               <span>Meeting label</span>
               <input id="assessment-meeting-label" type="text" maxlength="160" value="${escapeHtml(state.assessmentSession.label || "")}" data-assessment-session-field="label" placeholder="Public-safe forum label">
             </label>
             <label class="assessment-field" for="assessment-meeting-decision">
-              <span>Meeting decision</span>
-              <textarea id="assessment-meeting-decision" maxlength="2000" rows="3" data-assessment-session-field="meetingDecision" placeholder="Approve, amend, or hold — with conditions">${escapeHtml(state.assessmentSession.meetingDecision || "")}</textarea>
+              <span>Meeting decision (required)</span>
+              <select id="assessment-meeting-decision" data-assessment-session-field="meetingDecision">
+                <option value="">Select a disposition</option>
+                <option value="approve"${state.assessmentSession.meetingDecision === "approve" ? " selected" : ""}>Approve for governance review</option>
+                <option value="amend"${state.assessmentSession.meetingDecision === "amend" ? " selected" : ""}>Amend before review</option>
+                <option value="hold"${state.assessmentSession.meetingDecision === "hold" ? " selected" : ""}>Hold</option>
+              </select>
             </label>
+            <label class="assessment-field" for="assessment-decision-owner-role">
+              <span>Decision owner role (required)</span>
+              <select id="assessment-decision-owner-role" data-assessment-session-field="decisionOwnerRole">${assessmentRoleOptions(state.assessmentSession.decisionOwnerRole || "")}</select>
+            </label>
+            <label class="assessment-field is-wide" for="assessment-authorized-scope">
+              <span>Authorized scope (required)</span>
+              <textarea id="assessment-authorized-scope" maxlength="3000" rows="2" data-assessment-session-field="authorizedScope" placeholder="What this forum may authorize">${escapeHtml(state.assessmentSession.authorizedScope || "")}</textarea>
+            </label>
+            <label class="assessment-field is-wide" for="assessment-unauthorized-scope">
+              <span>Explicitly unauthorized scope (required)</span>
+              <textarea id="assessment-unauthorized-scope" maxlength="3000" rows="2" data-assessment-session-field="unauthorizedScope" placeholder="What remains outside this meeting's authority">${escapeHtml(state.assessmentSession.unauthorizedScope || "")}</textarea>
+            </label>
+            <label class="assessment-field" for="assessment-next-forum">
+              <span>Next forum (required)</span>
+              <input id="assessment-next-forum" type="text" maxlength="160" value="${escapeHtml(state.assessmentSession.nextForum || "")}" data-assessment-session-field="nextForum" placeholder="Governance forum or gate">
+            </label>
+            <label class="assessment-field" for="assessment-hold-reason">
+              <span>Hold reason (required while HOLD)</span>
+              <textarea id="assessment-hold-reason" maxlength="3000" rows="2" data-assessment-session-field="holdReason" placeholder="Why the decision remains held">${escapeHtml(state.assessmentSession.holdReason || "")}</textarea>
+            </label>
+            <details class="assessment-meeting-ledger is-wide">
+              <summary>Assumptions, actions and dissent</summary>
+              <div class="assessment-field-grid">
+                <label class="assessment-field is-wide" for="assessment-assumptions">
+                  <span>Assumptions</span>
+                  <textarea id="assessment-assumptions" maxlength="3000" rows="2" data-assessment-session-field="assumptions" placeholder="Neutral, falsifiable assumptions">${escapeHtml(state.assessmentSession.assumptions || "")}</textarea>
+                </label>
+                <label class="assessment-field is-wide" for="assessment-actions">
+                  <span>Actions</span>
+                  <textarea id="assessment-actions" maxlength="3000" rows="2" data-assessment-session-field="actions" placeholder="Public role, closure artifact and due gate">${escapeHtml(state.assessmentSession.actions || "")}</textarea>
+                </label>
+                <label class="assessment-field is-wide" for="assessment-dissent">
+                  <span>Dissent</span>
+                  <textarea id="assessment-dissent" maxlength="3000" rows="2" data-assessment-session-field="dissent" placeholder="Neutral public-safe dissent; no names">${escapeHtml(state.assessmentSession.dissent || "")}</textarea>
+                </label>
+              </div>
+            </details>
           </section>
           <section class="assessment-phase-questions" aria-labelledby="assessment-phase-title">
             <div class="assessment-section-heading">
@@ -2697,6 +2817,14 @@
     document.querySelectorAll("[data-assessment-count], [data-assessment-completed]").forEach((element) => {
       element.textContent = String(summary.counts.answered);
     });
+    document.querySelectorAll("[data-assessment-decision-state]").forEach((element) => {
+      element.textContent = summary.decisionState.toUpperCase();
+    });
+    document.querySelectorAll("[data-assessment-session-gaps]").forEach((element) => {
+      element.textContent = summary.sessionGaps.length
+        ? summary.sessionGaps.map(assessmentGapLabel).join(" · ")
+        : "Session fields complete";
+    });
     summary.questions.forEach((question) => {
       const card = [...document.querySelectorAll("[data-assessment-question-card]")]
         .find((candidate) => candidate.dataset.assessmentQuestionCard === question.id);
@@ -2716,9 +2844,17 @@
     const questionId = target.dataset.assessmentQuestion;
     const responseField = target.dataset.assessmentField;
     let raw = { ...state.assessmentSession };
-    if (sessionField && ["label", "meetingDecision"].includes(sessionField)) {
+    const sessionFields = new Set([
+      "label", "meetingDecision", "decisionOwnerRole", "authorizedScope", "unauthorizedScope",
+      "assumptions", "actions", "dissent", "nextForum", "holdReason",
+    ]);
+    const responseFields = new Set([
+      "choice", "holdRuleStatus", "evidenceLevel", "evidenceReference", "rationale", "ownerRole",
+      "dueGate", "criterionId", "optionId", "evidenceRequest", "restrictedReferenceId", "dissent", "nextForum",
+    ]);
+    if (sessionField && sessionFields.has(sessionField)) {
       raw[sessionField] = target.value;
-    } else if (questionId && responseField && state.assessmentSession.responses[questionId]) {
+    } else if (questionId && responseFields.has(responseField) && state.assessmentSession.responses[questionId]) {
       raw = {
         ...raw,
         responses: {
@@ -2730,7 +2866,18 @@
         },
       };
     } else return;
+    const originalValue = target.value;
     state.assessmentSession = api.normalizeAssessment(contract, raw);
+    const normalizedValue = sessionField
+      ? state.assessmentSession[sessionField]
+      : state.assessmentSession.responses?.[questionId]?.[responseField];
+    if (typeof normalizedValue === "string" && normalizedValue !== originalValue) {
+      target.value = normalizedValue;
+      const finding = api.privacyFinding?.(originalValue);
+      announce(finding
+        ? `Removed ${finding} before local storage. Use a public role or controlled reference ID.`
+        : "Entry was not in the allowed public-safe format and was removed before local storage.");
+    }
     refreshAssessmentIndicators();
     saveAssessment(immediate);
   }
@@ -3001,12 +3148,19 @@
                 <h3>${escapeHtml(question.prompt)}</h3>
                 <dl>
                   <div><dt>Meeting answer</dt><dd>${escapeHtml(question.choiceLabel || "Unanswered")}</dd></div>
+                  <div><dt>Hold rule</dt><dd>${escapeHtml(question.holdRule || "Not recorded")}</dd></div>
+                  <div><dt>Hold-rule disposition</dt><dd>${escapeHtml(question.response.holdRuleStatus || "open")}</dd></div>
                   <div><dt>Evidence</dt><dd>${escapeHtml(question.response.evidenceLevel)} · minimum ${escapeHtml(question.minimumEvidence)}</dd></div>
                   <div><dt>Evidence reference</dt><dd>${escapeHtml(question.response.evidenceReference || "Not captured")}</dd></div>
+                  <div><dt>Criterion / option</dt><dd>${escapeHtml([question.response.criterionId, question.response.optionId].filter(Boolean).join(" / ") || "Not captured")}</dd></div>
+                  <div><dt>Evidence request</dt><dd>${escapeHtml(question.response.evidenceRequest || "Not captured")}</dd></div>
+                  <div><dt>Restricted-reference ID</dt><dd>${escapeHtml(question.response.restrictedReferenceId || "Not captured")}</dd></div>
                   <div><dt>Rationale / notes</dt><dd>${escapeHtml(question.response.rationale || "Not captured")}</dd></div>
                   <div><dt>Owner role</dt><dd>${escapeHtml(question.response.ownerRole || "Not assigned")}</dd></div>
                   <div><dt>Due gate</dt><dd>${escapeHtml(question.response.dueGate || "Not assigned")}</dd></div>
-                  <div><dt>Open gaps</dt><dd>${question.gaps.length ? escapeHtml(question.gaps.join(", ")) : "None recorded"}</dd></div>
+                  <div><dt>Dissent</dt><dd>${escapeHtml(question.response.dissent || "None recorded")}</dd></div>
+                  <div><dt>Next forum</dt><dd>${escapeHtml(question.response.nextForum || "Not assigned")}</dd></div>
+                  <div><dt>Open gaps</dt><dd>${question.gaps.length ? escapeHtml(question.gaps.map(assessmentGapLabel).join(", ")) : "None recorded"}</dd></div>
                 </dl>
                 <a href="${assessmentQuestionHref(context, slides, question)}">Open source slide <span aria-hidden="true">→</span></a>
               </article>`).join("")}
@@ -3031,17 +3185,31 @@
           <div class="assessment-local-warning" role="note" data-assessment-local-warning>
             <strong>Local browser only</strong>
             <p>This feature stores responses in this browser and does not submit them. Browser storage is not private or encrypted; do not enter names, credentials, customer identifiers, private topology, or restricted evidence.</p>
+            <p>Controlled role selectors prevent named-person assignments. Obvious email, private URL, IP, credential, phone and commercial-quote patterns are removed before storage or export; automated filtering is not exhaustive.</p>
             <p>Meeting input never upgrades evidence. Production remains unauthorized until the defined evidence and approval gates close.</p>
           </div>
           ${storeStatus.issue ? `<p class="assessment-storage-warning" role="status">${escapeHtml(storeStatus.issue)}</p>` : ""}
           <section class="assessment-summary-meeting" aria-labelledby="assessment-summary-meeting-title">
             <div><span>Meeting label</span><h2 id="assessment-summary-meeting-title">${escapeHtml(summary.label || "Not labelled")}</h2></div>
-            <div><span>Meeting decision</span><p>${escapeHtml(summary.meetingDecision || "Not captured")}</p></div>
+            <div><span>Meeting decision</span><p>${escapeHtml(summary.meetingDecision || "Not captured")}</p><small>Owner · ${escapeHtml(summary.decisionOwnerRole || "Not assigned")}</small><small>Deck · ${escapeHtml(summary.deckRevision || "Not recorded")}</small></div>
             <dl>
               <div><dt>Answered</dt><dd>${summary.counts.answered} / ${summary.counts.total}</dd></div>
               <div><dt>Unanswered</dt><dd>${summary.counts.unanswered}</dd></div>
               <div><dt>Decision holds</dt><dd>${summary.holds.length}</dd></div>
               <div><dt>Open gaps</dt><dd>${summary.counts.gaps}</dd></div>
+            </dl>
+          </section>
+          <section class="assessment-summary-decision-record" aria-labelledby="assessment-summary-decision-record-title">
+            <header><span>Governance record</span><h2 id="assessment-summary-decision-record-title">Decision boundaries and follow-through</h2></header>
+            <dl>
+              <div><dt>Authorized scope</dt><dd>${escapeHtml(summary.authorizedScope || "Not captured")}</dd></div>
+              <div><dt>Unauthorized scope</dt><dd>${escapeHtml(summary.unauthorizedScope || "Not captured")}</dd></div>
+              <div><dt>Assumptions</dt><dd>${escapeHtml(summary.assumptions || "None recorded")}</dd></div>
+              <div><dt>Actions</dt><dd>${escapeHtml(summary.actions || "None recorded")}</dd></div>
+              <div><dt>Dissent</dt><dd>${escapeHtml(summary.dissent || "None recorded")}</dd></div>
+              <div><dt>Next forum</dt><dd>${escapeHtml(summary.nextForum || "Not captured")}</dd></div>
+              <div><dt>Hold reason</dt><dd>${escapeHtml(summary.holdReason || "Not applicable")}</dd></div>
+              <div><dt>Session gaps</dt><dd>${summary.sessionGaps?.length ? escapeHtml(summary.sessionGaps.map(assessmentGapLabel).join(", ")) : "None recorded"}</dd></div>
             </dl>
           </section>
           <nav class="assessment-summary-phase-nav" aria-label="Jump to assessment phase">
