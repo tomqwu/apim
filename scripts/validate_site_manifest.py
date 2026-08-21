@@ -39,6 +39,7 @@ PUBLISHABLE_EXTENSIONS = {
 REQUIRED_ASSET_PATHS = {
     "index.html",
     "404.html",
+    "assets/assessment.js",
     "assets/app.js",
     "assets/charts.js",
     "assets/styles.css",
@@ -49,7 +50,9 @@ ALLOWED_EXTERNAL_SCRIPTS = {
     "https://cdn.jsdelivr.net/npm/marked@15.0.12/marked.min.js": "sha384-948ahk4ZmxYVYOc+rxN1H2gM1EJ2Duhp7uHtZ4WSLkV4Vtx5MUqnV+l7u9B+jFv+",
     "https://cdn.jsdelivr.net/npm/mermaid@11.12.0/dist/mermaid.min.js": "sha384-o+g/BxPwhi0C3RK7oQBxQuNimeafQ3GE/ST4iT2BxVI4Wzt60SH4pq9iXVYujjaS",
 }
-REQUIRED_LOCAL_SCRIPTS = {"assets/app.js", "assets/charts.js", "assets/audiences.js"}
+REQUIRED_LOCAL_SCRIPTS = {
+    "assets/app.js", "assets/assessment.js", "assets/charts.js", "assets/audiences.js",
+}
 STATIC_ROUTES = {
     "#/overview",
     "#/library",
@@ -208,6 +211,61 @@ KONG_GUIDED_PHASES = (
     ("KGE-P4", "Migration", "Move Mule responsibilities or the Apigee object/state graph through coexistence, route-back, and exit evidence", "kong-guided-migration-boundary"),
     ("KGE-P5", "Production proof", "Replace documented capability—including the Traceable adjunct—with executed target-shaped evidence and outcome gates", "kong-guided-proof-boundary"),
     ("KGE-P6", "Audit appendix", "Preserve supplied inputs, expose the Traceable feasibility line, and keep the governed re-score pending without promoting them to proof", "kong-guided-compare-architecture"),
+)
+KONG_GUIDED_ASSESSMENT_SCHEMA_VERSION = 1
+KONG_GUIDED_ASSESSMENT_SOURCE_PATH = "docs/49-kong-guided-evaluation-facilitator-guide.md"
+KONG_GUIDED_ASSESSMENT_SOURCE_ID = "docs-49-kong-guided-evaluation-facilitator-guide"
+KONG_GUIDED_ASSESSMENT_SOURCE_CLASS = "meeting-facilitation-guide"
+KONG_GUIDED_ASSESSMENT_EVIDENCE_STATE = (
+    "Facilitation guidance derived from the canonical guided evaluation and its presentation notes; "
+    "no new product fact, executed result, commercial conclusion, or production authorization"
+)
+KONG_GUIDED_ASSESSMENT_AS_OF = "2026-08-21"
+KONG_GUIDED_ASSESSMENT_PHASE_QUESTION_IDS = {
+    "KGE-P1": ("KGE-P1-Q01", "KGE-P1-Q02"),
+    "KGE-P2": ("KGE-P2-Q01", "KGE-P2-Q02"),
+    "KGE-P3": ("KGE-P3-Q01", "KGE-P3-Q02"),
+    "KGE-P4": ("KGE-P4-Q01", "KGE-P4-Q02"),
+    "KGE-P5": ("KGE-P5-Q01", "KGE-P5-Q02", "KGE-P5-Q03", "KGE-P5-Q04"),
+    "KGE-P6": ("KGE-P6-Q01", "KGE-P6-Q02"),
+}
+KONG_GUIDED_ASSESSMENT_QUESTION_IDS = tuple(
+    question_id
+    for phase_id in KONG_GUIDED_ASSESSMENT_PHASE_QUESTION_IDS
+    for question_id in KONG_GUIDED_ASSESSMENT_PHASE_QUESTION_IDS[phase_id]
+)
+KONG_GUIDED_ASSESSMENT_OUTCOMES = {
+    "pass", "inform", "amend", "hold", "unknown", "not-applicable",
+}
+KONG_GUIDED_ASSESSMENT_EVIDENCE_LEVELS = {"E1", "E2", "E3"}
+KONG_GUIDED_ASSESSMENT_CHOICE_SET_IDS = (
+    "KGE-CS-AUTHORIZATION",
+    "KGE-CS-INPUT",
+    "KGE-CS-COUNTERFACTUAL",
+    "KGE-CS-REVIEW",
+    "KGE-CS-SOURCE",
+    "KGE-CS-EVIDENCE",
+    "KGE-CS-CONTRACT",
+    "KGE-CS-CLAIM",
+)
+KONG_GUIDED_ASSESSMENT_QUESTION_COLUMNS = (
+    "Question ID",
+    "Phase ID",
+    "Slide IDs",
+    "Existing target IDs",
+    "Prompt",
+    "Decision use",
+    "Evidence boundary",
+    "Minimum evidence",
+    "Mandatory",
+    "Choice set ID",
+    "Hold rule",
+)
+KONG_GUIDED_ASSESSMENT_CHOICE_COLUMNS = (
+    "Choice set ID", "Label", "Choice value", "Choice label", "Outcome",
+)
+KONG_GUIDED_ASSESSMENT_SUMMARY_ROUTE = (
+    "#/present/kong-platform-journey-guided/summary"
 )
 KONG_GUIDED_PHASE_BY_KEY = {
     key: phase_id
@@ -1036,6 +1094,15 @@ def validate_kong_guided_evaluation(
                 f"{label} contains a local or private source path",
             )
 
+    def recursively_reject_key(value: Any, forbidden: str, label: str) -> None:
+        if isinstance(value, dict):
+            require(forbidden not in value, f"{label} must not contain {forbidden}")
+            for key, child in value.items():
+                recursively_reject_key(child, forbidden, f"{label}.{key}")
+        elif isinstance(value, list):
+            for index, child in enumerate(value):
+                recursively_reject_key(child, forbidden, f"{label}[{index}]")
+
     visuals = manifest.get("visuals")
     require(isinstance(visuals, dict), "visuals must be an object")
     guided = visuals.get("guidedEvaluation")
@@ -1059,6 +1126,174 @@ def validate_kong_guided_evaluation(
     require(metadata.get("artifact type") == guided["sourceClass"], "guided evaluation metadata source class is inconsistent")
     require(metadata.get("evidence state") == evidence_state, "guided evaluation metadata evidence state is inconsistent")
     require("2026-08-21" in str(metadata.get("as-of date", "")), "guided evaluation metadata as-of date is inconsistent")
+
+    assessment = guided.get("assessmentContract")
+    require(isinstance(assessment, dict), "guided assessmentContract must be an object")
+    require(
+        assessment.get("schemaVersion") == KONG_GUIDED_ASSESSMENT_SCHEMA_VERSION,
+        "guided assessmentContract schemaVersion must be 1",
+    )
+    require(
+        (
+            assessment.get("sourcePath"),
+            assessment.get("sourceId"),
+            assessment.get("sourceClass"),
+            assessment.get("evidenceState"),
+            assessment.get("asOf"),
+        )
+        == (
+            KONG_GUIDED_ASSESSMENT_SOURCE_PATH,
+            KONG_GUIDED_ASSESSMENT_SOURCE_ID,
+            KONG_GUIDED_ASSESSMENT_SOURCE_CLASS,
+            KONG_GUIDED_ASSESSMENT_EVIDENCE_STATE,
+            KONG_GUIDED_ASSESSMENT_AS_OF,
+        ),
+        "guided assessmentContract must preserve the exact public-safe doc49 evidence boundary",
+    )
+
+    phase_question_ids = assessment.get("phaseQuestionIds")
+    require(isinstance(phase_question_ids, dict), "guided assessment phaseQuestionIds must be an object")
+    require(
+        set(phase_question_ids) == set(KONG_GUIDED_ASSESSMENT_PHASE_QUESTION_IDS)
+        and all(isinstance(question_ids, list) for question_ids in phase_question_ids.values())
+        and {
+            phase_id: tuple(question_ids)
+            for phase_id, question_ids in phase_question_ids.items()
+        } == KONG_GUIDED_ASSESSMENT_PHASE_QUESTION_IDS,
+        "guided assessment phaseQuestionIds must preserve the exact 2/2/2/2/4/2 mapping",
+    )
+
+    questions = assessment.get("questions")
+    require(
+        isinstance(questions, list) and len(questions) == 14
+        and all(isinstance(question, dict) for question in questions),
+        "guided assessment must contain exactly 14 question objects",
+    )
+    question_ids = tuple(question.get("id") for question in questions)
+    require(
+        all(isinstance(question_id, str) for question_id in question_ids)
+        and question_ids == KONG_GUIDED_ASSESSMENT_QUESTION_IDS,
+        "guided assessment question IDs must preserve the exact KGE-P1-Q01 through KGE-P6-Q02 order",
+    )
+    slide_phase_by_id = {
+        f"KGE-{index:02d}": KONG_GUIDED_PHASE_BY_KEY[key]
+        for index, key in enumerate(KONG_GUIDED_SLIDE_KEYS, start=1)
+    }
+    question_by_id = {question["id"]: question for question in questions}
+    for phase_id, expected_ids in KONG_GUIDED_ASSESSMENT_PHASE_QUESTION_IDS.items():
+        for question_id in expected_ids:
+            question = question_by_id[question_id]
+            nonempty_strings(
+                question,
+                (
+                    "id", "phaseId", "prompt", "decisionUse", "evidenceBoundary",
+                    "minimumEvidence", "choiceSetId",
+                ),
+                f"guided assessment question {question_id}",
+            )
+            require(
+                question.get("phaseId") == phase_id,
+                f"guided assessment question {question_id} phaseId is invalid",
+            )
+            slide_ids = question.get("slideIds")
+            require(
+                isinstance(slide_ids, list) and bool(slide_ids)
+                and all(isinstance(slide_id, str) for slide_id in slide_ids)
+                and len(slide_ids) == len(set(slide_ids))
+                and all(slide_phase_by_id.get(slide_id) == phase_id for slide_id in slide_ids),
+                f"guided assessment question {question_id} slideIds must be unique KGE slides in {phase_id}",
+            )
+            target_ids = question.get("targetIds")
+            require(
+                isinstance(target_ids, list) and bool(target_ids)
+                and all(isinstance(target_id, str) and target_id.strip() for target_id in target_ids)
+                and len(target_ids) == len(set(target_ids)),
+                f"guided assessment question {question_id} targetIds must be unique non-empty strings",
+            )
+            require(
+                question.get("minimumEvidence") in KONG_GUIDED_ASSESSMENT_EVIDENCE_LEVELS,
+                f"guided assessment question {question_id} minimumEvidence must be E1, E2, or E3",
+            )
+            require(
+                type(question.get("mandatory")) is bool,
+                f"guided assessment question {question_id} mandatory must be boolean",
+            )
+
+    choice_sets = assessment.get("choiceSets")
+    require(
+        isinstance(choice_sets, list) and all(isinstance(choice_set, dict) for choice_set in choice_sets),
+        "guided assessment choiceSets must be a list of objects",
+    )
+    choice_set_ids = tuple(choice_set.get("id") for choice_set in choice_sets)
+    require(
+        choice_set_ids == KONG_GUIDED_ASSESSMENT_CHOICE_SET_IDS,
+        "guided assessment choice set IDs must preserve the exact canonical order",
+    )
+    observed_outcomes: set[str] = set()
+    for choice_set in choice_sets:
+        choice_set_id = choice_set["id"]
+        nonempty_strings(choice_set, ("id", "label"), f"guided assessment choice set {choice_set_id}")
+        choices = choice_set.get("choices")
+        require(
+            isinstance(choices, list) and bool(choices)
+            and all(isinstance(choice, dict) for choice in choices),
+            f"guided assessment choice set {choice_set_id} choices must be a non-empty list",
+        )
+        for choice in choices:
+            nonempty_strings(
+                choice,
+                ("value", "label", "outcome"),
+                f"guided assessment choice set {choice_set_id} choice",
+            )
+            require(
+                choice["outcome"] in KONG_GUIDED_ASSESSMENT_OUTCOMES,
+                f"guided assessment choice set {choice_set_id} contains an invalid outcome",
+            )
+            observed_outcomes.add(choice["outcome"])
+        choice_values = [choice["value"] for choice in choices]
+        require(
+            len(choice_values) == len(set(choice_values)),
+            f"guided assessment choice set {choice_set_id} choice values must be unique",
+        )
+    require(
+        observed_outcomes == KONG_GUIDED_ASSESSMENT_OUTCOMES,
+        "guided assessment choices must cover only and all frozen workflow outcomes",
+    )
+    require(
+        all(question["choiceSetId"] in set(choice_set_ids) for question in questions),
+        "guided assessment questions reference an unknown choice set",
+    )
+
+    assessment_provenance = assessment.get("provenance")
+    require(isinstance(assessment_provenance, dict), "guided assessment provenance must be an object")
+    require(
+        (
+            assessment_provenance.get("sourcePath"),
+            assessment_provenance.get("sourceId"),
+            tuple(assessment_provenance.get("sourcePaths", ())),
+            tuple(assessment_provenance.get("sourceIds", ())),
+            assessment_provenance.get("sourceHeading"),
+            tuple(assessment_provenance.get("questionTableColumns", ())),
+            tuple(assessment_provenance.get("choiceSetTableColumns", ())),
+            assessment_provenance.get("sourceClass"),
+            assessment_provenance.get("evidenceState"),
+            assessment_provenance.get("asOf"),
+        )
+        == (
+            KONG_GUIDED_ASSESSMENT_SOURCE_PATH,
+            KONG_GUIDED_ASSESSMENT_SOURCE_ID,
+            (KONG_GUIDED_ASSESSMENT_SOURCE_PATH,),
+            (KONG_GUIDED_ASSESSMENT_SOURCE_ID,),
+            "Local interactive assessment contract",
+            KONG_GUIDED_ASSESSMENT_QUESTION_COLUMNS,
+            KONG_GUIDED_ASSESSMENT_CHOICE_COLUMNS,
+            KONG_GUIDED_ASSESSMENT_SOURCE_CLASS,
+            KONG_GUIDED_ASSESSMENT_EVIDENCE_STATE,
+            KONG_GUIDED_ASSESSMENT_AS_OF,
+        ),
+        "guided assessment provenance must match the exact canonical doc49 tables and evidence boundary",
+    )
+    recursively_reject_key(manifest, "readinessPercent", "manifest")
 
     kong_platform = visuals.get("kongPlatformStrategy")
     require(isinstance(kong_platform, dict), "visuals.kongPlatformStrategy must be an object")
@@ -1437,6 +1672,10 @@ def validate_kong_guided_evaluation(
     require(tuple(deck.get("sourcePaths", ())) == KONG_GUIDED_SOURCE_PATHS, "Kong guided deck sourcePaths must match the exact canonical source order")
     require(tuple(deck.get("sourceIds", ())) == KONG_GUIDED_SOURCE_IDS, "Kong guided deck sourceIds must match the exact canonical source order")
     require(deck.get("presentationRoute") == "#/present/kong-platform-journey-guided/0", "Kong guided deck presentationRoute is invalid")
+    require(
+        deck.get("summaryRoute") == KONG_GUIDED_ASSESSMENT_SUMMARY_ROUTE,
+        "Kong guided deck summaryRoute is invalid",
+    )
     require(deck.get("exitRoute") == "#/overview", "Kong guided deck exitRoute must be #/overview")
     deck_phases = deck.get("journeyPhases")
     require(isinstance(deck_phases, list), "Kong guided deck journeyPhases must be a list")
@@ -1499,10 +1738,26 @@ def validate_kong_guided_evaluation(
 
     audience_states = sum(len(audience.get("presentationSlides", ())) for audience in manifest.get("audiences", ()) if isinstance(audience, dict))
     named_states = sum(deck_item.get("slideTotal", 0) for deck_item in decks if isinstance(deck_item, dict))
+    summary_routes = tuple(
+        deck_item["summaryRoute"]
+        for deck_item in decks
+        if isinstance(deck_item, dict) and "summaryRoute" in deck_item
+    )
     require(len(presentation) == 62, "global presentation registry must contain exactly 62 slides")
     require(audience_states == 63, "audience presentation registry must remain exactly 63 states")
     require(named_states == 55, "named presentation decks must contain exactly 55 states")
-    require(len(presentation) + audience_states + named_states == 180, "configured presentation state total must be exactly 180")
+    require(
+        len(presentation) + audience_states + named_states == 180,
+        "configured slide-backed presentation state total must be exactly 180",
+    )
+    require(
+        summary_routes == (KONG_GUIDED_ASSESSMENT_SUMMARY_ROUTE,),
+        "configured presentation summary route inventory is invalid",
+    )
+    require(
+        len(presentation) + audience_states + named_states + len(summary_routes) == 181,
+        "configured presentation state total including the guided summary must be exactly 181",
+    )
 
     recursively_reject_private_paths(guided, "visuals.guidedEvaluation")
     recursively_reject_private_paths(architecture_overview, "visuals.kongPlatformStrategy.guidedArchitectureOverview")
@@ -1656,6 +1911,7 @@ def validate_assets(manifest: dict[str, Any], output: Path) -> None:
     require(bool(parser.scripts), "site index must declare its runtime scripts")
     external_seen: set[str] = set()
     local_seen: set[str] = set()
+    local_order: list[str] = []
     for raw_attrs in parser.scripts:
         names = [name.lower() for name, _ in raw_attrs]
         require(len(names) == len(set(names)), "script tag contains duplicate attributes")
@@ -1674,8 +1930,13 @@ def validate_assets(manifest: dict[str, Any], output: Path) -> None:
             require(source not in local_seen, "local runtime script is declared more than once")
             require("integrity" not in attrs and "crossorigin" not in attrs, "local scripts must use manifest provenance rather than external SRI attributes")
             local_seen.add(source)
+            local_order.append(source)
     require(external_seen == set(ALLOWED_EXTERNAL_SCRIPTS), "site index external runtime set differs from the exact allowlist")
     require(local_seen == REQUIRED_LOCAL_SCRIPTS, "site index local runtime set is incomplete or duplicated")
+    require(
+        local_order.index("assets/assessment.js") < local_order.index("assets/app.js"),
+        "assets/assessment.js must load before assets/app.js",
+    )
 
 
 def validate_output_inventory(manifest: dict[str, Any], output: Path) -> None:
@@ -1832,6 +2093,18 @@ def validate_routes_and_audiences(
         expected_entry_route = f"#/present/{deck_id}/0"
         require(deck.get("presentationRoute") == expected_entry_route, f"presentation deck {deck_id} presentationRoute is invalid")
         deck_routes = {f"#/present/{deck_id}/{index}" for index in range(len(selected_slides))}
+        if deck_id == KONG_GUIDED_DECK_ID:
+            summary_route = deck.get("summaryRoute")
+            require(
+                summary_route == KONG_GUIDED_ASSESSMENT_SUMMARY_ROUTE,
+                "guided presentation deck summaryRoute is invalid",
+            )
+            deck_routes.add(summary_route)
+        else:
+            require(
+                "summaryRoute" not in deck,
+                f"presentation deck {deck_id} must not declare a summaryRoute",
+            )
         require(not all_routes.intersection(deck_routes), f"presentation deck {deck_id} routes collide with another route")
         all_routes.update(deck_routes)
 

@@ -71,6 +71,7 @@ REPOSITORY_FIXTURES = (
     "scripts/test_study_workflow.py",
     "scripts/validate_site_manifest.py",
     "scripts/verify_pages.py",
+    "site/assets/assessment.js",
 )
 
 # Hermetic repositories must resolve provenance from their own Git history.
@@ -2027,6 +2028,11 @@ process.stdout.write(window.ApiStudyCharts.render("criteriaOverview", data, {com
         self.assertEqual(62, len(manifest["presentation"]))
         self.assertEqual(63, sum(len(audience["presentationSlides"]) for audience in manifest["audiences"]))
         self.assertEqual(180, 62 + 63 + sum(item["slideTotal"] for item in manifest["presentationDecks"]))
+        self.assertEqual(
+            181,
+            62 + 63 + sum(item["slideTotal"] for item in manifest["presentationDecks"])
+            + sum("summaryRoute" in item for item in manifest["presentationDecks"]),
+        )
 
         items_by_id = {item["id"]: item for item in manifest["items"]}
         document_routes = {item["route"] for item in manifest["items"]}
@@ -2261,6 +2267,492 @@ process.stdout.write(window.ApiStudyCharts.render("criteriaOverview", data, {com
                     validator.validate_kong_guided_evaluation(invalid, invalid["presentation"])
                 with self.assertRaisesRegex(verifier.VerificationError, error):
                     verifier.validate_kong_guided_evaluation(invalid, invalid["presentation"])
+
+    def test_guided_assessment_manifest_contract_is_exact_and_falsifiable(self) -> None:
+        expected_phase_questions = {
+            "KGE-P1": ("KGE-P1-Q01", "KGE-P1-Q02"),
+            "KGE-P2": ("KGE-P2-Q01", "KGE-P2-Q02"),
+            "KGE-P3": ("KGE-P3-Q01", "KGE-P3-Q02"),
+            "KGE-P4": ("KGE-P4-Q01", "KGE-P4-Q02"),
+            "KGE-P5": ("KGE-P5-Q01", "KGE-P5-Q02", "KGE-P5-Q03", "KGE-P5-Q04"),
+            "KGE-P6": ("KGE-P6-Q01", "KGE-P6-Q02"),
+        }
+        expected_question_ids = tuple(
+            question_id
+            for phase_id in expected_phase_questions
+            for question_id in expected_phase_questions[phase_id]
+        )
+        expected_choice_set_ids = (
+            "KGE-CS-AUTHORIZATION",
+            "KGE-CS-INPUT",
+            "KGE-CS-COUNTERFACTUAL",
+            "KGE-CS-REVIEW",
+            "KGE-CS-SOURCE",
+            "KGE-CS-EVIDENCE",
+            "KGE-CS-CONTRACT",
+            "KGE-CS-CLAIM",
+        )
+        summary_route = "#/present/kong-platform-journey-guided/summary"
+
+        with tempfile.TemporaryDirectory(prefix="kong-guided-assessment-contract-") as temporary:
+            output = Path(temporary) / "site"
+            built = subprocess.run(
+                (
+                    sys.executable,
+                    "-I",
+                    str(SOURCE_ROOT / "scripts" / "build_site.py"),
+                    "--output",
+                    str(output),
+                ),
+                cwd=SOURCE_ROOT,
+                capture_output=True,
+                text=True,
+                check=False,
+            )
+            self.assertEqual(0, built.returncode, built.stdout + built.stderr)
+            manifest = json.loads((output / "content-manifest.json").read_text(encoding="utf-8"))
+
+        validator = load_site_validator_module()
+        verifier = load_pages_verifier_module()
+        validator.validate_kong_guided_evaluation(manifest, manifest["presentation"])
+        verifier.validate_kong_guided_evaluation(manifest, manifest["presentation"])
+
+        guided = manifest["visuals"]["guidedEvaluation"]
+        assessment = guided["assessmentContract"]
+        self.assertEqual(1, assessment["schemaVersion"])
+        self.assertEqual(
+            "docs/49-kong-guided-evaluation-facilitator-guide.md",
+            assessment["sourcePath"],
+        )
+        self.assertEqual(
+            "docs-49-kong-guided-evaluation-facilitator-guide",
+            assessment["sourceId"],
+        )
+        self.assertEqual("meeting-facilitation-guide", assessment["sourceClass"])
+        self.assertEqual("2026-08-21", assessment["asOf"])
+        self.assertEqual(
+            expected_phase_questions,
+            {
+                phase_id: tuple(question_ids)
+                for phase_id, question_ids in assessment["phaseQuestionIds"].items()
+            },
+        )
+        questions = assessment["questions"]
+        self.assertEqual(14, len(questions))
+        self.assertEqual(expected_question_ids, tuple(question["id"] for question in questions))
+        self.assertEqual(
+            {
+                "id", "phaseId", "slideIds", "targetIds", "prompt", "decisionUse",
+                "evidenceBoundary", "minimumEvidence", "mandatory", "choiceSetId",
+            },
+            set.intersection(*(set(question) for question in questions)),
+        )
+        self.assertTrue(all(question["minimumEvidence"] in {"E1", "E2", "E3"} for question in questions))
+        self.assertEqual(
+            expected_choice_set_ids,
+            tuple(choice_set["id"] for choice_set in assessment["choiceSets"]),
+        )
+        self.assertEqual(
+            {"pass", "inform", "amend", "hold", "unknown", "not-applicable"},
+            {
+                choice["outcome"]
+                for choice_set in assessment["choiceSets"]
+                for choice in choice_set["choices"]
+            },
+        )
+        self.assertEqual(
+            (
+                assessment["sourcePath"],
+                assessment["sourceId"],
+                (assessment["sourcePath"],),
+                (assessment["sourceId"],),
+                "Local interactive assessment contract",
+                assessment["sourceClass"],
+                assessment["evidenceState"],
+                assessment["asOf"],
+            ),
+            (
+                assessment["provenance"]["sourcePath"],
+                assessment["provenance"]["sourceId"],
+                tuple(assessment["provenance"]["sourcePaths"]),
+                tuple(assessment["provenance"]["sourceIds"]),
+                assessment["provenance"]["sourceHeading"],
+                assessment["provenance"]["sourceClass"],
+                assessment["provenance"]["evidenceState"],
+                assessment["provenance"]["asOf"],
+            ),
+        )
+        self.assertNotIn('"readinessPercent"', json.dumps(guided, sort_keys=True))
+
+        deck = next(
+            item
+            for item in manifest["presentationDecks"]
+            if item["id"] == "kong-platform-journey-guided"
+        )
+        self.assertEqual(summary_route, deck["summaryRoute"])
+        by_id = {item["id"]: item for item in manifest["items"]}
+        document_routes = {item["route"] for item in manifest["items"]}
+        local_routes = validator.validate_routes_and_audiences(manifest, by_id, document_routes)
+        deployed_routes = verifier.validated_route_inventory(manifest, manifest["items"])
+        for routes in (local_routes, deployed_routes):
+            self.assertIn(summary_route, routes)
+            self.assertEqual(1, sum(route.endswith("/summary") for route in routes))
+
+        invalid_cases = (
+            ("schema", "schemaVersion must be 1"),
+            ("mapping", "exact 2/2/2/2/4/2 mapping"),
+            ("question ID", "exact KGE-P1-Q01 through KGE-P6-Q02 order"),
+            ("question phase", "phaseId is invalid"),
+            ("choice outcome", "invalid outcome"),
+            ("provenance", "exact canonical doc49 tables"),
+            ("readiness", "must not contain readinessPercent"),
+            ("summary route", "summaryRoute is invalid"),
+        )
+        for case, error in invalid_cases:
+            with self.subTest(case=case):
+                invalid = json.loads(json.dumps(manifest))
+                invalid_assessment = invalid["visuals"]["guidedEvaluation"]["assessmentContract"]
+                invalid_deck = next(
+                    item
+                    for item in invalid["presentationDecks"]
+                    if item["id"] == "kong-platform-journey-guided"
+                )
+                if case == "schema":
+                    invalid_assessment["schemaVersion"] = 2
+                elif case == "mapping":
+                    invalid_assessment["phaseQuestionIds"]["KGE-P5"].pop()
+                elif case == "question ID":
+                    invalid_assessment["questions"][0]["id"] = "KGE-P1-Q99"
+                elif case == "question phase":
+                    invalid_assessment["questions"][0]["phaseId"] = "KGE-P2"
+                elif case == "choice outcome":
+                    invalid_assessment["choiceSets"][0]["choices"][0]["outcome"] = "score"
+                elif case == "provenance":
+                    invalid_assessment["provenance"]["sourceHeading"] = "Wrong heading"
+                elif case == "readiness":
+                    invalid_assessment["readinessPercent"] = 100
+                else:
+                    invalid_deck["summaryRoute"] = "#/present/kong-platform-journey-guided/25"
+                with self.assertRaisesRegex(validator.ValidationError, error):
+                    validator.validate_kong_guided_evaluation(invalid, invalid["presentation"])
+                with self.assertRaisesRegex(verifier.VerificationError, error):
+                    verifier.validate_kong_guided_evaluation(invalid, invalid["presentation"])
+
+    def test_guided_assessment_runtime_is_local_pure_and_evidence_bounded(self) -> None:
+        assessment_path = SOURCE_ROOT / "site" / "assets" / "assessment.js"
+        self.assertTrue(assessment_path.is_file(), "the local assessment runtime asset is required")
+        assessment_source = assessment_path.read_text(encoding="utf-8")
+        app_source = (SOURCE_ROOT / "site" / "assets" / "app.js").read_text(encoding="utf-8")
+        index_source = (SOURCE_ROOT / "site" / "index.html").read_text(encoding="utf-8")
+        self.assertIn("assets/assessment.js", load_site_validator_module().REQUIRED_ASSET_PATHS)
+        self.assertIn("assets/assessment.js", load_pages_verifier_module().REQUIRED_ASSETS)
+
+        assessment_tag = '<script defer src="assets/assessment.js"></script>'
+        app_tag = '<script defer src="assets/app.js"></script>'
+        self.assertIn(assessment_tag, index_source)
+        self.assertIn(app_tag, index_source)
+        self.assertLess(index_source.index(assessment_tag), index_source.index(app_tag))
+
+        forbidden_assessment_calls = {
+            "fetch": r"(?<![\w$.])fetch\s*\(",
+            "XMLHttpRequest": r"\bXMLHttpRequest\b",
+            "WebSocket": r"\bWebSocket\b",
+            "sendBeacon": r"\bsendBeacon\s*\(",
+            "requestSubmit": r"\brequestSubmit\s*\(",
+            "form.submit": r"\.submit\s*\(",
+        }
+        for label, pattern in forbidden_assessment_calls.items():
+            with self.subTest(local_only=label):
+                self.assertNotRegex(assessment_source, pattern)
+        self.assertIn('fetch("content-manifest.json", { cache: "no-cache" })', app_source)
+        self.assertNotRegex(
+            app_source,
+            r"(?s)fetch\s*\([^)]*(?:assessmentSession|assessmentContract|responses)",
+        )
+        for pattern in (
+            r"\bXMLHttpRequest\b",
+            r"\bWebSocket\b",
+            r"\bsendBeacon\s*\(",
+            r"\brequestSubmit\s*\(",
+            r"\.submit\s*\(",
+        ):
+            self.assertNotRegex(app_source, pattern)
+        self.assertIn(
+            'document.querySelector("[data-assessment-form]")?.addEventListener("submit", (event) => event.preventDefault())',
+            app_source,
+        )
+        self.assertNotRegex(
+            app_source,
+            r"(?s)<form(?=[^>]*data-assessment-form)[^>]*\baction\s*=",
+        )
+
+        for hook in (
+            "data-assessment-open",
+            "data-assessment-close",
+            "data-assessment-local-warning",
+            "data-assessment-form",
+            "data-assessment-question",
+            "data-assessment-status",
+            "data-assessment-summary",
+            "data-assessment-export-json",
+            "data-assessment-export-markdown",
+            "data-assessment-clear",
+        ):
+            with self.subTest(ui_hook=hook):
+                self.assertIn(hook, app_source)
+        self.assertIn("ApiStudyAssessment", app_source)
+        self.assertIn("#/present/kong-platform-journey-guided/summary", app_source)
+
+        with tempfile.TemporaryDirectory(prefix="kong-guided-assessment-runtime-") as temporary:
+            output = Path(temporary) / "site"
+            built = subprocess.run(
+                (
+                    sys.executable,
+                    "-I",
+                    str(SOURCE_ROOT / "scripts" / "build_site.py"),
+                    "--output",
+                    str(output),
+                ),
+                cwd=SOURCE_ROOT,
+                capture_output=True,
+                text=True,
+                check=False,
+            )
+            self.assertEqual(0, built.returncode, built.stdout + built.stderr)
+            manifest = json.loads((output / "content-manifest.json").read_text(encoding="utf-8"))
+        contract = manifest["visuals"]["guidedEvaluation"]["assessmentContract"]
+
+        node = next(
+            (
+                candidate
+                for candidate in (
+                    Path("/usr/bin/node"),
+                    Path("/bin/node"),
+                    Path("/usr/local/bin/node"),
+                    Path("/opt/homebrew/bin/node"),
+                )
+                if candidate.is_file() and os.access(candidate, os.X_OK)
+            ),
+            None,
+        )
+        self.assertIsNotNone(node, "Node.js is required to validate the assessment runtime")
+        script = r'''
+const assert = require("node:assert/strict");
+const fs = require("node:fs");
+global.window = {};
+for (const target of [globalThis, global.window]) {
+  for (const name of ["localStorage", "sessionStorage", "document"]) {
+    Object.defineProperty(target, name, {
+      configurable: true,
+      get() { throw new Error(`${name} must not be required by the pure assessment module`); },
+    });
+  }
+}
+const loaded = require("./site/assets/assessment.js");
+const api = window.ApiStudyAssessment || globalThis.ApiStudyAssessment || loaded;
+for (const name of [
+  "normalizeAssessment", "summarizeAssessment",
+  "exportAssessmentJson", "exportAssessmentMarkdown",
+]) {
+  assert.equal(typeof api[name], "function", `${name} must be exported`);
+}
+
+const contract = JSON.parse(fs.readFileSync(0, "utf8"));
+const originalContract = JSON.parse(JSON.stringify(contract));
+const questionById = new Map(contract.questions.map((question) => [question.id, question]));
+const choiceSetById = new Map(contract.choiceSets.map((choiceSet) => [choiceSet.id, choiceSet]));
+function choiceFor(question, outcome) {
+  return choiceSetById.get(question.choiceSetId).choices.find((choice) => choice.outcome === outcome);
+}
+function questionFor(outcome, mandatoryOnly = false) {
+  return contract.questions.find(
+    (question) => (!mandatoryOnly || question.mandatory) && choiceFor(question, outcome),
+  );
+}
+function responseFor(question, outcome, overrides = {}) {
+  const selected = choiceFor(question, outcome);
+  assert.ok(selected, `${question.id} must expose ${outcome}`);
+  return {
+    choice: selected.value,
+    evidenceLevel: "E4",
+    evidenceReference: "PUBLIC-EVIDENCE-01",
+    rationale: "Public-safe rationale",
+    ownerRole: "Evidence steward",
+    dueGate: "Next review gate",
+    ...overrides,
+  };
+}
+function rawSession(responses) {
+  return {
+    schemaVersion: 1,
+    deckId: "kong-platform-journey-guided",
+    label: "Deterministic public-safe workshop",
+    meetingDecision: "",
+    createdAt: "2026-08-21T14:00:00Z",
+    updatedAt: "2026-08-21T14:30:00Z",
+    expiresAt: "2026-08-28T14:00:00Z",
+    responses,
+  };
+}
+function normalize(responses) {
+  return api.normalizeAssessment(contract, rawSession(responses));
+}
+function summarize(responses) {
+  return api.summarizeAssessment(contract, normalize(responses), {
+    generatedAt: "2026-08-21T15:00:00Z",
+  });
+}
+function resolvedResponses() {
+  return Object.fromEntries(contract.questions.map((question) => {
+    const outcome = choiceFor(question, "pass") ? "pass" : "inform";
+    return [question.id, responseFor(question, outcome)];
+  }));
+}
+
+const empty = summarize({});
+assert.equal(empty.counts.total, 14);
+assert.equal(empty.counts.answered, 0);
+assert.equal(empty.counts.unanswered, 14);
+assert.equal(empty.counts.unknown, 0);
+assert.equal(empty.decisionState, "hold", "mandatory unanswered questions must hold");
+assert.equal(empty.questions.filter((question) => question.status === "unanswered").length, 14);
+
+const unknownQuestion = questionFor("unknown", true);
+assert.ok(unknownQuestion, "a mandatory unknown disposition is required");
+const oneUnknown = summarize({
+  [unknownQuestion.id]: responseFor(unknownQuestion, "unknown"),
+});
+assert.equal(oneUnknown.counts.answered, 1);
+assert.equal(oneUnknown.counts.unanswered, 13);
+assert.equal(oneUnknown.counts.unknown, 1);
+assert.equal(
+  oneUnknown.questions.find((question) => question.id === unknownQuestion.id).status,
+  "unknown",
+);
+assert.equal(oneUnknown.decisionState, "hold");
+assert.ok(oneUnknown.holds.includes(unknownQuestion.id));
+
+const resolved = resolvedResponses();
+const resolvedSummary = summarize(resolved);
+assert.equal(resolvedSummary.decisionState, "reviewable");
+assert.equal(resolvedSummary.reviewable, true);
+assert.equal(resolvedSummary.counts.evidenceSupported, 14);
+assert.deepEqual(resolvedSummary.holds, []);
+assert.deepEqual(resolvedSummary.gaps, []);
+assert.match(resolvedSummary.safeguards.evidenceAuthority, /does not upgrade evidence/i);
+assert.equal(resolvedSummary.readinessPercent, undefined);
+assert.equal(resolvedSummary.counts.readinessPercent, undefined);
+
+const holdQuestion = questionFor("hold", true);
+assert.ok(holdQuestion, "a mandatory hold disposition is required");
+const held = summarize({
+  ...resolved,
+  [holdQuestion.id]: responseFor(holdQuestion, "hold"),
+});
+assert.equal(held.decisionState, "hold");
+assert.ok(held.holds.includes(holdQuestion.id));
+
+const amendQuestion = questionFor("amend", true);
+assert.ok(amendQuestion, "a mandatory amend disposition is required");
+const amended = summarize({
+  ...resolved,
+  [amendQuestion.id]: responseFor(amendQuestion, "amend"),
+});
+assert.equal(amended.decisionState, "amend");
+assert.equal(amended.reviewable, false);
+
+const notApplicableQuestion = questionFor("not-applicable", false);
+assert.ok(notApplicableQuestion, "a not-applicable disposition is required");
+const notApplicable = summarize({
+  ...resolved,
+  [notApplicableQuestion.id]: responseFor(notApplicableQuestion, "not-applicable", {rationale: ""}),
+});
+assert.equal(notApplicable.reviewable, false);
+assert.ok(
+  notApplicable.gaps.some(
+    (gap) => gap.questionId === notApplicableQuestion.id && gap.types.includes("rationale"),
+  ),
+  "N/A without rationale must remain a gap",
+);
+
+const passQuestion = questionFor("pass", true);
+assert.ok(passQuestion, "a mandatory affirmative disposition is required");
+const evidenceRank = ["E0", "E1", "E2", "E3", "E4"];
+const minimumIndex = evidenceRank.indexOf(passQuestion.minimumEvidence);
+assert.ok(minimumIndex > 0, "mandatory minimum evidence must be above E0");
+const insufficient = summarize({
+  ...resolved,
+  [passQuestion.id]: responseFor(passQuestion, "pass", {
+    evidenceLevel: evidenceRank[minimumIndex - 1],
+  }),
+});
+assert.equal(insufficient.decisionState, "hold");
+assert.equal(insufficient.reviewable, false);
+assert.ok(
+  insufficient.gaps.some(
+    (gap) => gap.questionId === passQuestion.id && gap.types.includes("evidence"),
+  ),
+  "insufficient evidence must remain an explicit gap",
+);
+assert.equal(insufficient.counts.evidenceSupported, 13);
+assert.equal(
+  insufficient.questions.find((question) => question.id === passQuestion.id).outcome,
+  "pass",
+  "evidence insufficiency must not rewrite the recorded meeting disposition",
+);
+
+const normalizedUnknownId = normalize({
+  ...resolved,
+  "KGE-P9-Q99": responseFor(passQuestion, "pass"),
+});
+assert.equal(normalizedUnknownId.responses["KGE-P9-Q99"], undefined);
+assert.deepEqual(Object.keys(normalizedUnknownId.responses), contract.questions.map((question) => question.id));
+
+const fixedSummary = api.summarizeAssessment(contract, normalize(resolved), {
+  generatedAt: "2026-08-21T15:00:00Z",
+});
+const jsonA = api.exportAssessmentJson(fixedSummary);
+const jsonB = api.exportAssessmentJson(fixedSummary);
+const markdownA = api.exportAssessmentMarkdown(fixedSummary);
+const markdownB = api.exportAssessmentMarkdown(fixedSummary);
+assert.equal(jsonA, jsonB, "JSON export must be deterministic for a fixed summary");
+assert.equal(markdownA, markdownB, "Markdown export must be deterministic for a fixed summary");
+assert.equal(JSON.parse(jsonA).generatedAt, "2026-08-21T15:00:00Z");
+assert.match(markdownA, /2026-08-21T15:00:00Z/);
+assert.doesNotMatch(jsonA, /readinessPercent/);
+assert.doesNotMatch(markdownA, /readiness\s*(?:percent|%)/i);
+
+const hostile = '<img src=x onerror=alert(1)><script>alert(2)</script>';
+const hostileResponses = {
+  ...resolved,
+  [passQuestion.id]: responseFor(passQuestion, "pass", {
+    evidenceReference: hostile,
+    rationale: hostile,
+    ownerRole: hostile,
+    dueGate: hostile,
+  }),
+};
+const hostileSummary = summarize(hostileResponses);
+const hostileJson = api.exportAssessmentJson(hostileSummary);
+const hostileMarkdown = api.exportAssessmentMarkdown(hostileSummary);
+for (const [format, exported] of [["JSON", hostileJson], ["Markdown", hostileMarkdown]]) {
+  assert.doesNotMatch(exported, /<\s*\/?\s*(?:script|img)\b/i, `${format} must neutralize hostile HTML`);
+  assert.match(exported, /alert\(2\)/, `${format} must retain the public-safe text value`);
+}
+assert.deepEqual(contract, originalContract, "pure assessment operations must not mutate the canonical contract");
+
+process.stdout.write(JSON.stringify({ok: true}));
+'''
+        observed = subprocess.run(
+            [str(node), "-e", script],
+            cwd=SOURCE_ROOT,
+            check=False,
+            capture_output=True,
+            input=json.dumps(contract),
+            text=True,
+        )
+        self.assertEqual(0, observed.returncode, observed.stderr)
+        self.assertEqual({"ok": True}, json.loads(observed.stdout))
 
     def test_temporary_repositories_drop_outer_publication_provenance(self) -> None:
         original = {
@@ -4248,6 +4740,33 @@ class ManifestRuntimeDependencyTests(WorkflowTestCase):
                 self.assertEqual(1, observed.returncode, combined)
                 self.assertIn(expected, combined)
                 self.assertNotIn("Traceback (most recent call last)", combined)
+
+        assessment_tag = '    <script defer src="assets/assessment.js"></script>'
+        app_tag = '    <script defer src="assets/app.js"></script>'
+        self.assertIn(f"{assessment_tag}\n{app_tag}", baseline)
+        index.write_text(
+            baseline.replace(
+                f"{assessment_tag}\n{app_tag}",
+                f"{app_tag}\n{assessment_tag}",
+                1,
+            ),
+            encoding="utf-8",
+        )
+        rebuilt = repository._run((str(repository.python_executable), str(builder)))
+        self.assertEqual(0, rebuilt.returncode, rebuilt.stdout + rebuilt.stderr)
+        observed = repository._run(
+            (
+                str(repository.python_executable),
+                str(validator),
+                "--output",
+                str(output),
+            )
+        )
+        self.assert_deterministic_error(
+            observed,
+            returncode=1,
+            contains="assets/assessment.js must load before assets/app.js",
+        )
 
 
 class StatePrerequisiteTests(WorkflowTestCase):
