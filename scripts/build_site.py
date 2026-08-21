@@ -1420,6 +1420,51 @@ def mule_migration_visuals(items: list[dict[str, object]]) -> dict[str, object]:
     }
 
 
+def apigee_migration_visuals(items: list[dict[str, object]]) -> dict[str, object]:
+    """Project the proposed Apigee A0–A6 migration path without claiming execution."""
+    source_path = "docs/50-apigee-migration-strategy.md"
+    text = safe_text(ROOT / source_path)
+    by_path = {str(item["path"]): str(item["id"]) for item in items}
+    source_id = by_path.get(source_path, "")
+    columns = (
+        "Phase",
+        "Audience-facing purpose",
+        "Required work",
+        "Exit evidence",
+        "Hold or route-back signal",
+    )
+    rows = markdown_table(markdown_section(text, "Proposed A0–A6 migration roadmap"), columns)
+    phases: list[dict[str, object]] = []
+    for row in rows:
+        phase_label = clean_inline(row_value(row, "Phase"))
+        match = re.match(r"^(A\d+)\b\s*(.*)$", phase_label, flags=re.IGNORECASE)
+        phases.append(
+            {
+                "id": match.group(1).upper() if match else "",
+                "label": match.group(2).strip(" —–:-") if match else phase_label,
+                "purpose": clean_inline(row_value(row, "Audience-facing purpose")),
+                "work": clean_inline(row_value(row, "Required work")),
+                "exitEvidence": clean_inline(row_value(row, "Exit evidence")),
+                "hold": clean_inline(row_value(row, "Hold or route-back signal")),
+            }
+        )
+    provenance = {
+        "sourcePath": source_path,
+        "sourceId": source_id,
+        "sourcePaths": [source_path],
+        "sourceIds": [source_id] if source_id else [],
+        "sourceHeading": "Proposed A0–A6 migration roadmap",
+        "tableColumns": list(columns),
+    }
+    return {
+        "sourcePath": source_path,
+        "sourceId": source_id,
+        "phaseTotal": len(phases),
+        "phases": phases,
+        "provenance": provenance,
+    }
+
+
 def guided_evaluation_visuals(items: list[dict[str, object]]) -> dict[str, object]:
     """Project the guided Kong evaluation and native-deck contract from doc48."""
     source_path = "docs/48-kong-guided-evaluation.md"
@@ -1484,6 +1529,19 @@ def guided_evaluation_visuals(items: list[dict[str, object]]) -> dict[str, objec
             "evidenceNeeded": clean_inline(row_value(row, "Evidence needed before decision use")),
         }
         for row in weight_rows
+    ]
+
+    rescore_columns = ("Re-score ID", "Dimension", "Proposed treatment", "Required score-capable evidence", "Status")
+    rescore_rows, rescore_provenance = scoped_rows("Proposed governed re-score", rescore_columns)
+    governed_rescore = [
+        {
+            "id": clean_inline(row_value(row, "Re-score ID")),
+            "dimension": clean_inline(row_value(row, "Dimension")),
+            "treatment": clean_inline(row_value(row, "Proposed treatment")),
+            "evidence": clean_inline(row_value(row, "Required score-capable evidence")),
+            "status": clean_inline(row_value(row, "Status")),
+        }
+        for row in rescore_rows
     ]
 
     option_columns = ("Option ID", "Operating-model archetype", "Strongest when", "Concern to test", "Presentation strongest when", "Presentation concern", "Decision role")
@@ -1572,7 +1630,7 @@ def guided_evaluation_visuals(items: list[dict[str, object]]) -> dict[str, objec
         "Production implication",
     )
     proof_programme_rows, proof_programme_provenance = scoped_rows(
-        "Six-workstream target-aligned proof programme",
+        "Seven-workstream target-aligned proof programme",
         proof_programme_columns,
     )
     proof_programme = [
@@ -1585,6 +1643,19 @@ def guided_evaluation_visuals(items: list[dict[str, object]]) -> dict[str, objec
             "implication": clean_inline(row_value(row, "Production implication")),
         }
         for row in proof_programme_rows
+    ]
+
+    adjunct_columns = ("Hypothesis ID", "Documented mechanism", "Critical unknowns", "Required executed proof", "Evidence ceiling")
+    adjunct_rows, adjunct_provenance = scoped_rows("Traceable by Harness security-adjunct feasibility", adjunct_columns)
+    security_adjuncts = [
+        {
+            "id": clean_inline(row_value(row, "Hypothesis ID")),
+            "mechanism": clean_inline(row_value(row, "Documented mechanism")),
+            "unknowns": clean_inline(row_value(row, "Critical unknowns")),
+            "proof": clean_inline(row_value(row, "Required executed proof")),
+            "ceiling": clean_inline(row_value(row, "Evidence ceiling")),
+        }
+        for row in adjunct_rows
     ]
 
     proof_boundary_columns = ("Evidence system", "Current state", "What it can support", "What it cannot support")
@@ -1704,6 +1775,8 @@ def guided_evaluation_visuals(items: list[dict[str, object]]) -> dict[str, objec
             "docs/44": "docs/44-kong-multicloud-study-roadmap.md",
             "docs/47": "docs/47-kong-enterprise-platform-strategy.md",
             "docs/35": "docs/35-mule-migration-strategy.md",
+            "docs/50": "docs/50-apigee-migration-strategy.md",
+            "terminology crosswalk": "research/glossary.md",
             "poc/README": "poc/README.md",
         }
         for marker, path in references.items():
@@ -1755,10 +1828,12 @@ def guided_evaluation_visuals(items: list[dict[str, object]]) -> dict[str, objec
         "metadata": metadata,
         "targetModel": {"rowTotal": len(target_model), "rows": target_model, "provenance": target_provenance},
         "weights": {"rowTotal": len(weights), "rows": weights, "weightTotal": sum(row["weight"] for row in weights), "provenance": weight_provenance},
+        "governedRescore": {"rowTotal": len(governed_rescore), "rows": governed_rescore, "provenance": rescore_provenance},
         "options": {"rowTotal": len(options), "rows": options, "provenance": option_provenance},
         "scoring": {"rowTotal": len(score_rows), "rows": score_rows, "displayedTotals": displayed_totals, "totals": score_totals, "provenance": score_provenance},
         "authorization": {"rowTotal": len(authorization), "rows": authorization, "provenance": authorization_provenance},
         "proofProgramme": {"rowTotal": len(proof_programme), "rows": proof_programme, "provenance": proof_programme_provenance},
+        "securityAdjuncts": {"rowTotal": len(security_adjuncts), "rows": security_adjuncts, "provenance": adjunct_provenance},
         "proofBoundary": {"rowTotal": len(proof_boundary), "rows": proof_boundary, "provenance": proof_boundary_provenance},
         "evidenceStates": {"rowTotal": len(evidence_states), "rows": evidence_states, "provenance": evidence_provenance},
         "referenceCatalog": {"rowTotal": len(reference_catalog), "rows": reference_catalog, "provenance": reference_provenance},
@@ -1832,6 +1907,7 @@ def visual_provenance(items: list[dict[str, object]]) -> dict[str, dict[str, obj
         "kongMulticloud": ("docs/44-kong-multicloud-study-roadmap.md",),
         "kongPlatformStrategy": ("docs/47-kong-enterprise-platform-strategy.md",),
         "muleMigration": ("docs/35-mule-migration-strategy.md",),
+        "apigeeMigration": ("docs/50-apigee-migration-strategy.md",),
         "guidedEvaluation": ("docs/48-kong-guided-evaluation.md",),
         "methodology": ("docs/03-assessment-methodology.md",),
         "review": ("reports/methodology-review.md",),
@@ -1873,6 +1949,7 @@ def build_visuals(items: list[dict[str, object]]) -> dict[str, object]:
         "kongMulticloud": kong_multicloud_visuals(items),
         "kongPlatformStrategy": kong_platform_strategy_visuals(items),
         "muleMigration": mule_migration_visuals(items),
+        "apigeeMigration": apigee_migration_visuals(items),
         "guidedEvaluation": guided_evaluation_visuals(items),
         "methodology": methodology_visuals(),
         "review": review_visuals(),
@@ -1896,6 +1973,7 @@ def validate_site_projection(stats: dict[str, int], visuals: dict[str, object]) 
         else None
     )
     mule_migration = visuals.get("muleMigration")
+    apigee_migration = visuals.get("apigeeMigration")
     guided_evaluation = visuals.get("guidedEvaluation")
     guided_slide_rows = (
         list(guided_evaluation.get("slides", {}).get("rows", []))
@@ -2055,11 +2133,28 @@ def validate_site_projection(stats: dict[str, int], visuals: dict[str, object]) 
                 for figure in mule_migration.get("figures", [])
             )
         ),
+        "Apigee migration journey model": (
+            isinstance(apigee_migration, dict)
+            and bool(apigee_migration.get("sourceId"))
+            and apigee_migration.get("phaseTotal") == 7
+            and [row.get("id") for row in apigee_migration.get("phases", [])]
+            == [f"A{rank}" for rank in range(0, 7)]
+            and all(
+                row.get("label")
+                and row.get("purpose")
+                and row.get("work")
+                and row.get("exitEvidence")
+                and row.get("hold")
+                for row in apigee_migration.get("phases", [])
+            )
+            and apigee_migration.get("provenance", {}).get("sourceId")
+            == apigee_migration.get("sourceId")
+        ),
         "Kong guided evaluation and native deck contract": (
             isinstance(guided_evaluation, dict)
             and bool(guided_evaluation.get("sourceId"))
             and guided_evaluation.get("sourceClass") == "comparative-study"
-            and guided_evaluation.get("asOf") == "2026-08-20"
+            and guided_evaluation.get("asOf") == "2026-08-21"
             and bool(guided_evaluation.get("evidenceState"))
             and guided_evaluation.get("targetModel", {}).get("rowTotal") == 9
             and [row.get("id") for row in guided_evaluation.get("targetModel", {}).get("rows", [])]
@@ -2068,6 +2163,9 @@ def validate_site_projection(stats: dict[str, int], visuals: dict[str, object]) 
             and guided_evaluation.get("weights", {}).get("weightTotal") == 100
             and [row.get("id") for row in guided_evaluation.get("weights", {}).get("rows", [])]
             == [f"GEW-{rank:02d}" for rank in range(1, 9)]
+            and guided_evaluation.get("governedRescore", {}).get("rowTotal") == 6
+            and [row.get("id") for row in guided_evaluation.get("governedRescore", {}).get("rows", [])]
+            == [f"GRS-{rank:02d}" for rank in range(1, 7)]
             and guided_evaluation.get("options", {}).get("rowTotal") == 4
             and [row.get("id") for row in guided_evaluation.get("options", {}).get("rows", [])]
             == ["GEO-KONG", "GEO-APIGEE", "GEO-MULE", "GEO-APIM"]
@@ -2079,28 +2177,37 @@ def validate_site_projection(stats: dict[str, int], visuals: dict[str, object]) 
             and guided_evaluation.get("authorization", {}).get("rowTotal") == 5
             and [row.get("id") for row in guided_evaluation.get("authorization", {}).get("rows", [])]
             == [f"KGE-AUTH-{rank:02d}" for rank in range(1, 6)]
-            and guided_evaluation.get("proofProgramme", {}).get("rowTotal") == 6
+            and guided_evaluation.get("proofProgramme", {}).get("rowTotal") == 7
             and [row.get("id") for row in guided_evaluation.get("proofProgramme", {}).get("rows", [])]
-            == [f"GEP-{rank:02d}" for rank in range(1, 7)]
+            == [f"GEP-{rank:02d}" for rank in range(1, 8)]
+            and guided_evaluation.get("securityAdjuncts", {}).get("rowTotal") == 1
+            and [row.get("id") for row in guided_evaluation.get("securityAdjuncts", {}).get("rows", [])]
+            == ["GSA-01"]
             and guided_evaluation.get("proofBoundary", {}).get("rowTotal") == 3
             and [row.get("id") for row in guided_evaluation.get("proofBoundary", {}).get("rows", [])]
             == [f"KGE-PROOF-{rank:02d}" for rank in range(1, 4)]
-            and guided_evaluation.get("evidenceStates", {}).get("rowTotal") == 12
+            and guided_evaluation.get("evidenceStates", {}).get("rowTotal") == 15
             and [
                 slide_id
                 for row in guided_evaluation.get("evidenceStates", {}).get("rows", [])
                 for slide_id in row.get("slideIds", [])
             ]
             == [f"KGE-{rank:02d}" for rank in range(1, 26)]
-            and guided_evaluation.get("comparisons", {}).get("architecture", {}).get("rowTotal") == 8
-            and guided_evaluation.get("comparisons", {}).get("management", {}).get("rowTotal") == 7
+            and guided_evaluation.get("comparisons", {}).get("architecture", {}).get("rowTotal") == 9
+            and guided_evaluation.get("comparisons", {}).get("management", {}).get("rowTotal") == 8
             and guided_evaluation.get("comparisons", {}).get("economics", {}).get("rowTotal") == 3
             and [
                 row.get("id")
                 for group in ("architecture", "management", "economics")
                 for row in guided_evaluation.get("comparisons", {}).get(group, {}).get("rows", [])
             ]
-            == [f"GEC-{rank:02d}" for rank in range(1, 19)]
+            == [
+                *[f"GEC-{rank:02d}" for rank in range(1, 9)],
+                "GEC-19",
+                *[f"GEC-{rank:02d}" for rank in range(9, 16)],
+                "GEC-20",
+                *[f"GEC-{rank:02d}" for rank in range(16, 19)],
+            ]
             and guided_evaluation.get("phases", {}).get("rowTotal") == 6
             and [row.get("id") for row in guided_evaluation.get("phases", {}).get("rows", [])]
             == [f"KGE-P{rank}" for rank in range(1, 7)]
@@ -2130,7 +2237,10 @@ def validate_site_projection(stats: dict[str, int], visuals: dict[str, object]) 
                 "Executed local baseline",
                 "Not run",
                 *("Proposed acceptance contract" for _ in range(3)),
-                *("Stakeholder input" for _ in range(4)),
+                "Stakeholder input",
+                "Mixed documented mechanism and stakeholder input",
+                "Stakeholder input with documented pricing boundaries",
+                "Stakeholder input",
             ]
             and all(row.get("sourceClass") and row.get("evidenceInterpretation") for row in guided_slide_rows)
             and all(
@@ -2151,10 +2261,12 @@ def validate_site_projection(stats: dict[str, int], visuals: dict[str, object]) 
                 for block in (
                     guided_evaluation.get("targetModel", {}),
                     guided_evaluation.get("weights", {}),
+                    guided_evaluation.get("governedRescore", {}),
                     guided_evaluation.get("options", {}),
                     guided_evaluation.get("scoring", {}),
                     guided_evaluation.get("authorization", {}),
                     guided_evaluation.get("proofProgramme", {}),
+                    guided_evaluation.get("securityAdjuncts", {}),
                     guided_evaluation.get("proofBoundary", {}),
                     guided_evaluation.get("evidenceStates", {}),
                     guided_evaluation.get("phases", {}),

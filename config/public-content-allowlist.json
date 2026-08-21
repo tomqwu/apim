@@ -2,9 +2,9 @@
   "binaryFiles": [
     {
       "path": "presentations/kong-platform-journey-guided.pptx",
-      "sha256": "df3e80fb833073eda661092ebd81f25529bb85995440c50fba4a3c9f61dc8d8d",
+      "sha256": "1270d72fe548a3db068f50620558594edcc42a06e718a98ba181da4d65096f04",
       "reviewedByRole": "Presentation and site lead",
-      "reason": "Public-safe, brand-neutral 25-slide companion projection of docs/48; package scan removed customer identity, raw input filenames, private paths, commercial evidence, and claims of observed production fit."
+      "reason": "Public-safe, brand-neutral 25-slide companion projection of docs/48; the package includes the governed assurance expansion, Traceable feasibility boundary, dual migration gates, source hyperlinks, and speaker notes while excluding customer identity, raw input filenames, private paths, commercial evidence, and claims of observed production fit."
     }
   ],
   "schemaVersion": 1

@@ -463,6 +463,48 @@
     </figure>`;
   }
 
+  function dualMigrationRails(data, options = {}) {
+    const mule = data?.mule || data?.muleMigration || {};
+    const apigee = data?.apigee || data?.apigeeMigration || {};
+    const muleRows = Array.isArray(mule) ? mule : (Array.isArray(mule?.waves) ? mule.waves : []);
+    const apigeeRows = Array.isArray(apigee) ? apigee : (Array.isArray(apigee?.phases) ? apigee.phases : []);
+    if (!muleRows.length && !apigeeRows.length) return empty();
+
+    const rail = (sourceLabel, rows, kind) => {
+      if (!rows.length) return "";
+      const firstId = rows[0]?.id || "";
+      const lastId = rows[rows.length - 1]?.id || "";
+      const range = firstId && lastId ? `${firstId}–${lastId}` : `${rows.length} phases`;
+      const rowMarkup = rows.map((row) => {
+        const exitEvidence = kind === "mule" ? row.exitGate : row.exitEvidence;
+        const purpose = kind === "mule" ? row.scope : row.purpose;
+        const work = kind === "mule" ? row.pattern : row.work;
+        const hold = kind === "mule" ? row.entryGate : row.hold;
+        const accessible = [
+          `${row.id || "Phase"} ${row.label || ""}`,
+          purpose ? `Purpose or scope: ${purpose}` : "",
+          work ? `Required work: ${work}` : "",
+          exitEvidence ? `Exit evidence: ${exitEvidence}` : "",
+          hold ? `${kind === "mule" ? "Entry gate" : "Hold or route-back signal"}: ${hold}` : "",
+        ].filter(Boolean).join(". ");
+        return `<li aria-label="${escapeHtml(accessible)}">
+          <span>${escapeHtml(row.id || "")}</span>
+          <strong>${escapeHtml(row.label || purpose || "Proposed phase")}</strong>
+          <p data-label="Exit evidence" title="${escapeHtml(exitEvidence || "Evidence gate pending")}">${escapeHtml(exitEvidence || "Evidence gate pending")}</p>
+        </li>`;
+      }).join("");
+      return `<section class="viz-dual-migration-rail is-${escapeHtml(kind)}">
+        <header><span>Source-specific path</span><strong>${escapeHtml(sourceLabel)} ${escapeHtml(range)}</strong><small>${rows.length} evidence-gated phases</small></header>
+        <ol style="--migration-step-count:${rows.length}">${rowMarkup}</ol>
+      </section>`;
+    };
+
+    const body = `${rail("Mule", muleRows, "mule")}${rail("Apigee", apigeeRows, "apigee")}`;
+    return `<figure class="viz viz-dual-migration ${options.presentation ? "is-presentation" : ""}" aria-label="${escapeHtml(options.title || "Mule and Apigee evidence-gated migration paths")}">${heading(options)}
+      <div class="viz-dual-migration-rails">${body}</div>
+    </figure>`;
+  }
+
   function guidedRows(section, fallbackKeys = []) {
     if (Array.isArray(section)) return section;
     if (!section || typeof section !== "object") return [];
@@ -528,13 +570,36 @@
     return guidedFrame("target-model", data, section, options, body, options.title || "Stated target operating model");
   }
 
+  function guidedRescoreContext(data, variant = "summary") {
+    const section = data?.governedRescore || {};
+    const rows = guidedRows(section);
+    if (!rows.length) return "";
+    const pendingRows = rows.filter((row) => /\b(tbd|pending|not run|unknown)\b/i.test(String(row.status || "")));
+    const pendingTotal = pendingRows.length || rows.length;
+    const statusLabel = pendingTotal === rows.length
+      ? `${rows.length} dimensions pending`
+      : `${pendingTotal} of ${rows.length} dimensions pending`;
+    const details = variant === "detail"
+      ? `<ul aria-label="Pending governed re-score dimensions">${rows.map((row) => `<li>
+          <span>${escapeHtml(row.id || "")}</span>
+          <strong>${escapeHtml(row.dimension || row.label || "Pending dimension")}</strong>
+          <small>${escapeHtml(row.status || "Pending")}</small>
+        </li>`).join("")}</ul>`
+      : "";
+    return `<aside class="viz-guided-rescore-context is-${escapeHtml(variant)}" aria-label="Governed re-score status">
+      <div><span>Governed re-score</span><strong>${escapeHtml(statusLabel)}</strong></div>
+      <p>Historical supplied weights and totals remain unchanged while evidence, rubric, weights, ratings, scorers, and approval stay unresolved.</p>
+      ${details}
+    </aside>`;
+  }
+
   function guidedWeights(data, options) {
     const section = data?.weights || {};
     const rows = guidedRows(section);
     if (!rows.length) return empty();
     const weightValue = (row) => Math.max(0, number(String(row.weight ?? 0).replace("%", "")));
     const maxWeight = Math.max(...rows.map(weightValue), 1);
-    const body = `<ol class="viz-guided-weights">${rows.map((row) => {
+    const body = `${guidedRescoreContext(data, "detail")}<ol class="viz-guided-weights">${rows.map((row) => {
       const weight = weightValue(row);
       return `<li>
         <span>${escapeHtml(row.id || "")}</span>
@@ -573,7 +638,7 @@
     if (!audit) {
       const totals = section.totals || {};
       const maximum = Math.max(number(data?.weights?.weightTotal), ...names.map((item) => number(totals[item.key])), 1);
-      const body = `<ol class="viz-guided-score-rank">${names
+      const body = `${guidedRescoreContext(data)}<ol class="viz-guided-score-rank">${names
         .map((item) => ({ ...item, value: number(totals[item.key]) }))
         .sort((a, b) => b.value - a.value)
         .map((item, index) => `<li>
@@ -585,7 +650,7 @@
       return guidedFrame("score", data, section, options, body, options.title || "Supplied weighted totals");
     }
     const displayedTotals = section.displayedTotals || {};
-    const body = `<div class="viz-guided-audit" role="table" aria-label="${escapeHtml(options.title || "Raw scoring audit")}">
+    const body = `${guidedRescoreContext(data)}<div class="viz-guided-audit" role="table" aria-label="${escapeHtml(options.title || "Raw scoring audit")}">
       <div class="viz-guided-audit-head" role="row"><span role="columnheader">Category</span><span role="columnheader">Weight</span>${names.map((item) => `<span role="columnheader">${escapeHtml(item.label)}</span>`).join("")}</div>
       ${rows.map((row) => `<div class="viz-guided-audit-row" role="row">
         <strong role="cell">${escapeHtml(row.category || row.label)}</strong>
@@ -661,7 +726,8 @@
     const requested = new Set(Array.isArray(options.rowIds) ? options.rowIds : []);
     const rows = guidedRows(section).filter((row) => !requested.size || requested.has(row.id));
     if (!rows.length) return empty();
-    const body = `<ol class="viz-guided-programme">${rows.map((row) => `<li>
+    const programmeClass = rows.length === 7 ? " is-seven" : "";
+    const body = `<ol class="viz-guided-programme${programmeClass}" style="--guided-programme-count:${rows.length}">${rows.map((row) => `<li>
       <span>${escapeHtml(row.id || "")}</span>
       <strong>${escapeHtml(row.workstream || row.label)}</strong>
       <p>${escapeHtml(row.presentationSummary || row.scope || row.requiredScope || "")}</p>
@@ -1044,6 +1110,7 @@
     kongJourneySpine,
     muleMigrationBoundary,
     muleMigrationWaves,
+    dualMigrationRails,
     guidedEvaluation,
     guidedArchitectureOverview,
     composition,
@@ -1102,6 +1169,7 @@
       kongJourneySpine: visuals?.kongPlatformJourney,
       muleMigrationBoundary: visuals?.muleMigration,
       muleMigrationWaves: visuals?.muleMigration,
+      dualMigrationRails: { mule: visuals?.muleMigration, apigee: visuals?.apigeeMigration },
       guidedEvaluation: visuals?.guidedEvaluation,
       guidedArchitectureOverview: visuals?.kongPlatformStrategy?.guidedArchitectureOverview,
     };
@@ -1143,6 +1211,7 @@
     kongJourneySpine,
     muleMigrationBoundary,
     muleMigrationWaves,
+    dualMigrationRails,
     guidedEvaluation,
     guidedArchitectureOverview,
     composition,

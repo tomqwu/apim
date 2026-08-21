@@ -15,7 +15,7 @@ Both projections follow the canonical [Kong guided evaluation](../docs/48-kong-g
 - the operating-option hypotheses in [docs/44](../docs/44-kong-multicloud-study-roadmap.md);
 - the responsibility, coexistence, and evidence-gated migration models in [docs/35](../docs/35-mule-migration-strategy.md);
 - the current local-baseline PoC evidence boundary in [poc/README.md](../poc/README.md); and
-- the six target-aligned proof priorities recorded in docs/48.
+- the seven target-aligned proof priorities recorded in docs/48, including the separately bounded Kong-plus-Traceable security-adjunct feasibility line.
 
 Every PowerPoint frame includes visible `Repo reference` and `Official docs` hyperlinks. The native Pages frame exposes the same primary repository source plus a reference disclosure containing every repository study and curated official product document used by that slide.
 

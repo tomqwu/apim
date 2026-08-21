@@ -24,6 +24,8 @@ How can RE-1 remove Mule runtime dependency without copying integration logic in
 
 This study applies the synthetic [RE-1 enterprise reference case](41-enterprise-reference-case.md), especially J-01 money transfer, J-03 partner payment initiation, J-05 settlement files, and incident classes I-01, I-02, I-03, I-05, I-07, and I-08.
 
+The related [Apigee migration strategy](50-apigee-migration-strategy.md) reuses the stable-edge, bounded-coexistence, business-verification, route-back, and dependency-zero doctrine while replacing Mule responsibility/package analysis with an Apigee-specific proxy, product, identity, runtime-state, analytics, and Hybrid-component object graph. The two roadmaps share gates; their source artifacts and state seams are not interchangeable.
+
 > **Quantitative convention:** every flow count, percentage, duration, threshold, team size, wave size, service objective, and monetary value in this article is a **RE-1 scenario assumption**. None is inventory evidence, a benchmark, a vendor claim, or a delivery commitment. Classification, workload, and gate IDs are identifiers rather than quantities.
 
 ## Migration thesis

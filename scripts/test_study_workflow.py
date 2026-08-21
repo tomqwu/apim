@@ -863,6 +863,34 @@ class CanonicalContractTests(WorkflowTestCase):
                 self.assertEqual("External", repo_mode)
                 self.assertEqual("External", official_mode)
 
+            migration_slide = ET.fromstring(archive.read("ppt/slides/slide16.xml"))
+            migration_relationships = ET.fromstring(
+                archive.read("ppt/slides/_rels/slide16.xml.rels")
+            )
+            migration_targets = {
+                relation.attrib["Id"]: relation
+                for relation in migration_relationships.findall("pr:Relationship", namespaces)
+            }
+            apigee_run = next(
+                run
+                for run in migration_slide.findall(".//a:r", namespaces)
+                if "".join(text.text or "" for text in run.findall(".//a:t", namespaces))
+                == "Apigee A0–A6"
+            )
+            apigee_click = apigee_run.find("./a:rPr/a:hlinkClick", namespaces)
+            self.assertIsNotNone(
+                apigee_click,
+                "slide 16 must expose the Apigee roadmap as a visible hyperlink",
+            )
+            apigee_relationship_id = apigee_click.attrib[f"{{{office_relationships}}}id"]
+            apigee_relation = migration_targets[apigee_relationship_id]
+            self.assertEqual(
+                "https://github.com/tomqwu/apim/blob/main/"
+                "docs/50-apigee-migration-strategy.md#proposed-a0a6-migration-roadmap",
+                apigee_relation.attrib["Target"],
+            )
+            self.assertEqual("External", apigee_relation.attrib.get("TargetMode"))
+
             score_slide = ET.fromstring(archive.read("ppt/slides/slide25.xml"))
             score_widths = [
                 int(column.attrib["w"])
@@ -1644,6 +1672,7 @@ process.stdout.write(window.ApiStudyCharts.render("criteriaOverview", data, {com
         expected_responsibilities = ("G", "F", "T", "O", "M", "B", "C", "R")
         expected_waves = tuple(f"M{index}" for index in range(6))
         expected_figures = ("MULE-2", "MULE-3", "MULE-6")
+        expected_apigee_phases = tuple(f"A{index}" for index in range(7))
         expected_phases = (
             ("01", "Options", "kong-journey-decision"),
             ("02", "Architecture", "kong-platform-architecture"),
@@ -1776,6 +1805,12 @@ process.stdout.write(window.ApiStudyCharts.render("criteriaOverview", data, {com
         self.assertEqual(expected_responsibilities, tuple(row["id"] for row in mule["responsibilities"]))
         self.assertEqual(expected_waves, tuple(wave["id"] for wave in mule["waves"]))
         self.assertEqual(expected_figures, tuple(figure["figureId"] for figure in mule["figures"]))
+        apigee = manifest["visuals"]["apigeeMigration"]
+        self.assertEqual("docs/50-apigee-migration-strategy.md", apigee["sourcePath"])
+        self.assertEqual("docs-50-apigee-migration-strategy", apigee["sourceId"])
+        self.assertEqual(7, apigee["phaseTotal"])
+        self.assertEqual(expected_apigee_phases, tuple(phase["id"] for phase in apigee["phases"]))
+        self.assertEqual("Proposed A0–A6 migration roadmap", apigee["provenance"]["sourceHeading"])
 
         items_by_id = {item["id"]: item for item in manifest["items"]}
         document_routes = {item["route"] for item in manifest["items"]}
@@ -1809,6 +1844,8 @@ process.stdout.write(window.ApiStudyCharts.render("criteriaOverview", data, {com
             ("responsibility order", "exact G/F/T/O/M/B/C/R order"),
             ("wave provenance", "exact canonical table"),
             ("figure provenance", "exact canonical figure"),
+            ("Apigee phase order", "exact A0 through A6 order"),
+            ("Apigee provenance", "exact canonical A0–A6 table"),
         )
         for case, error in invalid_cases:
             with self.subTest(case=case):
@@ -1841,8 +1878,13 @@ process.stdout.write(window.ApiStudyCharts.render("criteriaOverview", data, {com
                     rows[0:2] = reversed(rows[0:2])
                 elif case == "wave provenance":
                     invalid["visuals"]["muleMigration"]["waveProvenance"]["sourceHeading"] = "Wrong heading"
-                else:
+                elif case == "figure provenance":
                     invalid["visuals"]["muleMigration"]["figures"][1]["provenance"]["sourceHeading"] = "Wrong heading"
+                elif case == "Apigee phase order":
+                    rows = invalid["visuals"]["apigeeMigration"]["phases"]
+                    rows[0:2] = reversed(rows[0:2])
+                else:
+                    invalid["visuals"]["apigeeMigration"]["provenance"]["sourceHeading"] = "Wrong heading"
                 with self.assertRaisesRegex(validator.ValidationError, error):
                     validator.validate_kong_platform_journey(invalid, invalid["presentation"])
                 with self.assertRaisesRegex(verifier.VerificationError, error):
@@ -1882,6 +1924,8 @@ process.stdout.write(window.ApiStudyCharts.render("criteriaOverview", data, {com
             "docs/44-kong-multicloud-study-roadmap.md",
             "docs/47-kong-enterprise-platform-strategy.md",
             "docs/35-mule-migration-strategy.md",
+            "research/glossary.md",
+            "docs/50-apigee-migration-strategy.md",
             "poc/README.md",
         )
         phases = (
@@ -1941,20 +1985,41 @@ process.stdout.write(window.ApiStudyCharts.render("criteriaOverview", data, {com
                 self.assertIn(f"#/present/kong-platform-journey-guided/{phase_index}", routes)
 
         guided = manifest["visuals"]["guidedEvaluation"]
+        self.assertEqual("2026-08-21", guided["asOf"])
         self.assertEqual(tuple(f"GTM-{index:02d}" for index in range(1, 10)), tuple(row["id"] for row in guided["targetModel"]["rows"]))
         self.assertEqual(tuple(f"GEW-{index:02d}" for index in range(1, 9)), tuple(row["id"] for row in guided["weights"]["rows"]))
         self.assertEqual(100, guided["weights"]["weightTotal"])
+        self.assertEqual(tuple(f"GRS-{index:02d}" for index in range(1, 7)), tuple(row["id"] for row in guided["governedRescore"]["rows"]))
         self.assertEqual(("GEO-KONG", "GEO-APIGEE", "GEO-MULE", "GEO-APIM"), tuple(row["id"] for row in guided["options"]["rows"]))
         self.assertTrue(all(row["presentationStrongestWhen"] and row["presentationConcern"] for row in guided["options"]["rows"]))
         self.assertEqual({"weight": 100, "kong": 93, "apigee": 85.5, "muleSoft": 77}, guided["scoring"]["totals"])
         self.assertEqual({"kong": 93, "apigee": 87, "muleSoft": 78}, guided["scoring"]["displayedTotals"])
-        self.assertEqual(tuple(f"GEP-{index:02d}" for index in range(1, 7)), tuple(row["id"] for row in guided["proofProgramme"]["rows"]))
+        self.assertEqual(tuple(f"GEP-{index:02d}" for index in range(1, 8)), tuple(row["id"] for row in guided["proofProgramme"]["rows"]))
         self.assertTrue(all(row["presentationSummary"] for row in guided["proofProgramme"]["rows"]))
-        self.assertEqual([8, 7, 3], [guided["comparisons"][group]["rowTotal"] for group in ("architecture", "management", "economics")])
+        self.assertEqual(("GSA-01",), tuple(row["id"] for row in guided["securityAdjuncts"]["rows"]))
+        self.assertEqual([9, 8, 3], [guided["comparisons"][group]["rowTotal"] for group in ("architecture", "management", "economics")])
+        self.assertEqual(
+            (
+                *tuple(f"GEC-{index:02d}" for index in range(1, 9)),
+                "GEC-19",
+                *tuple(f"GEC-{index:02d}" for index in range(9, 16)),
+                "GEC-20",
+                *tuple(f"GEC-{index:02d}" for index in range(16, 19)),
+            ),
+            tuple(
+                row["id"]
+                for group in ("architecture", "management", "economics")
+                for row in guided["comparisons"][group]["rows"]
+            ),
+        )
         self.assertEqual(tuple(f"KGE-{index:02d}" for index in range(1, 26)), tuple(row["slideId"] for row in guided["slides"]["rows"]))
-        self.assertEqual(12, guided["evidenceStates"]["rowTotal"])
+        self.assertEqual(15, guided["evidenceStates"]["rowTotal"])
+        self.assertEqual(
+            (("KGE-22",), ("KGE-23",), ("KGE-24",), ("KGE-25",)),
+            tuple(tuple(row["slideIds"]) for row in guided["evidenceStates"]["rows"][-4:]),
+        )
         reference_catalog = guided["referenceCatalog"]
-        self.assertEqual(9, reference_catalog["rowTotal"])
+        self.assertEqual(11, reference_catalog["rowTotal"])
         self.assertEqual(
             tuple(f"KGE-{index:02d}" for index in range(1, 26)),
             tuple(slide_id for row in reference_catalog["rows"] for slide_id in row["slideIds"]),
@@ -1991,6 +2056,7 @@ process.stdout.write(window.ApiStudyCharts.render("criteriaOverview", data, {com
         )
         self.assertEqual("KPS-1", architecture_overview["provenance"]["figureId"])
         guided_contract_by_key = {row["key"]: row for row in guided["slides"]["rows"]}
+        self.assertIn("docs/50-apigee-migration-strategy.md", guided_contract_by_key["kong-guided-waves"]["sourcePaths"])
         guided_slides_by_key = {slide["key"]: slide for slide in manifest["presentation"] if slide["key"] in guided_keys}
         self.assertTrue(all(guided_contract_by_key[key]["officialReferences"] for key in guided_keys))
         self.assertEqual(
@@ -2065,7 +2131,9 @@ process.stdout.write(window.ApiStudyCharts.render("criteriaOverview", data, {com
             ("score arithmetic", "arithmetic is invalid"),
             ("score total", "corrected kong total is invalid"),
             ("displayed total", "supplied displayed apigee total is invalid"),
-            ("workstream", "GEP-01 through GEP-06"),
+            ("governed rescore", "GRS-01 through GRS-06"),
+            ("workstream", "GEP-01 through GEP-07"),
+            ("security adjunct", "GSA-01"),
             ("architecture overview", "guided architecture edges"),
             ("comparison", "architecture comparison IDs are invalid"),
             ("KGE contract", "exact KGE semantic order"),
@@ -2102,8 +2170,12 @@ process.stdout.write(window.ApiStudyCharts.render("criteriaOverview", data, {com
                     invalid_guided["scoring"]["totals"]["kong"] = 94
                 elif case == "displayed total":
                     invalid_guided["scoring"]["displayedTotals"]["apigee"] = 86
+                elif case == "governed rescore":
+                    invalid_guided["governedRescore"]["rows"][0]["id"] = "GRS-X"
                 elif case == "workstream":
                     invalid_guided["proofProgramme"]["rows"][0]["id"] = "GEP-X"
+                elif case == "security adjunct":
+                    invalid_guided["securityAdjuncts"]["rows"][0]["id"] = "GSA-X"
                 elif case == "architecture overview":
                     invalid["visuals"]["kongPlatformStrategy"]["guidedArchitectureOverview"]["edges"][5]["to"] = "cloud-b-services-evidence"
                 elif case == "comparison":

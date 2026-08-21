@@ -1,6 +1,6 @@
 # Evidence-state snapshot
 
-- Snapshot date: 2026-08-18
+- Snapshot date: 2026-08-21
 - Scope: canonical tracked repository data
 - Decision use: show what can and cannot be concluded; this is not a platform score or ranking
 
@@ -45,14 +45,14 @@ Source: [PoC test plan](../poc/test-plan.md) and [validation report](validation-
 
 ## Official-source use
 
-The source register contains 40 primary or official sources. Twenty-eight source IDs are explicitly cited in the claim register; twelve are registered but not yet decision-bearing there. Source volume is not criterion coverage.
+The source register contains 56 primary or official sources. Twenty-eight source IDs are explicitly cited in the claim register; twenty-eight are registered but not yet decision-bearing there. Source volume is not criterion coverage.
 
 <!-- chart-source: source-use -->
 ```mermaid
 pie showData
   title Registered official sources
   "Used in findings" : 28
-  "Not yet used" : 12
+  "Not yet used" : 28
 ```
 
 Source: [sources.csv](../research/sources.csv) and [findings.md](../research/findings.md).
