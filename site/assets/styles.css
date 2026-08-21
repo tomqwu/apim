@@ -9539,6 +9539,7 @@ body.is-presenting .site-footer {
   --guided-yellow-soft: #ffe58a;
   --guided-violet: #5f38d7;
   --guided-positive: #5f38d7;
+  --guided-control-cluster-width: 24rem;
   color: var(--guided-ink);
   background: var(--guided-paper);
 }
@@ -9777,6 +9778,34 @@ body.is-presenting .site-footer {
 
 .presentation-stage.is-kong-guided .slide-progress {
   background: var(--guided-violet);
+}
+
+@media screen and (min-width: 761px) {
+  .presentation-stage.is-kong-guided .journey-proof-strip {
+    padding-right: calc(var(--guided-control-cluster-width) + 2.5rem);
+  }
+}
+
+@media screen and (min-width: 761px) and (max-width: 1200px) {
+  .presentation-stage.is-kong-guided {
+    --guided-control-cluster-width: 14.375rem;
+  }
+
+  .presentation-stage.is-kong-guided .slide-controls .assessment-launch {
+    min-width: 46px;
+    width: 46px;
+    display: grid;
+    padding: 0.35rem;
+    font-size: 0.72rem;
+  }
+
+  .presentation-stage.is-kong-guided .assessment-launch > span {
+    position: absolute;
+    width: 1px;
+    height: 1px;
+    overflow: hidden;
+    clip-path: inset(50%);
+  }
 }
 
 .presentation-stage.is-kong-guided .viz,
