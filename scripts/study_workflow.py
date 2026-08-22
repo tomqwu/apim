@@ -372,6 +372,7 @@ def verify_local_derived_routes(data: dict[str, Any]) -> None:
             f"canonical path manifest route is not declared as derived: {canonical} -> {canonical_route}",
         )
     available.update(item.get("route") for item in items if isinstance(item, dict) and isinstance(item.get("route"), str))
+    available.add("#/present")
     available.update(f"#/present/{index}" for index in range(len(presentations)))
     slide_keys = [slide.get("key") for slide in presentations if isinstance(slide, dict)]
     fail_unless(

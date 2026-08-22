@@ -2523,7 +2523,7 @@ def validate_routes_and_audiences(
     validate_kong_platform_fit_slides(manifest, presentation)
 
     all_routes = set(document_routes)
-    generic_presentation_routes = {f"#/present/{index}" for index in range(len(presentation))}
+    generic_presentation_routes = {"#/present", *(f"#/present/{index}" for index in range(len(presentation)))}
     require(not all_routes.intersection(generic_presentation_routes), "document and presentation routes collide")
     all_routes.update(generic_presentation_routes)
 

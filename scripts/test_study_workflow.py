@@ -5385,8 +5385,14 @@ class ManifestRuntimeDependencyTests(WorkflowTestCase):
 
         validator.validate_routes_and_audiences(manifest, by_id, {"#/doc/source"})
         routes = verifier.validated_route_inventory(manifest, items)
+        self.assertIn("#/present", routes)
         self.assertIn("#/present/kong-technical-deep-dive/0", routes)
         self.assertIn("#/present/kong-technical-deep-dive/5", routes)
+        app = (SOURCE_ROOT / "site/assets/app.js").read_text(encoding="utf-8")
+        self.assertIn('const bareRoute = current.parts.length === 0;', app)
+        self.assertIn('else if (bareRoute) renderPresentation("0");', app)
+        index = (SOURCE_ROOT / "site/index.html").read_text(encoding="utf-8")
+        self.assertIn('class="present-trigger" href="#/present"', index)
 
         invalid_cases = (
             ("unknown slide", "unknown slide"),

@@ -1084,7 +1084,7 @@ def validated_route_inventory(manifest: dict[str, Any], items: list[dict[str, An
     routes = set(STATIC_ROUTES)
     require(not routes.intersection(item_routes), "manifest static and document routes collide")
     routes.update(item_routes)
-    generic_routes = {f"#/present/{index}" for index in range(len(presentation))}
+    generic_routes = {"#/present", *(f"#/present/{index}" for index in range(len(presentation)))}
     require(not routes.intersection(generic_routes), "manifest document and presentation routes collide")
     routes.update(generic_routes)
 
