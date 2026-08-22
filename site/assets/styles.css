@@ -11924,7 +11924,6 @@ body.is-presenting .site-footer {
     --guided-decision-meta: 1rem;
   }
 
-  .presentation-stage.is-kong-guided .viz-guided-target h3,
   .presentation-stage.is-kong-guided .viz-guided-early-gates > header span,
   .presentation-stage.is-kong-guided .viz-guided-early-gates li > span,
   .presentation-stage.is-kong-guided .viz-guided-early-gates li > small,
@@ -11935,6 +11934,7 @@ body.is-presenting .site-footer {
     font-size: var(--guided-decision-meta);
   }
 
+  .presentation-stage.is-kong-guided .viz-guided-target h3,
   .presentation-stage.is-kong-guided .viz-guided-early-gates > header strong,
   .presentation-stage.is-kong-guided .viz-guided-early-gates li > strong,
   .presentation-stage.is-kong-guided .viz-guided-programme-contract strong,
@@ -11973,6 +11973,7 @@ body.is-presenting .site-footer {
 @media screen and (min-width: 1600px) {
   .presentation-stage.is-kong-guided {
     --guided-decision-copy: 1.5rem;
+    --guided-decision-meta: 1.125rem;
   }
 
   .presentation-stage.is-kong-guided .viz-guided-programme-board {

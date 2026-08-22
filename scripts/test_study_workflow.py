@@ -2349,7 +2349,7 @@ process.stdout.write(window.ApiStudyCharts.render("criteriaOverview", data, {com
         )
         self.assertRegex(
             styles,
-            r"(?s)@media screen and \(min-width:\s*1600px\).*?\.presentation-stage\.is-kong-guided\s*\{[^}]*--guided-decision-copy:\s*1\.5rem;",
+            r"(?s)@media screen and \(min-width:\s*1600px\).*?\.presentation-stage\.is-kong-guided\s*\{[^}]*--guided-decision-copy:\s*1\.5rem;[^}]*--guided-decision-meta:\s*1\.125rem;",
         )
         self.assertIn('<table class="viz-guided-comparison">', charts)
         self.assertIn('class="viz-guided-comparison-wrap" tabindex="-1" data-comparison-label=', charts)
