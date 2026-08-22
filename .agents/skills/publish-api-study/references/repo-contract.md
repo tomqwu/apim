@@ -151,7 +151,7 @@ After merge, enforce a fail-closed publication-policy limit until this intake is
 
 The published gate must re-fetch the authenticated GitHub pull-request head after branch cleanup, rescan its complete immutable-base-to-candidate history, recompute the validation digest from raw blobs, and verify canonical/derived regular-blob and committed-ignore provenance. A clean squash tree is not sufficient evidence of a clean reviewed branch.
 
-If main validation, Pages, or exact live parity fails, keep the intake at `MERGED`, set `publicationStatus=corrective-change-required`, and preserve the failing run and live evidence. Retry or repair only deployment controls that leave the reviewed source unchanged. A source-changing recovery requires explicit repository-owner coordination outside this automated workflow and does not authorize another study merge or closure. The only normal terminal sequence is `MERGED` -> `PUBLISHED` -> `CLOSED`. `CLOSED` is immutable and always means successful published proof.
+If main validation, Pages, or exact live parity fails, keep the intake at `MERGED`, set `publicationStatus=corrective-change-required`, and preserve the failing run and live evidence. Retry source-preserving deployment controls first. With explicit repository-owner direction, a separate governed remediation may produce a deployed descendant only when it contains the intake merge, preserves every accepted canonical and file-like derived artifact byte-for-byte, and passes exact validation, Pages, and live verification. A change to a protected intake artifact requires a superseding intake and cannot close the original record. The only normal terminal sequence is `MERGED` -> `PUBLISHED` -> `CLOSED`. `CLOSED` is immutable and always means successful published proof.
 
 ## Acceptance record
 
@@ -164,7 +164,7 @@ The operational checkpoint can be marked `CLOSED` only when it records:
 - site/article/presentation QA scope and exact viewports;
 - deterministic validator result and current counts;
 - branch, PR, merge commit, and Actions URLs;
-- live article/route, the exact manifest assertions `sourceRevision=<merge-SHA>`, `manifestSha256=<digest>`, and `sourceDirty=false`, every declared `#/...` derived route, and source/deployed hashes;
+- live article/route, the exact manifest assertions `sourceRevision=<deployed-revision-SHA>`, `manifestSha256=<digest>`, and `sourceDirty=false`, proof that the deployed revision equals or artifact-preservingly descends from the intake merge, every declared `#/...` derived route, and source/deployed hashes;
 - residual limitations or backlog IDs.
 
 The checkpoint lives outside the reviewed tree and its exact durable mirror is the marker-delimited block in the PR body. Rerender and replace that block after every transition, including `PUBLISHED` and `CLOSED`; PR comments hold independent-review and closure evidence only. An optional committed intake specification contains only frozen public-safe scope/evidence sections. If any acceptance item is missing, keep the workflow open or explicitly blocked; do not infer closure.

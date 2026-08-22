@@ -7134,6 +7134,141 @@ class PublishedGateTests(WorkflowTestCase):
         self.assertEqual(0, observed.returncode, observed.stdout + observed.stderr)
         self.assertEqual(later_main, repository.git("rev-parse", "HEAD").stdout.strip())
 
+    def test_published_gate_accepts_an_exact_verified_descendant_revision(self) -> None:
+        repository = self.repository(local_origin=True)
+        repository.write_text(
+            "scripts/verify_pages.py",
+            "#!/usr/bin/env python3\nraise SystemExit(0)\n",
+        )
+        repository.base_sha = repository.commit_all(
+            "Install the hermetic Pages verifier fixture"
+        )
+        repository.git("push", "-q", "origin", "main")
+        checkpoint, data, candidate, merge_sha = self.prepare_published(repository)
+        repository.write_text(
+            "docs/publication-correction.md",
+            "# Publication correction\n\nA safe correction included in the deployed revision.\n",
+        )
+        published_revision = repository.commit_all("Add the publication correction")
+        repository.git("push", "-q", "origin", "main")
+        data["manifestAssertions"] = [
+            f"sourceRevision={published_revision}",
+            f"manifestSha256={data['manifestSha256']}",
+            "sourceDirty=false",
+        ]
+        repository.replace_checkpoint(checkpoint, data)
+
+        pr = repository.with_current_checkpoint_body(
+            repository.valid_pr_json(candidate, merged=True, merge_sha=merge_sha), checkpoint
+        )
+        environment = repository.fake_github_environment(pr, candidate)
+        environment.update(
+            {
+                "FAKE_RUN_101_JSON": json.dumps(
+                    {
+                        "headSha": published_revision,
+                        "status": "completed",
+                        "conclusion": "success",
+                        "url": data["mainValidationUrl"],
+                        "workflowName": "validate",
+                    }
+                ),
+                "FAKE_RUN_102_JSON": json.dumps(
+                    {
+                        "headSha": published_revision,
+                        "status": "completed",
+                        "conclusion": "success",
+                        "url": data["pagesRunUrl"],
+                        "workflowName": "pages",
+                    }
+                ),
+                "FAKE_PAGES_JSON": json.dumps({"html_url": data["liveBaseUrl"]}),
+                "FAKE_CLOSURE_COMMENT_JSON": json.dumps(
+                    {
+                        "html_url": data["closureEvidenceUrl"],
+                        "issue_url": "https://api.github.com/repos/owner/repo/issues/17",
+                        "body": (
+                            "Publication status: published\n"
+                            f"Merge SHA: {merge_sha}\n"
+                            f"Manifest SHA-256: {data['manifestSha256']}\n"
+                        ),
+                    }
+                ),
+            }
+        )
+        observed = repository.cli(
+            "check",
+            "--checkpoint",
+            str(checkpoint),
+            "--phase",
+            "published",
+            "--base",
+            repository.base_sha,
+            environment=environment,
+        )
+        self.assertEqual(0, observed.returncode, observed.stdout + observed.stderr)
+
+    def test_published_gate_rejects_a_source_revision_outside_the_merge_lineage(self) -> None:
+        repository = self.repository(local_origin=True)
+        checkpoint, data, candidate, merge_sha = self.prepare_published(repository)
+        unrelated = repository.git("commit-tree", f"{repository.base_sha}^{{tree}}", "-m", "Unrelated publication revision").stdout.strip()
+        data["manifestAssertions"] = [
+            f"sourceRevision={unrelated}",
+            f"manifestSha256={data['manifestSha256']}",
+            "sourceDirty=false",
+        ]
+        repository.replace_checkpoint(checkpoint, data)
+        pr = repository.with_current_checkpoint_body(
+            repository.valid_pr_json(candidate, merged=True, merge_sha=merge_sha), checkpoint
+        )
+        observed = repository.cli(
+            "check",
+            "--checkpoint",
+            str(checkpoint),
+            "--phase",
+            "published",
+            "--base",
+            repository.base_sha,
+            environment=repository.fake_github_environment(pr, candidate),
+        )
+        self.assert_deterministic_error(
+            observed,
+            contains="published sourceRevision does not contain the intake mergeSha",
+        )
+
+    def test_published_gate_rejects_a_descendant_that_changes_an_intake_artifact(self) -> None:
+        repository = self.repository(local_origin=True)
+        checkpoint, data, candidate, merge_sha = self.prepare_published(repository)
+        repository.write_text(
+            "docs/workflow-test.md",
+            "# Changed after acceptance\n\nThis requires a superseding intake.\n",
+        )
+        published_revision = repository.commit_all("Change an accepted canonical artifact")
+        repository.git("push", "-q", "origin", "main")
+        data["manifestAssertions"] = [
+            f"sourceRevision={published_revision}",
+            f"manifestSha256={data['manifestSha256']}",
+            "sourceDirty=false",
+        ]
+        repository.replace_checkpoint(checkpoint, data)
+        pr = repository.with_current_checkpoint_body(
+            repository.valid_pr_json(candidate, merged=True, merge_sha=merge_sha), checkpoint
+        )
+        observed = repository.cli(
+            "check",
+            "--checkpoint",
+            str(checkpoint),
+            "--phase",
+            "published",
+            "--base",
+            repository.base_sha,
+            environment=repository.fake_github_environment(pr, candidate),
+        )
+        self.assert_deterministic_error(
+            observed,
+            contains="published sourceRevision changed protected intake artifact: docs/workflow-test.md",
+        )
+
     def test_failed_merged_publication_remains_open_until_successful_live_proof(self) -> None:
         repository = self.repository(local_origin=True)
         checkpoint, data, _, _ = self.prepare_published(repository)

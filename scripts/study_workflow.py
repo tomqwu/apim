@@ -1089,6 +1089,19 @@ def full_sha(label: str, value: Any, required: bool = True) -> str | None:
     return value
 
 
+def published_source_revision(data: dict[str, Any]) -> str:
+    assertions = [
+        value.split("=", 1)[1]
+        for value in data.get("manifestAssertions", [])
+        if isinstance(value, str) and value.startswith("sourceRevision=")
+    ]
+    fail_unless(
+        len(assertions) == 1 and bool(FULL_SHA.fullmatch(assertions[0])),
+        "manifestAssertions must contain exactly one full sourceRevision SHA",
+    )
+    return assertions[0]
+
+
 def canonical_path(value: str) -> str:
     fail_unless(isinstance(value, str) and value and "%" not in value and not value.startswith("/") and "\\" not in value, "canonical paths must be repository-relative POSIX paths without percent syntax")
     parts = Path(value).parts
@@ -1240,12 +1253,24 @@ def state_evidence_errors(data: dict[str, Any], *, verify_artifacts: bool = True
         require(all(data[key] for key in ("mainValidationUrl", "pagesRunUrl", "liveBaseUrl")), "main validation, Pages, and live URLs are required")
         require(bool(data["manifestSha256"]), "deployed manifest SHA-256 is required")
         require(bool(data["closureEvidenceUrl"]), "durable closure evidence URL is required")
+        source_revision_assertions = [
+            value
+            for value in data["manifestAssertions"]
+            if isinstance(value, str) and value.startswith("sourceRevision=")
+        ]
+        source_revision_valid = (
+            len(source_revision_assertions) == 1
+            and bool(FULL_SHA.fullmatch(source_revision_assertions[0].split("=", 1)[1]))
+        )
         expected_manifest = {
-            f"sourceRevision={data['mergeSha']}",
+            source_revision_assertions[0] if source_revision_valid else "",
             f"manifestSha256={data['manifestSha256']}",
             "sourceDirty=false",
         }
-        require(set(data["manifestAssertions"]) == expected_manifest, "manifestAssertions must exactly bind revision, manifest digest, and clean state")
+        require(
+            source_revision_valid and set(data["manifestAssertions"]) == expected_manifest,
+            "manifestAssertions must exactly bind revision, manifest digest, and clean state",
+        )
         expected_routes = {value for value in data["derivedPaths"] if value.startswith("#/")}
         require(bool(expected_routes) and set(data["routeAssertions"]) == expected_routes, "routeAssertions must exactly match every declared derived route")
     if state == "CLOSED":
@@ -2014,6 +2039,30 @@ def verify_accepted_candidate_tree(data: dict[str, Any], pr: dict[str, Any]) -> 
         )
 
 
+def verify_published_descendant_artifacts(data: dict[str, Any], merge_sha: str, published_revision: str) -> None:
+    """Keep accepted canonical and file artifacts byte-identical in a later deployed revision."""
+    accepted_entries = commit_tree_entries(full_sha("candidateSha", data["candidateSha"]))
+    merge_entries = commit_tree_entries(merge_sha)
+    published_entries = commit_tree_entries(published_revision)
+    protected_paths = set(data["canonicalPaths"]).union(
+        value for value in data["derivedPaths"] if not value.startswith("#/")
+    )
+    for value in sorted(protected_paths):
+        accepted_entry = accepted_entries.get(value)
+        fail_unless(
+            accepted_entry is not None and accepted_entry[:2] in {("100644", "blob"), ("100755", "blob")},
+            f"accepted protected intake artifact is not a tracked regular blob: {safe_location(value)}",
+        )
+        fail_unless(
+            merge_entries.get(value) == accepted_entry,
+            f"intake merge changed accepted protected artifact: {safe_location(value)}",
+        )
+        fail_unless(
+            published_entries.get(value) == accepted_entry,
+            f"published sourceRevision changed protected intake artifact: {safe_location(value)}",
+        )
+
+
 def verify_closure_evidence(
     url: str,
     pr_number: int,
@@ -2034,7 +2083,7 @@ def verify_action_run(url: str, expected_sha: str, workflow_name: str) -> None:
         run_data = json.loads(gh("run", "view", match.group(1), "--json", "headSha,status,conclusion,url,workflowName", "--repo", github_owner_repo()))
     except json.JSONDecodeError as exc:
         raise WorkflowError(f"gh returned invalid {workflow_name} run JSON") from exc
-    fail_unless(run_data.get("headSha") == expected_sha, f"{workflow_name} run did not execute the merge SHA")
+    fail_unless(run_data.get("headSha") == expected_sha, f"{workflow_name} run did not execute the expected revision")
     fail_unless(str(run_data.get("url", "")).rstrip("/") == url.rstrip("/"), f"{workflow_name} run URL differs from the recorded run")
     fail_unless(run_data.get("status") == "completed" and run_data.get("conclusion") == "success", f"{workflow_name} run is not successfully completed")
     fail_unless(str(run_data.get("workflowName", "")).lower() == workflow_name.lower(), f"recorded run is not the {workflow_name} workflow")
@@ -2050,17 +2099,17 @@ def verify_pages_identity(value: str) -> None:
     fail_unless(isinstance(expected, str) and expected.rstrip("/") == value.rstrip("/"), "liveBaseUrl does not equal this repository's GitHub Pages URL")
 
 
-def run_pages_verifier(data: dict[str, Any], merge: str) -> bool:
-    """Verify from mergeSha without requiring the shared main tip to stay frozen."""
+def run_pages_verifier(data: dict[str, Any], revision: str) -> bool:
+    """Verify an asserted deployed revision without requiring the shared main tip to stay frozen."""
     with tempfile.TemporaryDirectory(prefix="apim-pages-verify-") as temporary:
         worktree = Path(temporary) / "source"
-        added = run(("git", "worktree", "add", "--detach", str(worktree), merge), check=False)
-        fail_unless(added.returncode == 0, "unable to create an isolated verifier checkout at mergeSha")
+        added = run(("git", "worktree", "add", "--detach", str(worktree), revision), check=False)
+        fail_unless(added.returncode == 0, "unable to create an isolated verifier checkout at the published sourceRevision")
         try:
             verifier = [
                 sys.executable, str(worktree / "scripts" / "verify_pages.py"),
                 "--base-url", data["liveBaseUrl"],
-                "--expected-revision", merge,
+                "--expected-revision", revision,
                 "--expected-manifest-sha256", data["manifestSha256"],
             ]
             for value in data["canonicalPaths"]:
@@ -2095,7 +2144,9 @@ def command_check(args: argparse.Namespace) -> int:
         required_authority.update({"commit", "push", "pull-request"})
     missing_authority = required_authority - set(data["requestedActions"])
     fail_unless(not missing_authority, f"{args.phase} gate lacks explicit authority for: {', '.join(sorted(missing_authority))}")
-    history_end = data["mergeSha"] if args.phase == "published" and data["mergeSha"] else "HEAD"
+    if args.phase == "published":
+        fetch_authenticated_main()
+    history_end = published_source_revision(data) if args.phase == "published" else "HEAD"
     history_errors = public_content_errors(base, history_end)
     if history_errors:
         raise WorkflowError(history_errors[0])
@@ -2134,8 +2185,16 @@ def command_check(args: argparse.Namespace) -> int:
         verify_local_derived_routes(data)
     if args.phase == "published":
         merge = full_sha("mergeSha", data["mergeSha"])
-        fetch_authenticated_main()
+        published_revision = full_sha("published sourceRevision", published_source_revision(data))
         fail_unless(run(("git", "merge-base", "--is-ancestor", merge, "origin/main"), check=False).returncode == 0, "mergeSha is not reachable from origin/main")
+        fail_unless(
+            run(("git", "merge-base", "--is-ancestor", merge, published_revision), check=False).returncode == 0,
+            "published sourceRevision does not contain the intake mergeSha",
+        )
+        fail_unless(
+            run(("git", "merge-base", "--is-ancestor", published_revision, "origin/main"), check=False).returncode == 0,
+            "published sourceRevision is not reachable from origin/main",
+        )
         origin_main = git("rev-parse", "origin/main")
         fail_unless(git("branch", "--show-current") == "main" and git("rev-parse", "HEAD") == origin_main, "published gate must run from local main exactly at current origin/main")
         fail_unless(working_tree_clean_at(origin_main), "published gate requires a clean working tree whose raw bytes match current origin/main")
@@ -2144,6 +2203,7 @@ def command_check(args: argparse.Namespace) -> int:
         verify_merged_pr_checkpoint(data, pr, merge)
         verify_candidate_acceptance(data, pr)
         verify_accepted_candidate_tree(data, pr)
+        verify_published_descendant_artifacts(data, merge, published_revision)
         fail_unless(not git("show-ref", "--verify", f"refs/heads/{data['branch']}", check=False), "local intake branch still exists")
         fail_unless(github_ref_sha(f"heads/{data['branch']}", required=False) is None, "GitHub intake branch still exists")
         fail_unless(not git("ls-remote", "--heads", "origin", data["branch"]), "remote intake branch still exists")
@@ -2153,11 +2213,11 @@ def command_check(args: argparse.Namespace) -> int:
             fail_unless(bool(data[key]), f"published gate requires {key}")
             safe_url(key, data[key])
         fail_unless(bool(data["manifestAssertions"]) and bool(data["routeAssertions"]), "published gate requires manifest and route assertions")
-        verify_action_run(data["mainValidationUrl"], merge, "validate")
-        verify_action_run(data["pagesRunUrl"], merge, "pages")
+        verify_action_run(data["mainValidationUrl"], published_revision, "validate")
+        verify_action_run(data["pagesRunUrl"], published_revision, "pages")
         verify_pages_identity(data["liveBaseUrl"])
         verify_closure_evidence(data["closureEvidenceUrl"], data["prNumber"], merge, data["manifestSha256"])
-        fail_unless(run_pages_verifier(data, merge), "live Pages byte/provenance verification failed")
+        fail_unless(run_pages_verifier(data, published_revision), "live Pages byte/provenance verification failed")
         if data["canonicalState"] == "CLOSED":
             fail_unless(bool(data["residualLimitations"]) and bool(data["nextGate"]), "CLOSED requires residual limitations and next gate")
     print(f"OK: {data['intakeId']} satisfies the {args.phase} gate from immutable base {base}")
