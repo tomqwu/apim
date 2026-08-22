@@ -402,7 +402,7 @@ Review disposition: pass
 - **Visual/Atlas routes:**
 - **Generic presentation state:**
 - **Audience presentation states:**
-- **Machine manifest assertions (`sourceRevision=<merge-SHA>`; `manifestSha256=<digest>`; `sourceDirty=false`):**
+- **Machine manifest assertions (`sourceRevision=<deployed-revision-SHA>`; `manifestSha256=<digest>`; `sourceDirty=false`; deployed revision must equal or cleanly descend from the intake merge and preserve accepted artifacts byte-for-byte):**
 - **Exact route assertions (every and only declared `#/...` derived route):**
 - **Cache/stale-content discriminator:**
 - **Desktop live check:**
