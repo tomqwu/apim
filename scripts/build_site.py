@@ -1574,6 +1574,51 @@ def guided_evaluation_visuals(
         for row in rescore_rows
     ]
 
+    provisional_weight_columns = (
+        "Score ID",
+        "Dimension",
+        "Provisional weight",
+        "Rating state",
+        "Required score-capable evidence",
+    )
+    provisional_weight_rows, provisional_weight_provenance = scoped_rows(
+        "Provisional weighting and uncertainty scenario",
+        provisional_weight_columns,
+    )
+    provisional_weights = [
+        {
+            "id": clean_inline(row_value(row, "Score ID")),
+            "dimension": clean_inline(row_value(row, "Dimension")),
+            "weight": numeric(row_value(row, "Provisional weight")),
+            "ratingState": clean_inline(row_value(row, "Rating state")),
+            "evidence": clean_inline(row_value(row, "Required score-capable evidence")),
+        }
+        for row in provisional_weight_rows
+        if clean_inline(row_value(row, "Score ID"))
+    ]
+
+    uncertainty_columns = (
+        "Option",
+        "Historical-input contribution",
+        "Unknown GRS contribution",
+        "Mechanical envelope",
+        "Neutral-placeholder point",
+    )
+    uncertainty_rows, uncertainty_provenance = scoped_rows(
+        "Mechanical uncertainty envelope",
+        uncertainty_columns,
+    )
+    uncertainty_envelope = [
+        {
+            "option": clean_inline(row_value(row, "Option")),
+            "historicalContribution": numeric(row_value(row, "Historical-input contribution")),
+            "unknownContribution": clean_inline(row_value(row, "Unknown GRS contribution")),
+            "envelope": clean_inline(row_value(row, "Mechanical envelope")),
+            "neutralPlaceholder": numeric(row_value(row, "Neutral-placeholder point")),
+        }
+        for row in uncertainty_rows
+    ]
+
     option_columns = ("Option ID", "Operating-model archetype", "Strongest when", "Concern to test", "Presentation strongest when", "Presentation concern", "Decision role")
     option_rows, option_provenance = scoped_rows("Conditional option archetypes", option_columns)
     options = [
@@ -1804,8 +1849,8 @@ def guided_evaluation_visuals(
         references = {
             "docs/44": "docs/44-kong-multicloud-study-roadmap.md",
             "docs/47": "docs/47-kong-enterprise-platform-strategy.md",
-            "docs/35": "docs/35-mule-migration-strategy.md",
             "docs/50": "docs/50-apigee-migration-strategy.md",
+            "docs/35": "docs/35-mule-migration-strategy.md",
             "terminology crosswalk": "research/glossary.md",
             "poc/README": "poc/README.md",
         }
@@ -2158,6 +2203,8 @@ def guided_evaluation_visuals(
         "targetModel": {"rowTotal": len(target_model), "rows": target_model, "provenance": target_provenance},
         "weights": {"rowTotal": len(weights), "rows": weights, "weightTotal": sum(row["weight"] for row in weights), "provenance": weight_provenance},
         "governedRescore": {"rowTotal": len(governed_rescore), "rows": governed_rescore, "provenance": rescore_provenance},
+        "provisionalWeights": {"rowTotal": len(provisional_weights), "rows": provisional_weights, "weightTotal": sum(row["weight"] for row in provisional_weights), "provenance": provisional_weight_provenance},
+        "uncertaintyEnvelope": {"rowTotal": len(uncertainty_envelope), "rows": uncertainty_envelope, "provenance": uncertainty_provenance},
         "options": {"rowTotal": len(options), "rows": options, "provenance": option_provenance},
         "scoring": {"rowTotal": len(score_rows), "rows": score_rows, "displayedTotals": displayed_totals, "totals": score_totals, "provenance": score_provenance},
         "authorization": {"rowTotal": len(authorization), "rows": authorization, "provenance": authorization_provenance},
@@ -2499,6 +2546,21 @@ def validate_site_projection(stats: dict[str, int], visuals: dict[str, object]) 
             and guided_evaluation.get("governedRescore", {}).get("rowTotal") == 6
             and [row.get("id") for row in guided_evaluation.get("governedRescore", {}).get("rows", [])]
             == [f"GRS-{rank:02d}" for rank in range(1, 7)]
+            and guided_evaluation.get("provisionalWeights", {}).get("rowTotal") == 14
+            and guided_evaluation.get("provisionalWeights", {}).get("weightTotal") == 100
+            and [row.get("id") for row in guided_evaluation.get("provisionalWeights", {}).get("rows", [])]
+            == [f"GEW-{rank:02d}" for rank in range(1, 9)] + [f"GRS-{rank:02d}" for rank in range(1, 7)]
+            and [row.get("weight") for row in guided_evaluation.get("provisionalWeights", {}).get("rows", [])]
+            == [12, 9, 9, 6, 6, 6, 6, 6, 8, 8, 8, 6, 6, 4]
+            and all(
+                row.get("ratingState") and row.get("evidence")
+                for row in guided_evaluation.get("provisionalWeights", {}).get("rows", [])
+            )
+            and guided_evaluation.get("uncertaintyEnvelope", {}).get("rowTotal") == 3
+            and [row.get("option") for row in guided_evaluation.get("uncertaintyEnvelope", {}).get("rows", [])]
+            == ["Kong", "Apigee", "MuleSoft"]
+            and [row.get("envelope") for row in guided_evaluation.get("uncertaintyEnvelope", {}).get("rows", [])]
+            == ["55.8–95.8", "51.3–91.3", "46.2–86.2"]
             and guided_evaluation.get("options", {}).get("rowTotal") == 4
             and [row.get("id") for row in guided_evaluation.get("options", {}).get("rows", [])]
             == ["GEO-KONG", "GEO-APIGEE", "GEO-MULE", "GEO-APIM"]
@@ -2562,7 +2624,7 @@ def validate_site_projection(stats: dict[str, int], visuals: dict[str, object]) 
                 "Guided decision brief",
                 *("Stakeholder input" for _ in range(2)),
                 "Conditional hypothesis",
-                "Stakeholder input",
+                "Provisional scenario over stakeholder input",
                 "Bounded direction",
                 *("Proposed target" for _ in range(6)),
                 "Scenario assumption",
@@ -2573,7 +2635,7 @@ def validate_site_projection(stats: dict[str, int], visuals: dict[str, object]) 
                 "Stakeholder input",
                 "Mixed documented mechanism and stakeholder input",
                 "Stakeholder input with documented pricing boundaries",
-                "Stakeholder input",
+                "Provisional scenario over stakeholder input",
             ]
             and all(row.get("sourceClass") and row.get("evidenceInterpretation") for row in guided_slide_rows)
             and all(
@@ -2595,6 +2657,8 @@ def validate_site_projection(stats: dict[str, int], visuals: dict[str, object]) 
                     guided_evaluation.get("targetModel", {}),
                     guided_evaluation.get("weights", {}),
                     guided_evaluation.get("governedRescore", {}),
+                    guided_evaluation.get("provisionalWeights", {}),
+                    guided_evaluation.get("uncertaintyEnvelope", {}),
                     guided_evaluation.get("options", {}),
                     guided_evaluation.get("scoring", {}),
                     guided_evaluation.get("authorization", {}),

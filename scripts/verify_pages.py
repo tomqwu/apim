@@ -180,7 +180,7 @@ KONG_GUIDED_PHASES = (
     ("KGE-P3", "Architecture and adoption", "Understand the target topology, failure paths, ownership, and evidence-gated adoption", "kong-guided-architecture"),
     ("KGE-P4", "Migration", "Move Mule responsibilities or the Apigee object/state graph through coexistence, route-back, and exit evidence", "kong-guided-migration-boundary"),
     ("KGE-P5", "Production proof", "Replace documented capability—including the Traceable adjunct—with executed target-shaped evidence and outcome gates", "kong-guided-proof-boundary"),
-    ("KGE-P6", "Audit appendix", "Preserve supplied inputs, expose the Traceable feasibility line, and keep the governed re-score pending without promoting them to proof", "kong-guided-compare-architecture"),
+    ("KGE-P6", "Audit appendix", "Preserve supplied inputs, expose the Traceable feasibility line, and show the provisional uncertainty envelope without promoting it to a decision score", "kong-guided-compare-architecture"),
 )
 KONG_GUIDED_ASSESSMENT_SUMMARY_ROUTE = (
     "#/present/kong-platform-journey-guided/summary"
@@ -202,6 +202,7 @@ KONG_GUIDED_POINT_SOURCE_BY_KEY = {
     "kong-guided-boundary": KONG_GUIDED_SOURCE_IDS[1],
     **{key: KONG_GUIDED_SOURCE_IDS[2] for key in KONG_GUIDED_SLIDE_KEYS[7:13]},
     **{key: KONG_GUIDED_SOURCE_IDS[3] for key in KONG_GUIDED_SLIDE_KEYS[13:16]},
+    "kong-guided-waves": KONG_GUIDED_SOURCE_IDS[5],
     "kong-guided-proof-boundary": KONG_GUIDED_SOURCE_IDS[6],
     **{key: KONG_GUIDED_SOURCE_IDS[2] for key in KONG_GUIDED_SLIDE_KEYS[18:21]},
 }
@@ -209,7 +210,7 @@ KONG_GUIDED_EVIDENCE_GROUPS = (
     (("KGE-01",), "Guided decision brief", "Mixed public-safe synthesis", "Orientation only; no new evidence"),
     (("KGE-02", "KGE-03"), "Stakeholder input", "Sanitized supplied input", "Target preferences and weighting choices; not admitted candidate evidence"),
     (("KGE-04",), "Conditional hypothesis", "Supplied input plus documented-mechanism interpretation", "Conditional operating-model archetypes to test; not an observed product comparison"),
-    (("KGE-05",), "Stakeholder input", "Sanitized supplied input", "Arithmetic audit of supplied ratings; not admitted candidate evidence"),
+    (("KGE-05",), "Provisional scenario over stakeholder input", "Sanitized supplied input plus mechanical uncertainty calculation", "Historical totals remain audit input; overlapping ranges are a HOLD signal, not product evidence"),
     (("KGE-06",), "Bounded direction", "Stakeholder direction plus repository interpretation", "Authorizes foundation and proof only"),
     (("KGE-07", "KGE-08", "KGE-09", "KGE-10", "KGE-11", "KGE-12"), "Proposed target", "Repository E1 interpretation", "Operating options, architecture, failure policy, and ownership to prove"),
     (("KGE-13",), "Scenario assumption", "Repository adoption plan", "Overlapping decision windows, not status or commitment"),
@@ -220,7 +221,7 @@ KONG_GUIDED_EVIDENCE_GROUPS = (
     (("KGE-22",), "Stakeholder input", "Sanitized supplied input plus repository evidence obligations", "Architecture/delivery labels remain unverified; scalability and robustness are explicitly unscored"),
     (("KGE-23",), "Mixed documented mechanism and stakeholder input", "Sanitized supplied input plus current official Traceable/Kong documentation", "Traceable is E1 feasibility only; management, experience and AI labels remain unverified"),
     (("KGE-24",), "Stakeholder input with documented pricing boundaries", "Sanitized supplied input plus current official pricing pages", "No normalized quote, TCO, control-duty, adjunct-cost, lock-in or exit result"),
-    (("KGE-25",), "Stakeholder input", "Sanitized supplied input plus governed re-score specification", "Original arithmetic remains audit input; expanded weights and ratings remain TBD"),
+    (("KGE-25",), "Provisional scenario over stakeholder input", "Sanitized supplied input plus provisional weighting and uncertainty specification", "Historical ratings remain E0; GRS ratings remain unknown; overlapping envelopes force HOLD"),
 )
 KONG_GUIDED_REFERENCE_GROUPS = (
     (("KGE-01", "KGE-02", "KGE-03"), (

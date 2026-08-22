@@ -136,18 +136,56 @@ The meeting feedback does not create a second assessment taxonomy. It identifies
 
 ## Proposed governed re-score
 
-The original GEW-01–08 weights and scores remain unchanged as historical stakeholder input. A more persuasive comparison must be **more auditable, not more favorable**. The following dimensions are added to the re-score specification, but their weights and product ratings remain `TBD` until the decision owner confirms the assignment, exact options, rubric, evidence floor, scorer panel, sensitivity ranges, confidence treatment and approval rule. Unknown is not zero, and it does not silently earn points.
+The six missing dimensions below remain the required specification for a future governed decision score. Their approved weights, product ratings, scorer panel, common evidence floor, confidence treatment and decision rule are still open. The provisional scenario that follows illustrates one weighting and the resulting uncertainty; it does not close this specification.
 
 | Re-score ID | Dimension | Proposed treatment | Required score-capable evidence | Status |
 |---|---|---|---|---|
-| GRS-01 | Multicloud operating fit | Separate placement freedom from management dependency, sovereignty, failure independence, support and cost | Exact option field/flow ledger plus representative multi-zone/multiregion execution | Weight/rating `TBD` |
-| GRS-02 | Scalability and robustness | Score business SLO, headroom, scale-to-full, false-ready behavior, RTO/RPO, clean-node admission and reconciliation—not generic product scale claims | Equivalent target-shaped load, fault, recovery and reviewer evidence | Weight/rating `TBD` |
-| GRS-03 | Security, IAM and traceability | Keep access lifecycle, configuration audit, request/security trace, evidence safety and business correlation separately observable | Equivalent negative, lifecycle, failure, signal-gap and incident-query evidence | Weight/rating `TBD` |
-| GRS-04 | Reversibility and vendor dependency | Score observed rebuild, semantic loss, identity/product/data/analytics transfer and rollback effort | Clean-room representative non-source rebuild and dependency ledger | Weight/rating `TBD` |
-| GRS-05 | Fully allocated TCO and unit economics | Use exact quote and meters plus labor, infrastructure, HA/DR, telemetry, adjuncts, support, migration, dual run, incident exposure and exit | Negotiated terms and normalized low/base/high three-to-five-year model | Weight/rating `TBD` |
-| GRS-06 | Control-plane operating responsibility | Treat retained CP/PostgreSQL/PKI/plugin/license/audit/upgrade/on-call exposure as a cost and risk input, not an architectural slogan | Funded RACI, support game day, recovery/upgrade execution, toil and cost | Weight/rating `TBD` |
+| GRS-01 | Multicloud operating fit | Separate placement freedom from management dependency, sovereignty, failure independence, support and cost | Exact option field/flow ledger plus representative multi-zone/multiregion execution | Approval/rating pending |
+| GRS-02 | Scalability and robustness | Score business SLO, headroom, scale-to-full, false-ready behavior, RTO/RPO, clean-node admission and reconciliation—not generic product scale claims | Equivalent target-shaped load, fault, recovery and reviewer evidence | Approval/rating pending |
+| GRS-03 | Security, IAM and traceability | Keep access lifecycle, configuration audit, request/security trace, evidence safety and business correlation separately observable | Equivalent negative, lifecycle, failure, signal-gap and incident-query evidence | Approval/rating pending |
+| GRS-04 | Reversibility and vendor dependency | Score observed rebuild, semantic loss, identity/product/data/analytics transfer and rollback effort | Clean-room representative non-source rebuild and dependency ledger | Approval/rating pending |
+| GRS-05 | Fully allocated TCO and unit economics | Use exact quote and meters plus labor, infrastructure, HA/DR, telemetry, adjuncts, support, migration, dual run, incident exposure and exit | Negotiated terms and normalized low/base/high three-to-five-year model | Approval/rating pending |
+| GRS-06 | Control-plane operating responsibility | Treat retained CP/PostgreSQL/PKI/plugin/license/audit/upgrade/on-call exposure as a cost and risk input, not an architectural slogan | Funded RACI, support game day, recovery/upgrade execution, toil and cost | Approval/rating pending |
 
-The governed recalculation must publish `Σ(weight × rating ÷ 10)`, weight total, exact rubric, evidence links, confidence, scorer and approver identities, sensitivity/rank-stability ranges, dissent and the missing-evidence ceiling. Until those controls exist, slide 5 and slide 25 retain the corrected historical arithmetic and show the expanded re-score as pending rather than manufacturing a new total.
+## Provisional weighting and uncertainty scenario
+
+The original GEW-01–08 ratings remain unchanged as historical `E0` stakeholder input. A more persuasive comparison must be **more auditable, not more favorable**. The table below is therefore a transparent planning scenario, not the governed re-score: it proportionally rebases the historical model to 60% and allocates 40% to the six missing dimensions requested in the meeting. The weights are provisional and still require decision-owner approval. Every GRS product rating remains `Unknown [0,10]`; unknown is not zero and does not silently earn points.
+
+| Score ID | Dimension | Provisional weight | Rating state | Required score-capable evidence |
+|---|---|---:|---|---|
+| GEW-01 | Kubernetes and cloud native | 12% | Historical `E0` input retained | Exact-option reproducible deployment and operating evidence |
+| GEW-02 | GitOps and DevOps | 9% | Historical `E0` input retained | Equivalent APIOps execution, drift, rollback and reconciliation evidence |
+| GEW-03 | API management | 9% | Historical `E0` input retained | Equivalent lifecycle and runtime behavior evidence |
+| GEW-04 | API governance | 6% | Historical `E0` input retained | Equivalent policy, contract and organizational governance evidence |
+| GEW-05 | Product security and compliance capability | 6% | Historical `E0` input retained | Exact control-mechanism and negative-test evidence |
+| GEW-06 | Observability mechanisms | 6% | Historical `E0` input retained | Equivalent telemetry, loss-accounting and incident-query evidence |
+| GEW-07 | AI gateway readiness | 6% | Historical `E0` input retained | Separate exact-option agentic proof; no uplift to core fit without execution |
+| GEW-08 | License and consumption-price input | 6% | Historical `E0` input retained | Exact quote, entitlement and meter evidence only |
+| GRS-01 | Multicloud operating fit | 8% | `Unknown [0,10]` | Exact option field/flow ledger plus representative multi-zone/multiregion execution |
+| GRS-02 | Scalability and robustness | 8% | `Unknown [0,10]` | Equivalent target-shaped load, fault, recovery and reviewer evidence |
+| GRS-03 | Enterprise IAM and end-to-end traceability | 8% | `Unknown [0,10]` | Equivalent negative, lifecycle, failure, signal-gap and incident-query evidence |
+| GRS-04 | Reversibility and vendor dependency | 6% | `Unknown [0,10]` | Clean-room representative non-source rebuild and dependency ledger |
+| GRS-05 | Fully allocated TCO and unit economics | 6% | `Unknown [0,10]` | Negotiated terms and normalized low/base/high three-to-five-year model |
+| GRS-06 | Control-plane operating responsibility | 4% | `Unknown [0,10]` | Funded RACI, support game day, recovery/upgrade execution, toil and cost |
+|  | **Total** | **100%** |  |  |
+
+To prevent double counting, GEW-08 covers license/consumption-price assumptions while GRS-05 covers full lifecycle TCO; GEW-05 covers product control mechanisms while GRS-03 covers organization-wide identity lifecycle and evidence correlation; GEW-06 covers telemetry mechanisms while GRS-03 covers security-decision and business traceability; GRS-06 covers accountable duty and recoverability while its cost stays in GRS-05. Each canonical criterion may contribute to only one scored cell.
+
+## Mechanical uncertainty envelope
+
+The calculation remains `Σ(weight × rating ÷ 10)`. Retaining the historical ratings in the rebased 60% block produces the fixed contributions below. The added 40% block remains completely unknown. A rating of 5 is shown only as a neutral plotting placeholder; it is not an assigned score or evidence estimate.
+
+| Option | Historical-input contribution | Unknown GRS contribution | Mechanical envelope | Neutral-placeholder point |
+|---|---:|---:|---:|---:|
+| Kong | 55.8 | 0–40 | 55.8–95.8 | 75.8 |
+| Apigee | 51.3 | 0–40 | 51.3–91.3 | 71.3 |
+| MuleSoft | 46.2 | 0–40 | 46.2–86.2 | 66.2 |
+
+All three envelopes overlap, so each option can rank first under permitted unknown completions. Apigee needs only a 1.125-point higher weighted-average GRS rating than Kong to reverse the historical-input lead; MuleSoft needs a 2.4-point advantage over Kong or a 1.275-point advantage over Apigee. Mechanical maximum regret is 35.5 for Kong, 44.5 for Apigee and 49.6 for MuleSoft. Stressing the new-dimension group at 30%, 40% and 50%, then applying the scoring guide's ±20% per-category perturbation and renormalizing, leaves the ranking unstable while the GRS block is unknown.
+
+> This is a provisional weighting and uncertainty scenario, not the governed re-score. Historical GEW ratings are unverified stakeholder inputs; GRS ratings remain unknown. The midpoint is a neutral visualization placeholder, not an assigned rating. The 0–10 bounds are uncertainty limits, not performance estimates or probabilities. Thirty mandatory gates remain unknown and common score-capable evidence coverage is 0%; therefore the decision disposition is HOLD. Traceable remains a separately tested adjunct and earns no native Kong score. Control-plane responsibility is an operating-risk and cost consideration, not a legal-liability conclusion.
+
+The future governed recalculation must replace the provisional weights and unknown ranges with approved exact options, mandatory gates, rubric, common evidence floor, scorer/approver roles, confidence, evidence links, sensitivity and rank stability, lower/upper bounds, maximum regret, dissent and sign-off. Numerical-input coverage in this scenario is 60%; common score-capable evidence coverage remains 0%.
 
 ## Conditional option archetypes
 
@@ -321,7 +359,7 @@ flowchart LR
 | KGE-P3 | Architecture and adoption | 9–13 | Understand the target topology, failure paths, ownership, and evidence-gated adoption |
 | KGE-P4 | Migration | 14–16 | Move Mule responsibilities or the Apigee object/state graph through coexistence, route-back, and exit evidence |
 | KGE-P5 | Production proof | 17–21 | Replace documented capability—including the Traceable adjunct—with executed target-shaped evidence and outcome gates |
-| KGE-P6 | Audit appendix | 22–25 | Preserve supplied inputs, expose the Traceable feasibility line, and keep the governed re-score pending without promoting them to proof |
+| KGE-P6 | Audit appendix | 22–25 | Preserve supplied inputs, expose the Traceable feasibility line, and show the provisional uncertainty envelope without promoting it to a decision score |
 
 ## Native presentation contract: KGE-01–KGE-25
 
@@ -332,7 +370,7 @@ The PowerPoint and the native Pages deck project this same 25-frame contract. Th
 | KGE-01 | Guided decision brief | Mixed public-safe synthesis | Orientation only; no new evidence |
 | KGE-02–KGE-03 | Stakeholder input | Sanitized supplied input | Target preferences and weighting choices; not admitted candidate evidence |
 | KGE-04 | Conditional hypothesis | Supplied input plus documented-mechanism interpretation | Conditional operating-model archetypes to test; not an observed product comparison |
-| KGE-05 | Stakeholder input | Sanitized supplied input | Arithmetic audit of supplied ratings; not admitted candidate evidence |
+| KGE-05 | Provisional scenario over stakeholder input | Sanitized supplied input plus mechanical uncertainty calculation | Historical totals remain audit input; overlapping ranges are a HOLD signal, not product evidence |
 | KGE-06 | Bounded direction | Stakeholder direction plus repository interpretation | Authorizes foundation and proof only |
 | KGE-07–KGE-12 | Proposed target | Repository `E1` interpretation | Operating options, architecture, failure policy, and ownership to prove |
 | KGE-13 | Scenario assumption | Repository adoption plan | Overlapping decision windows, not status or commitment |
@@ -343,15 +381,15 @@ The PowerPoint and the native Pages deck project this same 25-frame contract. Th
 | KGE-22 | Stakeholder input | Sanitized supplied input plus repository evidence obligations | Architecture/delivery labels remain unverified; scalability and robustness are explicitly unscored |
 | KGE-23 | Mixed documented mechanism and stakeholder input | Sanitized supplied input plus current official Traceable/Kong documentation | Traceable is `E1` feasibility only; management, experience and AI labels remain unverified |
 | KGE-24 | Stakeholder input with documented pricing boundaries | Sanitized supplied input plus current official pricing pages | No normalized quote, TCO, control-duty, adjunct-cost, lock-in or exit result |
-| KGE-25 | Stakeholder input | Sanitized supplied input plus governed re-score specification | Original arithmetic remains audit input; expanded weights and ratings remain `TBD` |
+| KGE-25 | Provisional scenario over stakeholder input | Sanitized supplied input plus provisional weighting and uncertainty specification | Historical ratings remain E0; GRS ratings remain unknown; overlapping envelopes force HOLD |
 
 | Slide ID | Stable key | Phase | Audience-facing title | Visible decision content | Visual contract | Canonical source |
 |---|---|---|---|---|---|---|
 | KGE-01 | `kong-guided-cover` | KGE-P1 | API management from platform choice to production proof | Guided evaluation, not product marketing; supplied input plus repository evidence plus target-shaped proof | Six-stage journey rail | This study / Executive answer |
 | KGE-02 | `kong-guided-target-model` | KGE-P1 | The operating model—not the feature list—drives the decision | Stated target inputs remain to confirm | Three-lane target-model map using GTM-01–09 | This study / Stated target operating model |
-| KGE-03 | `kong-guided-weights` | KGE-P1 | The scorecard favors cloud-native delivery | Kubernetes plus GitOps carry 35%; add multicloud, robustness, reversibility and fully allocated TCO before governed re-score | Eight supplied weights plus expanded-dimension callouts | This study / Supplied weighting model plus proposed governed re-score |
+| KGE-03 | `kong-guided-weights` | KGE-P1 | The scorecard favors cloud-native delivery | Kubernetes plus GitOps carry 35%; the provisional scenario rebases the historical model to 60% and assigns 40% to six missing dimensions | Eight supplied weights plus provisional expanded-dimension weights | This study / Supplied weighting model plus provisional weighting and uncertainty scenario |
 | KGE-04 | `kong-guided-options` | KGE-P2 | Each contender optimizes a different operating model | Conditional Kong, Apigee, MuleSoft, and APIM archetypes | Four option cards using GEO-KONG/APIGEE/MULE/APIM | This study / Conditional option archetypes |
-| KGE-05 | `kong-guided-score` | KGE-P2 | Preserve the historical score; govern the re-score | Correct totals remain 93, 85.5, and 77; no new total until exact options, rubric, added dimensions, weights, evidence and scorer approval close | Historical score comparison plus governed-recalculation-pending note | This study / Supplied scoring audit plus proposed governed re-score |
+| KGE-05 | `kong-guided-score` | KGE-P2 | Preserve the historical score; expose the uncertainty | Correct totals remain 93, 85.5, and 77; the provisional scenario shows overlapping ranges rather than manufacturing a new rank | Historical score comparison plus uncertainty-envelope and rank-switch note | This study / Supplied scoring audit plus provisional weighting and uncertainty scenario |
 | KGE-06 | `kong-guided-decision` | KGE-P2 | Proceed with a bounded, reversible Kong foundation | Scale only after the exact option, reviewed E2/E3/E4, route-back/exit, and economics evidence | Authorization / hold split | This study / Bounded authorization |
 | KGE-07 | `kong-guided-boundary` | KGE-P2 | Choose the operating boundary before the topology | `KP-SMH1`, Konnect custody benchmark, and true exit are distinct | Three-boundary choice model | docs/44 option register plus docs/47 bounded target |
 | KGE-08 | `kong-guided-duty` | KGE-P2 | Control-plane custody transfers operating accountability | Custody advantage must be weighed against CP/PostgreSQL/PKI/plugin/license/audit/upgrade/on-call exposure and fully allocated cost; this is not a legal-liability verdict | Fit-versus-operating-accountability balance | docs/47 / Why self-managed control—and what it costs |
@@ -362,7 +400,7 @@ The PowerPoint and the native Pages deck project this same 25-frame contract. Th
 | KGE-13 | `kong-guided-adoption` | KGE-P3 | Foundation is work; scale is an outcome gate | Preserve overlapping 0–2, 2–5, 4–8, 6–10, 9–14, and 13–18 month scenario windows | Source-derived KP0–KP5 roadmap | docs/47 / KPS-5 and roadmap |
 | KGE-14 | `kong-guided-migration-boundary` | KGE-P4 | Move responsibilities—not Mule packages | Only gateway policy is unambiguously an edge duty; facade is conditional | Source-derived MULE-2 responsibility map | docs/35 / MULE-2 plus terminology crosswalk |
 | KGE-15 | `kong-guided-coexistence` | KGE-P4 | Keep the API edge stable while old and new runtimes coexist | Bounded cohorts, parity probes, business evidence, and route-back | Source-derived MULE-3 coexistence model | docs/35 / MULE-3 |
-| KGE-16 | `kong-guided-waves` | KGE-P4 | Mule and Apigee migration advance on evidence—not time | Mule M0–M5 responsibility/state path and Apigee A0–A6 object/state path share stable-edge, coexistence, route-back and dependency-zero gates | Dual migration rail with source-specific artifacts and common evidence gates | docs/35 / MULE-6 plus docs/50 / A0–A6 |
+| KGE-16 | `kong-guided-waves` | KGE-P4 | Apigee A0–A6 moves the full object and state graph | Apigee advances from reconciled source truth through semantic mapping, reversible target, hard-slice parity, bounded coexistence, production canary and dependency zero; Mule M0–M5 remains the responsibility/state counterpart | Dedicated seven-stage Apigee evidence rail with Mule counterpart and common route-back gates | docs/50 / A0–A6 plus docs/35 / MULE-6 |
 | KGE-17 | `kong-guided-proof-boundary` | KGE-P5 | Current PoC is a functional baseline—not KP-SMH1 proof | 5 automated, 11 not run, 28 separate atomic cases, 0 target E3/E4 results | Non-additive evidence-system boundary | This study / Current proof boundary plus poc/README |
 | KGE-18 | `kong-guided-proof-programme` | KGE-P5 | The next PoC must mirror the production target | Seven workstreams require an owner, measure, threshold, executed artifact, reviewer and stop rule; GEP-07 tests Kong plus Traceable without awarding unearned platform confidence | Seven-workstream execution map | This study / Seven-workstream target-aligned proof programme plus GSA-01 |
 | KGE-19 | `kong-guided-outcomes-1` | KGE-P5 | Five reviewable outcomes anchor production proof | KO-1 state fidelity through KO-5 safe change | Source-derived KO-1–KO-5 outcome cards | docs/47 / Outcome measures and acceptance artifacts |
@@ -371,7 +409,7 @@ The PowerPoint and the native Pages deck project this same 25-frame contract. Th
 | KGE-22 | `kong-guided-compare-architecture` | KGE-P6 | Comparison input—architecture, multicloud and robustness | Preserve supplied labels; make GEC-19 scalability/robustness explicitly unscored and bind every claim to equivalent execution | GEC-01–08 plus GEC-19 evidence-obligation records | This study / Supplied comparison input: architecture and delivery |
 | KGE-23 | `kong-guided-compare-management` | KGE-P6 | Comparison input—management, AI and security traceability | Keep capabilities versioned; show GEC-20 Kong-plus-Traceable as documented feasibility, not gateway proof or score | GEC-09–15 plus GEC-20 evidence-obligation records | This study / management and AI comparison plus GSA-01 |
 | KGE-24 | `kong-guided-compare-economics` | KGE-P6 | Comparison input—pricing, lock-in and operating duty | Normalize exact meters/quotes with CP duty, labor, infrastructure, HA/DR, telemetry, adjuncts, migration, support, dual run, incident exposure and exit | GEC-16–18 evidence-obligation records plus public pricing-boundary note | This study / economics and evidence ceiling |
-| KGE-25 | `kong-guided-score-audit` | KGE-P6 | Historical score audit; governed re-score pending | Preserve original weights, ratings and corrected arithmetic; publish no expanded total until GRS-01–06 inputs and controls are approved | Full GEW audit plus governed-recalculation checklist | This study / supplied scoring audit plus proposed governed re-score |
+| KGE-25 | `kong-guided-score-audit` | KGE-P6 | Historical audit; provisional uncertainty envelope | Preserve original ratings and corrected arithmetic; show the 60/40 planning weights, unknown GRS ranges, overlapping envelopes and HOLD disposition without calling the midpoint a score | Full GEW audit plus provisional weights, mechanical ranges and rank-stability warning | This study / supplied scoring audit plus provisional weighting and uncertainty scenario |
 
 ## Presenter guidance
 
