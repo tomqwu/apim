@@ -10143,6 +10143,21 @@ body.is-presenting .site-footer {
   color: var(--guided-muted);
 }
 
+/* Presentation-detail cards predate the light guided theme. Keep their
+   collapsed labels and affordances legible when those cards gain more room. */
+.presentation-stage.is-kong-guided .viz-presentation-summary-copy strong {
+  color: var(--guided-ink);
+}
+
+.presentation-stage.is-kong-guided .viz-presentation-summary-copy small {
+  color: var(--guided-muted);
+}
+
+.presentation-stage.is-kong-guided .viz-presentation-action {
+  border-color: var(--guided-line);
+  color: var(--guided-violet);
+}
+
 .presentation-stage.is-kong-guided .viz-kps-index,
 .presentation-stage.is-kong-guided .viz-kps-roadmap-meta,
 .presentation-stage.is-kong-guided .viz-mule-boundary h3,
@@ -11570,6 +11585,16 @@ body.is-presenting .site-footer {
   }
 }
 
+/* KGE-25 is intentionally dense. At compact desktop heights, keep its final
+   audit rows reachable above the fixed proof strip instead of clipping them. */
+@media screen and (min-width: 1024px) and (max-height: 920px) {
+  .presentation-stage.is-kong-guided .is-guided-slide:has(.viz-guided.is-score-audit) > .slide-main {
+    overflow-y: auto;
+    overscroll-behavior: contain;
+    scrollbar-gutter: stable;
+  }
+}
+
 /* The intrinsic two-column breakpoint includes 1024px, where the general desktop
    rule above otherwise hides the overflow needed to reach every phase. */
 @media screen and (min-width: 761px) and (max-width: 1024px) {
@@ -11982,6 +12007,106 @@ body.is-presenting .site-footer {
 
   .presentation-stage.is-kong-guided .viz-guided-programme-group > header > strong {
     font-size: calc(var(--guided-decision-copy) + 0.125rem);
+  }
+}
+
+/* The guided deck is authored against a 1920 x 1080 room canvas. On larger
+   screens, scale its rem-based type and chrome by the limiting 16:9 axis so
+   content keeps the same visual rhythm instead of collecting at the top of an
+   increasingly tall stage. This remains screen-only and does not alter print. */
+@media screen and (min-width: 1921px) and (min-height: 1081px) {
+  html:has(body.is-presenting .presentation-stage.is-kong-guided) {
+    font-size: clamp(16px, min(0.833333vw, 1.481481vh), 64px);
+  }
+}
+
+/* A few guided visuals are intentionally concise. On roomy desktop stages,
+   propagate the visual row's height through their semantic wrappers and let
+   the cards or table rows share that room. Dense diagrams and roadmaps are
+   deliberately excluded, as are compact and mobile layouts. */
+@media screen and (min-width: 1800px) and (min-height: 1000px) {
+  .presentation-stage.is-kong-guided .slide-visual:has(> .viz-guided:is(.is-cover, .is-target-model, .is-weights, .is-options, .is-score, .is-decision, .is-boundary, .is-duty, .is-proof-boundary, .is-comparison-economics)) > .viz-guided,
+  .presentation-stage.is-kong-guided .slide-visual:has(> .viz-guided:is(.is-cover, .is-target-model, .is-weights, .is-options, .is-score, .is-decision, .is-boundary, .is-duty, .is-proof-boundary, .is-comparison-economics)) .viz-guided-frame {
+    height: 100%;
+  }
+
+  .presentation-stage.is-kong-guided .viz-guided:is(.is-cover, .is-target-model, .is-options, .is-decision, .is-boundary, .is-duty, .is-proof-boundary) .viz-guided-frame > * {
+    height: 100%;
+  }
+
+  .presentation-stage.is-kong-guided .viz-guided:is(.is-weights, .is-score) .viz-guided-frame {
+    display: grid;
+    grid-template-rows: auto minmax(0, 1fr);
+  }
+
+  .presentation-stage.is-kong-guided .viz-guided.is-weights .viz-guided-weights,
+  .presentation-stage.is-kong-guided .viz-guided.is-score .viz-guided-score-rank {
+    min-height: 0;
+    height: 100%;
+    grid-auto-rows: minmax(0, 1fr);
+  }
+
+  .presentation-stage.is-kong-guided .slide-visual:has(> .viz-kps-roadmap),
+  .presentation-stage.is-kong-guided .slide-visual:has(> .viz-kps-outcomes) {
+    overflow-y: auto;
+    overscroll-behavior: contain;
+    scrollbar-gutter: stable;
+  }
+
+  .presentation-stage.is-kong-guided .slide-visual > .viz-kps-roadmap,
+  .presentation-stage.is-kong-guided .slide-visual > .viz-kps-outcomes,
+  .presentation-stage.is-kong-guided .viz-kps-roadmap-list,
+  .presentation-stage.is-kong-guided .viz-kps-outcome-list {
+    min-height: 0;
+    height: 100%;
+  }
+
+  .presentation-stage.is-kong-guided .viz-kps-roadmap-list,
+  .presentation-stage.is-kong-guided .viz-kps-outcome-list {
+    grid-auto-rows: minmax(0, 1fr);
+  }
+
+  .presentation-stage.is-kong-guided .viz-kps-roadmap-list > li,
+  .presentation-stage.is-kong-guided .viz-kps-outcome-list > li,
+  .presentation-stage.is-kong-guided .viz-kps-roadmap-list .viz-presentation-detail:not([open]),
+  .presentation-stage.is-kong-guided .viz-kps-outcome-list .viz-presentation-detail:not([open]),
+  .presentation-stage.is-kong-guided .viz-kps-roadmap-list .viz-presentation-detail:not([open]) > summary,
+  .presentation-stage.is-kong-guided .viz-kps-outcome-list .viz-presentation-detail:not([open]) > summary {
+    min-height: 0;
+    height: 100%;
+  }
+
+  .presentation-stage.is-kong-guided .viz-kps-roadmap-list .viz-presentation-detail:not([open]) > summary,
+  .presentation-stage.is-kong-guided .viz-kps-outcome-list .viz-presentation-detail:not([open]) > summary {
+    align-content: center;
+  }
+
+  .presentation-stage.is-kong-guided .slide-visual:has(.viz-kps-roadmap .viz-presentation-detail[open]) > .viz-kps-roadmap,
+  .presentation-stage.is-kong-guided .slide-visual:has(.viz-kps-outcomes .viz-presentation-detail[open]) > .viz-kps-outcomes,
+  .presentation-stage.is-kong-guided .slide-visual:has(.viz-kps-roadmap .viz-presentation-detail[open]) .viz-kps-roadmap-list,
+  .presentation-stage.is-kong-guided .slide-visual:has(.viz-kps-outcomes .viz-presentation-detail[open]) .viz-kps-outcome-list,
+  .presentation-stage.is-kong-guided .slide-visual:has(.viz-kps-roadmap .viz-presentation-detail[open]) .viz-kps-roadmap-list > li,
+  .presentation-stage.is-kong-guided .slide-visual:has(.viz-kps-outcomes .viz-presentation-detail[open]) .viz-kps-outcome-list > li {
+    height: auto;
+  }
+
+  .presentation-stage.is-kong-guided .slide-visual:has(.viz-kps-roadmap .viz-presentation-detail[open]) .viz-kps-roadmap-list,
+  .presentation-stage.is-kong-guided .slide-visual:has(.viz-kps-outcomes .viz-presentation-detail[open]) .viz-kps-outcome-list {
+    grid-auto-rows: auto;
+  }
+
+  .presentation-stage.is-kong-guided .viz-guided.is-comparison-economics .viz-guided-comparison-wrap,
+  .presentation-stage.is-kong-guided .viz-guided.is-comparison-economics .viz-guided-comparison {
+    height: 100%;
+  }
+
+  .presentation-stage.is-kong-guided .viz-guided.is-comparison-economics .viz-guided-comparison tbody tr {
+    height: 33.333%;
+  }
+
+  .presentation-stage.is-kong-guided .viz-guided.is-comparison-economics .viz-guided-comparison th,
+  .presentation-stage.is-kong-guided .viz-guided.is-comparison-economics .viz-guided-comparison td {
+    vertical-align: middle;
   }
 }
 
