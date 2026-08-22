@@ -10,10 +10,12 @@ Use the [Kong guided evaluation facilitator guide](../docs/49-kong-guided-evalua
 
 Both projections follow the canonical [Kong guided evaluation](../docs/48-kong-guided-evaluation.md). The story combines:
 
-- sanitized stakeholder evaluation inputs and corrected score arithmetic;
+- sanitized stakeholder evaluation inputs, corrected score arithmetic, and a clearly labelled provisional 60/40 uncertainty scenario whose overlapping ranges remain a HOLD rather than a product rank;
 - the bounded Kong decision, architecture, operating model, outcomes, and assurance logic in [docs/47](../docs/47-kong-enterprise-platform-strategy.md);
 - the operating-option hypotheses in [docs/44](../docs/44-kong-multicloud-study-roadmap.md);
-- the responsibility, coexistence, and evidence-gated migration models in [docs/35](../docs/35-mule-migration-strategy.md);
+- the responsibility, coexistence, and evidence-gated Mule migration models in [docs/35](../docs/35-mule-migration-strategy.md);
+- the distinct Apigee A0–A6 object/state migration roadmap and factory control pack in [docs/50](../docs/50-apigee-migration-strategy.md);
+- the nearest-analogue [Kong terminology crosswalk](../research/glossary.md#kong-terminology-crosswalk), including non-equivalence questions that must be resolved before migration;
 - the current local-baseline PoC evidence boundary in [poc/README.md](../poc/README.md); and
 - the seven target-aligned proof priorities recorded in docs/48, including the separately bounded Kong-plus-Traceable security-adjunct feasibility line.
 

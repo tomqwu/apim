@@ -505,6 +505,24 @@
     </figure>`;
   }
 
+  function apigeeMigrationRoadmap(data, options = {}) {
+    const rows = Array.isArray(data) ? data : (Array.isArray(data?.phases) ? data.phases : []);
+    if (!rows.length) return empty();
+    return `<figure class="viz viz-apigee-roadmap ${options.presentation ? "is-presentation" : ""}" aria-label="${escapeHtml(options.title || "Apigee A0 to A6 evidence-gated migration roadmap")}">${heading(options)}
+      <div class="viz-apigee-roadmap-banner"><span>Proposed · not run</span><strong>Move the full object and state graph—not only proxy bundles</strong></div>
+      <ol style="--apigee-phase-count:${rows.length}">${rows.map((row) => {
+        const accessible = `${row.id || "Phase"} ${row.label || ""}. Purpose: ${row.purpose || ""}. Required work: ${row.work || ""}. Exit evidence: ${row.exitEvidence || ""}. Hold or route-back: ${row.hold || ""}.`;
+        return `<li aria-label="${escapeHtml(accessible)}">
+          <span>${escapeHtml(row.id || "")}</span>
+          <strong>${escapeHtml(row.label || row.purpose || "Proposed phase")}</strong>
+          <p data-label="Purpose">${escapeHtml(row.purpose || "")}</p>
+          <small data-label="Exit">${escapeHtml(row.exitEvidence || "")}</small>
+        </li>`;
+      }).join("")}</ol>
+      <p class="viz-apigee-roadmap-gates"><b>Common evidence gates</b> source truth → semantic map → reversible target → parity → route-back → production evidence → dependency zero</p>
+    </figure>`;
+  }
+
   function guidedRows(section, fallbackKeys = []) {
     if (Array.isArray(section)) return section;
     if (!section || typeof section !== "object") return [];
@@ -574,6 +592,22 @@
     const section = data?.governedRescore || {};
     const rows = guidedRows(section);
     if (!rows.length) return "";
+    const provisionalRows = guidedRows(data?.provisionalWeights || {}).filter((row) => /^GRS-/.test(String(row.id || "")));
+    const envelopeRows = guidedRows(data?.uncertaintyEnvelope || {});
+    if (provisionalRows.length === 6 && envelopeRows.length === 3) {
+      const details = variant === "detail"
+        ? `<ul aria-label="Provisional added-dimension weights">${provisionalRows.map((row) => `<li>
+            <span>${escapeHtml(row.id || "")}</span>
+            <strong>${escapeHtml(row.dimension || row.label || "Added dimension")}</strong>
+            <small>${escapeHtml(`${row.weight}% · ${row.ratingState || "Unknown"}`)}</small>
+          </li>`).join("")}</ul>`
+        : `<div class="viz-guided-scenario-ranges" aria-label="Mechanical uncertainty envelopes">${envelopeRows.map((row) => `<span><b>${escapeHtml(row.option || "")}</b><strong>${escapeHtml(row.envelope || "")}</strong></span>`).join("")}</div>`;
+      return `<aside class="viz-guided-rescore-context viz-guided-scenario-context is-${escapeHtml(variant)}" aria-label="Provisional weighting and uncertainty scenario">
+        <div><span>Scenario assumption</span><strong>60% historical input · 40% unknown</strong></div>
+        <p>Calculated, not executed evidence. The ranges overlap, so the ranking is unstable and the decision remains HOLD.</p>
+        ${details}
+      </aside>`;
+    }
     const pendingRows = rows.filter((row) => /\b(tbd|pending|not run|unknown)\b/i.test(String(row.status || "")));
     const pendingTotal = pendingRows.length || rows.length;
     const statusLabel = pendingTotal === rows.length
@@ -650,7 +684,14 @@
       return guidedFrame("score", data, section, options, body, options.title || "Supplied weighted totals");
     }
     const displayedTotals = section.displayedTotals || {};
-    const body = `${guidedRescoreContext(data)}<div class="viz-guided-audit" role="table" aria-label="${escapeHtml(options.title || "Raw scoring audit")}">
+    const provisionalRows = guidedRows(data?.provisionalWeights || {}).filter((row) => /^GRS-/.test(String(row.id || "")));
+    const provisionalAudit = provisionalRows.length
+      ? `<div class="viz-guided-scenario-audit" role="table" aria-label="Provisional added-dimension weights">
+          <div role="row" class="viz-guided-scenario-audit-head"><span role="columnheader">Added dimension</span><span role="columnheader">Weight</span><span role="columnheader">Rating</span></div>
+          ${provisionalRows.map((row) => `<div role="row"><strong role="cell"><span>${escapeHtml(row.id || "")}</span>${escapeHtml(row.dimension || "")}</strong><b role="cell">${escapeHtml(`${row.weight}%`)}</b><small role="cell">${escapeHtml(row.ratingState || "Unknown")}</small></div>`).join("")}
+        </div>`
+      : "";
+    const body = `${guidedRescoreContext(data)}<div class="viz-guided-score-audit-layout"><div class="viz-guided-audit" role="table" aria-label="${escapeHtml(options.title || "Raw scoring audit")}">
       <div class="viz-guided-audit-head" role="row"><span role="columnheader">Category</span><span role="columnheader">Weight</span>${names.map((item) => `<span role="columnheader">${escapeHtml(item.label)}</span>`).join("")}</div>
       ${rows.map((row) => `<div class="viz-guided-audit-row" role="row">
         <strong role="cell">${escapeHtml(row.category || row.label)}</strong>
@@ -659,7 +700,7 @@
       </div>`).join("")}
       <div class="viz-guided-audit-total is-supplied" role="row"><strong role="cell">Supplied displayed total</strong><span role="cell">—</span>${names.map((item) => `<b role="cell">${escapeHtml(displayedTotals[item.key] ?? "")}</b>`).join("")}</div>
       <div class="viz-guided-audit-total" role="row"><strong role="cell">Recalculated total</strong><span role="cell">${escapeHtml(data?.weights?.weightTotal || "")}</span>${names.map((item) => `<b role="cell">${escapeHtml(section.totals?.[item.key] ?? "")}</b>`).join("")}</div>
-    </div>`;
+    </div>${provisionalAudit}</div>`;
     return guidedFrame("score-audit", data, section, options, body, options.title || "Raw scoring audit");
   }
 
@@ -1111,6 +1152,7 @@
     muleMigrationBoundary,
     muleMigrationWaves,
     dualMigrationRails,
+    apigeeMigrationRoadmap,
     guidedEvaluation,
     guidedArchitectureOverview,
     composition,
@@ -1170,6 +1212,7 @@
       muleMigrationBoundary: visuals?.muleMigration,
       muleMigrationWaves: visuals?.muleMigration,
       dualMigrationRails: { mule: visuals?.muleMigration, apigee: visuals?.apigeeMigration },
+      apigeeMigrationRoadmap: visuals?.apigeeMigration,
       guidedEvaluation: visuals?.guidedEvaluation,
       guidedArchitectureOverview: visuals?.kongPlatformStrategy?.guidedArchitectureOverview,
     };
@@ -1212,6 +1255,7 @@
     muleMigrationBoundary,
     muleMigrationWaves,
     dualMigrationRails,
+    apigeeMigrationRoadmap,
     guidedEvaluation,
     guidedArchitectureOverview,
     composition,

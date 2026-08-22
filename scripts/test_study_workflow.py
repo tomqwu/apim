@@ -1400,6 +1400,42 @@ class CanonicalContractTests(WorkflowTestCase):
         )
         self.assertRegex(
             styles,
+            r"(?s)@media screen and \(min-width: 761px\) and \(max-width: 1023px\).*?\.viz-apigee-roadmap\s*\{\s*height: auto;\s*grid-template-rows: auto auto auto;.*?\.viz-apigee-roadmap > ol\s*\{\s*grid-template-columns: repeat\(2, minmax\(0, 1fr\)\);",
+        )
+        self.assertRegex(
+            styles,
+            r"(?s)@media screen and \(min-width: 1024px\) and \(max-width: 1024px\).*?\.viz-apigee-roadmap\s*\{\s*height: auto;\s*grid-template-rows: auto auto auto;.*?\.viz-apigee-roadmap > ol\s*\{\s*grid-template-columns: repeat\(2, minmax\(0, 1fr\)\);",
+        )
+        self.assertRegex(
+            styles,
+            r"(?s)\.viz-apigee-roadmap li > p,\s*\.viz-apigee-roadmap li > small\s*\{.*?overflow: hidden;\s*overflow-wrap: anywhere;",
+        )
+        self.assertRegex(
+            styles,
+            r"(?s)@media screen and \(min-width: 761px\) and \(max-width: 1024px\).*?\.is-guided-slide:has\(\.viz-apigee-roadmap\) > \.slide-main\s*\{\s*overflow-y: auto;\s*overscroll-behavior: contain;\s*scrollbar-gutter: stable;",
+        )
+        self.assertRegex(
+            styles,
+            r"(?s)@media screen and \(min-width: 1025px\) and \(max-height: 840px\).*?\.is-guided-slide:has\(\.viz-apigee-roadmap\) > \.slide-main\s*\{\s*overflow-y: auto;\s*overscroll-behavior: contain;\s*scrollbar-gutter: stable;.*?\.presentation-stage\.is-kong-guided \.viz-apigee-roadmap\s*\{\s*height: auto;\s*grid-template-rows: auto auto auto;",
+        )
+        self.assertRegex(
+            styles,
+            r"(?s)@media screen and \(max-width: 760px\).*?\.presentation-stage\.is-kong-journey\s*\{\s*overflow-x: hidden;\s*overflow-y: auto;\s*overscroll-behavior: contain;",
+        )
+        self.assertIn(
+            '[stage, `${stage?.getAttribute("aria-label") || "Presentation content"}. Scroll vertically to inspect the complete slide.`, "vertical", stage?.getAttribute("role"), stage?.getAttribute("aria-label")]',
+            app,
+        )
+        self.assertIn(
+            "syncSurface(surface, label, axis, originalRole, originalLabel)",
+            app,
+        )
+        self.assertRegex(
+            app,
+            r"(?s)surface\.addEventListener\(\"keydown\", \(event\) => \{\s*if \(!\[\"ArrowUp\".*?surface\.scrollHeight <= surface\.clientHeight \+ 2\) return;\s*event\.preventDefault\(\);",
+        )
+        self.assertRegex(
+            styles,
             r"(?s)@media print.*?\.presentation-slide\s*\{\s*position: static;\s*inset: auto;",
         )
         self.assertRegex(

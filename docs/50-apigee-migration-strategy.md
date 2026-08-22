@@ -54,6 +54,21 @@ Every phase is **proposed and not run**. Elapsed time and workload counts are in
 | A5 — production canary | Collect representative operating evidence | Run low-risk then high-consequence slices through peak, incident, rotation, patch, regional loss, support interaction and cost observation | Independently reviewed `E4` service, security, recovery, support, toil and cost evidence | Error budget, correctness, IAM, recovery, staffing/support or cost gate fails |
 | A6 — dependency zero | Retire only after closure | Freeze changes; archive required bundles/evidence; remove routes, credentials, keys/certs, KVM/state, portals, jobs, support/runbooks, Hybrid components, licenses and contracts | Signed technical/operating/recovery/data/commercial dependency-zero ledger and retained rollback record | Any live consumer, credential, state, route, recovery, audit, support or commercial dependency remains |
 
+## Apigee migration-factory control pack
+
+The roadmap becomes executable only when every cohort carries the records below. These are versioned control artifacts, not status slides. A blank or unreconciled mandatory field holds the cohort at its current phase.
+
+| Control artifact | Minimum required fields | Created or updated | Gate it supports |
+|---|---|---|---|
+| Source denominator | Managed or Hybrid archetype; organization/environment/region; active and retained proxy revisions; shared flows, policies/callouts, products, apps, credentials, KVM/quota/cache, targets/TLS, portal, analytics/audit, traffic, owner, support and unexplained exceptions | A0 and every source change | No A1 until active objects, state, traffic and owners reconcile |
+| Semantic-disposition map | Source object/behavior; direct map/configure/rewrite/retain/retire decision; target entity/service; state authority; precedence/error semantics; owner; unsupported condition; evidence request | A1 through A3 | No target build or factory reuse from name matching alone |
+| Representative parity corpus | Source/target release IDs; golden, negative, error, load and fault cases; expected business outcome; identity/state oracle; evidence query; first failure; disposition and reviewer | A3 and every pattern change | No cohort when critical variance, unauthorized success or unexplained state difference remains |
+| Cohort and coexistence ledger | Cohort membership; route identity; source/target credentials and state authority; DNS/LB/cache horizon; business/security probes; produced/dropped/delivered evidence; reconciliation; stop owner | A4 and A5 | No expansion without bounded routing, reconciliation and evidence continuity |
+| Timed route-back record | Trigger; decision authority; traffic reversal steps; connection drain; identity/state reconciliation; business ambiguity handling; recovery clock; residual divergence and reviewer | A3 rehearsal, A4 and A5 | Traffic rollback alone cannot pass the route-back gate |
+| Dependency-zero register | Technical, operating, recovery, data, audit, portal, support, license, contract and commercial dependency; closure/transfer/retention decision; archive; owner; approver | A6 | No source retirement while any dependency is live, unowned or unverifiable |
+
+The factory reuses approved evidence patterns, not conclusions. A new source archetype, policy/callout class, identity or state authority, protocol, region, support boundary, product/app lifecycle, or business side effect reopens classification and representative parity rather than inheriting a pass.
+
 **Figure APIG-1 — Evidence-gated Apigee migration moves a connected object graph through reversible gates.**
 
 - **Depicted scope:** source archetype freeze; object/state inventory; semantic classification; reversible Kong foundation; representative parity; bounded coexistence; production canary; dependency-zero exit; hold and route-back controls.

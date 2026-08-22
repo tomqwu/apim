@@ -2234,12 +2234,8 @@
           return chartMarkup("muleMigrationBoundary", { ...migration, responsibilities: selected(migration.responsibilities) }, guidedOptions);
         }
         if (slide.viewId === "waves") {
-          const muleMigration = visuals.muleMigration || {};
           const apigeeMigration = visuals.apigeeMigration || {};
-          return chartMarkup("dualMigrationRails", {
-            mule: { ...muleMigration, waves: selected(muleMigration.waves) },
-            apigee: apigeeMigration,
-          }, guidedOptions);
+          return chartMarkup("apigeeMigrationRoadmap", apigeeMigration, guidedOptions);
         }
         if (["outcomes-1", "outcomes-2"].includes(slide.viewId)) {
           const outcomes = visuals.kongPlatformStrategy?.outcomes || {};
@@ -2347,13 +2343,15 @@
   function activatePresentationFrame() {
     const slideMain = document.querySelector(".presentation-stage .slide-main");
     if (!slideMain) return;
+    const stage = document.querySelector(".presentation-stage");
     const comparison = document.querySelector(".presentation-stage .viz-guided-comparison-wrap");
     const surfaces = [
       [slideMain, "Expanded slide detail. Scroll vertically to inspect the opened evidence.", "vertical"],
       [document.querySelector(".presentation-stage .slide-aside-content"), "Additional slide context. Scroll vertically to inspect the complete cue and source framing.", "vertical"],
       [comparison, `${comparison?.dataset.comparisonLabel || "Supplied product comparison"}. Scroll horizontally to compare every product.`, "horizontal"],
+      [stage, `${stage?.getAttribute("aria-label") || "Presentation content"}. Scroll vertically to inspect the complete slide.`, "vertical", stage?.getAttribute("role"), stage?.getAttribute("aria-label")],
     ].filter(([surface]) => surface);
-    const syncSurface = (surface, label, axis) => {
+    const syncSurface = (surface, label, axis, originalRole = null, originalLabel = null) => {
       const scrollable = axis === "horizontal"
         ? surface.scrollWidth > surface.clientWidth + 2
         : surface.scrollHeight > surface.clientHeight + 2;
@@ -2362,8 +2360,10 @@
         surface.setAttribute("role", "region");
         surface.setAttribute("aria-label", label);
       } else {
-        surface.removeAttribute("role");
-        surface.removeAttribute("aria-label");
+        if (originalRole) surface.setAttribute("role", originalRole);
+        else surface.removeAttribute("role");
+        if (originalLabel) surface.setAttribute("aria-label", originalLabel);
+        else surface.removeAttribute("aria-label");
         if (axis === "horizontal") surface.scrollLeft = 0;
         else surface.scrollTop = 0;
       }
@@ -2372,7 +2372,7 @@
         if (cue) cue.hidden = !scrollable;
       }
     };
-    const sync = () => surfaces.forEach(([surface, label, axis]) => syncSurface(surface, label, axis));
+    const sync = () => surfaces.forEach(([surface, label, axis, originalRole, originalLabel]) => syncSurface(surface, label, axis, originalRole, originalLabel));
     surfaces.forEach(([surface, , axis]) => {
       surface.addEventListener("toggle", () => requestAnimationFrame(sync), true);
       if (axis === "horizontal") {
@@ -2387,6 +2387,7 @@
       } else {
         surface.addEventListener("keydown", (event) => {
           if (!["ArrowUp", "ArrowDown", "PageUp", "PageDown", "Home", "End", " "].includes(event.key)) return;
+          if (surface.scrollHeight <= surface.clientHeight + 2) return;
           event.preventDefault();
           event.stopPropagation();
           if (event.key === "Home") {
