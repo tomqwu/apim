@@ -71,7 +71,7 @@
 
   function cleanRevision(value) {
     const text = boundedText(value, limits.id).trim();
-    return /^[0-9a-f]{40}$/i.test(text) ? text : "";
+    return /^[0-9a-f]{40,64}$/i.test(text) ? text : "";
   }
 
   function cleanPublicRole(value) {

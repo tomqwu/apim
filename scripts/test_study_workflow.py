@@ -2407,6 +2407,84 @@ process.stdout.write(window.ApiStudyCharts.render("criteriaOverview", data, {com
                 with self.assertRaisesRegex(verifier.VerificationError, error):
                     verifier.validate_kong_guided_evaluation(invalid, invalid["presentation"])
 
+    def test_guided_proof_programme_renderer_groups_exact_ids_and_falls_back_safely(self) -> None:
+        node = next(
+            (
+                candidate
+                for candidate in (
+                    Path("/usr/bin/node"),
+                    Path("/bin/node"),
+                    Path("/usr/local/bin/node"),
+                    Path("/opt/homebrew/bin/node"),
+                )
+                if candidate.is_file() and os.access(candidate, os.X_OK)
+            ),
+            None,
+        )
+        self.assertIsNotNone(node, "Node.js is required to validate the guided proof-programme renderer")
+        rows = [
+            {
+                "id": f"GEP-{index:02d}",
+                "workstream": f"Workstream {index}",
+                "presentationSummary": f"Executed proof requirement {index}",
+            }
+            for index in range(1, 8)
+        ]
+        script = r'''
+global.window = {};
+require("./site/assets/charts.js");
+const rows = JSON.parse(require("fs").readFileSync(0, "utf8"));
+const render = (candidateRows) => window.ApiStudyCharts.render(
+  "guidedEvaluation",
+  {proofProgramme: {rows: candidateRows}},
+  {viewId: "proof-programme", title: "Target-aligned proof programme"},
+);
+const mismatched = rows.map((row, index) => index === 6 ? {...row, id: "GEP-X"} : row);
+process.stdout.write(JSON.stringify({
+  complete: render(rows),
+  incomplete: render(rows.slice(0, 6)),
+  mismatched: render(mismatched),
+}));
+'''
+        observed = subprocess.run(
+            [str(node), "-e", script],
+            cwd=SOURCE_ROOT,
+            check=False,
+            capture_output=True,
+            input=json.dumps(rows),
+            text=True,
+        )
+        self.assertEqual(0, observed.returncode, observed.stderr)
+        payload = json.loads(observed.stdout)
+        complete = payload["complete"]
+
+        self.assertIn('class="viz-guided-programme-board"', complete)
+        self.assertIn("One closure contract", complete)
+        self.assertIn("Owner · measure · threshold · executed artifact · reviewer · stop rule", complete)
+        groups = re.findall(
+            r'<section class="viz-guided-programme-group is-group-\d"[^>]*>(.*?)</section>',
+            complete,
+            flags=re.DOTALL,
+        )
+        self.assertEqual((2, 3, 2), tuple(group.count("<li") for group in groups))
+        self.assertEqual(3, complete.count("<ol>"))
+        for label in ("Target fidelity", "Operating evidence", "Decision control"):
+            with self.subTest(label=label):
+                self.assertIn(f'aria-label="{label}"', complete)
+        for row in rows:
+            with self.subTest(workstream=row["id"]):
+                self.assertEqual(1, complete.count(row["id"]))
+        self.assertIn('<li class="is-adjunct">', complete)
+        self.assertIn("Unscored adjunct hypothesis", complete)
+
+        for case in ("incomplete", "mismatched"):
+            with self.subTest(fallback=case):
+                fallback = payload[case]
+                self.assertNotIn("viz-guided-programme-board", fallback)
+                self.assertNotIn("viz-guided-programme-group", fallback)
+                self.assertEqual(1, fallback.count('<ol class="viz-guided-programme"'))
+                self.assertIn('style="--guided-programme-count:', fallback)
+
     def test_guided_assessment_manifest_contract_is_exact_and_falsifiable(self) -> None:
         expected_phase_questions = {
             "KGE-P1": (
@@ -2785,9 +2863,16 @@ process.stdout.write(window.ApiStudyCharts.render("criteriaOverview", data, {com
         self.assertIn('class="assessment-target-bindings"', app_source)
         self.assertIn("question.targetIds", app_source)
         self.assertIn("escapeHtml(targetId)", app_source)
+        self.assertIn('<ul aria-labelledby="${inputPrefix}-targets-label">', app_source)
+        self.assertIn('targetIds.map((targetId) => `<li>${escapeHtml(targetId)}</li>`)', app_source)
+        self.assertNotIn('targetIds.map((targetId) => `<span>${escapeHtml(targetId)}</span>`)', app_source)
         self.assertRegex(
             (SOURCE_ROOT / "site" / "assets" / "styles.css").read_text(encoding="utf-8"),
             r"(?s)\.assessment-target-bindings\s*\{[^}]*display:\s*grid;",
+        )
+        self.assertRegex(
+            (SOURCE_ROOT / "site" / "assets" / "styles.css").read_text(encoding="utf-8"),
+            r"(?s)\.assessment-target-bindings\s*>\s*ul\s*\{[^}]*display:\s*flex;[^}]*list-style:\s*none;",
         )
         self.assertIn("ApiStudyAssessment", app_source)
         self.assertIn("#/present/kong-platform-journey-guided/summary", app_source)
@@ -2853,23 +2938,32 @@ for (const name of [
 const contract = JSON.parse(fs.readFileSync(0, "utf8"));
 const originalContract = JSON.parse(JSON.stringify(contract));
 assert.equal(contract.schemaVersion, 2);
-const digitHeavyRevision = "0123456789abcdef0123456789abcdef01234567";
-const revisionNormalized = api.normalizeAssessment(
-  {...contract, deckRevision: digitHeavyRevision},
-  {deckId: "kong-platform-journey-guided", responses: {}},
-);
-assert.equal(revisionNormalized.deckRevision, digitHeavyRevision, "hex revisions must not be mistaken for phone numbers");
-const revisionSummary = api.summarizeAssessment({...contract, deckRevision: digitHeavyRevision}, revisionNormalized);
-assert.equal(
-  JSON.parse(api.exportAssessmentJson(revisionSummary)).deckRevision,
-  digitHeavyRevision,
-  "JSON export must preserve a digit-heavy hex revision",
-);
-assert.match(
-  api.exportAssessmentMarkdown(revisionSummary),
-  new RegExp(`Deck revision \\(deckRevision\\): ${digitHeavyRevision}`),
-  "Markdown export must preserve a digit-heavy hex revision",
-);
+const validRevisions = [
+  "0123456789abcdef0123456789abcdef01234567",
+  "ABCDEF0123456789ABCDEF0123456789ABCDEF0123456789ABCDEF0123456789",
+];
+for (const revision of validRevisions) {
+  const revisionNormalized = api.normalizeAssessment(
+    {...contract, deckRevision: revision},
+    {deckId: "kong-platform-journey-guided", responses: {}},
+  );
+  assert.equal(
+    revisionNormalized.deckRevision,
+    revision,
+    `${revision.length}-character hex revisions must survive normalization without being mistaken for phone numbers`,
+  );
+  const revisionSummary = api.summarizeAssessment({...contract, deckRevision: revision}, revisionNormalized);
+  assert.equal(
+    JSON.parse(api.exportAssessmentJson(revisionSummary)).deckRevision,
+    revision,
+    `JSON export must preserve a ${revision.length}-character hex revision`,
+  );
+  assert.match(
+    api.exportAssessmentMarkdown(revisionSummary),
+    new RegExp(`Deck revision \\(deckRevision\\): ${revision}`),
+    `Markdown export must preserve a ${revision.length}-character hex revision`,
+  );
+}
 const expectedPublicRoles = [
   "Decision owner", "Enterprise architecture", "Platform product", "Security architecture",
   "IAM", "SRE/performance", "FinOps", "Migration lead", "Independent assurance",

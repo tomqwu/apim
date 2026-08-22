@@ -2582,9 +2582,9 @@
           <span>Minimum evidence · ${escapeHtml(question.minimumEvidence || "E0")}</span>
           <strong data-assessment-question-status>${escapeHtml(assessmentStatusLabel(questionSummary))}</strong>
         </div>
-        ${targetIds.length ? `<div class="assessment-target-bindings" aria-label="Bound canonical target IDs">
-          <b>Bound targets</b>
-          <div>${targetIds.map((targetId) => `<span>${escapeHtml(targetId)}</span>`).join("")}</div>
+        ${targetIds.length ? `<div class="assessment-target-bindings">
+          <b id="${inputPrefix}-targets-label">Bound targets</b>
+          <ul aria-labelledby="${inputPrefix}-targets-label">${targetIds.map((targetId) => `<li>${escapeHtml(targetId)}</li>`).join("")}</ul>
         </div>` : ""}
         ${question.decisionUse ? `<p class="assessment-decision-use"><b>Decision use</b>${escapeHtml(question.decisionUse)}</p>` : ""}
         <div class="assessment-hold-rule" role="note">

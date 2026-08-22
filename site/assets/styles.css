@@ -323,14 +323,17 @@
   text-transform: uppercase;
 }
 
-.assessment-target-bindings > div {
+.assessment-target-bindings > ul {
   min-width: 0;
   display: flex;
   flex-wrap: wrap;
   gap: 0.3rem;
+  margin: 0;
+  padding: 0;
+  list-style: none;
 }
 
-.assessment-target-bindings span {
+.assessment-target-bindings li {
   display: inline-flex;
   min-height: 1.55rem;
   align-items: center;
