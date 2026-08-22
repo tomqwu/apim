@@ -2,9 +2,9 @@
   "binaryFiles": [
     {
       "path": "presentations/kong-platform-journey-guided.pptx",
-      "sha256": "8587f50684087b827a40ed31c1633247830a1603e1fac4f704083dc1e9c4eb47",
+      "sha256": "431ca0d74b6c91f16a134eb00a9b09367fc8888b96ed95656bb67cc4b0096964",
       "reviewedByRole": "Presentation and site lead",
-      "reason": "Public-safe, brand-neutral 25-slide companion projection of docs/48; the package includes the governed assurance expansion, Traceable feasibility boundary, dual migration gates, source hyperlinks, and speaker notes while excluding customer identity, raw input filenames, private paths, commercial evidence, and claims of observed production fit."
+      "reason": "Public-safe, brand-neutral 25-slide companion projection of docs/48; the package now exposes four early assessment gates for multicloud, clean exit/vendor dependency, fully allocated TCO, and optional Kong-plus-Traceable admission, while preserving source hyperlinks, synchronized speaker notes, dual migration gates, and the executed-evidence boundary. It excludes customer identity, raw input filenames, private paths, commercial evidence, and claims of observed production fit."
     }
   ],
   "schemaVersion": 1

@@ -827,6 +827,24 @@ class CanonicalContractTests(WorkflowTestCase):
 
             for index, slide_contract in enumerate(contract, start=1):
                 slide = ET.fromstring(archive.read(f"ppt/slides/slide{index}.xml"))
+                visible_paragraphs = tuple(
+                    "".join(text.text or "" for text in paragraph.findall(".//a:t", namespaces))
+                    for paragraph in slide.findall(".//a:p", namespaces)
+                )
+                visible_text = re.sub(r"\s+", " ", " ".join(visible_paragraphs)).strip()
+                self.assertIn(
+                    re.sub(r"\s+", " ", slide_contract["title"]).strip(),
+                    visible_text,
+                    f"slide {index} visible title drifted from the native KGE contract",
+                )
+                if index == 2:
+                    for marker in (
+                        "MULTICLOUD", "CLEAN EXIT", "FULL TCO", "TRACEABLE / HARNESS",
+                    ):
+                        self.assertIn(marker, visible_text, f"KGE-02 lacks visible early-gate marker {marker}")
+                if index == 3:
+                    for marker in ("TRACEABLE / HARNESS", "UNSCORED GATE"):
+                        self.assertIn(marker, visible_text.upper(), f"KGE-03 lacks visible early-gate marker {marker}")
                 relationships = ET.fromstring(
                     archive.read(f"ppt/slides/_rels/slide{index}.xml.rels")
                 )
@@ -2082,8 +2100,30 @@ process.stdout.write(window.ApiStudyCharts.render("criteriaOverview", data, {com
                 self.assertIn(f"#/present/kong-platform-journey-guided/{phase_index}", routes)
 
         guided = manifest["visuals"]["guidedEvaluation"]
-        self.assertEqual("2026-08-21", guided["asOf"])
+        self.assertEqual("2026-08-22", guided["asOf"])
         self.assertEqual(tuple(f"GTM-{index:02d}" for index in range(1, 10)), tuple(row["id"] for row in guided["targetModel"]["rows"]))
+        self.assertEqual(
+            tuple(f"EAG-{index:02d}" for index in range(1, 5)),
+            tuple(row["id"] for row in guided["earlyGates"]["rows"]),
+        )
+        self.assertEqual(
+            "Four early assessment gates",
+            guided["earlyGates"]["provenance"]["sourceHeading"],
+        )
+        self.assertEqual(
+            "Four early assessment gates",
+            guided["earlyGates"]["provenance"]["heading"],
+        )
+        self.assertEqual(
+            (
+                "Gate ID",
+                "Early decision to record",
+                "Exact subject to freeze",
+                "Evidence request created at the gate",
+                "HOLD condition before bounded authorization",
+            ),
+            tuple(guided["earlyGates"]["provenance"]["tableColumns"]),
+        )
         self.assertEqual(tuple(f"GEW-{index:02d}" for index in range(1, 9)), tuple(row["id"] for row in guided["weights"]["rows"]))
         self.assertEqual(100, guided["weights"]["weightTotal"])
         self.assertEqual(tuple(f"GRS-{index:02d}" for index in range(1, 7)), tuple(row["id"] for row in guided["governedRescore"]["rows"]))
@@ -2153,6 +2193,49 @@ process.stdout.write(window.ApiStudyCharts.render("criteriaOverview", data, {com
         )
         self.assertEqual("KPS-1", architecture_overview["provenance"]["figureId"])
         guided_contract_by_key = {row["key"]: row for row in guided["slides"]["rows"]}
+        self.assertEqual(
+            {
+                "title": "The operating model and four early gates drive the decision",
+                "body": (
+                    "Confirm GTM-01–09, then admit, amend, reject, or hold multicloud fit, "
+                    "clean exit/vendor dependency, fully allocated TCO, and the optional "
+                    "Kong-plus-Traceable solution profile"
+                ),
+                "visualContract": (
+                    "Three-lane target-model map using GTM-01–09 plus four "
+                    "EAG-01 – EAG-04 admission gates"
+                ),
+                "canonicalSource": (
+                    "This study / Stated target operating model plus Four early assessment gates"
+                ),
+            },
+            {
+                field: guided_contract_by_key["kong-guided-target-model"][field]
+                for field in ("title", "body", "visualContract", "canonicalSource")
+            },
+        )
+        self.assertEqual(
+            {
+                "title": "The scorecard favors cloud-native delivery",
+                "body": (
+                    "Kubernetes plus GitOps carry 35%; the provisional scenario rebases the "
+                    "historical model to 60% and assigns 40% to six missing dimensions; "
+                    "Traceable by Harness remains an unscored admission gate"
+                ),
+                "visualContract": (
+                    "Eight supplied weights plus provisional expanded-dimension weights and "
+                    "explicit unscored-adjunct note"
+                ),
+                "canonicalSource": (
+                    "This study / Supplied weighting model, provisional weighting and "
+                    "uncertainty scenario, plus EAG-04"
+                ),
+            },
+            {
+                field: guided_contract_by_key["kong-guided-weights"][field]
+                for field in ("title", "body", "visualContract", "canonicalSource")
+            },
+        )
         self.assertIn("docs/50-apigee-migration-strategy.md", guided_contract_by_key["kong-guided-waves"]["sourcePaths"])
         guided_slides_by_key = {slide["key"]: slide for slide in manifest["presentation"] if slide["key"] in guided_keys}
         self.assertTrue(all(guided_contract_by_key[key]["officialReferences"] for key in guided_keys))
@@ -2188,6 +2271,9 @@ process.stdout.write(window.ApiStudyCharts.render("criteriaOverview", data, {com
         self.assertRegex(styles, r"(?s)\.viz-guided-architecture-lanes > li\s*\{[^}]*grid-template-columns:")
         self.assertIn("row.presentationStrongestWhen || row.strongestWhen", charts)
         self.assertIn("row.presentationSummary || row.scope", charts)
+        self.assertIn('class="viz-guided-early-gates"', charts)
+        self.assertIn("data?.earlyGates", charts)
+        self.assertRegex(styles, r"(?s)\.viz-guided-early-gates\s*\{[^}]*display:\s*grid;")
         self.assertIn('<table class="viz-guided-comparison">', charts)
         self.assertIn('class="viz-guided-comparison-wrap" tabindex="-1" data-comparison-label=', charts)
         self.assertIn('class="viz-guided-scroll-cue" aria-hidden="true" hidden', charts)
@@ -2238,6 +2324,9 @@ process.stdout.write(window.ApiStudyCharts.render("criteriaOverview", data, {com
             ("roles", "exact six-role order"),
             ("phase start", "six-stage spine and start keys"),
             ("target ID", "GTM-01 through GTM-09"),
+            ("early gate ID", "EAG-01 through EAG-04"),
+            ("early gate semantics", "exact canonical doc48 semantic tuples"),
+            ("early gate provenance", "provenance must match canonical doc48"),
             ("weight sum", "weights must sum to 100"),
             ("option ID", "exact GEO order"),
             ("score arithmetic", "arithmetic is invalid"),
@@ -2249,6 +2338,7 @@ process.stdout.write(window.ApiStudyCharts.render("criteriaOverview", data, {com
             ("architecture overview", "guided architecture edges"),
             ("comparison", "architecture comparison IDs are invalid"),
             ("KGE contract", "exact KGE semantic order"),
+            ("early slide contract", "exact early-assessment title, body, visual, and source"),
             ("evidence state", "evidence states/classes"),
             ("point source", "provenance does not match"),
             ("reference URL", "official references"),
@@ -2272,6 +2362,12 @@ process.stdout.write(window.ApiStudyCharts.render("criteriaOverview", data, {com
                     invalid_deck["journeyPhases"][5]["startKey"] = "kong-guided-score-audit"
                 elif case == "target ID":
                     invalid_guided["targetModel"]["rows"][0]["id"] = "GTM-X"
+                elif case == "early gate ID":
+                    invalid_guided["earlyGates"]["rows"][0]["id"] = "EAG-X"
+                elif case == "early gate semantics":
+                    invalid_guided["earlyGates"]["rows"][1]["evidenceRequest"] = "Changed exit evidence request"
+                elif case == "early gate provenance":
+                    invalid_guided["earlyGates"]["provenance"]["sourceHeading"] = "Wrong heading"
                 elif case == "weight sum":
                     invalid_guided["weights"]["weightTotal"] = 99
                 elif case == "option ID":
@@ -2294,6 +2390,8 @@ process.stdout.write(window.ApiStudyCharts.render("criteriaOverview", data, {com
                     invalid_guided["comparisons"]["architecture"]["rows"][0]["id"] = "GEC-X"
                 elif case == "KGE contract":
                     invalid_guided["slides"]["rows"][0]["key"] = "kong-guided-unknown"
+                elif case == "early slide contract":
+                    invalid_guided["slides"]["rows"][1]["body"] = "Early gate content removed"
                 elif case == "evidence state":
                     invalid_guided["evidenceStates"]["rows"][0]["sourceClass"] = "Unbounded claim"
                 elif case == "point source":
@@ -2311,7 +2409,10 @@ process.stdout.write(window.ApiStudyCharts.render("criteriaOverview", data, {com
 
     def test_guided_assessment_manifest_contract_is_exact_and_falsifiable(self) -> None:
         expected_phase_questions = {
-            "KGE-P1": ("KGE-P1-Q01", "KGE-P1-Q02"),
+            "KGE-P1": (
+                "KGE-P1-Q01", "KGE-P1-Q02", "KGE-P1-Q03",
+                "KGE-P1-Q04", "KGE-P1-Q05", "KGE-P1-Q06",
+            ),
             "KGE-P2": ("KGE-P2-Q01", "KGE-P2-Q02"),
             "KGE-P3": ("KGE-P3-Q01", "KGE-P3-Q02"),
             "KGE-P4": ("KGE-P4-Q01", "KGE-P4-Q02"),
@@ -2424,7 +2525,7 @@ process.stdout.write(window.ApiStudyCharts.render("criteriaOverview", data, {com
             assessment["sourceId"],
         )
         self.assertEqual("meeting-facilitation-guide", assessment["sourceClass"])
-        self.assertEqual("2026-08-21", assessment["asOf"])
+        self.assertEqual("2026-08-22", assessment["asOf"])
         self.assertEqual(
             expected_phase_questions,
             {
@@ -2433,7 +2534,7 @@ process.stdout.write(window.ApiStudyCharts.render("criteriaOverview", data, {com
             },
         )
         questions = assessment["questions"]
-        self.assertEqual(14, len(questions))
+        self.assertEqual(18, len(questions))
         self.assertEqual(expected_question_ids, tuple(question["id"] for question in questions))
         self.assertEqual(
             {
@@ -2447,6 +2548,22 @@ process.stdout.write(window.ApiStudyCharts.render("criteriaOverview", data, {com
             all(isinstance(question["holdRule"], str) and question["holdRule"].strip() for question in questions)
         )
         self.assertTrue(all(question["minimumEvidence"] in {"E1", "E2", "E3"} for question in questions))
+        question_by_id = {question["id"]: question for question in questions}
+        expected_early_bindings = {
+            "KGE-P1-Q02": tuple(f"GTM-{index:02d}" for index in range(1, 10)),
+            "KGE-P1-Q03": ("EAG-04", "GSA-01", "GEP-07", "GEC-20"),
+            "KGE-P1-Q04": ("EAG-01", "GTM-08", "GRS-01", "GEC-07"),
+            "KGE-P1-Q05": ("EAG-02", "GRS-04", "GEC-16"),
+            "KGE-P1-Q06": ("EAG-03", "GEW-08", "GRS-05", "GEC-17"),
+        }
+        for question_id, target_ids in expected_early_bindings.items():
+            with self.subTest(early_question=question_id):
+                question = question_by_id[question_id]
+                self.assertEqual(("KGE-02", "KGE-03"), tuple(question["slideIds"]))
+                self.assertEqual(target_ids, tuple(question["targetIds"]))
+                self.assertEqual("E1", question["minimumEvidence"])
+                self.assertTrue(question["mandatory"])
+                self.assertEqual("KGE-CS-INPUT", question["choiceSetId"])
         self.assertEqual(
             expected_choice_set_ids,
             tuple(choice_set["id"] for choice_set in assessment["choiceSets"]),
@@ -2507,8 +2624,8 @@ process.stdout.write(window.ApiStudyCharts.render("criteriaOverview", data, {com
             ("contract fields", "fields must match the exact v2 schema"),
             ("schema", "schemaVersion must be 2"),
             ("deck revision", "deckRevision must equal manifest sourceRevision"),
-            ("mapping", "exact 2/2/2/2/4/2 mapping"),
-            ("question ID", "exact KGE-P1-Q01 through KGE-P6-Q02 order"),
+            ("mapping", "exact 6/2/2/2/4/2 mapping"),
+            ("question ID", "exact 18-question KGE-P1-Q01 through KGE-P6-Q02 order"),
             ("question phase", "phaseId is invalid"),
             ("question slide semantics", "exact canonical doc49 semantic tuple"),
             ("question target semantics", "exact canonical doc49 semantic tuple"),
@@ -2516,6 +2633,8 @@ process.stdout.write(window.ApiStudyCharts.render("criteriaOverview", data, {com
             ("question mandatory semantics", "exact canonical doc49 semantic tuple"),
             ("question evidence semantics", "exact canonical doc49 semantic tuple"),
             ("question choice-set semantics", "exact canonical doc49 semantic tuple"),
+            ("early target binding", "exact early-gate slide and target bindings"),
+            ("early input disposition", "mandatory E1 input disposition"),
             ("choice outcome", "invalid outcome"),
             ("public roles", "exact controlled public-role order"),
             ("review fields", "fields must match the exact v2 schema"),
@@ -2564,6 +2683,10 @@ process.stdout.write(window.ApiStudyCharts.render("criteriaOverview", data, {com
                     invalid_assessment["questions"][0]["minimumEvidence"] = "E2"
                 elif case == "question choice-set semantics":
                     invalid_assessment["questions"][0]["choiceSetId"] = "KGE-CS-INPUT"
+                elif case == "early target binding":
+                    invalid_assessment["questions"][2]["targetIds"][-1] = "GEC-99"
+                elif case == "early input disposition":
+                    invalid_assessment["questions"][2]["mandatory"] = False
                 elif case == "choice outcome":
                     invalid_assessment["choiceSets"][0]["choices"][0]["outcome"] = "score"
                 elif case == "public roles":
@@ -2659,6 +2782,13 @@ process.stdout.write(window.ApiStudyCharts.render("criteriaOverview", data, {com
         ):
             with self.subTest(ui_hook=hook):
                 self.assertIn(hook, app_source)
+        self.assertIn('class="assessment-target-bindings"', app_source)
+        self.assertIn("question.targetIds", app_source)
+        self.assertIn("escapeHtml(targetId)", app_source)
+        self.assertRegex(
+            (SOURCE_ROOT / "site" / "assets" / "styles.css").read_text(encoding="utf-8"),
+            r"(?s)\.assessment-target-bindings\s*\{[^}]*display:\s*grid;",
+        )
         self.assertIn("ApiStudyAssessment", app_source)
         self.assertIn("#/present/kong-platform-journey-guided/summary", app_source)
         self.assertIn(
@@ -2799,13 +2929,13 @@ function questionGap(summary, questionId, type) {
 }
 
 const empty = summarize({});
-assert.equal(empty.counts.total, 14);
+assert.equal(empty.counts.total, 18);
 assert.equal(empty.counts.answered, 0);
-assert.equal(empty.counts.unanswered, 14);
+assert.equal(empty.counts.unanswered, 18);
 assert.equal(empty.counts.unknown, 0, "unanswered must remain distinct from unknown");
 assert.equal(empty.decisionState, "hold", "mandatory unanswered questions must hold");
 assert.equal(empty.reviewable, false);
-assert.equal(empty.questions.filter((question) => question.status === "unanswered").length, 14);
+assert.equal(empty.questions.filter((question) => question.status === "unanswered").length, 18);
 
 const unknownQuestion = questionFor("unknown", true);
 assert.ok(unknownQuestion, "a mandatory unknown disposition is required");
@@ -2813,7 +2943,7 @@ const oneUnknown = summarize({
   [unknownQuestion.id]: responseFor(unknownQuestion, "unknown"),
 });
 assert.equal(oneUnknown.counts.answered, 1);
-assert.equal(oneUnknown.counts.unanswered, 13);
+assert.equal(oneUnknown.counts.unanswered, 17);
 assert.equal(oneUnknown.counts.unknown, 1);
 assert.equal(
   oneUnknown.questions.find((question) => question.id === unknownQuestion.id).status,
@@ -2826,7 +2956,7 @@ const resolved = resolvedResponses();
 const resolvedSummary = summarize(resolved);
 assert.equal(resolvedSummary.decisionState, "reviewable");
 assert.equal(resolvedSummary.reviewable, true);
-assert.equal(resolvedSummary.counts.evidenceSupported, 14);
+assert.equal(resolvedSummary.counts.evidenceSupported, 18);
 assert.deepEqual(resolvedSummary.holds, []);
 assert.deepEqual(resolvedSummary.gaps, []);
 assert.match(resolvedSummary.safeguards.evidenceAuthority, /does not upgrade evidence/i);
@@ -2926,7 +3056,7 @@ const insufficient = summarize({
 assert.equal(insufficient.decisionState, "hold");
 assert.equal(insufficient.reviewable, false);
 assert.ok(questionGap(insufficient, passQuestion.id, "evidence"));
-assert.equal(insufficient.counts.evidenceSupported, 13);
+assert.equal(insufficient.counts.evidenceSupported, 17);
 assert.equal(
   insufficient.questions.find((question) => question.id === passQuestion.id).outcome,
   "pass",

@@ -1548,6 +1548,29 @@ def guided_evaluation_visuals(
         for row in target_rows
     ]
 
+    early_gate_columns = (
+        "Gate ID",
+        "Early decision to record",
+        "Exact subject to freeze",
+        "Evidence request created at the gate",
+        "HOLD condition before bounded authorization",
+    )
+    early_gate_rows, early_gate_provenance = scoped_rows(
+        "Four early assessment gates",
+        early_gate_columns,
+    )
+    early_gate_provenance["heading"] = "Four early assessment gates"
+    early_gates = [
+        {
+            "id": clean_inline(row_value(row, "Gate ID")),
+            "decision": clean_inline(row_value(row, "Early decision to record")),
+            "subject": clean_inline(row_value(row, "Exact subject to freeze")),
+            "evidenceRequest": clean_inline(row_value(row, "Evidence request created at the gate")),
+            "holdCondition": clean_inline(row_value(row, "HOLD condition before bounded authorization")),
+        }
+        for row in early_gate_rows
+    ]
+
     weight_columns = ("Weight ID", "Category", "Weight", "Interpretation", "Evidence needed before decision use")
     weight_rows, weight_provenance = scoped_rows("Supplied weighting model", weight_columns)
     weights = [
@@ -2002,7 +2025,14 @@ def guided_evaluation_visuals(
         )
     choice_sets = list(choice_sets_by_id.values())
     expected_phase_question_ids = {
-        "KGE-P1": ["KGE-P1-Q01", "KGE-P1-Q02"],
+        "KGE-P1": [
+            "KGE-P1-Q01",
+            "KGE-P1-Q02",
+            "KGE-P1-Q03",
+            "KGE-P1-Q04",
+            "KGE-P1-Q05",
+            "KGE-P1-Q06",
+        ],
         "KGE-P2": ["KGE-P2-Q01", "KGE-P2-Q02"],
         "KGE-P3": ["KGE-P3-Q01", "KGE-P3-Q02"],
         "KGE-P4": ["KGE-P4-Q01", "KGE-P4-Q02"],
@@ -2012,6 +2042,8 @@ def guided_evaluation_visuals(
     choice_set_ids = set(choice_sets_by_id)
     if phase_question_ids != expected_phase_question_ids:
         raise ValueError("Assessment questions do not match the stable phase distribution")
+    if len(questions) != 18:
+        raise ValueError("Assessment contract must contain exactly 18 stable questions")
     if any(question["minimumEvidence"] not in {"E1", "E2", "E3"} for question in questions):
         raise ValueError("Assessment question Minimum evidence must be E1, E2, or E3")
     if any(question["choiceSetId"] not in choice_set_ids for question in questions):
@@ -2201,6 +2233,7 @@ def guided_evaluation_visuals(
         "asOf": as_of,
         "metadata": metadata,
         "targetModel": {"rowTotal": len(target_model), "rows": target_model, "provenance": target_provenance},
+        "earlyGates": {"rowTotal": len(early_gates), "rows": early_gates, "provenance": early_gate_provenance},
         "weights": {"rowTotal": len(weights), "rows": weights, "weightTotal": sum(row["weight"] for row in weights), "provenance": weight_provenance},
         "governedRescore": {"rowTotal": len(governed_rescore), "rows": governed_rescore, "provenance": rescore_provenance},
         "provisionalWeights": {"rowTotal": len(provisional_weights), "rows": provisional_weights, "weightTotal": sum(row["weight"] for row in provisional_weights), "provenance": provisional_weight_provenance},
@@ -2534,11 +2567,23 @@ def validate_site_projection(stats: dict[str, int], visuals: dict[str, object]) 
             isinstance(guided_evaluation, dict)
             and bool(guided_evaluation.get("sourceId"))
             and guided_evaluation.get("sourceClass") == "comparative-study"
-            and guided_evaluation.get("asOf") == "2026-08-21"
+            and guided_evaluation.get("asOf") == "2026-08-22"
             and bool(guided_evaluation.get("evidenceState"))
             and guided_evaluation.get("targetModel", {}).get("rowTotal") == 9
             and [row.get("id") for row in guided_evaluation.get("targetModel", {}).get("rows", [])]
             == [f"GTM-{rank:02d}" for rank in range(1, 10)]
+            and guided_evaluation.get("earlyGates", {}).get("rowTotal") == 4
+            and [row.get("id") for row in guided_evaluation.get("earlyGates", {}).get("rows", [])]
+            == [f"EAG-{rank:02d}" for rank in range(1, 5)]
+            and all(
+                row.get("decision")
+                and row.get("subject")
+                and row.get("evidenceRequest")
+                and row.get("holdCondition")
+                for row in guided_evaluation.get("earlyGates", {}).get("rows", [])
+            )
+            and guided_evaluation.get("earlyGates", {}).get("provenance", {}).get("heading")
+            == "Four early assessment gates"
             and guided_evaluation.get("weights", {}).get("rowTotal") == 8
             and guided_evaluation.get("weights", {}).get("weightTotal") == 100
             and [row.get("id") for row in guided_evaluation.get("weights", {}).get("rows", [])]
@@ -2622,7 +2667,7 @@ def validate_site_projection(stats: dict[str, int], visuals: dict[str, object]) 
             and [row.get("evidenceState") for row in guided_slide_rows]
             == [
                 "Guided decision brief",
-                *("Stakeholder input" for _ in range(2)),
+                *("Stakeholder input plus early-gate contract" for _ in range(2)),
                 "Conditional hypothesis",
                 "Provisional scenario over stakeholder input",
                 "Bounded direction",
@@ -2655,6 +2700,7 @@ def validate_site_projection(stats: dict[str, int], visuals: dict[str, object]) 
                 and block.get("provenance", {}).get("asOf") == guided_evaluation.get("asOf")
                 for block in (
                     guided_evaluation.get("targetModel", {}),
+                    guided_evaluation.get("earlyGates", {}),
                     guided_evaluation.get("weights", {}),
                     guided_evaluation.get("governedRescore", {}),
                     guided_evaluation.get("provisionalWeights", {}),
@@ -3055,7 +3101,10 @@ def make_presentation(items: list[dict[str, object]], stats: dict[str, int], vis
     comparison_blocks = comparison_blocks if isinstance(comparison_blocks, dict) else {}
     guided_row_ids = {
         "cover": block_ids(guided.get("phases", {})),
-        "target-model": block_ids(guided.get("targetModel", {})),
+        "target-model": [
+            *block_ids(guided.get("targetModel", {})),
+            *block_ids(guided.get("earlyGates", {})),
+        ],
         "weights": block_ids(guided.get("weights", {})),
         "options": block_ids(guided.get("options", {})),
         "score": block_ids(guided.get("scoring", {})),

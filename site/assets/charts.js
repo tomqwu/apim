@@ -571,6 +571,7 @@
     const section = data?.targetModel || {};
     const rows = guidedRows(section, ["lanes"]);
     if (!rows.length) return empty();
+    const gates = guidedRows(data?.earlyGates || {});
     const lanes = rows.reduce((groups, row) => {
       const lane = row.lane || row.label || "Target input";
       const current = groups.find((group) => group.lane === lane);
@@ -578,13 +579,20 @@
       else groups.push({ lane, rows: [row] });
       return groups;
     }, []);
-    const body = `<div class="viz-guided-target">${lanes.map((lane) => {
+    const body = `<div class="viz-guided-target-model"><div class="viz-guided-target">${lanes.map((lane) => {
       const laneRows = guidedRows(lane, ["inputs", "items"]);
       return `<section>
         <h3>${escapeHtml(lane.lane || lane.label)}</h3>
         <ol>${laneRows.map((row) => `<li><strong>${escapeHtml(row.input || row.label)}</strong></li>`).join("")}</ol>
       </section>`;
-    }).join("")}</div>`;
+    }).join("")}</div>${gates.length ? `<section class="viz-guided-early-gates" aria-label="Four early assessment gates">
+      <header><span>Before bounded authorization</span><strong>Disposition all four early gates</strong></header>
+      <ol>${gates.map((gate) => `<li>
+        <span>${escapeHtml(gate.id || "")}</span>
+        <strong>${escapeHtml(gate.decision || "Early gate")}</strong>
+        <small>Record disposition · evidence request · HOLD condition</small>
+      </li>`).join("")}</ol>
+    </section>` : ""}</div>`;
     return guidedFrame("target-model", data, section, options, body, options.title || "Stated target operating model");
   }
 
@@ -604,7 +612,7 @@
         : `<div class="viz-guided-scenario-ranges" aria-label="Mechanical uncertainty envelopes">${envelopeRows.map((row) => `<span><b>${escapeHtml(row.option || "")}</b><strong>${escapeHtml(row.envelope || "")}</strong></span>`).join("")}</div>`;
       return `<aside class="viz-guided-rescore-context viz-guided-scenario-context is-${escapeHtml(variant)}" aria-label="Provisional weighting and uncertainty scenario">
         <div><span>Scenario assumption</span><strong>60% historical input · 40% unknown</strong></div>
-        <p>Calculated, not executed evidence. The ranges overlap, so the ranking is unstable and the decision remains HOLD.</p>
+        <p>Calculated, not executed evidence; ranges overlap, ranking is unstable, and the decision remains HOLD. Traceable by Harness is an unscored admission gate—not a gateway total.</p>
         ${details}
       </aside>`;
     }
@@ -622,7 +630,7 @@
       : "";
     return `<aside class="viz-guided-rescore-context is-${escapeHtml(variant)}" aria-label="Governed re-score status">
       <div><span>Governed re-score</span><strong>${escapeHtml(statusLabel)}</strong></div>
-      <p>Historical supplied weights and totals remain unchanged while evidence, rubric, weights, ratings, scorers, and approval stay unresolved.</p>
+      <p>Historical weights stay unchanged while evidence and approval remain unresolved. Traceable by Harness is an unscored admission gate—not a gateway total.</p>
       ${details}
     </aside>`;
   }
