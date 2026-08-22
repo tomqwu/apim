@@ -4472,6 +4472,48 @@ class PathTraversalTests(WorkflowTestCase):
 
 
 class PublicContentScannerTests(WorkflowTestCase):
+    def test_history_scan_uses_each_commits_reviewed_binary_allowlist(self) -> None:
+        repository = self.repository()
+        base = repository.base_sha
+        binary_path = "presentations/history-binary.pptx"
+        allowlist_path = repository.root / "config" / "public-content-allowlist.json"
+
+        def write_reviewed_version(payload: bytes) -> None:
+            repository.write_bytes(binary_path, payload)
+            allowlist = json.loads(allowlist_path.read_text(encoding="utf-8"))
+            allowlist["binaryFiles"] = [
+                entry
+                for entry in allowlist["binaryFiles"]
+                if entry["path"] != binary_path
+            ]
+            allowlist["binaryFiles"].append(
+                {
+                    "path": binary_path,
+                    "sha256": hashlib.sha256(payload).hexdigest(),
+                    "reviewedByRole": "Presentation reviewer",
+                    "reason": "Public-safe historical binary validation fixture.",
+                }
+            )
+            repository.write_text(
+                "config/public-content-allowlist.json",
+                json.dumps(allowlist, indent=2, sort_keys=True) + "\n",
+            )
+
+        write_reviewed_version(b"first reviewed binary revision")
+        first = repository.commit_all("Add the first reviewed binary revision")
+        write_reviewed_version(b"second reviewed binary revision")
+        second = repository.commit_all("Add the second reviewed binary revision")
+        self.assertNotEqual(
+            repository.git("rev-parse", f"{first}:{binary_path}").stdout,
+            repository.git("rev-parse", f"{second}:{binary_path}").stdout,
+        )
+
+        module = repository.load_module("scripts/study_workflow.py")
+        self.assertEqual(
+            [],
+            module.public_content_errors(base, "HEAD", include_generated=False),
+        )
+
     def test_history_mode_lookup_treats_glob_like_names_literally(self) -> None:
         repository = self.repository()
         base = repository.base_sha
