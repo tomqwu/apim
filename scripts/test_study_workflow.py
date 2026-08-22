@@ -1400,6 +1400,10 @@ class CanonicalContractTests(WorkflowTestCase):
         )
         self.assertRegex(
             styles,
+            r"(?s)@media screen and \(min-width: 761px\) and \(max-width: 1023px\).*?\.viz-apigee-roadmap\s*\{\s*height: auto;\s*grid-template-rows: auto auto auto;.*?\.viz-apigee-roadmap > ol\s*\{\s*grid-template-columns: repeat\(2, minmax\(0, 1fr\)\);",
+        )
+        self.assertRegex(
+            styles,
             r"(?s)@media print.*?\.presentation-slide\s*\{\s*position: static;\s*inset: auto;",
         )
         self.assertRegex(

@@ -1555,6 +1555,24 @@
   .viz-dual-migration-rail li {
     padding: 0.28rem;
   }
+
+  .viz-apigee-roadmap {
+    height: auto;
+    grid-template-rows: auto auto auto;
+  }
+
+  .viz-apigee-roadmap > ol {
+    grid-template-columns: repeat(2, minmax(0, 1fr));
+  }
+
+  .viz-apigee-roadmap li {
+    min-height: 11rem;
+    grid-template-rows: auto auto auto auto;
+  }
+
+  .viz-apigee-roadmap li:last-child:nth-child(odd) {
+    grid-column: 1 / -1;
+  }
 }
 
 @media screen and (max-width: 760px) {
