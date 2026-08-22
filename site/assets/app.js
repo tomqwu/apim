@@ -3306,12 +3306,14 @@
       case "lab": renderLab(); break;
       case "doc": renderDocument(current.parts[0], current.params.get("anchor") || ""); break;
       case "present": {
+        const bareRoute = current.parts.length === 0;
         const genericRoute = current.parts.length === 1 && /^\d+$/.test(current.parts[0]);
         const contextualRoute = current.parts.length === 2 && /^\d+$/.test(current.parts[1]);
         const assessmentSummaryRoute = current.parts.length === 2 && current.parts[1] === "summary";
         if (assessmentSummaryRoute) renderAssessmentSummary(current.parts[0]);
         else if (contextualRoute) renderPresentation(current.parts[1], current.parts[0]);
         else if (genericRoute) renderPresentation(current.parts[0]);
+        else if (bareRoute) renderPresentation("0");
         else {
           document.body.classList.remove("is-presenting");
           renderNotFound("No presentation story is configured.");
