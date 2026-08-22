@@ -775,12 +775,36 @@
     const requested = new Set(Array.isArray(options.rowIds) ? options.rowIds : []);
     const rows = guidedRows(section).filter((row) => !requested.size || requested.has(row.id));
     if (!rows.length) return empty();
-    const programmeClass = rows.length === 7 ? " is-seven" : "";
-    const body = `<ol class="viz-guided-programme${programmeClass}" style="--guided-programme-count:${rows.length}">${rows.map((row) => `<li>
+    const programmeItem = (row) => `<li${row.id === "GEP-07" ? ' class="is-adjunct"' : ""}>
       <span>${escapeHtml(row.id || "")}</span>
-      <strong>${escapeHtml(row.workstream || row.label)}</strong>
-      <p>${escapeHtml(row.presentationSummary || row.scope || row.requiredScope || "")}</p>
-    </li>`).join("")}</ol>`;
+      <div>
+        ${row.id === "GEP-07" ? '<small>Unscored adjunct hypothesis</small>' : ""}
+        <strong>${escapeHtml(row.workstream || row.label)}</strong>
+        <p>${escapeHtml(row.presentationSummary || row.scope || row.requiredScope || "")}</p>
+      </div>
+    </li>`;
+    const programmeGroups = [
+      { step: "01", label: "Target fidelity", title: "Build the real target", rowIds: ["GEP-01", "GEP-02"] },
+      { step: "02", label: "Operating evidence", title: "Break, govern, and observe it", rowIds: ["GEP-03", "GEP-04", "GEP-05"] },
+      { step: "03", label: "Decision control", title: "Recommend only from results", rowIds: ["GEP-06", "GEP-07"] },
+    ];
+    const rowById = new Map(rows.map((row) => [row.id, row]));
+    const expectedIds = programmeGroups.flatMap((group) => group.rowIds);
+    const hasCompleteProgramme = rows.length === expectedIds.length && expectedIds.every((id) => rowById.has(id));
+    const body = hasCompleteProgramme
+      ? `<div class="viz-guided-programme-board">
+          <header class="viz-guided-programme-contract">
+            <span>One closure contract</span>
+            <strong>Owner · measure · threshold · executed artifact · reviewer · stop rule</strong>
+          </header>
+          <div class="viz-guided-programme is-seven" aria-label="Seven target-aligned proof workstreams grouped into three decision themes">
+            ${programmeGroups.map((group, index) => `<section class="viz-guided-programme-group is-group-${index + 1}" aria-label="${escapeHtml(group.label)}">
+              <header><span>${escapeHtml(`${group.step} / ${group.label}`)}</span><strong>${escapeHtml(group.title)}</strong></header>
+              <ol>${group.rowIds.map((id) => rowById.get(id)).filter(Boolean).map(programmeItem).join("")}</ol>
+            </section>`).join("")}
+          </div>
+        </div>`
+      : `<ol class="viz-guided-programme" style="--guided-programme-count:${rows.length}">${rows.map(programmeItem).join("")}</ol>`;
     return guidedFrame("proof-programme", data, section, options, body, options.title || "Target-aligned proof programme");
   }
 

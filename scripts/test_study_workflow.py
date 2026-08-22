@@ -2853,6 +2853,23 @@ for (const name of [
 const contract = JSON.parse(fs.readFileSync(0, "utf8"));
 const originalContract = JSON.parse(JSON.stringify(contract));
 assert.equal(contract.schemaVersion, 2);
+const digitHeavyRevision = "0123456789abcdef0123456789abcdef01234567";
+const revisionNormalized = api.normalizeAssessment(
+  {...contract, deckRevision: digitHeavyRevision},
+  {deckId: "kong-platform-journey-guided", responses: {}},
+);
+assert.equal(revisionNormalized.deckRevision, digitHeavyRevision, "hex revisions must not be mistaken for phone numbers");
+const revisionSummary = api.summarizeAssessment({...contract, deckRevision: digitHeavyRevision}, revisionNormalized);
+assert.equal(
+  JSON.parse(api.exportAssessmentJson(revisionSummary)).deckRevision,
+  digitHeavyRevision,
+  "JSON export must preserve a digit-heavy hex revision",
+);
+assert.match(
+  api.exportAssessmentMarkdown(revisionSummary),
+  new RegExp(`Deck revision \\(deckRevision\\): ${digitHeavyRevision}`),
+  "Markdown export must preserve a digit-heavy hex revision",
+);
 const expectedPublicRoles = [
   "Decision owner", "Enterprise architecture", "Platform product", "Security architecture",
   "IAM", "SRE/performance", "FinOps", "Migration lead", "Independent assurance",
