@@ -767,7 +767,6 @@ def public_content_errors(
             parents = git("rev-list", "--parents", "-n", "1", commit).split()
             if len(parents) > 2:
                 errors.append(f"PS024 merge commits are not permitted in an intake branch at commit {commit}")
-                continue
             names = git_path_names("diff-tree", "--root", "--no-commit-id", "--name-only", "-r", commit)
             tree = subprocess.run(
                 ("git", "ls-tree", "-r", "-z", commit),
@@ -786,7 +785,61 @@ def public_content_errors(
                     tree_modes[encoded_name.decode("utf-8")] = metadata.split(b" ", 1)[0].decode("ascii")
             except (UnicodeDecodeError, ValueError) as exc:
                 raise WorkflowError("PS014 historical tree contains an invalid path entry") from exc
+            historical_binary_names = {
+                name
+                for name in tree_modes
+                if Path(public_source_name(name)).suffix.lower() in BINARY_EXTENSIONS
+            }
+            for name in sorted(historical_binary_names):
+                errors.extend(validate_public_name(name))
+                location = f"commit {commit} {safe_location(name)}"
+                mode = tree_modes[name]
+                if mode == "120000":
+                    errors.append(f"PS022 symlink public path at {location}")
+                    continue
+                if mode not in {"100644", "100755"}:
+                    errors.append(f"PS028 non-regular tracked Git mode at {location}")
+                    continue
+                size_result = subprocess.run(
+                    ("git", "cat-file", "-s", f"{commit}:{name}"),
+                    cwd=ROOT,
+                    env=git_environment(),
+                    check=False,
+                    text=True,
+                    stdout=subprocess.PIPE,
+                    stderr=subprocess.DEVNULL,
+                )
+                if size_result.returncode:
+                    raise WorkflowError(
+                        f"PS028 unable to inspect historical binary blob at commit {commit}"
+                    )
+                if int(size_result.stdout.strip()) > 64 * 1024 * 1024:
+                    errors.append(
+                        f"PS020 oversized history artifact requires separate review at {location}"
+                    )
+                    continue
+                blob = subprocess.run(
+                    ("git", "show", f"{commit}:{name}"),
+                    cwd=ROOT,
+                    env=git_environment(),
+                    check=False,
+                    stdout=subprocess.PIPE,
+                    stderr=subprocess.DEVNULL,
+                )
+                if blob.returncode:
+                    raise WorkflowError(
+                        f"PS028 unable to inspect historical binary blob at commit {commit}"
+                    )
+                _, decode_errors = decode_public_bytes(
+                    blob.stdout,
+                    name,
+                    historical_allowed_binaries,
+                    location,
+                )
+                errors.extend(decode_errors)
             for name in names:
+                if name in historical_binary_names:
+                    continue
                 name_errors = validate_public_name(name)
                 errors.extend(name_errors)
                 location = safe_location(name)

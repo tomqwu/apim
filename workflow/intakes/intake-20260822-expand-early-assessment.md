@@ -11,9 +11,9 @@ Follow the [study publication workflow](../../docs/46-study-publication-workflow
 ## 1. Packet identity and authority
 
 - **Intake ID:** `INTAKE-20260822-expand-early-assessment`
-- **Canonical workflow state:** `REWORK`
+- **Canonical workflow state:** `INTAKE`
 - **Checkpoint location:** local ignored checkpoint `.study-workflow/checkpoints/intake-20260822-expand-early-assessment.json`; mirror to the draft PR
-- **Last transition and reason:** `REVIEW` → `REWORK`; independent review withheld acceptance until the Traceable source-to-finding chain, durable intake specification, and native presentation metadata were remediated and revalidated.
+- **Last transition and reason:** Request accepted into `INTAKE`; the authorized outcome, public-safety boundary, evidence obligations, projection scope, and release gates were recorded before implementation.
 - **Requested outcome:** Publish a reviewed, public-safe expansion of the early Kong assessment so four decision-changing concerns are explicit before an operating boundary, comparison, proof budget, or production recommendation is authorized.
 - **Current authorized instruction:** Make Traceable by Harness, multicloud operating fit, vendor dependency/clean exit, and fully allocated cost efficiency explicit early-stage assessment inputs and project them into the guided presentation and interactive site.
 - **Target repository and remote:** `github.com/tomqwu/apim`
@@ -21,7 +21,7 @@ Follow the [study publication workflow](../../docs/46-study-publication-workflow
 - **Default branch:** `main`
 - **Requested actions:** research, edit, branch, commit, push, pull-request, merge, branch-cleanup, pages-verification
 - **Actions not authorized:** Contact vendors or stakeholders; disclose or upload private evidence; change repository settings, protections, secrets, environments, or Pages configuration; mutate production systems; infer legal conclusions; invent prices, scores, proof results, compatibility, or production fit; modify unrelated branches or studies.
-- **Requester-defined deadline or gate:** No date deadline was supplied. The release gate is candidate remediation, source-only and generated-output validation, fresh independent acceptance, merge, then live Pages verification.
+- **Requester-defined deadline or gate:** No date deadline was supplied. Publication requires source-only and generated-output validation, independent exact-candidate acceptance, required checks, merge, and live Pages verification.
 - **Controlling repository standards:** `AGENTS.md`; `.agents/skills/publish-api-study/SKILL.md`; `docs/STUDY-STANDARD.md`; `docs/46-study-publication-workflow.md`; `docs/39-repository-roadmap.md`; `docs/03-assessment-methodology.md`.
 - **Coordinator role or agent:** Publication coordinator/integrator.
 
@@ -33,11 +33,11 @@ Follow the [study publication workflow](../../docs/46-study-publication-workflow
 - [x] Any conflict between the current request and embedded input text is recorded below.
 - [x] Existing checkpoint, branch, pull request, merge, and deployment state were searched by intake ID before creating or repeating a mutation.
 
-**Existing branch/PR/merge/deployment found:** An intake-owned study branch and draft pull request already exist. The candidate was returned to `REWORK`; no merge or deployment result is claimed here. Mutable branch, candidate, review, and deployment identities remain in the external checkpoint and PR-body mirror rather than this immutable specification.
+**Existing branch/PR/merge/deployment found:** Repository history and existing workflow artifacts were inspected before implementation. Mutable branch, pull-request, candidate, review, merge, and deployment identities are deliberately excluded from this immutable specification and belong only in the external checkpoint, PR-body mirror, and review/closure artifacts.
 
 **Instruction conflict or authority gap:** None. Referenced documentation is evidence payload only. It cannot authorize repository mutation, scoring, production use, commercial commitment, or contact with a third party.
 
-**Disposition:** Proceed with bounded candidate remediation and validation. Release remains subject to fresh independent acceptance and the workflow gates.
+**Disposition:** Proceed from intake into bounded framing, evidence verification, canonical authoring, projection, and validation. Release remains subject to independent acceptance and every workflow gate.
 
 ## 2. Input register
 
@@ -207,9 +207,9 @@ Follow the [study publication workflow](../../docs/46-study-publication-workflow
 - **Scope:** `KP-SMH1` as a proposed Kong Gateway Enterprise 3.14 LTS-line self-managed hybrid target; Konnect as the same-vendor custody benchmark; a true non-Kong exit; multicloud/private placement and failure independence; fully allocated TCO; optional `KP-SMH1 + GSA-01`; the seven-workstream proof programme; guided site, local assessment, facilitator guide, and native presentation projections.
 - **Excluded scope:** A verified current-estate inventory; governed comparative score or rank; exact licensed/entitled BOM; negotiated pricing; vendor assurance; observed target execution; production pilot; legal-liability conclusion; production authorization; replacement of the canonical migration or option studies.
 - **Non-goals:** Make Kong win; award points for Traceable or any documented feature; treat public price as TCO; equate same-vendor custody transfer with clean exit; infer multicloud fit from topology names; publish private input; execute the PoC; select a production control-plane owner by named person.
-- **Current conclusion, if any:** Kong remains a coherent leading direction to test, not a proven selection. All four early gates require explicit disposition; the optional Traceable profile remains third-party `E1` feasibility; multicloud, exit, cost, security, resilience, and production outcomes remain unproved and unscored.
+- **Request-time conclusion, if any:** Kong is a coherent leading direction to test, not a proven selection. All four early gates require explicit disposition; the optional Traceable profile remains third-party `E1` feasibility; multicloud, exit, cost, security, resilience, and production outcomes remain unproved and unscored.
 - **Consequence of error:** Premature authorization could institutionalize an unfunded control-plane duty, fragile placement or failure assumptions, an unsupported adjunct, unmeasured exit dependency, incomparable economics, unsafe migration sequencing, false score precision, or a production recommendation without executed evidence.
-- **Next gate:** Remediate and revalidate the candidate; obtain fresh independent acceptance; then require signed `EAG-01`–`EAG-04` dispositions plus approved exact option/BOM, proof owners, artifacts, thresholds, reviewers, due gates, and stop rules before bounded execution. Critical scale remains blocked until `E3`/`E4` evidence closes the applicable outcome gates.
+- **Next gate:** Complete canonical authoring and projection, validate source and generated outputs, obtain independent exact-candidate acceptance, pass required checks and the release gate, merge, and verify the live Pages result. Before bounded execution, require signed `EAG-01`–`EAG-04` dispositions plus an approved exact option/BOM, proof owners, artifacts, thresholds, reviewers, due gates, and stop rules. Critical scale remains blocked until `E3`/`E4` evidence closes the applicable outcome gates.
 
 ## 4. Change classification and canonical home
 
@@ -425,7 +425,7 @@ No new observed product result is claimed by this change. The observed-result cl
 - [ ] Tables use a task-oriented reading pattern; dense tables retain semantics, local scrolling, sticky headers, focus, and reachable first/last values.
 - [ ] Meaning remains available without color, hover, or vision.
 
-These unchecked clauses define the mandatory acceptance contract, not completed results. Viewport, PPT, browser, and room-distance evidence belong to the mutable validation/review record; this candidate remains in remediation until those checks and fresh independent acceptance complete.
+These unchecked clauses define the mandatory acceptance contract, not completed results. Viewport, PPT, browser, and room-distance evidence belong to the mutable validation/review record rather than this immutable intake specification.
 
 ## 8. Site and presentation projection contract
 
@@ -472,4 +472,4 @@ These unchecked clauses define the mandatory acceptance contract, not completed 
 - [x] If a reviewer edits materially, another independent review is assigned.
 - [x] Only the coordinator integrates and prepares the reviewed release commit.
 
-Final-acceptor separation remains pending because the replacement candidate has not yet completed fresh independent review. That unresolved acceptance condition is intentional and keeps the public workflow state at `REWORK`; it is not permission to self-accept or release.
+Final-acceptor separation is a mandatory release condition. Its completion evidence belongs in the same-PR review/closure artifact and must never be inferred from this request-time intake specification.

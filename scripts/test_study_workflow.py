@@ -984,6 +984,11 @@ class CanonicalContractTests(WorkflowTestCase):
             members = tuple(archive.namelist())
             properties = ET.fromstring(archive.read("docProps/app.xml"))
             core_properties = ET.fromstring(archive.read("docProps/core.xml"))
+            package_brand_text = "\n".join(
+                archive.read(member).decode("utf-8", errors="ignore")
+                for member in members
+                if member.startswith("docProps/") or member.startswith("ppt/theme/")
+            )
             slide_count = sum(
                 bool(re.fullmatch(r"ppt/slides/slide\d+\.xml", member))
                 for member in members
@@ -1026,6 +1031,11 @@ class CanonicalContractTests(WorkflowTestCase):
         self.assertNotEqual(
             "Walnut Exporter",
             core_properties.findtext("cp:lastModifiedBy", namespaces=namespaces),
+        )
+        self.assertNotIn(
+            "chatgpt",
+            package_brand_text.casefold(),
+            "public PowerPoint metadata and theme parts must remain brand neutral",
         )
 
     def test_guided_facilitator_guide_is_indexed_and_linked_from_entry_points(self) -> None:
@@ -2329,6 +2339,18 @@ process.stdout.write(window.ApiStudyCharts.render("criteriaOverview", data, {com
         self.assertIn('class="viz-guided-early-gates"', charts)
         self.assertIn("data?.earlyGates", charts)
         self.assertRegex(styles, r"(?s)\.viz-guided-early-gates\s*\{[^}]*display:\s*grid;")
+        self.assertRegex(
+            styles,
+            r"(?s)\.presentation-stage\.is-kong-guided\s*\{[^}]*--guided-decision-copy:\s*1\.125rem;[^}]*--guided-decision-meta:\s*1rem;",
+        )
+        self.assertRegex(
+            styles,
+            r"(?s)\.viz-guided-early-gates > header strong,.*?\.viz-guided-programme\.is-seven li p\s*\{[^}]*font-size:\s*var\(--guided-decision-copy\);",
+        )
+        self.assertRegex(
+            styles,
+            r"(?s)@media screen and \(min-width:\s*1600px\).*?\.presentation-stage\.is-kong-guided\s*\{[^}]*--guided-decision-copy:\s*1\.5rem;",
+        )
         self.assertIn('<table class="viz-guided-comparison">', charts)
         self.assertIn('class="viz-guided-comparison-wrap" tabindex="-1" data-comparison-label=', charts)
         self.assertIn('class="viz-guided-scroll-cue" aria-hidden="true" hidden', charts)
@@ -4512,6 +4534,59 @@ class PublicContentScannerTests(WorkflowTestCase):
         self.assertEqual(
             [],
             module.public_content_errors(base, "HEAD", include_generated=False),
+        )
+
+    def test_history_scan_rejects_unchanged_binary_when_intermediate_allowlist_omits_it(self) -> None:
+        repository = self.repository()
+        base = repository.base_sha
+        binary_path = "presentations/history-binary.pptx"
+        allowlist_path = repository.root / "config" / "public-content-allowlist.json"
+        payload = b"reviewed binary that remains unchanged"
+        reviewed_entry = {
+            "path": binary_path,
+            "sha256": hashlib.sha256(payload).hexdigest(),
+            "reviewedByRole": "Presentation reviewer",
+            "reason": "Public-safe historical binary validation fixture.",
+        }
+
+        repository.write_bytes(binary_path, payload)
+        allowlist = json.loads(allowlist_path.read_text(encoding="utf-8"))
+        allowlist["binaryFiles"].append(reviewed_entry)
+        repository.write_text(
+            "config/public-content-allowlist.json",
+            json.dumps(allowlist, indent=2, sort_keys=True) + "\n",
+        )
+        repository.commit_all("Add a reviewed binary revision")
+
+        allowlist["binaryFiles"] = [
+            entry
+            for entry in allowlist["binaryFiles"]
+            if entry["path"] != binary_path
+        ]
+        repository.write_text(
+            "config/public-content-allowlist.json",
+            json.dumps(allowlist, indent=2, sort_keys=True) + "\n",
+        )
+        unreviewed_commit = repository.commit_all(
+            "Remove the binary review record without changing the artifact"
+        )
+
+        allowlist["binaryFiles"].append(reviewed_entry)
+        repository.write_text(
+            "config/public-content-allowlist.json",
+            json.dumps(allowlist, indent=2, sort_keys=True) + "\n",
+        )
+        repository.commit_all("Restore the binary review record")
+
+        module = repository.load_module("scripts/study_workflow.py")
+        self.assertEqual(
+            [],
+            module.public_content_errors(include_generated=False),
+        )
+        errors = module.public_content_errors(base, "HEAD", include_generated=False)
+        self.assertIn(
+            f"PS015 unreviewed binary public artifact at commit {unreviewed_commit} {binary_path}",
+            errors,
         )
 
     def test_history_mode_lookup_treats_glob_like_names_literally(self) -> None:
