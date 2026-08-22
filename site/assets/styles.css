@@ -11585,6 +11585,16 @@ body.is-presenting .site-footer {
   }
 }
 
+/* KGE-25 is intentionally dense. At compact desktop heights, keep its final
+   audit rows reachable above the fixed proof strip instead of clipping them. */
+@media screen and (min-width: 1024px) and (max-height: 920px) {
+  .presentation-stage.is-kong-guided .is-guided-slide:has(.viz-guided.is-score-audit) > .slide-main {
+    overflow-y: auto;
+    overscroll-behavior: contain;
+    scrollbar-gutter: stable;
+  }
+}
+
 /* The intrinsic two-column breakpoint includes 1024px, where the general desktop
    rule above otherwise hides the overflow needed to reach every phase. */
 @media screen and (min-width: 761px) and (max-width: 1024px) {
