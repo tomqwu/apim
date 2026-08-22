@@ -69,6 +69,11 @@
     return /^[A-Za-z0-9][A-Za-z0-9._:/-]*$/.test(text) ? text : "";
   }
 
+  function cleanRevision(value) {
+    const text = boundedText(value, limits.id).trim();
+    return /^[0-9a-f]{40,64}$/i.test(text) ? text : "";
+  }
+
   function cleanPublicRole(value) {
     const role = publicSafeText(value, limits.role);
     return PUBLIC_ROLES.includes(role) ? role : "";
@@ -151,7 +156,7 @@
     return {
       schemaVersion: SCHEMA_VERSION,
       deckId: cleanId(source.deckId || contract?.deckId || "kong-platform-journey-guided"),
-      deckRevision: cleanRecordId(contract?.deckRevision),
+      deckRevision: cleanRevision(contract?.deckRevision),
       label: publicSafeText(source.label, limits.label, textOptions),
       meetingDecision: MEETING_DECISIONS.includes(cleanId(source.meetingDecision).toLowerCase())
         ? cleanId(source.meetingDecision).toLowerCase()
@@ -365,6 +370,7 @@
 
   function exportSafeValue(value, key = "") {
     if (typeof value === "string") {
+      if (key === "deckRevision") return cleanRevision(value);
       return ["ownerRole", "decisionOwnerRole"].includes(key)
         ? cleanPublicRole(value)
         : publicSafeText(value, limits.record);

@@ -18,7 +18,7 @@ This report is generated from the article corpus by `scripts/validate_source_cov
 | Unique external citations | 284 |
 | Unique registered citations used by articles | 49 |
 | Unique contextual citations awaiting promotion if decision-bearing | 235 |
-| Latest access date in authoritative register | 2026-08-21 |
+| Latest access date in authoritative register | 2026-08-22 |
 
 ## Coverage by article
 

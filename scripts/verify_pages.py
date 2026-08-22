@@ -162,6 +162,7 @@ KONG_GUIDED_ARCHITECTURE_EDGES = (
     ("private-legacy-dp", "private-legacy-services-evidence", "local-request-and-evidence"),
 )
 KONG_GUIDED_TARGET_IDS = tuple(f"GTM-{index:02d}" for index in range(1, 10))
+KONG_GUIDED_EARLY_GATE_IDS = tuple(f"EAG-{index:02d}" for index in range(1, 5))
 KONG_GUIDED_WEIGHT_IDS = tuple(f"GEW-{index:02d}" for index in range(1, 9))
 KONG_GUIDED_OPTION_IDS = ("GEO-KONG", "GEO-APIGEE", "GEO-MULE", "GEO-APIM")
 KONG_GUIDED_RESCORE_IDS = tuple(f"GRS-{index:02d}" for index in range(1, 7))
@@ -175,7 +176,12 @@ KONG_GUIDED_COMPARISON_IDS = (
 KONG_GUIDED_SCORE_TOTALS = {"weight": 100.0, "kong": 93.0, "apigee": 85.5, "muleSoft": 77.0}
 KONG_GUIDED_DISPLAYED_TOTALS = {"kong": 93.0, "apigee": 87.0, "muleSoft": 78.0}
 KONG_GUIDED_PHASES = (
-    ("KGE-P1", "Why now", "Confirm the target operating model and make its weights visible", "kong-guided-cover"),
+    (
+        "KGE-P1",
+        "Why now",
+        "Confirm the target operating model, make its weights visible, and disposition EAG-01 – EAG-04 before any bounded authorization",
+        "kong-guided-cover",
+    ),
     ("KGE-P2", "Options and decision", "Compare conditional archetypes and authorize only the bounded Kong boundary", "kong-guided-options"),
     ("KGE-P3", "Architecture and adoption", "Understand the target topology, failure paths, ownership, and evidence-gated adoption", "kong-guided-architecture"),
     ("KGE-P4", "Migration", "Move Mule responsibilities or the Apigee object/state graph through coexistence, route-back, and exit evidence", "kong-guided-migration-boundary"),
@@ -185,6 +191,24 @@ KONG_GUIDED_PHASES = (
 KONG_GUIDED_ASSESSMENT_SUMMARY_ROUTE = (
     "#/present/kong-platform-journey-guided/summary"
 )
+KONG_GUIDED_ASSESSMENT_PHASE_QUESTION_IDS = {
+    "KGE-P1": (
+        "KGE-P1-Q01", "KGE-P1-Q02", "KGE-P1-Q03",
+        "KGE-P1-Q04", "KGE-P1-Q05", "KGE-P1-Q06",
+    ),
+    "KGE-P2": ("KGE-P2-Q01", "KGE-P2-Q02"),
+    "KGE-P3": ("KGE-P3-Q01", "KGE-P3-Q02"),
+    "KGE-P4": ("KGE-P4-Q01", "KGE-P4-Q02"),
+    "KGE-P5": ("KGE-P5-Q01", "KGE-P5-Q02", "KGE-P5-Q03", "KGE-P5-Q04"),
+    "KGE-P6": ("KGE-P6-Q01", "KGE-P6-Q02"),
+}
+KONG_GUIDED_EARLY_QUESTION_TARGET_IDS = {
+    "KGE-P1-Q02": KONG_GUIDED_TARGET_IDS,
+    "KGE-P1-Q03": ("EAG-04", "GSA-01", "GEP-07", "GEC-20"),
+    "KGE-P1-Q04": ("EAG-01", "GTM-08", "GRS-01", "GEC-07"),
+    "KGE-P1-Q05": ("EAG-02", "GRS-04", "GEC-16"),
+    "KGE-P1-Q06": ("EAG-03", "GEW-08", "GRS-05", "GEC-17"),
+}
 KONG_GUIDED_PHASE_BY_KEY = {
     key: phase_id
     for phase_id, keys in (
@@ -208,7 +232,12 @@ KONG_GUIDED_POINT_SOURCE_BY_KEY = {
 }
 KONG_GUIDED_EVIDENCE_GROUPS = (
     (("KGE-01",), "Guided decision brief", "Mixed public-safe synthesis", "Orientation only; no new evidence"),
-    (("KGE-02", "KGE-03"), "Stakeholder input", "Sanitized supplied input", "Target preferences and weighting choices; not admitted candidate evidence"),
+    (
+        ("KGE-02", "KGE-03"),
+        "Stakeholder input plus early-gate contract",
+        "Sanitized supplied input plus repository decision design",
+        "Target preferences, weighting choices, and EAG-01 – EAG-04 admission questions; gate disposition creates evidence work but is not candidate proof or a product score",
+    ),
     (("KGE-04",), "Conditional hypothesis", "Supplied input plus documented-mechanism interpretation", "Conditional operating-model archetypes to test; not an observed product comparison"),
     (("KGE-05",), "Provisional scenario over stakeholder input", "Sanitized supplied input plus mechanical uncertainty calculation", "Historical totals remain audit input; overlapping ranges are a HOLD signal, not product evidence"),
     (("KGE-06",), "Bounded direction", "Stakeholder direction plus repository interpretation", "Authorizes foundation and proof only"),
@@ -227,6 +256,9 @@ KONG_GUIDED_REFERENCE_GROUPS = (
     (("KGE-01", "KGE-02", "KGE-03"), (
         "https://developer.konghq.com/gateway/deployment-topologies/",
         "https://developer.konghq.com/gateway/hybrid-mode/",
+        "https://docs.traceable.ai/kong",
+        "https://developer.konghq.com/plugins/harness-waap/",
+        "https://konghq.com/pricing",
     )),
     (("KGE-04", "KGE-05"), (
         "https://developer.konghq.com/gateway/deployment-topologies/",
@@ -259,7 +291,7 @@ KONG_GUIDED_REFERENCE_GROUPS = (
         "https://developer.konghq.com/gateway/hybrid-mode/",
         "https://developer.konghq.com/gateway/monitoring/",
         "https://developer.konghq.com/ai-gateway/",
-        "https://docs.traceable.ai/docs/kong",
+        "https://docs.traceable.ai/kong",
         "https://developer.konghq.com/plugins/harness-waap/",
     )),
     (("KGE-19", "KGE-20", "KGE-21"), (
@@ -275,7 +307,7 @@ KONG_GUIDED_REFERENCE_GROUPS = (
     )),
     (("KGE-23",), (
         "https://developer.konghq.com/ai-gateway/",
-        "https://docs.traceable.ai/docs/kong",
+        "https://docs.traceable.ai/kong",
         "https://developer.konghq.com/plugins/harness-waap/",
         "https://docs.traceable.ai/docs/tracing-agents-rule-evaluation-for-protection",
     )),
@@ -894,6 +926,69 @@ def validate_kong_guided_evaluation(
         validate_local_guided_evaluation(manifest, presentation)
     except LocalValidationError as exc:
         raise VerificationError(f"manifest {exc}") from exc
+
+    guided = manifest.get("visuals", {}).get("guidedEvaluation", {})
+    early_gates = guided.get("earlyGates", {})
+    early_gate_rows = early_gates.get("rows", [])
+    require(
+        early_gates.get("rowTotal") == 4
+        and tuple(row.get("id") for row in early_gate_rows if isinstance(row, dict))
+        == KONG_GUIDED_EARLY_GATE_IDS,
+        "manifest guided early gates must preserve EAG-01 through EAG-04",
+    )
+    early_gate_provenance = early_gates.get("provenance", {})
+    require(
+        early_gate_provenance.get("sourcePath") == KONG_GUIDED_SOURCE_PATHS[0]
+        and early_gate_provenance.get("sourceId") == KONG_GUIDED_SOURCE_IDS[0]
+        and early_gate_provenance.get("sourceHeading") == "Four early assessment gates"
+        and early_gate_provenance.get("heading") == "Four early assessment gates"
+        and early_gate_provenance.get("asOf") == "2026-08-22",
+        "manifest guided early gates must retain exact doc48 provenance",
+    )
+
+    assessment = guided.get("assessmentContract", {})
+    phase_question_ids = assessment.get("phaseQuestionIds", {})
+    require(
+        {
+            phase_id: tuple(question_ids)
+            for phase_id, question_ids in phase_question_ids.items()
+            if isinstance(question_ids, list)
+        }
+        == KONG_GUIDED_ASSESSMENT_PHASE_QUESTION_IDS,
+        "manifest guided assessment must preserve the exact 6/2/2/2/4/2 distribution",
+    )
+    questions = assessment.get("questions", [])
+    question_by_id = {
+        question.get("id"): question
+        for question in questions
+        if isinstance(question, dict)
+    }
+    require(len(questions) == 18, "manifest guided assessment must contain exactly 18 questions")
+    for question_id, target_ids in KONG_GUIDED_EARLY_QUESTION_TARGET_IDS.items():
+        question = question_by_id.get(question_id, {})
+        require(
+            tuple(question.get("slideIds", ())) == ("KGE-02", "KGE-03")
+            and tuple(question.get("targetIds", ())) == target_ids
+            and question.get("minimumEvidence") == "E1"
+            and question.get("mandatory") is True
+            and question.get("choiceSetId") == "KGE-CS-INPUT",
+            f"manifest guided assessment {question_id} early-gate binding is invalid",
+        )
+
+    contract_by_slide_id = {
+        row.get("slideId"): row
+        for row in guided.get("slides", {}).get("rows", [])
+        if isinstance(row, dict)
+    }
+    require(
+        contract_by_slide_id.get("KGE-02", {}).get("title")
+        == "The operating model and four early gates drive the decision"
+        and "Traceable" in contract_by_slide_id.get("KGE-02", {}).get("body", "")
+        and "EAG-01 – EAG-04" in contract_by_slide_id.get("KGE-02", {}).get("visualContract", "")
+        and "unscored admission gate" in contract_by_slide_id.get("KGE-03", {}).get("body", "")
+        and "unscored-adjunct" in contract_by_slide_id.get("KGE-03", {}).get("visualContract", ""),
+        "manifest KGE-02/KGE-03 must preserve the explicit early-gate content",
+    )
 
     strategy = manifest.get("visuals", {}).get("kongPlatformStrategy", {})
     overview = strategy.get("guidedArchitectureOverview")

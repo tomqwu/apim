@@ -570,6 +570,58 @@ def load_binary_allowlist() -> dict[str, str]:
     return allowed
 
 
+def load_binary_allowlist_at_commit(revision: str) -> dict[str, str]:
+    relative = PUBLIC_ALLOWLIST.relative_to(ROOT).as_posix()
+    result = subprocess.run(
+        ("git", "show", f"{revision}:{relative}"),
+        cwd=ROOT,
+        env=git_environment(),
+        check=False,
+        stdout=subprocess.PIPE,
+        stderr=subprocess.DEVNULL,
+    )
+    fail_unless(
+        result.returncode == 0,
+        f"historical public binary allowlist is missing at commit {revision}",
+    )
+    try:
+        data = json.loads(result.stdout.decode("utf-8"))
+    except (UnicodeDecodeError, json.JSONDecodeError) as exc:
+        raise WorkflowError(
+            f"historical public binary allowlist is invalid at commit {revision}: {exc}"
+        ) from exc
+    fail_unless(
+        isinstance(data, dict)
+        and set(data) == {"schemaVersion", "binaryFiles"}
+        and data["schemaVersion"] == 1,
+        f"historical public binary allowlist schema is invalid at commit {revision}",
+    )
+    fail_unless(
+        isinstance(data["binaryFiles"], list),
+        f"historical public binary allowlist binaryFiles must be a list at commit {revision}",
+    )
+    allowed: dict[str, str] = {}
+    for entry in data["binaryFiles"]:
+        fail_unless(
+            isinstance(entry, dict)
+            and set(entry) == {"path", "sha256", "reviewedByRole", "reason"},
+            f"historical binary allowlist entry schema is invalid at commit {revision}",
+        )
+        path = derived_reference(entry["path"])
+        fail_unless(
+            isinstance(entry["sha256"], str) and bool(SHA256.fullmatch(entry["sha256"])),
+            f"historical binary allowlist SHA-256 is invalid for {path} at commit {revision}",
+        )
+        safe_line("historical binary allowlist reviewer role", entry["reviewedByRole"], 160)
+        safe_line("historical binary allowlist reason", entry["reason"], 500)
+        fail_unless(
+            path not in allowed,
+            f"duplicate historical binary allowlist path at commit {revision}: {path}",
+        )
+        allowed[path] = entry["sha256"]
+    return allowed
+
+
 def public_source_name(name: str) -> str:
     if name.startswith("_site/content/"):
         return name.removeprefix("_site/content/")
@@ -710,11 +762,11 @@ def public_content_errors(
     if base:
         commits = git("rev-list", "--reverse", f"{base}..{history_end}").splitlines()
         for commit in commits:
+            historical_allowed_binaries = load_binary_allowlist_at_commit(commit)
             errors.extend(scan_text(git("show", "-s", "--format=%B", commit), f"commit {commit} message"))
             parents = git("rev-list", "--parents", "-n", "1", commit).split()
             if len(parents) > 2:
                 errors.append(f"PS024 merge commits are not permitted in an intake branch at commit {commit}")
-                continue
             names = git_path_names("diff-tree", "--root", "--no-commit-id", "--name-only", "-r", commit)
             tree = subprocess.run(
                 ("git", "ls-tree", "-r", "-z", commit),
@@ -733,7 +785,61 @@ def public_content_errors(
                     tree_modes[encoded_name.decode("utf-8")] = metadata.split(b" ", 1)[0].decode("ascii")
             except (UnicodeDecodeError, ValueError) as exc:
                 raise WorkflowError("PS014 historical tree contains an invalid path entry") from exc
+            historical_binary_names = {
+                name
+                for name in tree_modes
+                if Path(public_source_name(name)).suffix.lower() in BINARY_EXTENSIONS
+            }
+            for name in sorted(historical_binary_names):
+                errors.extend(validate_public_name(name))
+                location = f"commit {commit} {safe_location(name)}"
+                mode = tree_modes[name]
+                if mode == "120000":
+                    errors.append(f"PS022 symlink public path at {location}")
+                    continue
+                if mode not in {"100644", "100755"}:
+                    errors.append(f"PS028 non-regular tracked Git mode at {location}")
+                    continue
+                size_result = subprocess.run(
+                    ("git", "cat-file", "-s", f"{commit}:{name}"),
+                    cwd=ROOT,
+                    env=git_environment(),
+                    check=False,
+                    text=True,
+                    stdout=subprocess.PIPE,
+                    stderr=subprocess.DEVNULL,
+                )
+                if size_result.returncode:
+                    raise WorkflowError(
+                        f"PS028 unable to inspect historical binary blob at commit {commit}"
+                    )
+                if int(size_result.stdout.strip()) > 64 * 1024 * 1024:
+                    errors.append(
+                        f"PS020 oversized history artifact requires separate review at {location}"
+                    )
+                    continue
+                blob = subprocess.run(
+                    ("git", "show", f"{commit}:{name}"),
+                    cwd=ROOT,
+                    env=git_environment(),
+                    check=False,
+                    stdout=subprocess.PIPE,
+                    stderr=subprocess.DEVNULL,
+                )
+                if blob.returncode:
+                    raise WorkflowError(
+                        f"PS028 unable to inspect historical binary blob at commit {commit}"
+                    )
+                _, decode_errors = decode_public_bytes(
+                    blob.stdout,
+                    name,
+                    historical_allowed_binaries,
+                    location,
+                )
+                errors.extend(decode_errors)
             for name in names:
+                if name in historical_binary_names:
+                    continue
                 name_errors = validate_public_name(name)
                 errors.extend(name_errors)
                 location = safe_location(name)
@@ -750,7 +856,12 @@ def public_content_errors(
                     continue
                 blob = subprocess.run(("git", "show", f"{commit}:{name}"), cwd=ROOT, env=git_environment(), check=False, stdout=subprocess.PIPE, stderr=subprocess.DEVNULL)
                 if blob.returncode == 0:
-                    text, decode_errors = decode_public_bytes(blob.stdout, name, allowed_binaries, location)
+                    text, decode_errors = decode_public_bytes(
+                        blob.stdout,
+                        name,
+                        historical_allowed_binaries,
+                        location,
+                    )
                     errors.extend(decode_errors)
                     if text is not None:
                         errors.extend(scan_text(text, f"commit {commit} {location}"))

@@ -8,11 +8,11 @@
 | Decision question | What bounded Kong direction, architecture, adoption model, migration path, and proof programme should the enterprise approve before production scale? |
 | Decision owner | API-platform product owner with enterprise architecture, security, IAM, SRE, integration-modernization, sourcing, and delivery governance |
 | Primary audiences | Executives, directors, architects, developers, DevOps/SRE, platform teams, security/IAM, operations, migration, sourcing, and FinOps |
-| Scope | Sanitized stakeholder evaluation inputs; Kong Gateway Enterprise 3.14 LTS-line self-managed hybrid target `KP-SMH1`; Konnect custody benchmark; Apigee, MuleSoft, and Azure API Management counterfactuals; architecture, platform adoption, Mule and Apigee migration paths, control-plane operating accountability, production proof, seven PoC priorities including a Kong-plus-Traceable feasibility line, terminology mapping, and an audit appendix |
+| Scope | Sanitized stakeholder evaluation inputs; Kong Gateway Enterprise 3.14 LTS-line self-managed hybrid target `KP-SMH1`; four early assessment gates for multicloud, clean exit/vendor dependency, fully allocated cost efficiency, and the optional Kong-plus-Traceable solution profile; Konnect custody benchmark; Apigee, MuleSoft, and Azure API Management counterfactuals; architecture, platform adoption, Mule and Apigee migration paths, control-plane operating accountability, production proof, seven PoC priorities, terminology mapping, and an audit appendix |
 | Evidence state | Stakeholder inputs, documented `E1` mechanisms, repository interpretation, hypotheses, and scenario assumptions; no independently validated comparative score, `E2` closure, target-option `E3` execution, `E4` representative pilot, production-fit result, or commercial conclusion |
 | Reference case | Synthetic [RE-1 regulated hybrid enterprise](41-enterprise-reference-case.md); all inherited workloads, timelines, measures, and thresholds remain scenario assumptions |
-| As-of date | 2026-08-21; revalidate exact editions, versions, entitlements, Traceable/plugin support, AI capabilities, deployment boundaries, support, pricing, and economics at option freeze |
-| Next gate | Approve the bounded Kong foundation and seven-workstream proof programme; critical production scale remains blocked until executed evidence and reviewable artifacts close the mandatory outcome gates |
+| As-of date | 2026-08-22; revalidate exact editions, versions, entitlements, Traceable/plugin support, AI capabilities, deployment boundaries, support, pricing, and economics at option freeze |
+| Next gate | Disposition `EAG-01`–`EAG-04`, then approve the bounded Kong foundation and seven-workstream proof programme; critical production scale remains blocked until executed evidence and reviewable artifacts close the mandatory outcome gates |
 
 ## Executive answer
 
@@ -22,7 +22,7 @@ Proceed with the bounded, reversible Kong foundation defined in the [Kong enterp
 
 The guided decision sequence is:
 
-1. confirm the target operating model and weights;
+1. confirm the target operating model and weights, and disposition the four early assessment gates;
 2. compare conditional operating-model archetypes rather than brand feature counts;
 3. authorize only the reversible Kong boundary and funded duties;
 4. make architecture, ownership, degraded behavior, and adoption gates explicit;
@@ -56,16 +56,16 @@ Every native and PowerPoint frame links back to its repository-prepared source m
 
 | Slide IDs | Official references |
 |---|---|
-| KGE-01–KGE-03 | [Kong deployment topologies](https://developer.konghq.com/gateway/deployment-topologies/); [Kong hybrid mode](https://developer.konghq.com/gateway/hybrid-mode/) |
+| KGE-01–KGE-03 | [Kong deployment topologies](https://developer.konghq.com/gateway/deployment-topologies/); [Kong hybrid mode](https://developer.konghq.com/gateway/hybrid-mode/); [Traceable Kong integration](https://docs.traceable.ai/kong); [Harness WAAP plugin](https://developer.konghq.com/plugins/harness-waap/); [Kong pricing](https://konghq.com/pricing) |
 | KGE-04–KGE-05 | [Kong deployment topologies](https://developer.konghq.com/gateway/deployment-topologies/); [Apigee hybrid 1.16](https://docs.cloud.google.com/apigee/docs/hybrid/v1.16/what-is-hybrid); [MuleSoft Omni Gateway](https://docs.mulesoft.com/gateway/latest/); [Azure API Management self-hosted gateway](https://learn.microsoft.com/en-us/azure/api-management/self-hosted-gateway-overview) |
 | KGE-06–KGE-08 | [Kong hybrid mode](https://developer.konghq.com/gateway/hybrid-mode/); [Kong Gateway version support policy](https://developer.konghq.com/gateway/version-support-policy/) |
 | KGE-09–KGE-13 | [Kong hybrid mode](https://developer.konghq.com/gateway/hybrid-mode/); [Kong Gateway monitoring](https://developer.konghq.com/gateway/monitoring/) |
 | KGE-14–KGE-16 | [MuleSoft Omni Gateway](https://docs.mulesoft.com/gateway/latest/); [Kong entities](https://developer.konghq.com/gateway/entities/); [Kong plugin entity](https://developer.konghq.com/gateway/entities/plugin/); [Kong deployment topologies](https://developer.konghq.com/gateway/deployment-topologies/); [Apigee proxy-bundle export and import](https://docs.cloud.google.com/apigee/docs/api-platform/fundamentals/download-api-proxies); [Apigee proxy configuration](https://docs.cloud.google.com/apigee/docs/api-platform/reference/api-proxy-configuration-reference) |
 | KGE-17 | [Kong hybrid mode](https://developer.konghq.com/gateway/hybrid-mode/); [Kong Gateway monitoring](https://developer.konghq.com/gateway/monitoring/) |
-| KGE-18 | [Kong Gateway version support policy](https://developer.konghq.com/gateway/version-support-policy/); [Kong hybrid mode](https://developer.konghq.com/gateway/hybrid-mode/); [Kong Gateway monitoring](https://developer.konghq.com/gateway/monitoring/); [Kong AI Gateway](https://developer.konghq.com/ai-gateway/); [Traceable Kong integration](https://docs.traceable.ai/docs/kong); [Harness WAAP plugin](https://developer.konghq.com/plugins/harness-waap/) |
+| KGE-18 | [Kong Gateway version support policy](https://developer.konghq.com/gateway/version-support-policy/); [Kong hybrid mode](https://developer.konghq.com/gateway/hybrid-mode/); [Kong Gateway monitoring](https://developer.konghq.com/gateway/monitoring/); [Kong AI Gateway](https://developer.konghq.com/ai-gateway/); [Traceable Kong integration](https://docs.traceable.ai/kong); [Harness WAAP plugin](https://developer.konghq.com/plugins/harness-waap/) |
 | KGE-19–KGE-21 | [Kong hybrid mode](https://developer.konghq.com/gateway/hybrid-mode/); [Kong Gateway monitoring](https://developer.konghq.com/gateway/monitoring/); [Kong AI Gateway](https://developer.konghq.com/ai-gateway/) |
 | KGE-22 | [Kong deployment topologies](https://developer.konghq.com/gateway/deployment-topologies/); [Apigee hybrid 1.16](https://docs.cloud.google.com/apigee/docs/hybrid/v1.16/what-is-hybrid); [MuleSoft Omni Gateway](https://docs.mulesoft.com/gateway/latest/); [Azure API Management self-hosted gateway](https://learn.microsoft.com/en-us/azure/api-management/self-hosted-gateway-overview) |
-| KGE-23 | [Kong AI Gateway](https://developer.konghq.com/ai-gateway/); [Traceable Kong integration](https://docs.traceable.ai/docs/kong); [Harness WAAP plugin](https://developer.konghq.com/plugins/harness-waap/); [Traceable rule-evaluation matrix](https://docs.traceable.ai/docs/tracing-agents-rule-evaluation-for-protection) |
+| KGE-23 | [Kong AI Gateway](https://developer.konghq.com/ai-gateway/); [Traceable Kong integration](https://docs.traceable.ai/kong); [Harness WAAP plugin](https://developer.konghq.com/plugins/harness-waap/); [Traceable rule-evaluation matrix](https://docs.traceable.ai/docs/tracing-agents-rule-evaluation-for-protection) |
 | KGE-24–KGE-25 | [Kong pricing](https://konghq.com/pricing); [Apigee pricing](https://cloud.google.com/apigee/pricing); [MuleSoft pricing](https://www.mulesoft.com/anypoint-pricing); [Kong deployment topologies](https://developer.konghq.com/gateway/deployment-topologies/) |
 
 ## Reference case and guided decision scenario
@@ -73,6 +73,19 @@ Every native and PowerPoint frame links back to its repository-prepared source m
 The deck exercises the synthetic [RE-1 regulated hybrid enterprise](41-enterprise-reference-case.md): Kubernetes-centered delivery spans two approved clouds and private zones; a Mule estate still carries gateway, integration, orchestration, batch/file, and connector responsibilities; APIs serve internal, partner, and customer journeys; identity, evidence, recovery, data, and audit controls cross platform boundaries; and the organization wants platform-engineering self-service without moving durable business truth into gateway policy.
 
 The audience enters with a stated preference for Kubernetes, GitOps, platform engineering, multicloud placement, self-service, observability, and agentic traffic governance. It must decide whether to fund the bounded Kong direction and proof programme—not whether to declare a universal winner. All workload counts, traffic, topology, timing, SLO, RTO/RPO, staffing, cost, and thresholds inherited from RE-1 remain scenario assumptions until observed inputs replace them.
+
+## Four early assessment gates
+
+These gates belong in the opening assessment, before an operating boundary, score interpretation, or proof budget is authorized. An early disposition freezes the question, accountable role, evidence request, and hold condition; it does **not** prove the answer, assign a product rating, or close the later `E2`–`E4` outcome gates. `EAG-04` treats Kong plus Traceable by Harness as an optional composite solution profile, not as native Kong capability or a fourth gateway contender.
+
+| Gate ID | Early decision to record | Exact subject to freeze | Evidence request created at the gate | HOLD condition before bounded authorization |
+|---|---|---|---|---|
+| EAG-01 | Multicloud operating fit | Required cloud/private placements, request locality, management dependencies, sovereignty, failure independence, support boundary, and per-cell cost | Exact option field/flow ledger plus representative zone/region failure, recovery, scaling, and cost protocol mapped to `GTM-08`, `GRS-01`, and `GEC-07` | A mandatory placement, data flow, dependency, owner, support boundary, or proof obligation is unknown |
+| EAG-02 | Reversibility and vendor dependency | Same-vendor custody switch versus true non-Kong exit; portable configuration, policy, identity/product state, data/history, plugins, evidence, and operating procedures | Representative non-source rebuild, timed route-back, semantic-loss ledger, residual-dependency test, and exit-cost model mapped to `GRS-04` and `GEC-16` | The proposed foundation lacks a named exit profile, reversal trigger, rebuild denominator, owner, or safe route-back obligation |
+| EAG-03 | Cost efficiency and fully allocated TCO | Common time horizon and low/base/high denominator covering meters/quotes, platform labor, infrastructure, HA/DR, telemetry, security adjuncts, support, migration, dual run, incident exposure, custody switch, and exit | Exact quote/meter references plus normalized cost workbook and sensitivity protocol mapped to `GEW-08`, `GRS-05`, and `GEC-17` | A price or cost claim influences authorization without a common denominator, FinOps/sourcing owner, evidence request, and sensitivity method |
+| EAG-04 | Traceable by Harness solution-profile admission | Admit, amend, reject, or hold `KP-SMH1 + GSA-01`; freeze the security team's Mule baseline, desired outcomes, plugin/agent data and failure paths, privacy, support, lifecycle, cost, and clean removal | Exact Kong/plugin/agent BOM and support statement plus GEP-07 coverage, failure, overhead, privacy, trace-correlation, upgrade/rollback, uninstall, and baseline-parity protocol | The adjunct is counted as native Kong capability or platform score, or its baseline, data/failure boundary, owner, support/cost request, and safe-removal obligation are absent |
+
+**Early-gate implication:** the room may authorize bounded investigation only after all four gates are explicitly dispositioned. `Unknown` creates an evidence gap; it never silently becomes a pass. Traceable execution remains in GEP-07, multicloud/recovery execution remains in GEP-03, exit/economics evidence remains in GEP-06, and no early answer can claim production fit.
 
 ## Failure chains and challenge cases
 
@@ -249,7 +262,7 @@ The native deck projects those existing canonical figures and tables rather than
 
 ## Traceable by Harness security-adjunct feasibility
 
-`GSA-01` is a **security and traceability adjunct hypothesis**, not a fourth gateway contender, native Kong capability verdict, or scored advantage. Traceable and Kong documentation describe a third-party plugin path in which the Kong data plane communicates with a reachable Traceable Platform Agent or extension. Traceable documents synchronous and asynchronous modes; synchronous evaluation can enter the request/response path, while asynchronous export happens after the response and can require request-body buffering. [Traceable Kong integration](https://docs.traceable.ai/docs/kong), [Harness WAAP plugin](https://developer.konghq.com/plugins/harness-waap/)
+`GSA-01` is a **security and traceability adjunct hypothesis**, not a fourth gateway contender, native Kong capability verdict, or scored advantage. Traceable and Kong documentation describe a third-party plugin path in which the Kong data plane communicates with a reachable Traceable Platform Agent or extension. Traceable documents synchronous and asynchronous modes; synchronous evaluation can enter the request/response path, while asynchronous export happens after the response and can require request-body buffering. [Traceable Kong integration](https://docs.traceable.ai/kong), [Harness WAAP plugin](https://developer.konghq.com/plugins/harness-waap/)
 
 | Hypothesis ID | Documented mechanism | Critical unknowns | Required executed proof | Evidence ceiling |
 |---|---|---|---|---|
@@ -330,7 +343,7 @@ Public pricing pages expose different and incomplete meters: Kong Enterprise and
 
 - **Depicted scope:** sanitized target inputs and weights; conditional options; bounded Kong decision; architecture and ownership; migration controls; target-shaped proof; scale, narrow, custody-switch, exit, and hold outcomes; audit appendix.
 - **Excluded scope:** a completed comparison, deployed topology, achieved outcome, procurement decision, committed migration calendar, customer identity, private input, and a claim that document volume is evidence.
-- **Diagram source, evidence state and as-of:** synthesis of this study's KGE-P1 through KGE-P6 phases, the docs/47 evidence gates, and the docs/35 and docs/50 migration boundaries; decision-navigation interpretation; 2026-08-21.
+- **Diagram source, evidence state and as-of:** synthesis of this study's KGE-P1 through KGE-P6 phases, the docs/47 evidence gates, and the docs/35 and docs/50 migration boundaries; decision-navigation interpretation; 2026-08-22.
 - **Accessible equivalent:** confirm the stated target and preference model, compare conditional operating boundaries, authorize only a reversible Kong foundation, make architecture and durable ownership explicit, migrate through bounded coexistence, execute seven target-aligned proof workstreams, then scale, narrow, switch custody, exit, or hold according to reviewed outcomes. The audit appendix preserves supplied inputs without changing their evidence state.
 
 ```mermaid
@@ -354,7 +367,7 @@ flowchart LR
 
 | Phase ID | Phase | Slides | Audience decision |
 |---|---|---:|---|
-| KGE-P1 | Why now | 1–3 | Confirm the target operating model and make its weights visible |
+| KGE-P1 | Why now | 1–3 | Confirm the target operating model, make its weights visible, and disposition `EAG-01`–`EAG-04` before any bounded authorization |
 | KGE-P2 | Options and decision | 4–8 | Compare conditional archetypes and authorize only the bounded Kong boundary |
 | KGE-P3 | Architecture and adoption | 9–13 | Understand the target topology, failure paths, ownership, and evidence-gated adoption |
 | KGE-P4 | Migration | 14–16 | Move Mule responsibilities or the Apigee object/state graph through coexistence, route-back, and exit evidence |
@@ -368,7 +381,7 @@ The PowerPoint and the native Pages deck project this same 25-frame contract. Th
 | Slide IDs | Visible evidence state | Source class | Interpretation |
 |---|---|---|---|
 | KGE-01 | Guided decision brief | Mixed public-safe synthesis | Orientation only; no new evidence |
-| KGE-02–KGE-03 | Stakeholder input | Sanitized supplied input | Target preferences and weighting choices; not admitted candidate evidence |
+| KGE-02–KGE-03 | Stakeholder input plus early-gate contract | Sanitized supplied input plus repository decision design | Target preferences, weighting choices, and `EAG-01`–`EAG-04` admission questions; gate disposition creates evidence work but is not candidate proof or a product score |
 | KGE-04 | Conditional hypothesis | Supplied input plus documented-mechanism interpretation | Conditional operating-model archetypes to test; not an observed product comparison |
 | KGE-05 | Provisional scenario over stakeholder input | Sanitized supplied input plus mechanical uncertainty calculation | Historical totals remain audit input; overlapping ranges are a HOLD signal, not product evidence |
 | KGE-06 | Bounded direction | Stakeholder direction plus repository interpretation | Authorizes foundation and proof only |
@@ -386,8 +399,8 @@ The PowerPoint and the native Pages deck project this same 25-frame contract. Th
 | Slide ID | Stable key | Phase | Audience-facing title | Visible decision content | Visual contract | Canonical source |
 |---|---|---|---|---|---|---|
 | KGE-01 | `kong-guided-cover` | KGE-P1 | API management from platform choice to production proof | Guided evaluation, not product marketing; supplied input plus repository evidence plus target-shaped proof | Six-stage journey rail | This study / Executive answer |
-| KGE-02 | `kong-guided-target-model` | KGE-P1 | The operating model—not the feature list—drives the decision | Stated target inputs remain to confirm | Three-lane target-model map using GTM-01–09 | This study / Stated target operating model |
-| KGE-03 | `kong-guided-weights` | KGE-P1 | The scorecard favors cloud-native delivery | Kubernetes plus GitOps carry 35%; the provisional scenario rebases the historical model to 60% and assigns 40% to six missing dimensions | Eight supplied weights plus provisional expanded-dimension weights | This study / Supplied weighting model plus provisional weighting and uncertainty scenario |
+| KGE-02 | `kong-guided-target-model` | KGE-P1 | The operating model and four early gates drive the decision | Confirm GTM-01–09, then admit, amend, reject, or hold multicloud fit, clean exit/vendor dependency, fully allocated TCO, and the optional Kong-plus-Traceable solution profile | Three-lane target-model map using GTM-01–09 plus four `EAG-01`–`EAG-04` admission gates | This study / Stated target operating model plus Four early assessment gates |
+| KGE-03 | `kong-guided-weights` | KGE-P1 | The scorecard favors cloud-native delivery | Kubernetes plus GitOps carry 35%; the provisional scenario rebases the historical model to 60% and assigns 40% to six missing dimensions; Traceable by Harness remains an unscored admission gate | Eight supplied weights plus provisional expanded-dimension weights and explicit unscored-adjunct note | This study / Supplied weighting model, provisional weighting and uncertainty scenario, plus `EAG-04` |
 | KGE-04 | `kong-guided-options` | KGE-P2 | Each contender optimizes a different operating model | Conditional Kong, Apigee, MuleSoft, and APIM archetypes | Four option cards using GEO-KONG/APIGEE/MULE/APIM | This study / Conditional option archetypes |
 | KGE-05 | `kong-guided-score` | KGE-P2 | Preserve the historical score; expose the uncertainty | Correct totals remain 93, 85.5, and 77; the provisional scenario shows overlapping ranges rather than manufacturing a new rank | Historical score comparison plus uncertainty-envelope and rank-switch note | This study / Supplied scoring audit plus provisional weighting and uncertainty scenario |
 | KGE-06 | `kong-guided-decision` | KGE-P2 | Proceed with a bounded, reversible Kong foundation | Scale only after the exact option, reviewed E2/E3/E4, route-back/exit, and economics evidence | Authorization / hold split | This study / Bounded authorization |
@@ -406,9 +419,9 @@ The PowerPoint and the native Pages deck project this same 25-frame contract. Th
 | KGE-19 | `kong-guided-outcomes-1` | KGE-P5 | Five reviewable outcomes anchor production proof | KO-1 state fidelity through KO-5 safe change | Source-derived KO-1–KO-5 outcome cards | docs/47 / Outcome measures and acceptance artifacts |
 | KGE-20 | `kong-guided-outcomes-2` | KGE-P5 | Scale depends on the whole operating system | KO-6 capacity through KO-11 estate ownership; KO-7 is security traceability and evidence safety with correlation, quantified gaps and prohibited-field control | Source-derived KO-6–KO-11 outcome cards | docs/47 / Outcome measures and acceptance artifacts |
 | KGE-21 | `kong-guided-assurance` | KGE-P5 | Negative evidence must change the decision | Pre-commit scale, narrow, switch custody, exit, and hold outcomes | Source-derived KPS-6 assurance brief | docs/47 / KPS-6 |
-| KGE-22 | `kong-guided-compare-architecture` | KGE-P6 | Comparison input—architecture, multicloud and robustness | Preserve supplied labels; make GEC-19 scalability/robustness explicitly unscored and bind every claim to equivalent execution | GEC-01–08 plus GEC-19 evidence-obligation records | This study / Supplied comparison input: architecture and delivery |
-| KGE-23 | `kong-guided-compare-management` | KGE-P6 | Comparison input—management, AI and security traceability | Keep capabilities versioned; show GEC-20 Kong-plus-Traceable as documented feasibility, not gateway proof or score | GEC-09–15 plus GEC-20 evidence-obligation records | This study / management and AI comparison plus GSA-01 |
-| KGE-24 | `kong-guided-compare-economics` | KGE-P6 | Comparison input—pricing, lock-in and operating duty | Normalize exact meters/quotes with CP duty, labor, infrastructure, HA/DR, telemetry, adjuncts, migration, support, dual run, incident exposure and exit | GEC-16–18 evidence-obligation records plus public pricing-boundary note | This study / economics and evidence ceiling |
+| KGE-22 | `kong-guided-compare-architecture` | KGE-P6 | Comparison input — architecture, multicloud and robustness | Preserve supplied labels; make GEC-19 scalability/robustness explicitly unscored and bind every claim to equivalent execution | GEC-01–08 plus GEC-19 evidence-obligation records | This study / Supplied comparison input: architecture and delivery |
+| KGE-23 | `kong-guided-compare-management` | KGE-P6 | Comparison input — management, AI and security traceability | Keep capabilities versioned; show GEC-20 Kong-plus-Traceable as documented feasibility, not gateway proof or score | GEC-09–15 plus GEC-20 evidence-obligation records | This study / management and AI comparison plus GSA-01 |
+| KGE-24 | `kong-guided-compare-economics` | KGE-P6 | Comparison input — pricing, lock-in and operating duty | Normalize exact meters/quotes with CP duty, labor, infrastructure, HA/DR, telemetry, adjuncts, migration, support, dual run, incident exposure and exit | GEC-16–18 evidence-obligation records plus public pricing-boundary note | This study / economics and evidence ceiling |
 | KGE-25 | `kong-guided-score-audit` | KGE-P6 | Historical audit; provisional uncertainty envelope | Preserve original ratings and corrected arithmetic; show the 60/40 planning weights, unknown GRS ranges, overlapping envelopes and HOLD disposition without calling the midpoint a score | Full GEW audit plus provisional weights, mechanical ranges and rank-stability warning | This study / supplied scoring audit plus provisional weighting and uncertainty scenario |
 
 ## Presenter guidance
@@ -418,7 +431,7 @@ Use the companion [Kong guided evaluation facilitator guide](49-kong-guided-eval
 | Transition | Audience guidance |
 |---|---|
 | Open | This is a strategic-fit decision and proof journey, not a completed product comparison or product-marketing deck. |
-| Target to options | We are comparing operating models and control boundaries, not counting features. |
+| Target to options | We are comparing operating models and control boundaries, not counting features. First record `EAG-01`–`EAG-04`: multicloud fit, clean exit, full TCO, and whether Kong plus Traceable is even an admitted solution profile. |
 | Options to decision | The historical score is not the reason for the choice; the governed re-score adds missing dimensions without changing inputs to preserve a preferred rank. |
 | Decision to architecture | If the enterprise chooses self-managed control, it must understand and fund its operating accountability; legal liability remains a contract and counsel question. |
 | Architecture to adoption | Technology fit matters only when ownership, paved roads, governance, and support work for delivery teams. |
@@ -442,7 +455,7 @@ Use the companion [Kong guided evaluation facilitator guide](49-kong-guided-eval
 
 | Proof ID | Procedure | Measure | Scenario threshold | Evidence artifact | Independent reviewer |
 |---|---|---|---|---|---|
-| KGE-P01 | Freeze exact options and approve GRS-01–06 dimensions, rubric, mandatory gates, weights/ranges, score-capable evidence floor, confidence treatment, scorers and approvers; then recalculate and run sensitivity without changing inputs to protect an outcome | Rank stability, weight sensitivity, evidence coverage, bounds/regret and unresolved evidence | No decision use when inputs are unapproved, evidence is asymmetric, an unknown silently earns points, or plausible approved sensitivity changes the direction without an explicit business choice | Option register, rubric, scoring workbook, source/result links, sensitivity plots, scorer/approver record and dissent | Decision owner, enterprise architecture, independent assessment assurance and sourcing/FinOps |
+| KGE-P01 | Disposition `EAG-01`–`EAG-04`; freeze exact option profiles and approve GRS-01–06 dimensions, rubric, mandatory gates, weights/ranges, score-capable evidence floor, confidence treatment, scorers and approvers; then recalculate and run sensitivity without changing inputs to protect an outcome | Early-gate completeness, rank stability, weight sensitivity, evidence coverage, bounds/regret and unresolved evidence | No bounded authorization when an early gate lacks a disposition, owner, evidence request, or hold condition; no decision use when inputs are unapproved, evidence is asymmetric, an unknown silently earns points, or plausible approved sensitivity changes the direction without an explicit business choice | Signed early-gate record, option register, rubric, scoring workbook, source/result links, sensitivity plots, scorer/approver record and dissent | Decision owner, enterprise architecture, security architecture, independent assessment assurance and sourcing/FinOps |
 | KGE-P02 | Execute GEP-01 and GEP-02 in the frozen target topology | Configuration authority, destructive surprise, drift, rollback, active identity | Zero uncontrolled writer or unexplained active state; rollback/reconciliation within approved rule | Immutable BOM, pipeline, plans/diffs, release manifest, runtime attestations | Independent release engineering and security |
 | KGE-P03 | Execute GEP-03 failure, recovery, and capacity scenarios | Business SLO, false-ready, RTO/RPO, scale, reconciliation, evidence loss | All mandatory state-specific objectives pass; failed first runs retained | Fault timeline, raw metrics/traces/logs, recovery journal, capacity evidence | SRE/resilience plus business-risk panel |
 | KGE-P04 | Execute GEP-04 identity lifecycle and negative tests | Unauthorized success, orphan access, revoke/rotation/break-glass time, attribution | Zero unauthorized success or unowned access; lifecycle objectives met | Identity/role matrix, config, audit, negative-test and review bundle | IAM/PKI/security assurance |
@@ -467,6 +480,7 @@ Use the companion [Kong guided evaluation facilitator guide](49-kong-guided-eval
 
 | Evidence request | Owner role | Due gate | Decision impact if absent |
 |---|---|---|---|
+| Signed `EAG-01`–`EAG-04` disposition record with exact subject, owner, evidence request, and HOLD condition; `EAG-04` must explicitly admit, amend, reject, or hold `KP-SMH1 + GSA-01` rather than silently bundling the adjunct into Kong | Decision owner, enterprise architecture, security architecture, platform product, SRE, sourcing and FinOps | KP0 | No bounded authorization; multicloud, exit, TCO, or Traceable assumptions cannot enter the comparison as facts or points |
 | Confirmed target operating model plus approved GRS-01–06 dimensions, mandatory gates, weights/ranges, rubric, score-capable evidence floor, scorers, approvers, confidence and sensitivity method | Decision owner, enterprise architecture, independent assessment assurance and FinOps | KP0 | Historical score remains illustrative; governed re-score remains pending and cannot govern option choice |
 | Observed workload, identity, protocol, region, dependency, data, traffic, SLO, RTO/RPO, consumer, and current-platform inventory | Domain, integration, SRE, security, enterprise architecture | KP0 | Target and migration scenarios remain synthetic |
 | Exact `KP-SMH1` BOM, entitlement, support, vulnerability/patch, upgrade, restore, portal/catalog, AI, and license behavior | Kong technical owner, sourcing, security, platform/DB engineering | KP1 | No target E3 or production admission |
@@ -480,6 +494,8 @@ Use the companion [Kong guided evaluation facilitator guide](49-kong-guided-eval
 
 Gate **KP0-GE** is chaired by the API-platform product owner with enterprise architecture, security/IAM/PKI, platform and database engineering, DevOps/SRE, integration modernization, developer experience, sourcing, FinOps, service management, and independent assurance. It passes only when:
 
+- `EAG-01` multicloud fit, `EAG-02` clean exit/vendor dependency, `EAG-03` fully allocated TCO, and `EAG-04` Traceable by Harness admission each have an explicit admit, amend, reject, or hold disposition, a named owner, an evidence request, and a HOLD condition;
+- the forum explicitly chooses whether the studied option is `KP-SMH1` alone or the composite `KP-SMH1 + GSA-01`; a composite admission creates GEP-07 work and never awards native Kong credit;
 - the target operating model, weights, exact options, scoring limitations, and decision rights are acknowledged;
 - `KP-SMH1` has a BOM/entitlement/support freeze plan and permanent duty owners;
 - GEP-01 through GEP-07 have funded owner roles, representative scenarios, pre-approved measures/thresholds, raw-artifact contracts, reviewers, and stop rules;

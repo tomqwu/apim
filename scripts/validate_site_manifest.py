@@ -180,6 +180,14 @@ KONG_GUIDED_SOURCE_IDS = (
     "poc-readme",
 )
 KONG_GUIDED_TARGET_IDS = tuple(f"GTM-{index:02d}" for index in range(1, 10))
+KONG_GUIDED_EARLY_GATE_IDS = tuple(f"EAG-{index:02d}" for index in range(1, 5))
+KONG_GUIDED_EARLY_GATE_COLUMNS = (
+    "Gate ID",
+    "Early decision to record",
+    "Exact subject to freeze",
+    "Evidence request created at the gate",
+    "HOLD condition before bounded authorization",
+)
 KONG_GUIDED_WEIGHT_IDS = tuple(f"GEW-{index:02d}" for index in range(1, 9))
 KONG_GUIDED_OPTION_IDS = ("GEO-KONG", "GEO-APIGEE", "GEO-MULE", "GEO-APIM")
 KONG_GUIDED_RESCORE_IDS = tuple(f"GRS-{index:02d}" for index in range(1, 7))
@@ -205,7 +213,12 @@ KONG_GUIDED_ARCHITECTURE_EDGES = (
     ("private-legacy-dp", "private-legacy-services-evidence", "local-request-and-evidence"),
 )
 KONG_GUIDED_PHASES = (
-    ("KGE-P1", "Why now", "Confirm the target operating model and make its weights visible", "kong-guided-cover"),
+    (
+        "KGE-P1",
+        "Why now",
+        "Confirm the target operating model, make its weights visible, and disposition EAG-01 – EAG-04 before any bounded authorization",
+        "kong-guided-cover",
+    ),
     ("KGE-P2", "Options and decision", "Compare conditional archetypes and authorize only the bounded Kong boundary", "kong-guided-options"),
     ("KGE-P3", "Architecture and adoption", "Understand the target topology, failure paths, ownership, and evidence-gated adoption", "kong-guided-architecture"),
     ("KGE-P4", "Migration", "Move Mule responsibilities or the Apigee object/state graph through coexistence, route-back, and exit evidence", "kong-guided-migration-boundary"),
@@ -220,14 +233,72 @@ KONG_GUIDED_ASSESSMENT_EVIDENCE_STATE = (
     "Facilitation guidance derived from the canonical guided evaluation and its presentation notes; "
     "no new product fact, executed result, commercial conclusion, or production authorization"
 )
-KONG_GUIDED_ASSESSMENT_AS_OF = "2026-08-21"
+KONG_GUIDED_ASSESSMENT_AS_OF = "2026-08-22"
 KONG_GUIDED_ASSESSMENT_PHASE_QUESTION_IDS = {
-    "KGE-P1": ("KGE-P1-Q01", "KGE-P1-Q02"),
+    "KGE-P1": (
+        "KGE-P1-Q01", "KGE-P1-Q02", "KGE-P1-Q03",
+        "KGE-P1-Q04", "KGE-P1-Q05", "KGE-P1-Q06",
+    ),
     "KGE-P2": ("KGE-P2-Q01", "KGE-P2-Q02"),
     "KGE-P3": ("KGE-P3-Q01", "KGE-P3-Q02"),
     "KGE-P4": ("KGE-P4-Q01", "KGE-P4-Q02"),
     "KGE-P5": ("KGE-P5-Q01", "KGE-P5-Q02", "KGE-P5-Q03", "KGE-P5-Q04"),
     "KGE-P6": ("KGE-P6-Q01", "KGE-P6-Q02"),
+}
+KONG_GUIDED_EARLY_QUESTION_BINDINGS = {
+    "KGE-P1-Q02": {
+        "slideIds": ("KGE-02", "KGE-03"),
+        "targetIds": KONG_GUIDED_TARGET_IDS,
+    },
+    "KGE-P1-Q03": {
+        "slideIds": ("KGE-02", "KGE-03"),
+        "targetIds": ("EAG-04", "GSA-01", "GEP-07", "GEC-20"),
+    },
+    "KGE-P1-Q04": {
+        "slideIds": ("KGE-02", "KGE-03"),
+        "targetIds": ("EAG-01", "GTM-08", "GRS-01", "GEC-07"),
+    },
+    "KGE-P1-Q05": {
+        "slideIds": ("KGE-02", "KGE-03"),
+        "targetIds": ("EAG-02", "GRS-04", "GEC-16"),
+    },
+    "KGE-P1-Q06": {
+        "slideIds": ("KGE-02", "KGE-03"),
+        "targetIds": ("EAG-03", "GEW-08", "GRS-05", "GEC-17"),
+    },
+}
+KONG_GUIDED_EARLY_SLIDE_CONTRACT = {
+    "KGE-02": {
+        "title": "The operating model and four early gates drive the decision",
+        "body": (
+            "Confirm GTM-01–09, then admit, amend, reject, or hold multicloud fit, "
+            "clean exit/vendor dependency, fully allocated TCO, and the optional "
+            "Kong-plus-Traceable solution profile"
+        ),
+        "visualContract": (
+            "Three-lane target-model map using GTM-01–09 plus four "
+            "EAG-01 – EAG-04 admission gates"
+        ),
+        "canonicalSource": (
+            "This study / Stated target operating model plus Four early assessment gates"
+        ),
+    },
+    "KGE-03": {
+        "title": "The scorecard favors cloud-native delivery",
+        "body": (
+            "Kubernetes plus GitOps carry 35%; the provisional scenario rebases the "
+            "historical model to 60% and assigns 40% to six missing dimensions; "
+            "Traceable by Harness remains an unscored admission gate"
+        ),
+        "visualContract": (
+            "Eight supplied weights plus provisional expanded-dimension weights and "
+            "explicit unscored-adjunct note"
+        ),
+        "canonicalSource": (
+            "This study / Supplied weighting model, provisional weighting and "
+            "uncertainty scenario, plus EAG-04"
+        ),
+    },
 }
 KONG_GUIDED_ASSESSMENT_QUESTION_IDS = tuple(
     question_id
@@ -352,7 +423,12 @@ KONG_GUIDED_POINT_SOURCE_BY_KEY = {
 }
 KONG_GUIDED_EVIDENCE_GROUPS = (
     (("KGE-01",), "Guided decision brief", "Mixed public-safe synthesis", "Orientation only; no new evidence"),
-    (("KGE-02", "KGE-03"), "Stakeholder input", "Sanitized supplied input", "Target preferences and weighting choices; not admitted candidate evidence"),
+    (
+        ("KGE-02", "KGE-03"),
+        "Stakeholder input plus early-gate contract",
+        "Sanitized supplied input plus repository decision design",
+        "Target preferences, weighting choices, and EAG-01 – EAG-04 admission questions; gate disposition creates evidence work but is not candidate proof or a product score",
+    ),
     (("KGE-04",), "Conditional hypothesis", "Supplied input plus documented-mechanism interpretation", "Conditional operating-model archetypes to test; not an observed product comparison"),
     (("KGE-05",), "Provisional scenario over stakeholder input", "Sanitized supplied input plus mechanical uncertainty calculation", "Historical totals remain audit input; overlapping ranges are a HOLD signal, not product evidence"),
     (("KGE-06",), "Bounded direction", "Stakeholder direction plus repository interpretation", "Authorizes foundation and proof only"),
@@ -371,6 +447,9 @@ KONG_GUIDED_REFERENCE_GROUPS = (
     (("KGE-01", "KGE-02", "KGE-03"), (
         "https://developer.konghq.com/gateway/deployment-topologies/",
         "https://developer.konghq.com/gateway/hybrid-mode/",
+        "https://docs.traceable.ai/kong",
+        "https://developer.konghq.com/plugins/harness-waap/",
+        "https://konghq.com/pricing",
     )),
     (("KGE-04", "KGE-05"), (
         "https://developer.konghq.com/gateway/deployment-topologies/",
@@ -403,7 +482,7 @@ KONG_GUIDED_REFERENCE_GROUPS = (
         "https://developer.konghq.com/gateway/hybrid-mode/",
         "https://developer.konghq.com/gateway/monitoring/",
         "https://developer.konghq.com/ai-gateway/",
-        "https://docs.traceable.ai/docs/kong",
+        "https://docs.traceable.ai/kong",
         "https://developer.konghq.com/plugins/harness-waap/",
     )),
     (("KGE-19", "KGE-20", "KGE-21"), (
@@ -419,7 +498,7 @@ KONG_GUIDED_REFERENCE_GROUPS = (
     )),
     (("KGE-23",), (
         "https://developer.konghq.com/ai-gateway/",
-        "https://docs.traceable.ai/docs/kong",
+        "https://docs.traceable.ai/kong",
         "https://developer.konghq.com/plugins/harness-waap/",
         "https://docs.traceable.ai/docs/tracing-agents-rule-evaluation-for-protection",
     )),
@@ -504,6 +583,73 @@ class ScriptSourceParser(HTMLParser):
 def require(condition: bool, message: str) -> None:
     if not condition:
         raise ValidationError(message)
+
+
+def canonical_kong_guided_early_gate_semantics() -> tuple[tuple[str, ...], ...]:
+    """Reparse doc48 so the early-gate projection cannot drift independently."""
+
+    def markdown_row(line: str) -> list[str]:
+        stripped = line.strip()
+        if not stripped.startswith("|"):
+            return []
+        stripped = stripped[1:]
+        if stripped.endswith("|"):
+            stripped = stripped[:-1]
+        return [cell.replace(r"\|", "|").strip() for cell in re.split(r"(?<!\\)\|", stripped)]
+
+    def clean_inline(value: str) -> str:
+        value = re.sub(r"!\[[^\]]*\]\([^)]*\)", "", value)
+        value = re.sub(r"\[([^\]]+)\]\([^)]*\)", r"\1", value)
+        value = re.sub(r"[`*_>#|]", " ", value)
+        return re.sub(r"\s+", " ", value).strip(" -")
+
+    source = ROOT / KONG_GUIDED_SOURCE_PATHS[0]
+    require(
+        source.is_file() and not source.is_symlink(),
+        "canonical doc48 guided-evaluation source must be a regular file",
+    )
+    try:
+        text = source.read_text(encoding="utf-8")
+    except (OSError, UnicodeDecodeError) as exc:
+        raise ValidationError("canonical doc48 guided-evaluation source cannot be read as UTF-8") from exc
+
+    matches = re.findall(
+        r"^##\s+Four early assessment gates\s*$([\s\S]*?)(?=^##\s+|\Z)",
+        text,
+        flags=re.MULTILINE | re.IGNORECASE,
+    )
+    require(len(matches) == 1, "canonical doc48 must contain one Four early assessment gates section")
+    lines = matches[0].splitlines()
+    tables: list[list[list[str]]] = []
+    for index in range(len(lines) - 1):
+        headers = markdown_row(lines[index])
+        separator = markdown_row(lines[index + 1])
+        if (
+            tuple(headers) != KONG_GUIDED_EARLY_GATE_COLUMNS
+            or len(separator) != len(headers)
+            or not all(re.fullmatch(r":?-{3,}:?", re.sub(r"\s+", "", cell)) for cell in separator)
+        ):
+            continue
+        rows: list[list[str]] = []
+        cursor = index + 2
+        while cursor < len(lines):
+            cells = markdown_row(lines[cursor])
+            if not cells:
+                break
+            require(
+                len(cells) == len(KONG_GUIDED_EARLY_GATE_COLUMNS),
+                "canonical doc48 early-gate row must match the exact table width",
+            )
+            rows.append(cells)
+            cursor += 1
+        tables.append(rows)
+    require(len(tables) == 1, "canonical doc48 must contain one exact early-gate table")
+    semantics = tuple(tuple(clean_inline(cell) for cell in row) for row in tables[0])
+    require(
+        tuple(row[0] for row in semantics) == KONG_GUIDED_EARLY_GATE_IDS,
+        "canonical doc48 early-gate rows must preserve EAG-01 through EAG-04 order",
+    )
+    return semantics
 
 
 def canonical_kong_guided_assessment_question_semantics() -> tuple[tuple[Any, ...], ...]:
@@ -1319,12 +1465,18 @@ def validate_kong_guided_evaluation(
     require(isinstance(evidence_state, str) and bool(evidence_state.strip()), "guided evaluation evidenceState is required")
     for marker in ("Stakeholder inputs", "E1", "interpretation", "hypotheses", "scenario assumptions", "E2", "E3", "E4"):
         require(marker.casefold() in evidence_state.casefold(), f"guided evaluation evidenceState must preserve {marker}")
-    require(guided.get("asOf") == "2026-08-21", "guided evaluation asOf must be 2026-08-21")
+    require(
+        guided.get("asOf") == KONG_GUIDED_ASSESSMENT_AS_OF,
+        f"guided evaluation asOf must be {KONG_GUIDED_ASSESSMENT_AS_OF}",
+    )
     metadata = guided.get("metadata")
     require(isinstance(metadata, dict), "guided evaluation metadata must be an object")
     require(metadata.get("artifact type") == guided["sourceClass"], "guided evaluation metadata source class is inconsistent")
     require(metadata.get("evidence state") == evidence_state, "guided evaluation metadata evidence state is inconsistent")
-    require("2026-08-21" in str(metadata.get("as-of date", "")), "guided evaluation metadata as-of date is inconsistent")
+    require(
+        KONG_GUIDED_ASSESSMENT_AS_OF in str(metadata.get("as-of date", "")),
+        "guided evaluation metadata as-of date is inconsistent",
+    )
 
     assessment = guided.get("assessmentContract")
     require(isinstance(assessment, dict), "guided assessmentContract must be an object")
@@ -1372,20 +1524,20 @@ def validate_kong_guided_evaluation(
             phase_id: tuple(question_ids)
             for phase_id, question_ids in phase_question_ids.items()
         } == KONG_GUIDED_ASSESSMENT_PHASE_QUESTION_IDS,
-        "guided assessment phaseQuestionIds must preserve the exact 2/2/2/2/4/2 mapping",
+        "guided assessment phaseQuestionIds must preserve the exact 6/2/2/2/4/2 mapping",
     )
 
     questions = assessment.get("questions")
     require(
-        isinstance(questions, list) and len(questions) == 14
+        isinstance(questions, list) and len(questions) == 18
         and all(isinstance(question, dict) for question in questions),
-        "guided assessment must contain exactly 14 question objects",
+        "guided assessment must contain exactly 18 question objects",
     )
     question_ids = tuple(question.get("id") for question in questions)
     require(
         all(isinstance(question_id, str) for question_id in question_ids)
         and question_ids == KONG_GUIDED_ASSESSMENT_QUESTION_IDS,
-        "guided assessment question IDs must preserve the exact KGE-P1-Q01 through KGE-P6-Q02 order",
+        "guided assessment question IDs must preserve the exact 18-question KGE-P1-Q01 through KGE-P6-Q02 order",
     )
     slide_phase_by_id = {
         f"KGE-{index:02d}": KONG_GUIDED_PHASE_BY_KEY[key]
@@ -1437,6 +1589,20 @@ def validate_kong_guided_evaluation(
                 type(question.get("mandatory")) is bool,
                 f"guided assessment question {question_id} mandatory must be boolean",
             )
+
+    for question_id, expected_binding in KONG_GUIDED_EARLY_QUESTION_BINDINGS.items():
+        question = question_by_id[question_id]
+        require(
+            tuple(question["slideIds"]) == expected_binding["slideIds"]
+            and tuple(question["targetIds"]) == expected_binding["targetIds"],
+            f"guided assessment question {question_id} must preserve its exact early-gate slide and target bindings",
+        )
+        require(
+            question["minimumEvidence"] == "E1"
+            and question["mandatory"] is True
+            and question["choiceSetId"] == "KGE-CS-INPUT",
+            f"guided assessment question {question_id} must remain a mandatory E1 input disposition",
+        )
 
     choice_sets = assessment.get("choiceSets")
     require(
@@ -1667,6 +1833,7 @@ def validate_kong_guided_evaluation(
 
     expected_headings = {
         "targetModel": "Stated target operating model",
+        "earlyGates": "Four early assessment gates",
         "weights": "Supplied weighting model",
         "governedRescore": "Proposed governed re-score",
         "options": "Conditional option archetypes",
@@ -1702,7 +1869,7 @@ def validate_kong_guided_evaluation(
                 heading,
                 "comparative-study",
                 evidence_state,
-                "2026-08-21",
+                KONG_GUIDED_ASSESSMENT_AS_OF,
             ),
             f"guided evaluation {label} provenance must match canonical doc48 and its evidence class",
         )
@@ -1723,6 +1890,62 @@ def validate_kong_guided_evaluation(
     for row in target_rows:
         nonempty_strings(row, ("lane", "id", "input", "implication"), f"guided target {row.get('id')}")
     validate_block_provenance(target, "targetModel", expected_headings["targetModel"])
+
+    early_gates = guided.get("earlyGates")
+    require(isinstance(early_gates, dict), "guided evaluation earlyGates must be an object")
+    early_gate_rows = early_gates.get("rows")
+    require(
+        isinstance(early_gate_rows, list) and early_gates.get("rowTotal") == 4,
+        "guided evaluation earlyGates must contain exactly four rows",
+    )
+    require(
+        tuple(row.get("id") for row in early_gate_rows if isinstance(row, dict))
+        == KONG_GUIDED_EARLY_GATE_IDS,
+        "guided evaluation early gate IDs must be EAG-01 through EAG-04",
+    )
+    require(
+        all(isinstance(row, dict) for row in early_gate_rows),
+        "guided evaluation earlyGates rows must be objects",
+    )
+    for row in early_gate_rows:
+        nonempty_strings(
+            row,
+            ("id", "decision", "subject", "evidenceRequest", "holdCondition"),
+            f"guided early gate {row.get('id')}",
+        )
+    require(
+        "multicloud" in early_gate_rows[0]["decision"].casefold()
+        and "vendor" in early_gate_rows[1]["subject"].casefold()
+        and "cost" in early_gate_rows[2]["decision"].casefold()
+        and "traceable" in early_gate_rows[3]["decision"].casefold()
+        and "harness" in early_gate_rows[3]["decision"].casefold(),
+        "guided evaluation early gates must preserve multicloud, vendor dependency, cost efficiency, and Traceable by Harness semantics",
+    )
+    validate_block_provenance(early_gates, "earlyGates", expected_headings["earlyGates"])
+    require(
+        tuple(early_gates["provenance"].get("tableColumns", ()))
+        == KONG_GUIDED_EARLY_GATE_COLUMNS,
+        "guided evaluation earlyGates tableColumns must match the exact canonical table",
+    )
+    require(
+        early_gates["provenance"].get("heading") == expected_headings["earlyGates"],
+        "guided evaluation earlyGates heading provenance must match canonical doc48",
+    )
+    canonical_early_gate_semantics = canonical_kong_guided_early_gate_semantics()
+    observed_early_gate_semantics = tuple(
+        (
+            row["id"],
+            row["decision"],
+            row["subject"],
+            row["evidenceRequest"],
+            row["holdCondition"],
+        )
+        for row in early_gate_rows
+    )
+    require(
+        observed_early_gate_semantics == canonical_early_gate_semantics,
+        "guided evaluation earlyGates must match the exact canonical doc48 semantic tuples",
+    )
 
     weights = guided.get("weights")
     require(isinstance(weights, dict), "guided evaluation weights must be an object")
@@ -1943,6 +2166,13 @@ def validate_kong_guided_evaluation(
         official_references = row.get("officialReferences")
         require(isinstance(official_references, list) and official_references, f"guided slide contract {row.get('slideId')} must retain official references")
         require(tuple(reference.get("url") for reference in official_references if isinstance(reference, dict)) == official_references_by_slide_id[row["slideId"]], f"guided slide contract {row.get('slideId')} official references do not match the canonical catalog")
+    contract_by_slide_id = {row["slideId"]: row for row in contract_rows}
+    for slide_id, expected_content in KONG_GUIDED_EARLY_SLIDE_CONTRACT.items():
+        row = contract_by_slide_id[slide_id]
+        require(
+            all(row.get(field) == value for field, value in expected_content.items()),
+            f"guided slide contract {slide_id} must preserve the exact early-assessment title, body, visual, and source",
+        )
     validate_block_provenance(slide_contract, "slides", expected_headings["slides"])
 
     decks = manifest.get("presentationDecks")
@@ -2020,7 +2250,7 @@ def validate_kong_guided_evaluation(
         require(slide.get("officialReferences") == contract["officialReferences"], f"guided presentation slide {key} official references do not match its KGE contract")
 
     expected_row_ids = {
-        "kong-guided-target-model": KONG_GUIDED_TARGET_IDS,
+        "kong-guided-target-model": KONG_GUIDED_TARGET_IDS + KONG_GUIDED_EARLY_GATE_IDS,
         "kong-guided-weights": KONG_GUIDED_WEIGHT_IDS,
         "kong-guided-options": KONG_GUIDED_OPTION_IDS,
         "kong-guided-score": KONG_GUIDED_WEIGHT_IDS,

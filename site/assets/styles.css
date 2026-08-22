@@ -305,6 +305,49 @@
   color: #8b291d;
 }
 
+.assessment-target-bindings {
+  min-width: 0;
+  display: grid;
+  grid-template-columns: 8rem minmax(0, 1fr);
+  gap: 0.45rem 0.6rem;
+  align-items: start;
+  margin: 0.65rem 0;
+}
+
+.assessment-target-bindings > b {
+  padding-top: 0.24rem;
+  color: var(--guided-violet, #5f38d7);
+  font-family: var(--mono);
+  font-size: 0.74rem;
+  letter-spacing: 0.04em;
+  text-transform: uppercase;
+}
+
+.assessment-target-bindings > ul {
+  min-width: 0;
+  display: flex;
+  flex-wrap: wrap;
+  gap: 0.3rem;
+  margin: 0;
+  padding: 0;
+  list-style: none;
+}
+
+.assessment-target-bindings li {
+  display: inline-flex;
+  min-height: 1.55rem;
+  align-items: center;
+  padding: 0.18rem 0.42rem;
+  border: 1px solid color-mix(in srgb, var(--guided-violet, #5f38d7) 42%, white);
+  color: var(--guided-ink, #11120f);
+  background: color-mix(in srgb, var(--guided-violet, #5f38d7) 6%, white);
+  font-family: var(--mono);
+  font-size: 0.7rem;
+  font-weight: 700;
+  line-height: 1;
+  white-space: nowrap;
+}
+
 .assessment-decision-use,
 .assessment-evidence-boundary,
 .assessment-hold-rule {
@@ -1270,28 +1313,6 @@
   font-size: 0.7rem;
   font-weight: 700;
   text-transform: uppercase;
-}
-
-.viz-guided-programme.is-seven {
-  grid-template-columns: repeat(8, minmax(0, 1fr));
-}
-
-.viz-guided-programme.is-seven > li {
-  grid-column: span 2;
-  padding: 0.48rem;
-}
-
-.viz-guided-programme.is-seven > li:nth-child(5) {
-  grid-column: 2 / span 2;
-}
-
-.viz-guided-programme.is-seven strong {
-  font-size: clamp(0.92rem, 1vw, 1.15rem);
-}
-
-.viz-guided-programme.is-seven p {
-  font-size: clamp(0.86rem, 0.92vw, 1.05rem);
-  line-height: 1.1;
 }
 
 .viz-dual-migration {
@@ -10492,6 +10513,15 @@ body.is-presenting .site-footer {
   text-wrap: pretty;
 }
 
+.viz-guided-target-model {
+  min-width: 0;
+  min-height: 0;
+  height: 100%;
+  display: grid;
+  grid-template-rows: minmax(0, 1fr) auto;
+  gap: 0.65rem;
+}
+
 .viz-guided-target {
   height: 100%;
   display: grid;
@@ -10537,6 +10567,109 @@ body.is-presenting .site-footer {
   font-size: clamp(1rem, 1.25vw, 1.5rem);
   line-height: 1.15;
   text-wrap: balance;
+}
+
+.viz-guided-early-gates {
+  min-width: 0;
+  display: grid;
+  grid-template-columns: minmax(10rem, 0.72fr) minmax(0, 3fr);
+  border: 1px solid var(--guided-ink);
+  background: var(--guided-paper);
+}
+
+.viz-guided-early-gates > header {
+  min-width: 0;
+  display: grid;
+  gap: 0.18rem;
+  align-content: center;
+  padding: 0.55rem 0.65rem;
+  background: var(--guided-yellow);
+}
+
+.viz-guided-early-gates > header span,
+.viz-guided-early-gates li > span {
+  color: var(--guided-violet);
+  font-family: var(--mono);
+  font-size: clamp(0.64rem, 0.65vw, 0.78rem);
+  font-weight: 700;
+  letter-spacing: 0.04em;
+  text-transform: uppercase;
+}
+
+.viz-guided-early-gates > header strong {
+  font-size: clamp(0.92rem, 1vw, 1.18rem);
+  line-height: 1.05;
+  text-wrap: balance;
+}
+
+.viz-guided-early-gates ol {
+  min-width: 0;
+  display: grid;
+  grid-template-columns: repeat(4, minmax(0, 1fr));
+  margin: 0;
+  padding: 0;
+  list-style: none;
+}
+
+.viz-guided-early-gates li {
+  min-width: 0;
+  display: grid;
+  grid-template-rows: auto 1fr auto;
+  gap: 0.18rem;
+  padding: 0.45rem 0.5rem;
+  border-left: 1px solid var(--guided-line);
+}
+
+.viz-guided-early-gates li > strong {
+  font-size: clamp(0.76rem, 0.84vw, 0.96rem);
+  line-height: 1.05;
+  text-wrap: balance;
+}
+
+.viz-guided-early-gates li > small {
+  color: var(--guided-muted);
+  font-size: clamp(0.62rem, 0.64vw, 0.72rem);
+  line-height: 1.05;
+}
+
+@media screen and (max-width: 1023px) {
+  .viz-guided-target-model {
+    height: auto;
+  }
+
+  .viz-guided-early-gates {
+    grid-template-columns: minmax(0, 1fr);
+  }
+
+  .viz-guided-early-gates ol {
+    grid-template-columns: repeat(2, minmax(0, 1fr));
+  }
+
+  .viz-guided-early-gates li {
+    border-top: 1px solid var(--guided-line);
+  }
+
+  .viz-guided-early-gates li:nth-child(odd) {
+    border-left: 0;
+  }
+}
+
+@media screen and (max-width: 760px) {
+  .assessment-target-bindings {
+    grid-template-columns: minmax(0, 1fr);
+  }
+
+  .assessment-target-bindings > b {
+    padding-top: 0;
+  }
+
+  .viz-guided-early-gates ol {
+    grid-template-columns: minmax(0, 1fr);
+  }
+
+  .viz-guided-early-gates li {
+    border-left: 0;
+  }
 }
 
 .viz-guided-weights {
@@ -10832,6 +10965,261 @@ body.is-presenting .site-footer {
 .viz-guided-programme small {
   padding-top: 0.2rem;
   border-top: 1px solid var(--guided-line);
+}
+
+.viz-guided-programme-board {
+  min-width: 0;
+  min-height: clamp(22rem, 42vh, 27rem);
+  width: min(100%, 120rem);
+  display: grid;
+  grid-template-rows: auto minmax(0, 1fr);
+  gap: 0.6rem;
+  margin-inline: auto;
+}
+
+.presentation-stage.is-kong-guided .slide-narrative:has(.viz-guided-programme-board) {
+  width: min(100%, 120rem);
+  margin-inline: auto;
+}
+
+.presentation-stage.is-kong-guided .is-guided-slide:has(.viz-guided-programme-board) > .slide-main > .eyebrow,
+.presentation-stage.is-kong-guided .is-guided-slide:has(.viz-guided-programme-board) > .slide-main > .guided-evidence-ribbon {
+  width: min(100%, 120rem);
+  margin-inline: auto;
+}
+
+.presentation-stage.is-kong-guided .is-guided-slide:has(.viz-guided-programme-board) > .slide-main > .eyebrow {
+  display: block;
+}
+
+.viz-guided-programme-contract {
+  min-width: 0;
+  display: grid;
+  grid-template-columns: minmax(10rem, 0.55fr) minmax(0, 2.45fr);
+  gap: 0.8rem;
+  align-items: center;
+  padding: 0.48rem 0.7rem;
+  border: 1px solid var(--guided-line);
+  border-left: 0.35rem solid var(--guided-violet);
+  background: var(--guided-paper-deep);
+}
+
+.viz-guided-programme-contract span {
+  color: var(--guided-violet);
+  font-family: var(--mono);
+  font-size: clamp(0.72rem, 0.72vw, 0.9rem);
+  font-weight: 700;
+  letter-spacing: 0.05em;
+  text-transform: uppercase;
+}
+
+.viz-guided-programme-contract strong {
+  font-size: clamp(1rem, 1.18vw, 1.4rem);
+  line-height: 1.05;
+  text-wrap: balance;
+}
+
+.viz-guided-programme.is-seven {
+  height: 100%;
+  grid-template-columns: minmax(0, 0.94fr) minmax(0, 1.18fr) minmax(0, 0.94fr);
+  gap: clamp(0.55rem, 0.85vw, 0.9rem);
+  border: 0;
+}
+
+.viz-guided-programme-group {
+  min-width: 0;
+  min-height: 0;
+  display: grid;
+  grid-template-rows: auto minmax(0, 1fr);
+  border: 1px solid var(--guided-ink);
+  background: color-mix(in srgb, var(--guided-paper) 92%, white);
+}
+
+.viz-guided-programme-group > header {
+  min-width: 0;
+  display: grid;
+  gap: 0.16rem;
+  align-content: center;
+  min-height: 4rem;
+  padding: 0.55rem 0.72rem;
+  border-bottom: 1px solid var(--guided-ink);
+}
+
+.viz-guided-programme-group > header > span {
+  font-family: var(--mono);
+  font-size: clamp(0.68rem, 0.72vw, 0.86rem);
+  font-weight: 700;
+  letter-spacing: 0.055em;
+  line-height: 1;
+  text-transform: uppercase;
+}
+
+.viz-guided-programme-group > header > strong {
+  font-family: "Avenir Next", Avenir, "Century Gothic", Trebuchet MS, sans-serif;
+  font-size: clamp(1.06rem, 1.22vw, 1.45rem);
+  line-height: 1.05;
+  text-wrap: balance;
+}
+
+.viz-guided-programme-group.is-group-1 > header {
+  color: var(--guided-ink);
+  background: var(--guided-yellow);
+}
+
+.viz-guided-programme-group.is-group-2 > header {
+  color: var(--guided-paper);
+  background: var(--guided-violet);
+}
+
+.viz-guided-programme-group.is-group-3 > header {
+  color: var(--guided-yellow);
+  background: var(--guided-ink);
+}
+
+.viz-guided-programme-group ol {
+  min-width: 0;
+  min-height: 0;
+  display: grid;
+  margin: 0;
+  padding: 0;
+  list-style: none;
+}
+
+.viz-guided-programme-group.is-group-1 ol,
+.viz-guided-programme-group.is-group-3 ol {
+  grid-template-rows: repeat(2, minmax(0, 1fr));
+}
+
+.viz-guided-programme-group.is-group-2 ol {
+  grid-template-rows: repeat(3, minmax(0, 1fr));
+}
+
+.viz-guided-programme.is-seven .viz-guided-programme-group li {
+  min-height: 0;
+  grid-template-columns: 4.15rem minmax(0, 1fr);
+  gap: 0.65rem;
+  align-content: start;
+  padding: clamp(0.58rem, 0.72vw, 0.78rem);
+  border-right: 0;
+  border-bottom: 1px solid var(--guided-line);
+}
+
+.viz-guided-programme.is-seven .viz-guided-programme-group li:last-child {
+  border-bottom: 0;
+}
+
+.viz-guided-programme.is-seven li > span {
+  grid-row: auto;
+  padding-top: 0.08rem;
+  color: var(--guided-violet);
+  font-size: clamp(0.76rem, 0.78vw, 0.94rem);
+  font-weight: 700;
+}
+
+.viz-guided-programme.is-seven li > div {
+  min-width: 0;
+  display: grid;
+  gap: 0.28rem;
+  align-content: start;
+}
+
+.viz-guided-programme.is-seven li strong {
+  font-size: clamp(1.02rem, 1.18vw, 1.42rem);
+  line-height: 1.04;
+  text-wrap: balance;
+}
+
+.viz-guided-programme.is-seven li p {
+  font-size: clamp(1rem, 1.04vw, 1.22rem);
+  line-height: 1.18;
+  text-wrap: pretty;
+}
+
+.viz-guided-programme.is-seven li small {
+  width: fit-content;
+  padding: 0.18rem 0.34rem;
+  border: 0;
+  color: var(--guided-ink);
+  background: var(--guided-yellow);
+  font-family: var(--mono);
+  font-size: clamp(0.62rem, 0.64vw, 0.76rem);
+  font-weight: 700;
+  letter-spacing: 0.035em;
+  line-height: 1;
+  text-transform: uppercase;
+}
+
+.viz-guided-programme.is-seven li.is-adjunct {
+  background: color-mix(in srgb, var(--guided-yellow) 18%, var(--guided-paper));
+}
+
+@media screen and (min-width: 761px) and (max-width: 1279px) {
+  .presentation-stage.is-kong-guided .is-guided-slide:has(.viz-guided-programme-board) > .slide-main {
+    overflow-y: auto;
+    overscroll-behavior: contain;
+    scrollbar-gutter: stable;
+  }
+
+  .viz-guided-programme-board {
+    min-height: 0;
+  }
+
+  .viz-guided-programme.is-seven {
+    height: auto;
+    grid-template-columns: repeat(2, minmax(0, 1fr));
+  }
+
+  .viz-guided-programme-group.is-group-3 {
+    grid-column: 1 / -1;
+  }
+
+  .viz-guided-programme-group.is-group-3 ol {
+    grid-template-columns: repeat(2, minmax(0, 1fr));
+    grid-template-rows: minmax(0, 1fr);
+  }
+
+  .viz-guided-programme-group.is-group-3 li:first-child {
+    border-right: 1px solid var(--guided-line);
+    border-bottom: 0;
+  }
+}
+
+@media screen and (max-width: 760px) {
+  .viz-guided-programme-contract {
+    grid-template-columns: minmax(0, 1fr);
+    gap: 0.18rem;
+  }
+
+  .viz-guided-programme.is-seven {
+    height: auto;
+    grid-template-columns: minmax(0, 1fr);
+  }
+
+  .viz-guided-programme.is-seven .viz-guided-programme-group li {
+    grid-template-columns: 3.6rem minmax(0, 1fr);
+  }
+
+  .viz-guided-programme-group.is-group-3 {
+    grid-column: auto;
+  }
+
+  .viz-guided-programme-group.is-group-3 ol {
+    grid-template-columns: minmax(0, 1fr);
+    grid-template-rows: auto;
+  }
+
+  .viz-guided-programme-group.is-group-3 li:first-child {
+    border-right: 0;
+    border-bottom: 1px solid var(--guided-line);
+  }
+}
+
+@media screen and (min-width: 1280px) and (max-height: 900px) {
+  .presentation-stage.is-kong-guided .is-guided-slide:has(.viz-guided-programme-board) > .slide-main {
+    overflow-y: auto;
+    overscroll-behavior: contain;
+    scrollbar-gutter: stable;
+  }
 }
 
 .viz-guided-comparison-wrap {
@@ -11464,6 +11852,136 @@ body.is-presenting .site-footer {
 
   .viz-guided-architecture-request b {
     display: none;
+  }
+}
+
+/* KGE-02 needs the diagram beside its title on short desktop stages. This gives
+   the target model its full narrative height while preserving the established
+   text floors; only the cells' excess minimum height and padding are removed. */
+@media screen and (min-width: 1024px) and (max-height: 840px) {
+  .presentation-stage.is-kong-guided .slide-narrative:has(.viz-guided.is-target-model) {
+    grid-template-columns: minmax(18rem, 0.82fr) minmax(0, 1.8fr);
+    grid-template-rows: minmax(0, 1fr);
+    gap: 1.25rem;
+    align-items: stretch;
+  }
+
+  .presentation-stage.is-kong-guided .slide-narrative:has(.viz-guided.is-target-model) .slide-title {
+    max-width: 11ch;
+    align-self: start;
+    font-size: clamp(2.4rem, 3.5vw, 3.6rem);
+    line-height: 0.91;
+  }
+
+  .presentation-stage.is-kong-guided .slide-visual:has(.viz-guided.is-target-model),
+  .presentation-stage.is-kong-guided .viz-guided.is-target-model,
+  .presentation-stage.is-kong-guided .viz-guided.is-target-model .viz-guided-frame,
+  .presentation-stage.is-kong-guided .viz-guided-target-model {
+    min-height: 0;
+    height: 100%;
+  }
+
+  .presentation-stage.is-kong-guided .slide-visual:has(.viz-guided.is-target-model) {
+    padding: 0.3rem 0;
+  }
+
+  .presentation-stage.is-kong-guided .viz-guided-target-model {
+    gap: 0.35rem;
+  }
+
+  .presentation-stage.is-kong-guided .viz-guided-target h3 {
+    padding: 0.38rem 0.5rem;
+  }
+
+  .presentation-stage.is-kong-guided .viz-guided-target li {
+    min-height: 0;
+    padding: 0.3rem 0.45rem;
+  }
+}
+
+/* At 1024px the four gates remain room-readable as a two-by-two grid instead
+   of becoming four narrow columns. Narrower stages retain the scrollable flow. */
+@media screen and (min-width: 1024px) and (max-width: 1199px) and (max-height: 840px) {
+  .presentation-stage.is-kong-guided .viz-guided-early-gates ol {
+    grid-template-columns: repeat(2, minmax(0, 1fr));
+  }
+
+  .presentation-stage.is-kong-guided .viz-guided-early-gates li:nth-child(odd) {
+    border-left: 0;
+  }
+
+  .presentation-stage.is-kong-guided .viz-guided-early-gates li:nth-child(n + 3) {
+    border-top: 1px solid var(--guided-line);
+  }
+}
+
+/* KGE-02 and KGE-18 carry decisions in the visual itself, so their authored
+   labels and descriptions follow the presentation text-floor contract rather
+   than the compact dashboard scale used by generic charts. */
+@media screen {
+  .presentation-stage.is-kong-guided {
+    --guided-decision-copy: 1.125rem;
+    --guided-decision-meta: 1rem;
+  }
+
+  .presentation-stage.is-kong-guided .viz-guided-early-gates > header span,
+  .presentation-stage.is-kong-guided .viz-guided-early-gates li > span,
+  .presentation-stage.is-kong-guided .viz-guided-early-gates li > small,
+  .presentation-stage.is-kong-guided .viz-guided-programme-contract span,
+  .presentation-stage.is-kong-guided .viz-guided-programme-group > header > span,
+  .presentation-stage.is-kong-guided .viz-guided-programme.is-seven li > span,
+  .presentation-stage.is-kong-guided .viz-guided-programme.is-seven li small {
+    font-size: var(--guided-decision-meta);
+  }
+
+  .presentation-stage.is-kong-guided .viz-guided-target h3,
+  .presentation-stage.is-kong-guided .viz-guided-early-gates > header strong,
+  .presentation-stage.is-kong-guided .viz-guided-early-gates li > strong,
+  .presentation-stage.is-kong-guided .viz-guided-programme-contract strong,
+  .presentation-stage.is-kong-guided .viz-guided-programme.is-seven li strong,
+  .presentation-stage.is-kong-guided .viz-guided-programme.is-seven li p {
+    font-size: var(--guided-decision-copy);
+  }
+
+  .presentation-stage.is-kong-guided .viz-guided-programme-group > header > strong {
+    font-size: calc(var(--guided-decision-copy) + 0.125rem);
+  }
+
+  .presentation-stage.is-kong-guided .viz-guided-early-gates > header span,
+  .presentation-stage.is-kong-guided .viz-guided-early-gates li > span,
+  .presentation-stage.is-kong-guided .viz-guided-early-gates li > small,
+  .presentation-stage.is-kong-guided .viz-guided-programme-contract span,
+  .presentation-stage.is-kong-guided .viz-guided-programme-group > header > span,
+  .presentation-stage.is-kong-guided .viz-guided-programme.is-seven li > span,
+  .presentation-stage.is-kong-guided .viz-guided-programme.is-seven li small {
+    line-height: 1.15;
+  }
+
+  .presentation-stage.is-kong-guided .viz-guided-early-gates > header strong,
+  .presentation-stage.is-kong-guided .viz-guided-early-gates li > strong,
+  .presentation-stage.is-kong-guided .viz-guided-programme-contract strong,
+  .presentation-stage.is-kong-guided .viz-guided-programme-group > header > strong,
+  .presentation-stage.is-kong-guided .viz-guided-programme.is-seven li strong {
+    line-height: 1.08;
+  }
+
+  .presentation-stage.is-kong-guided .viz-guided-programme.is-seven li p {
+    line-height: 1.18;
+  }
+}
+
+@media screen and (min-width: 1600px) {
+  .presentation-stage.is-kong-guided {
+    --guided-decision-copy: 1.5rem;
+    --guided-decision-meta: 1.125rem;
+  }
+
+  .presentation-stage.is-kong-guided .viz-guided-programme-board {
+    min-height: 32.5rem;
+  }
+
+  .presentation-stage.is-kong-guided .viz-guided-programme-group > header > strong {
+    font-size: calc(var(--guided-decision-copy) + 0.125rem);
   }
 }
 

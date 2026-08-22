@@ -2567,6 +2567,7 @@
     const response = state.assessmentSession?.responses?.[question.id] || {};
     const choiceSet = assessmentChoiceSet(question);
     const choices = Array.isArray(choiceSet?.choices) ? choiceSet.choices : [];
+    const targetIds = Array.isArray(question.targetIds) ? question.targetIds : [];
     const inputPrefix = `assessment-${slug(question.id)}-${index}`;
     const statusClass = questionSummary?.gaps?.length || ["hold", "unknown"].includes(questionSummary?.status)
       ? " is-gap"
@@ -2581,6 +2582,10 @@
           <span>Minimum evidence · ${escapeHtml(question.minimumEvidence || "E0")}</span>
           <strong data-assessment-question-status>${escapeHtml(assessmentStatusLabel(questionSummary))}</strong>
         </div>
+        ${targetIds.length ? `<div class="assessment-target-bindings">
+          <b id="${inputPrefix}-targets-label">Bound targets</b>
+          <ul aria-labelledby="${inputPrefix}-targets-label">${targetIds.map((targetId) => `<li>${escapeHtml(targetId)}</li>`).join("")}</ul>
+        </div>` : ""}
         ${question.decisionUse ? `<p class="assessment-decision-use"><b>Decision use</b>${escapeHtml(question.decisionUse)}</p>` : ""}
         <div class="assessment-hold-rule" role="note">
           <b>Hold rule</b>
