@@ -989,6 +989,11 @@ class CanonicalContractTests(WorkflowTestCase):
                 for member in members
                 if member.startswith("docProps/") or member.startswith("ppt/theme/")
             )
+            package_xml_text = "\n".join(
+                archive.read(member).decode("utf-8", errors="ignore")
+                for member in members
+                if member.endswith((".xml", ".rels"))
+            )
             slide_count = sum(
                 bool(re.fullmatch(r"ppt/slides/slide\d+\.xml", member))
                 for member in members
@@ -1028,14 +1033,19 @@ class CanonicalContractTests(WorkflowTestCase):
             "API Management Study",
             core_properties.findtext("dc:creator", namespaces=namespaces),
         )
-        self.assertNotEqual(
-            "Walnut Exporter",
+        self.assertEqual(
+            "API Management Study",
             core_properties.findtext("cp:lastModifiedBy", namespaces=namespaces),
         )
         self.assertNotIn(
             "chatgpt",
             package_brand_text.casefold(),
             "public PowerPoint metadata and theme parts must remain brand neutral",
+        )
+        self.assertNotIn(
+            "tom wu",
+            package_xml_text.casefold(),
+            "public PowerPoint XML must not expose personal editor metadata",
         )
 
     def test_guided_facilitator_guide_is_indexed_and_linked_from_entry_points(self) -> None:
@@ -2343,9 +2353,42 @@ process.stdout.write(window.ApiStudyCharts.render("criteriaOverview", data, {com
             styles,
             r"(?s)\.presentation-stage\.is-kong-guided\s*\{[^}]*--guided-decision-copy:\s*1\.125rem;[^}]*--guided-decision-meta:\s*1rem;",
         )
-        self.assertRegex(
-            styles,
-            r"(?s)\.viz-guided-early-gates > header strong,.*?\.viz-guided-programme\.is-seven li p\s*\{[^}]*font-size:\s*var\(--guided-decision-copy\);",
+        font_variable_rules: dict[str, list[set[str]]] = {
+            "--guided-decision-copy": [],
+            "--guided-decision-meta": [],
+        }
+        for rule in re.finditer(r"(?s)([^{}]+)\{([^{}]*)\}", styles):
+            selectors = {selector.strip() for selector in rule.group(1).split(",")}
+            declarations = rule.group(2)
+            for variable in font_variable_rules:
+                if re.search(rf"font-size:\s*var\({re.escape(variable)}\)\s*;", declarations):
+                    font_variable_rules[variable].append(selectors)
+        self.assertEqual(
+            [
+                {
+                    ".presentation-stage.is-kong-guided .viz-guided-target h3",
+                    ".presentation-stage.is-kong-guided .viz-guided-early-gates > header strong",
+                    ".presentation-stage.is-kong-guided .viz-guided-early-gates li > strong",
+                    ".presentation-stage.is-kong-guided .viz-guided-programme-contract strong",
+                    ".presentation-stage.is-kong-guided .viz-guided-programme.is-seven li strong",
+                    ".presentation-stage.is-kong-guided .viz-guided-programme.is-seven li p",
+                }
+            ],
+            font_variable_rules["--guided-decision-copy"],
+        )
+        self.assertEqual(
+            [
+                {
+                    ".presentation-stage.is-kong-guided .viz-guided-early-gates > header span",
+                    ".presentation-stage.is-kong-guided .viz-guided-early-gates li > span",
+                    ".presentation-stage.is-kong-guided .viz-guided-early-gates li > small",
+                    ".presentation-stage.is-kong-guided .viz-guided-programme-contract span",
+                    ".presentation-stage.is-kong-guided .viz-guided-programme-group > header > span",
+                    ".presentation-stage.is-kong-guided .viz-guided-programme.is-seven li > span",
+                    ".presentation-stage.is-kong-guided .viz-guided-programme.is-seven li small",
+                }
+            ],
+            font_variable_rules["--guided-decision-meta"],
         )
         self.assertRegex(
             styles,
