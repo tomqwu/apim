@@ -973,6 +973,61 @@ class CanonicalContractTests(WorkflowTestCase):
                 "slide 9 must preserve a separate control-plane to PostgreSQL persistence arrow",
             )
 
+    def test_guided_ppt_has_accurate_release_metadata(self) -> None:
+        pptx = SOURCE_ROOT / "presentations" / "kong-platform-journey-guided.pptx"
+        extended = "http://schemas.openxmlformats.org/officeDocument/2006/extended-properties"
+        core = "http://schemas.openxmlformats.org/package/2006/metadata/core-properties"
+        dublin_core = "http://purl.org/dc/elements/1.1/"
+        namespaces = {"ep": extended, "cp": core, "dc": dublin_core}
+
+        with zipfile.ZipFile(pptx) as archive:
+            members = tuple(archive.namelist())
+            properties = ET.fromstring(archive.read("docProps/app.xml"))
+            core_properties = ET.fromstring(archive.read("docProps/core.xml"))
+            slide_count = sum(
+                bool(re.fullmatch(r"ppt/slides/slide\d+\.xml", member))
+                for member in members
+            )
+            note_count = sum(
+                bool(re.fullmatch(r"ppt/notesSlides/notesSlide\d+\.xml", member))
+                for member in members
+            )
+
+        self.assertEqual(
+            "Microsoft Macintosh PowerPoint",
+            properties.findtext("ep:Application", namespaces=namespaces),
+        )
+        self.assertEqual(
+            "Widescreen",
+            properties.findtext("ep:PresentationFormat", namespaces=namespaces),
+        )
+        self.assertEqual(
+            slide_count,
+            int(properties.findtext("ep:Slides", namespaces=namespaces)),
+        )
+        self.assertEqual(
+            note_count,
+            int(properties.findtext("ep:Notes", namespaces=namespaces)),
+        )
+        self.assertEqual(25, slide_count)
+        self.assertEqual(25, note_count)
+        self.assertEqual(
+            "Kong Platform Journey — Guided Evaluation",
+            core_properties.findtext("dc:title", namespaces=namespaces),
+        )
+        self.assertEqual(
+            "Architecture, adoption, migration, and production-proof decision journey",
+            core_properties.findtext("dc:subject", namespaces=namespaces),
+        )
+        self.assertEqual(
+            "API Management Study",
+            core_properties.findtext("dc:creator", namespaces=namespaces),
+        )
+        self.assertNotEqual(
+            "Walnut Exporter",
+            core_properties.findtext("cp:lastModifiedBy", namespaces=namespaces),
+        )
+
     def test_guided_facilitator_guide_is_indexed_and_linked_from_entry_points(self) -> None:
         guide_path = "docs/49-kong-guided-evaluation-facilitator-guide.md"
         with tempfile.TemporaryDirectory(prefix="guided-facilitator-guide-") as temporary:

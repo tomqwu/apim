@@ -15,10 +15,10 @@ This report is generated from the article corpus by `scripts/validate_source_cov
 |---|---:|
 | Article files scanned | 72 |
 | Article files containing external citations | 52 |
-| Unique external citations | 285 |
+| Unique external citations | 284 |
 | Unique registered citations used by articles | 49 |
-| Unique contextual citations awaiting promotion if decision-bearing | 236 |
-| Latest access date in authoritative register | 2026-08-21 |
+| Unique contextual citations awaiting promotion if decision-bearing | 235 |
+| Latest access date in authoritative register | 2026-08-22 |
 
 ## Coverage by article
 
@@ -67,8 +67,8 @@ This report is generated from the article corpus by `scripts/validate_source_cov
 | `docs/44-kong-multicloud-study-roadmap.md` | 11 | 18 | promotion debt visible |
 | `docs/45-api-management-industry-practices.md` | 7 | 36 | promotion debt visible |
 | `docs/47-kong-enterprise-platform-strategy.md` | 5 | 21 | promotion debt visible |
-| `docs/48-kong-guided-evaluation.md` | 13 | 6 | promotion debt visible |
-| `docs/49-kong-guided-evaluation-facilitator-guide.md` | 12 | 8 | promotion debt visible |
+| `docs/48-kong-guided-evaluation.md` | 14 | 5 | promotion debt visible |
+| `docs/49-kong-guided-evaluation-facilitator-guide.md` | 13 | 7 | promotion debt visible |
 | `docs/50-apigee-migration-strategy.md` | 5 | 0 | registered citations only |
 | `poc/real-world-scenarios.md` | 4 | 9 | promotion debt visible |
 | `research/apigee.md` | 3 | 12 | promotion debt visible |
@@ -103,7 +103,6 @@ This table helps evidence owners batch promotion and freshness work. A high coun
 | `github.com` | 3 |
 | `aws.amazon.com` | 2 |
 | `cert-manager.io` | 2 |
-| `docs.traceable.ai` | 2 |
 | `hl7.org` | 2 |
 | `tomqwu.github.io` | 2 |
 | `tyk.io` | 2 |

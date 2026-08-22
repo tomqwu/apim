@@ -45,14 +45,14 @@ Source: [PoC test plan](../poc/test-plan.md) and [validation report](validation-
 
 ## Official-source use
 
-The source register contains 56 primary or official sources. Twenty-eight source IDs are explicitly cited in the claim register; twenty-eight are registered but not yet decision-bearing there. Source volume is not criterion coverage.
+The source register contains 56 primary or official sources. Thirty-four source IDs are explicitly cited in the claim register; twenty-two are registered but not yet decision-bearing there. Source volume is not criterion coverage.
 
 <!-- chart-source: source-use -->
 ```mermaid
 pie showData
   title Registered official sources
-  "Used in findings" : 28
-  "Not yet used" : 28
+  "Used in findings" : 34
+  "Not yet used" : 22
 ```
 
 Source: [sources.csv](../research/sources.csv) and [findings.md](../research/findings.md).

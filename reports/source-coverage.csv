@@ -385,7 +385,7 @@ docs/44-kong-multicloud-study-roadmap.md,https://developer.konghq.com/plugins/op
 docs/44-kong-multicloud-study-roadmap.md,https://developer.konghq.com/plugins/opentelemetry/),https://developer.konghq.com/plugins/opentelemetry,registered,K-008,developer.konghq.com
 docs/44-kong-multicloud-study-roadmap.md,https://developer.konghq.com/plugins/prometheus/)),https://developer.konghq.com/plugins/prometheus,registered,K-007,developer.konghq.com
 docs/44-kong-multicloud-study-roadmap.md,https://developer.konghq.com/terraform/)),https://developer.konghq.com/terraform,contextual,,developer.konghq.com
-docs/44-kong-multicloud-study-roadmap.md,https://docs.traceable.ai/docs/kong),https://docs.traceable.ai/docs/kong,registered,TR-001,docs.traceable.ai
+docs/44-kong-multicloud-study-roadmap.md,https://docs.traceable.ai/kong),https://docs.traceable.ai/kong,registered,TR-001,docs.traceable.ai
 docs/44-kong-multicloud-study-roadmap.md,https://gateway-api.sigs.k8s.io/docs/concepts/api-overview/)),https://gateway-api.sigs.k8s.io/docs/concepts/api-overview,contextual,,gateway-api.sigs.k8s.io
 docs/44-kong-multicloud-study-roadmap.md,https://gateway-api.sigs.k8s.io/docs/concepts/conformance/)),https://gateway-api.sigs.k8s.io/docs/concepts/conformance,contextual,,gateway-api.sigs.k8s.io
 docs/44-kong-multicloud-study-roadmap.md,https://opentelemetry.io/docs/collector/internal-telemetry/)),https://opentelemetry.io/docs/collector/internal-telemetry,contextual,,opentelemetry.io
@@ -473,7 +473,7 @@ docs/48-kong-guided-evaluation.md,https://docs.cloud.google.com/apigee/docs/api-
 docs/48-kong-guided-evaluation.md,https://docs.cloud.google.com/apigee/docs/hybrid/v1.16/what-is-hybrid),https://docs.cloud.google.com/apigee/docs/hybrid/v1.16/what-is-hybrid,registered,G-005,docs.cloud.google.com
 docs/48-kong-guided-evaluation.md,https://docs.mulesoft.com/gateway/latest/),https://docs.mulesoft.com/gateway/latest,contextual,,docs.mulesoft.com
 docs/48-kong-guided-evaluation.md,https://docs.traceable.ai/docs/tracing-agents-rule-evaluation-for-protection),https://docs.traceable.ai/docs/tracing-agents-rule-evaluation-for-protection,registered,TR-003,docs.traceable.ai
-docs/48-kong-guided-evaluation.md,https://docs.traceable.ai/kong),https://docs.traceable.ai/kong,contextual,,docs.traceable.ai
+docs/48-kong-guided-evaluation.md,https://docs.traceable.ai/kong),https://docs.traceable.ai/kong,registered,TR-001,docs.traceable.ai
 docs/48-kong-guided-evaluation.md,https://docs.traceable.ai/v1/docs/third-party-monitoring-support-matrix),https://docs.traceable.ai/v1/docs/third-party-monitoring-support-matrix,registered,TR-004,docs.traceable.ai
 docs/48-kong-guided-evaluation.md,https://konghq.com/pricing),https://konghq.com/pricing,registered,K-018,konghq.com
 docs/48-kong-guided-evaluation.md,https://learn.microsoft.com/en-us/azure/api-management/self-hosted-gateway-overview),https://learn.microsoft.com/en-us/azure/api-management/self-hosted-gateway-overview,registered,M-002,learn.microsoft.com
@@ -492,7 +492,7 @@ docs/49-kong-guided-evaluation-facilitator-guide.md,https://docs.cloud.google.co
 docs/49-kong-guided-evaluation-facilitator-guide.md,https://docs.cloud.google.com/apigee/docs/hybrid/v1.16/what-is-hybrid),https://docs.cloud.google.com/apigee/docs/hybrid/v1.16/what-is-hybrid,registered,G-005,docs.cloud.google.com
 docs/49-kong-guided-evaluation-facilitator-guide.md,https://docs.mulesoft.com/gateway/latest/),https://docs.mulesoft.com/gateway/latest,contextual,,docs.mulesoft.com
 docs/49-kong-guided-evaluation-facilitator-guide.md,https://docs.traceable.ai/docs/tracing-agents-rule-evaluation-for-protection),https://docs.traceable.ai/docs/tracing-agents-rule-evaluation-for-protection,registered,TR-003,docs.traceable.ai
-docs/49-kong-guided-evaluation-facilitator-guide.md,https://docs.traceable.ai/kong),https://docs.traceable.ai/kong,contextual,,docs.traceable.ai
+docs/49-kong-guided-evaluation-facilitator-guide.md,https://docs.traceable.ai/kong),https://docs.traceable.ai/kong,registered,TR-001,docs.traceable.ai
 docs/49-kong-guided-evaluation-facilitator-guide.md,https://github.com/tomqwu/apim/blob/main/presentations/kong-platform-journey-guided.pptx),https://github.com/tomqwu/apim/blob/main/presentations/kong-platform-journey-guided.pptx,contextual,,github.com
 docs/49-kong-guided-evaluation-facilitator-guide.md,https://konghq.com/pricing),https://konghq.com/pricing,registered,K-018,konghq.com
 docs/49-kong-guided-evaluation-facilitator-guide.md,https://learn.microsoft.com/en-us/azure/api-management/self-hosted-gateway-overview),https://learn.microsoft.com/en-us/azure/api-management/self-hosted-gateway-overview,registered,M-002,learn.microsoft.com

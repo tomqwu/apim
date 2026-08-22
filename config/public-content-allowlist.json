@@ -2,9 +2,9 @@
   "binaryFiles": [
     {
       "path": "presentations/kong-platform-journey-guided.pptx",
-      "sha256": "431ca0d74b6c91f16a134eb00a9b09367fc8888b96ed95656bb67cc4b0096964",
+      "sha256": "8bddadb283dfe29e2285e265d0909bd8a854764931587af4667135d9b8d171e0",
       "reviewedByRole": "Presentation and site lead",
-      "reason": "Public-safe, brand-neutral 25-slide companion projection of docs/48; the package now exposes four early assessment gates for multicloud, clean exit/vendor dependency, fully allocated TCO, and optional Kong-plus-Traceable admission, while preserving source hyperlinks, synchronized speaker notes, dual migration gates, and the executed-evidence boundary. It excludes customer identity, raw input filenames, private paths, commercial evidence, and claims of observed production fit."
+      "reason": "Public-safe, brand-neutral 25-slide companion to docs/48. It exposes early gates for multicloud, clean exit/vendor dependency, fully allocated TCO, and optional Kong-plus-Traceable admission; preserves source links, synchronized notes, dual migration gates, accurate native PowerPoint metadata, and the executed-evidence boundary. It excludes customer identity, raw filenames, private paths, commercial evidence, and observed production-fit claims."
     }
   ],
   "schemaVersion": 1
