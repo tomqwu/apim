@@ -121,6 +121,20 @@
     const items = series(data);
     if (!items.length) return empty();
     const sum = number(options.total) || total(items);
+    const collapseSingleStatus = options.collapseSingleStatus === true
+      && sum > 0
+      && items.length === 1
+      && number(items[0].value) === sum;
+    const centerLabel = options.centerLabel || "total";
+    const figureClasses = ["viz", "viz-donut", options.compact ? "is-compact" : "", collapseSingleStatus ? "is-single-status" : ""].filter(Boolean).join(" ");
+    const ariaSummary = items.map((item) => `${item.label} ${item.value}`).join(", ");
+    const singleStatusNote = options.singleStatusNote || "All items share this status.";
+    const singleStatusSummary = collapseSingleStatus
+      ? `<div class="viz-donut-single-status" aria-hidden="true">
+          <span><i class="viz-swatch" style="--viz-swatch:var(--viz-color-0)"></i><strong>${escapeHtml(items[0].label)}</strong></span>
+          <small>${escapeHtml(singleStatusNote)}</small>
+        </div>`
+      : "";
     let cursor = 0;
     const segments = items.map((item, index) => {
       const start = cursor;
@@ -128,10 +142,10 @@
       return `var(--viz-color-${index % 6}) ${start}% ${cursor}%`;
     });
     if (cursor < 100) segments.push(`var(--viz-empty) ${cursor}% 100%`);
-    return `<figure class="viz viz-donut ${options.compact ? "is-compact" : ""}" aria-label="${escapeHtml(options.title || "Donut chart")}">${heading(options)}
+    return `<figure class="${figureClasses}" aria-label="${escapeHtml(`${options.title || "Donut chart"}: ${ariaSummary}; ${sum} total${collapseSingleStatus ? `. ${singleStatusNote}` : ""}`)}">${heading(options)}
       <div class="viz-donut-layout">
-        <div class="viz-donut-ring" style="background:conic-gradient(${segments.join(",")})" aria-hidden="true"><span class="viz-donut-core"><strong>${escapeHtml(sum)}</strong><small>${escapeHtml(options.centerLabel || "total")}</small></span></div>
-        ${legend(items)}
+        <div class="viz-donut-ring" style="background:conic-gradient(${segments.join(",")})" aria-hidden="true"><span class="viz-donut-core"><strong>${escapeHtml(sum)}</strong><small>${escapeHtml(centerLabel)}</small></span></div>
+        ${collapseSingleStatus ? singleStatusSummary : legend(items)}
       </div>
     </figure>`;
   }

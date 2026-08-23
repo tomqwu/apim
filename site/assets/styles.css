@@ -2457,6 +2457,17 @@ a {
   margin-bottom: 1.5rem;
 }
 
+.overview-visual.is-evidence-state {
+  display: flex;
+  flex-direction: column;
+}
+
+.overview-visual.is-evidence-state .viz-donut {
+  flex: 1;
+  display: flex;
+  flex-direction: column;
+}
+
 .visual-atlas {
   padding-bottom: clamp(4rem, 8vw, 8rem);
 }
@@ -3020,6 +3031,65 @@ a {
   display: grid;
   align-content: center;
   margin: 0;
+}
+
+.overview-visual.is-evidence-state .viz-donut.is-single-status .viz-donut-layout {
+  flex: 1;
+  min-height: 190px;
+  grid-template-columns: minmax(9rem, 11.5rem) minmax(0, 1fr);
+  gap: clamp(1.25rem, 2vw, 2rem);
+}
+
+.overview-visual.is-evidence-state .viz-donut-ring {
+  width: min(100%, 11.5rem);
+}
+
+.overview-visual.is-evidence-state .viz-donut-core {
+  width: 70%;
+}
+
+.overview-visual.is-evidence-state .viz-donut-core strong {
+  font-size: clamp(3.15rem, 4vw, 3.75rem);
+  line-height: 0.76;
+}
+
+.overview-visual.is-evidence-state .viz-donut-core small {
+  margin-top: 0.7rem;
+  line-height: 1;
+}
+
+.viz-donut-single-status {
+  display: grid;
+  gap: 0.55rem;
+  align-content: center;
+}
+
+.viz-donut-single-status > span {
+  display: flex;
+  gap: 0.45rem;
+  align-items: center;
+  font-family: var(--mono);
+  letter-spacing: 0.06em;
+  text-transform: uppercase;
+}
+
+.viz-donut-single-status > small {
+  max-width: 24ch;
+  color: var(--muted);
+  font-size: var(--viz-label);
+  line-height: 1.35;
+}
+
+@media (max-width: 520px) {
+  .overview-visual.is-evidence-state .viz-donut.is-single-status .viz-donut-layout {
+    grid-template-columns: minmax(0, 1fr);
+    justify-items: center;
+  }
+
+  .overview-visual.is-evidence-state .viz-donut-single-status {
+    justify-items: center;
+    text-align: center;
+  }
 }
 
 .viz-ladder-list,
