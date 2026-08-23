@@ -3328,12 +3328,17 @@
     const guidedOfficialReferences = isGuidedDeck && Array.isArray(slide.officialReferences)
       ? slide.officialReferences.filter((reference) => reference?.label && /^https:\/\//.test(reference?.url || ""))
       : [];
+    const guidedSpeakerNotesHref = isGuidedDeck
+      ? `#/doc/docs-49-kong-guided-evaluation-facilitator-guide?anchor=speaker-notes-kge-${String(index + 1).padStart(2, "0")}`
+      : "";
     const guidedReferenceMarkup = isGuidedDeck
       ? `<div class="slide-reference-actions">
           ${source ? `<a class="slide-source" href="${itemHref(source)}" aria-label="Open repository source: ${escapeHtml(source.title)}">Source · ${escapeHtml(sourceLocator)} <span aria-hidden="true">↗</span></a>` : ""}
           <details class="slide-references">
-            <summary aria-label="Open ${guidedRepoReferences.length + guidedOfficialReferences.length} references for this slide">References · ${guidedRepoReferences.length + guidedOfficialReferences.length}</summary>
+            <summary aria-label="Open speaker notes and ${guidedRepoReferences.length + guidedOfficialReferences.length} references for this slide">Notes + refs · ${guidedRepoReferences.length + guidedOfficialReferences.length}</summary>
             <div class="slide-reference-menu">
+              <span>Presenter</span>
+              <a href="${guidedSpeakerNotesHref}" target="_blank" rel="noreferrer">Speaker notes · slide ${index + 1} <span aria-hidden="true">↗</span></a>
               <span>Repository studies</span>
               ${guidedRepoReferences.map((reference) => `<a href="${itemHref(reference)}">${escapeHtml(sourceLocatorFor(reference))} · ${escapeHtml(reference.title)}</a>`).join("")}
               <span>Official documentation</span>

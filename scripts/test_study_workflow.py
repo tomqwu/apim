@@ -1076,6 +1076,9 @@ class CanonicalContractTests(WorkflowTestCase):
             )
 
         source = (SOURCE_ROOT / guide_path).read_text(encoding="utf-8")
+        self.assertIn("## Opening the meeting", source)
+        self.assertIn("### Suggested opening script — 2 to 3 minutes", source)
+        self.assertIn("### Opening talking points", source)
         self.assertIn("## Choose the meeting route", source)
         self.assertIn("## Challenge-handling protocol", source)
         self.assertIn("## Slide-by-slide facilitation index", source)
@@ -1148,6 +1151,7 @@ class CanonicalContractTests(WorkflowTestCase):
         guide = guide_path.read_text(encoding="utf-8")
         self.assertIn("### Acronym and identifier reading rule", guide)
         self.assertIn("Full Name (ACRONYM)", guide)
+        self.assertIn("## Opening the meeting", guide)
         h4_matches = tuple(re.finditer(r"(?m)^####[ \t]+(?P<heading>.+?)\s*$", guide))
         detailed_matches = tuple(
             match for match in h4_matches if re.search(r"\bKGE-\d{2}\b", match.group("heading"))
@@ -1328,6 +1332,19 @@ class CanonicalContractTests(WorkflowTestCase):
                         normalized_prose(guide_value),
                         f"{slide_id} `{label}` drifted from its embedded PowerPoint note",
                     )
+
+                speaker_script = require_h5_field(section, "Speaker script", slide_id)
+                self.assertGreaterEqual(
+                    len(re.findall(r"\b[\w’-]+\b", speaker_script)),
+                    110,
+                    f"{slide_id} speaker script must be a substantial, ready-to-say narrative",
+                )
+                talking_points = require_h5_field(section, "Talking points", slide_id)
+                self.assertGreaterEqual(
+                    len(re.findall(r"(?m)^[ \t]*[-*+][ \t]+\S", talking_points)),
+                    3,
+                    f"{slide_id} must provide at least three compact talking points",
+                )
 
                 self.assertTrue(extracted["Sources"], f"{slide_id} embedded sources are empty")
                 guide_sources = require_h5_field(section, "Sources", slide_id)
@@ -2607,6 +2624,9 @@ process.stdout.write(JSON.stringify(samples));
         self.assertIn('class="slide-reference-actions"', app)
         self.assertIn('class="slide-references"', app)
         self.assertIn('class="slide-reference-menu"', app)
+        self.assertIn("Notes + refs ·", app)
+        self.assertIn("speaker-notes-kge-${String(index + 1).padStart(2, \"0\")}", app)
+        self.assertIn('target="_blank" rel="noreferrer">Speaker notes · slide ${index + 1}', app)
         self.assertIn('document.querySelector(".slide-references[open]")', app)
         self.assertIn('openReferences.querySelector("summary")?.focus()', app)
         self.assertIn("function presentationSlideHref(context, index)", app)
