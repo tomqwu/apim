@@ -397,6 +397,158 @@ flowchart LR
 | KGE-P5 | Production proof | 17–21 | Replace documented capability—including the Traceable adjunct—with executed target-shaped evidence and outcome gates |
 | KGE-P6 | Audit appendix | 22–25 | Preserve supplied inputs, expose the Traceable feasibility line, and show the provisional uncertainty envelope without promoting it to a decision score |
 
+## Guided presentation terminology and identifier contract
+
+The native presentation permits direct entry at every phase, so terminology is introduced at the first visible use inside each phase rather than assuming that the audience watched every earlier slide. The visible `TERMS` line is a reading aid, not evidence and not a substitute for the [Kong terminology crosswalk](../research/glossary.md#kong-terminology-crosswalk).
+
+Only two guided-deck prefixes have a documented expansion: **Kong Guided Evaluation (`KGE`)** and **Early Assessment Gate (`EAG`)**. The remaining prefixes are stable internal record identifiers. They receive a human record-type descriptor for orientation, but their letters are not reverse-engineered into an undocumented name.
+
+| Token or prefix | Canonical visible meaning | Classification | Use rule |
+|---|---|---|---|
+| KGE | Kong Guided Evaluation | Documented internal expansion | Introduce as `Kong Guided Evaluation (KGE)` on KGE-01; phase rails may then use P1–P6 while accessible labels retain the full phase ID |
+| EAG | Early Assessment Gate | Documented internal expansion | Introduce as `Early Assessment Gate (EAG)` on KGE-01 before EAG-01–EAG-04 |
+| GTM | target-model record | Internal record descriptor | Preserve the stable ID; do not invent a long form |
+| GEW | supplied-weight record | Internal record descriptor | Preserve the stable ID; do not invent a long form |
+| GRS | proposed re-score record | Internal record descriptor | Preserve the stable ID; do not invent a long form |
+| GEO | option-archetype record | Internal record descriptor | Preserve the stable ID; do not invent a long form |
+| GEB | operating-boundary record | Internal record descriptor | Preserve the stable ID; do not invent a long form |
+| KMC | multicloud-option record | Internal record descriptor | Preserve the stable ID; do not invent a long form |
+| KPS | platform-strategy figure or record | Internal record descriptor | Preserve the stable ID; do not invent a long form |
+| KP | adoption-stage record | Internal record descriptor | Preserve the stable ID; do not invent a long form |
+| MULE | Mule migration figure or stage record | Internal record descriptor | Preserve the stable ID; do not invent a long form |
+| GEP | proof-workstream record | Internal record descriptor | Preserve the stable ID; do not invent a long form |
+| GSA | security-adjunct hypothesis record | Internal record descriptor | Preserve the stable ID; do not invent a long form |
+| KO | outcome record | Internal record descriptor | Preserve the stable ID; do not invent a long form |
+| GEC | comparison-input record | Internal record descriptor | Preserve the stable ID; do not invent a long form |
+
+The rows below are the exact ordered native-slide term sets. Each display string is canonical, and an omitted slide intentionally has no new phase-local terminology. Product and protocol names such as Kubernetes, GitOps, DevOps, Terraform, decK, NGINX, OpenResty, Prometheus, Grafana, OpenTelemetry, and gRPC remain their established names. Native visual copy uses full words instead of the space-saving shorthands `K8s`, `OTel`, `mgmt`, `infra`, and `Postgres`.
+
+| Slide ID | Token | Exact visible term | Classification |
+|---|---|---|---|
+| KGE-01 | KGE | Kong Guided Evaluation (KGE) | Documented internal expansion |
+| KGE-01 | API | application programming interface (API) | Industry term |
+| KGE-01 | EAG | Early Assessment Gate (EAG) | Documented internal expansion |
+| KGE-02 | GTM | target-model record (GTM) | Internal record descriptor |
+| KGE-02 | AKS | Azure Kubernetes Service (AKS) | Industry term |
+| KGE-02 | AI | artificial intelligence (AI) | Industry term |
+| KGE-02 | TCO | total cost of ownership (TCO) | Industry term |
+| KGE-02 | APIOps | application programming interface operations (APIOps) | Industry term |
+| KGE-02 | MCP | Model Context Protocol (MCP) | Industry term |
+| KGE-02 | A2A | Agent2Agent Protocol (A2A) | Industry term |
+| KGE-03 | GEW | supplied-weight record (GEW) | Internal record descriptor |
+| KGE-03 | GRS | proposed re-score record (GRS) | Internal record descriptor |
+| KGE-03 | IAM | identity and access management (IAM) | Industry term |
+| KGE-04 | KGE | Kong Guided Evaluation (KGE) | Documented internal expansion |
+| KGE-04 | API | application programming interface (API) | Industry term |
+| KGE-04 | APIM | Azure API Management (APIM) | Industry term |
+| KGE-04 | CP | control plane (CP) | Industry term |
+| KGE-04 | PKI | public key infrastructure (PKI) | Industry term |
+| KGE-04 | MART | Apigee Management API for Runtime data (MART) | Industry term |
+| KGE-04 | GEO | option-archetype record (GEO) | Internal record descriptor |
+| KGE-04 | KP-SMH1 | self-managed hybrid target (KP-SMH1) | Named target |
+| KGE-05 | GRS | proposed re-score record (GRS) | Internal record descriptor |
+| KGE-06 | E2 | vendor answer with named version or contract term (E2) | Governed evidence grade |
+| KGE-06 | E3 | repeatable lab evidence (E3) | Governed evidence grade |
+| KGE-06 | E4 | representative pilot evidence (E4) | Governed evidence grade |
+| KGE-06 | HA | high availability (HA) | Industry term |
+| KGE-06 | DR | disaster recovery (DR) | Industry term |
+| KGE-07 | GEB | operating-boundary record (GEB) | Internal record descriptor |
+| KGE-07 | KMC | multicloud-option record (KMC) | Internal record descriptor |
+| KGE-07 | KP-SMH1 | self-managed hybrid target (KP-SMH1) | Named target |
+| KGE-07 | E1 | current official documentation (E1) | Governed evidence grade |
+| KGE-07 | DP | data plane (DP) | Industry term |
+| KGE-07 | KPS | platform-strategy figure (KPS) | Internal record descriptor |
+| KGE-08 | KPS-FIT | custody-fit record (KPS-FIT) | Internal record descriptor |
+| KGE-09 | KGE | Kong Guided Evaluation (KGE) | Documented internal expansion |
+| KGE-09 | API | application programming interface (API) | Industry term |
+| KGE-09 | CP | control plane (CP) | Industry term |
+| KGE-09 | DP | data plane (DP) | Industry term |
+| KGE-09 | PKI | public key infrastructure (PKI) | Industry term |
+| KGE-09 | HA | high availability (HA) | Industry term |
+| KGE-09 | SLO | service-level objective (SLO) | Industry term |
+| KGE-09 | KPS | platform-strategy figure (KPS) | Internal record descriptor |
+| KGE-09 | E1 | current official documentation (E1) | Governed evidence grade |
+| KGE-09 | RBAC | role-based access control (RBAC) | Industry term |
+| KGE-09 | WAF | web application firewall (WAF) | Industry term |
+| KGE-09 | SIEM | security information and event management (SIEM) | Industry term |
+| KGE-10 | CA | certificate authority (CA) | Industry term |
+| KGE-10 | CN | Common Name (CN) | Industry term |
+| KGE-10 | JWKS | JSON Web Key Set (JWKS) | Industry term |
+| KGE-12 | DB | database (DB) | Industry term |
+| KGE-12 | SRE | site reliability engineering (SRE) | Industry term |
+| KGE-12 | IAM | identity and access management (IAM) | Industry term |
+| KGE-13 | KP0–KP5 | adoption-stage records (KP0–KP5) | Internal stage descriptor |
+| KGE-13 | BOM | bill of materials (BOM) | Industry term |
+| KGE-13 | RACI | responsible, accountable, consulted, and informed (RACI) | Industry term |
+| KGE-13 | GP-1–GP-6 | governed-pattern records (GP-1–GP-6) | Internal stage descriptor |
+| KGE-14 | KGE | Kong Guided Evaluation (KGE) | Documented internal expansion |
+| KGE-14 | API | application programming interface (API) | Industry term |
+| KGE-14 | MULE | Mule migration figure (MULE) | Internal record descriptor |
+| KGE-14 | SFTP | Secure Shell File Transfer Protocol (SFTP) | Industry term |
+| KGE-15 | AKS | Azure Kubernetes Service (AKS) | Industry term |
+| KGE-15 | CRM | customer relationship management (CRM) | Industry term |
+| KGE-16 | A0–A6 | Apigee migration stages (A0–A6) | Internal stage descriptor |
+| KGE-16 | M0–M5 | Mule migration stages (M0–M5) | Internal stage descriptor |
+| KGE-16 | SLO | service-level objective (SLO) | Industry term |
+| KGE-16 | E4 | representative pilot evidence (E4) | Governed evidence grade |
+| KGE-17 | KGE | Kong Guided Evaluation (KGE) | Documented internal expansion |
+| KGE-17 | PoC | proof of concept (PoC) | Industry term |
+| KGE-17 | KP-SMH1 | self-managed hybrid target (KP-SMH1) | Named target |
+| KGE-17 | E3 | repeatable lab evidence (E3) | Governed evidence grade |
+| KGE-17 | E4 | representative pilot evidence (E4) | Governed evidence grade |
+| KGE-17 | CP | control plane (CP) | Industry term |
+| KGE-17 | AI | artificial intelligence (AI) | Industry term |
+| KGE-17 | TCO | total cost of ownership (TCO) | Industry term |
+| KGE-18 | API | application programming interface (API) | Industry term |
+| KGE-18 | GEP | proof-workstream record (GEP) | Internal record descriptor |
+| KGE-18 | GSA | security-adjunct hypothesis record (GSA) | Internal record descriptor |
+| KGE-18 | LTS | long-term support (LTS) | Industry term |
+| KGE-18 | BOM | bill of materials (BOM) | Industry term |
+| KGE-18 | SBOM | software bill of materials (SBOM) | Industry term |
+| KGE-18 | APIOps | application programming interface operations (APIOps) | Industry term |
+| KGE-18 | IAM | identity and access management (IAM) | Industry term |
+| KGE-18 | MCP | Model Context Protocol (MCP) | Industry term |
+| KGE-18 | A2A | Agent2Agent Protocol (A2A) | Industry term |
+| KGE-18 | RTO | recovery time objective (RTO) | Industry term |
+| KGE-18 | RPO | recovery point objective (RPO) | Industry term |
+| KGE-18 | RACI | responsible, accountable, consulted, and informed (RACI) | Industry term |
+| KGE-19 | KO | outcome record (KO) | Internal record descriptor |
+| KGE-19 | DP | data plane (DP) | Industry term |
+| KGE-19 | SLI | service-level indicator (SLI) | Industry term |
+| KGE-19 | SLO | service-level objective (SLO) | Industry term |
+| KGE-19 | SRE | site reliability engineering (SRE) | Industry term |
+| KGE-19 | OAuth | OAuth 2.0 authorization framework (OAuth) | Industry term |
+| KGE-19 | PKI | public key infrastructure (PKI) | Industry term |
+| KGE-19 | PR | pull request (PR) | Industry term |
+| KGE-20 | DLP | data loss prevention (DLP) | Industry term |
+| KGE-20 | DNS | Domain Name System (DNS) | Industry term |
+| KGE-21 | KPS | platform-strategy figure (KPS) | Internal record descriptor |
+| KGE-21 | E1 | current official documentation (E1) | Governed evidence grade |
+| KGE-21 | E2 | vendor answer with named version or contract term (E2) | Governed evidence grade |
+| KGE-22 | KGE | Kong Guided Evaluation (KGE) | Documented internal expansion |
+| KGE-22 | API | application programming interface (API) | Industry term |
+| KGE-22 | GEC | comparison-input record (GEC) | Internal record descriptor |
+| KGE-22 | CP | control plane (CP) | Industry term |
+| KGE-22 | DP | data plane (DP) | Industry term |
+| KGE-23 | AI | artificial intelligence (AI) | Industry term |
+| KGE-23 | GenAI | generative artificial intelligence (GenAI) | Industry term |
+| KGE-23 | MCP | Model Context Protocol (MCP) | Industry term |
+| KGE-23 | A2A | Agent2Agent Protocol (A2A) | Industry term |
+| KGE-23 | E1 | current official documentation (E1) | Governed evidence grade |
+| KGE-24 | TCO | total cost of ownership (TCO) | Industry term |
+| KGE-24 | CP | control plane (CP) | Industry term |
+| KGE-24 | PKI | public key infrastructure (PKI) | Industry term |
+| KGE-24 | HA | high availability (HA) | Industry term |
+| KGE-24 | DR | disaster recovery (DR) | Industry term |
+| KGE-24 | PAYG | pay-as-you-go (PAYG) | Industry term |
+| KGE-24 | RACI | responsible, accountable, consulted, and informed (RACI) | Industry term |
+| KGE-25 | E0 | assertion-only evidence (E0) | Governed evidence grade |
+| KGE-25 | GEW | supplied-weight record (GEW) | Internal record descriptor |
+| KGE-25 | GRS | proposed re-score record (GRS) | Internal record descriptor |
+| KGE-25 | IAM | identity and access management (IAM) | Industry term |
+| KGE-25 | TCO | total cost of ownership (TCO) | Industry term |
+| KGE-25 | CP | control plane (CP) | Industry term |
+
 ## Native presentation contract: KGE-01–KGE-25
 
 The PowerPoint and the native Pages deck project this same 25-frame contract. The native route is a first-class presentation context, not an embedded PowerPoint, screenshot sequence, or download wrapper. The repository PowerPoint remains a portable companion artifact; neither representation is the canonical source.

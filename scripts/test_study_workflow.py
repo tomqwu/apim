@@ -2121,6 +2121,36 @@ process.stdout.write(window.ApiStudyCharts.render("criteriaOverview", data, {com
             ("KGE-P5", "Production proof", "kong-guided-proof-boundary"),
             ("KGE-P6", "Audit appendix", "kong-guided-compare-architecture"),
         )
+        identifier_tokens = (
+            "KGE", "EAG", "GTM", "GEW", "GRS", "GEO", "GEB", "KMC",
+            "KPS", "KP", "MULE", "GEP", "GSA", "KO", "GEC",
+        )
+        term_tokens = (
+            ("KGE-01", ("KGE", "API", "EAG")),
+            ("KGE-02", ("GTM", "AKS", "AI", "TCO", "APIOps", "MCP", "A2A")),
+            ("KGE-03", ("GEW", "GRS", "IAM")),
+            ("KGE-04", ("KGE", "API", "APIM", "CP", "PKI", "MART", "GEO", "KP-SMH1")),
+            ("KGE-05", ("GRS",)),
+            ("KGE-06", ("E2", "E3", "E4", "HA", "DR")),
+            ("KGE-07", ("GEB", "KMC", "KP-SMH1", "E1", "DP", "KPS")),
+            ("KGE-08", ("KPS-FIT",)),
+            ("KGE-09", ("KGE", "API", "CP", "DP", "PKI", "HA", "SLO", "KPS", "E1", "RBAC", "WAF", "SIEM")),
+            ("KGE-10", ("CA", "CN", "JWKS")),
+            ("KGE-12", ("DB", "SRE", "IAM")),
+            ("KGE-13", ("KP0–KP5", "BOM", "RACI", "GP-1–GP-6")),
+            ("KGE-14", ("KGE", "API", "MULE", "SFTP")),
+            ("KGE-15", ("AKS", "CRM")),
+            ("KGE-16", ("A0–A6", "M0–M5", "SLO", "E4")),
+            ("KGE-17", ("KGE", "PoC", "KP-SMH1", "E3", "E4", "CP", "AI", "TCO")),
+            ("KGE-18", ("API", "GEP", "GSA", "LTS", "BOM", "SBOM", "APIOps", "IAM", "MCP", "A2A", "RTO", "RPO", "RACI")),
+            ("KGE-19", ("KO", "DP", "SLI", "SLO", "SRE", "OAuth", "PKI", "PR")),
+            ("KGE-20", ("DLP", "DNS")),
+            ("KGE-21", ("KPS", "E1", "E2")),
+            ("KGE-22", ("KGE", "API", "GEC", "CP", "DP")),
+            ("KGE-23", ("AI", "GenAI", "MCP", "A2A", "E1")),
+            ("KGE-24", ("TCO", "CP", "PKI", "HA", "DR", "PAYG", "RACI")),
+            ("KGE-25", ("E0", "GEW", "GRS", "IAM", "TCO", "CP")),
+        )
 
         with tempfile.TemporaryDirectory(prefix="kong-guided-evaluation-") as temporary:
             output = Path(temporary) / "site"
@@ -2176,6 +2206,36 @@ process.stdout.write(window.ApiStudyCharts.render("criteriaOverview", data, {com
 
         guided = manifest["visuals"]["guidedEvaluation"]
         self.assertEqual("2026-08-22", guided["asOf"])
+        self.assertEqual(15, guided["identifierCatalog"]["rowTotal"])
+        self.assertEqual(identifier_tokens, tuple(row["token"] for row in guided["identifierCatalog"]["rows"]))
+        self.assertEqual(
+            ("Token or prefix", "Canonical visible meaning", "Classification", "Use rule"),
+            tuple(guided["identifierCatalog"]["provenance"]["tableColumns"]),
+        )
+        self.assertEqual(24, guided["termSets"]["rowTotal"])
+        self.assertEqual(123, guided["termSets"]["termTotal"])
+        self.assertEqual(
+            term_tokens,
+            tuple(
+                (row["slideId"], tuple(term["token"] for term in row["terms"]))
+                for row in guided["termSets"]["rows"]
+            ),
+        )
+        self.assertEqual(
+            ("Slide ID", "Token", "Exact visible term", "Classification"),
+            tuple(guided["termSets"]["provenance"]["tableColumns"]),
+        )
+        self.assertEqual(
+            "Kong Guided Evaluation (KGE)",
+            guided["termSets"]["rows"][0]["terms"][0]["display"],
+        )
+        self.assertTrue(
+            all(
+                term["display"].endswith(f"({term['token']})")
+                for row in guided["termSets"]["rows"]
+                for term in row["terms"]
+            )
+        )
         self.assertEqual(tuple(f"GTM-{index:02d}" for index in range(1, 10)), tuple(row["id"] for row in guided["targetModel"]["rows"]))
         self.assertEqual(
             tuple(f"EAG-{index:02d}" for index in range(1, 5)),
@@ -2299,6 +2359,14 @@ process.stdout.write(window.ApiStudyCharts.render("criteriaOverview", data, {com
         )
         self.assertEqual("KPS-1", architecture_overview["provenance"]["figureId"])
         guided_contract_by_key = {row["key"]: row for row in guided["slides"]["rows"]}
+        terms_by_slide_id = {row["slideId"]: row["terms"] for row in guided["termSets"]["rows"]}
+        self.assertTrue(
+            all(
+                row["terms"] == terms_by_slide_id.get(row["slideId"], [])
+                for row in guided["slides"]["rows"]
+            )
+        )
+        self.assertEqual([], guided["slides"]["rows"][10]["terms"])
         self.assertEqual(
             {
                 "title": "The operating model and four early gates drive the decision",
@@ -2348,6 +2416,17 @@ process.stdout.write(window.ApiStudyCharts.render("criteriaOverview", data, {com
         self.assertEqual(
             {key: guided_contract_by_key[key]["officialReferences"] for key in guided_keys},
             {key: guided_slides_by_key[key]["officialReferences"] for key in guided_keys},
+        )
+        self.assertEqual(
+            {key: guided_contract_by_key[key]["terms"] for key in guided_keys},
+            {key: guided_slides_by_key[key]["terms"] for key in guided_keys},
+        )
+        self.assertEqual(
+            tuple(f"P{index}" for index in range(1, 7)),
+            tuple(
+                guided_slides_by_key[start_key]["eyebrow"].split(" · ", 1)[0]
+                for _, _, start_key in phases
+            ),
         )
         app = (SOURCE_ROOT / "site" / "assets" / "app.js").read_text(encoding="utf-8")
         charts = (SOURCE_ROOT / "site" / "assets" / "charts.js").read_text(encoding="utf-8")
@@ -2423,7 +2502,7 @@ process.stdout.write(window.ApiStudyCharts.render("criteriaOverview", data, {com
         )
         self.assertRegex(
             styles,
-            r"(?s)@media screen and \(min-width:\s*1600px\).*?\.presentation-stage\.is-kong-guided\s*\{[^}]*--guided-decision-copy:\s*1\.5rem;[^}]*--guided-decision-meta:\s*1\.125rem;",
+            r"(?s)@media screen and \(min-width:\s*1600px\) and \(min-height:\s*1000px\).*?\.presentation-stage\.is-kong-guided\s*\{[^}]*--guided-decision-copy:\s*1\.5rem;[^}]*--guided-decision-meta:\s*1\.125rem;",
         )
         self.assertIn('<table class="viz-guided-comparison">', charts)
         self.assertIn('class="viz-guided-comparison-wrap" tabindex="-1" data-comparison-label=', charts)
@@ -2440,11 +2519,25 @@ process.stdout.write(window.ApiStudyCharts.render("criteriaOverview", data, {com
         self.assertIn("function presentationSlideHref(context, index)", app)
         self.assertIn('<nav class="journey-phase-nav" aria-label=', app)
         self.assertIn('href="${presentationSlideHref(context, phaseStartIndex)}"', app)
+        self.assertIn('const visiblePhaseId = isGuidedDeck && /^KGE-P[1-6]$/.test(phaseId)', app)
+        self.assertIn('`Phase ${phaseIndex + 1} of ${journeyPhases.length} (${phaseId}): ${phaseLabel}`', app)
+        self.assertNotIn("journey-phase-id-prefix", app)
         self.assertIn("isCurrentPhase ? 'aria-current=\"step\"' : \"\"", app)
         self.assertNotRegex(app, r'<li[^>]*aria-current="step"')
         self.assertIn('phaseIndex < journeyPhaseIndex ? "is-prior"', app)
         self.assertNotIn('phaseIndex < journeyPhaseIndex ? "is-complete"', app)
         self.assertIn("location.hash = presentationSlideHref(context, next)", app)
+        self.assertIn('class="guided-terms" aria-label="Terms introduced on this slide"', app)
+        self.assertIn('Array.isArray(slide.terms) && slide.terms.length', app)
+        self.assertIn('${escapeHtml(term.display)}</li>', app)
+        self.assertIn('${escapeHtml(term.classification || "Term")}', app)
+        self.assertIn('${guidedTerms}\n            ${guidedEvidence}', app)
+        self.assertRegex(styles, r"(?s)\.guided-terms\s*\{[^}]*display:\s*grid;[^}]*font-size:\s*clamp\(")
+        self.assertRegex(styles, r"(?s)\.guided-terms ul\s*\{[^}]*display:\s*flex;[^}]*flex-wrap:\s*wrap;")
+        self.assertRegex(styles, r"(?s)@media screen and \(max-width: 760px\).*?\.guided-terms\s*\{[^}]*grid-template-columns:\s*minmax\(0, 1fr\);")
+        self.assertRegex(styles, r"(?s)@media screen and \(max-width: 760px\).*?\.guided-terms ul\s*\{[^}]*flex-wrap:\s*nowrap;[^}]*overflow-x:\s*auto;")
+        self.assertIn('aria-label="Term definitions; swipe or scroll horizontally on compact screens"', app)
+        self.assertRegex(styles, r"(?s)@media print.*?\.presentation-stage\.is-kong-guided \.guided-terms\s*\{[^}]*break-inside:\s*avoid !important;")
         self.assertRegex(styles, r"(?s)\.journey-phase-spine li > a\s*\{[^}]*min-height:\s*44px;[^}]*color:\s*inherit;[^}]*text-decoration:\s*none;")
         self.assertRegex(styles, r"(?s)\.journey-phase-spine li > a:focus-visible\s*\{[^}]*outline:")
         self.assertRegex(styles, r"(?s)@media print.*?\.journey-phase-spine li > a\s*\{[^}]*color:\s*inherit !important;[^}]*text-decoration:\s*none !important;")
@@ -2455,6 +2548,7 @@ process.stdout.write(window.ApiStudyCharts.render("criteriaOverview", data, {com
         self.assertRegex(styles, r"(?s)@media screen and \(min-width: 761px\) and \(max-width: 1279px\).*?\.presentation-stage\.is-kong-guided \.journey-phase-spine li > a\s*\{[^}]*justify-content:\s*center;[^}]*font-size:\s*1rem;")
         self.assertRegex(styles, r"(?s)@media screen and \(min-width: 761px\) and \(max-width: 1279px\).*?\.presentation-stage\.is-kong-guided \.journey-phase-spine li b\s*\{[^}]*width:\s*1px;[^}]*clip-path:\s*inset\(50%\);")
         self.assertRegex(styles, r"(?s)@media screen and \(min-width: 1024px\) and \(max-width: 1199px\).*?\.presentation-stage\.is-kong-guided \.viz-guided-proof-boundary article\s*\{[^}]*padding:\s*0\.45rem;")
+        self.assertRegex(styles, r"(?s)@media screen and \(min-width: 1024px\) and \(max-height: 920px\).*?\.presentation-stage\.is-kong-guided \.is-guided-slide > \.slide-main\s*\{[^}]*overflow-y:\s*auto;")
         self.assertRegex(styles, r"(?s)@media \(max-width: 760px\).*?\.presentation-stage:not\(\.is-kong-guided\) \.slide-diagram\.is-summary-mode\s*\{[^}]*height:\s*auto;")
         self.assertRegex(styles, r"(?s)\.presentation-stage\.is-kong-guided \.slide-references > summary\s*\{[^}]*min-height:\s*44px;")
         self.assertRegex(styles, r"(?s)\.presentation-stage\.is-kong-guided \.slide-reference-menu\s*\{[^}]*overflow:\s*auto;")
@@ -2474,6 +2568,10 @@ process.stdout.write(window.ApiStudyCharts.render("criteriaOverview", data, {com
             ("theme", "theme must be kong-guided"),
             ("roles", "exact six-role order"),
             ("phase start", "six-stage spine and start keys"),
+            ("identifier catalog", "identifierCatalog must exactly project canonical doc48"),
+            ("term set", "termSets must exactly project canonical doc48"),
+            ("contract term projection", "terms do not match the canonical phase-local set"),
+            ("presentation term projection", "phase label or terms projection is invalid"),
             ("target ID", "GTM-01 through GTM-09"),
             ("early gate ID", "EAG-01 through EAG-04"),
             ("early gate semantics", "exact canonical doc48 semantic tuples"),
@@ -2511,6 +2609,14 @@ process.stdout.write(window.ApiStudyCharts.render("criteriaOverview", data, {com
                     invalid_deck["audienceRoleIds"][0:2] = reversed(invalid_deck["audienceRoleIds"][0:2])
                 elif case == "phase start":
                     invalid_deck["journeyPhases"][5]["startKey"] = "kong-guided-score-audit"
+                elif case == "identifier catalog":
+                    invalid_guided["identifierCatalog"]["rows"][2]["meaning"] = "Invented expansion"
+                elif case == "term set":
+                    invalid_guided["termSets"]["rows"][0]["terms"][0]["display"] = "KGE"
+                elif case == "contract term projection":
+                    invalid_guided["slides"]["rows"][0]["terms"].pop()
+                elif case == "presentation term projection":
+                    next(slide for slide in invalid["presentation"] if slide["key"] == "kong-guided-cover")["terms"].pop()
                 elif case == "target ID":
                     invalid_guided["targetModel"]["rows"][0]["id"] = "GTM-X"
                 elif case == "early gate ID":

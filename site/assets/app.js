@@ -3101,12 +3101,13 @@
           const phaseStartIndex = journeyPhaseStarts[phaseIndex];
           const isCurrentPhase = phaseIndex === journeyPhaseIndex;
           const phaseId = phase.id || String(phaseIndex + 1).padStart(2, "0");
-          const phaseIdMarkup = phaseId.startsWith("KGE-")
-            ? `<span class="journey-phase-id-prefix">${escapeHtml(phaseId.slice(0, 4))}</span>${escapeHtml(phaseId.slice(4))}`
-            : escapeHtml(phaseId);
-          const phasePosition = `Phase ${phaseIndex + 1} of ${journeyPhases.length}: ${phaseLabel}`;
+          const visiblePhaseId = isGuidedDeck && /^KGE-P[1-6]$/.test(phaseId)
+            ? phaseId.slice(4)
+            : phaseId;
+          const phaseIdMarkup = escapeHtml(visiblePhaseId);
+          const phasePosition = `Phase ${phaseIndex + 1} of ${journeyPhases.length} (${phaseId}): ${phaseLabel}`;
           const phaseAction = isCurrentPhase ? `Restart at slide ${phaseStartIndex + 1}` : `Go to slide ${phaseStartIndex + 1}`;
-          return `<li class="${phaseIndex < journeyPhaseIndex ? "is-prior" : isCurrentPhase ? "is-current" : ""}"><a href="${presentationSlideHref(context, phaseStartIndex)}" aria-label="${escapeHtml(`${isCurrentPhase ? "Current " : ""}${phasePosition}. ${phaseAction}.`)}" title="${escapeHtml(`${phaseLabel} · slide ${phaseStartIndex + 1}`)}" ${isCurrentPhase ? 'aria-current="step"' : ""}><span aria-hidden="true">${phaseIdMarkup}</span><b>${escapeHtml(phaseLabel)}</b></a></li>`;
+          return `<li class="${phaseIndex < journeyPhaseIndex ? "is-prior" : isCurrentPhase ? "is-current" : ""}"><a href="${presentationSlideHref(context, phaseStartIndex)}" aria-label="${escapeHtml(`${isCurrentPhase ? "Current " : ""}${phasePosition}. ${phaseAction}.`)}" title="${escapeHtml(`${phaseId} · ${phaseLabel} · slide ${phaseStartIndex + 1}`)}" ${isCurrentPhase ? 'aria-current="step"' : ""}><span aria-hidden="true">${phaseIdMarkup}</span><b>${escapeHtml(phaseLabel)}</b></a></li>`;
         }).join("")}</ol></nav>`
       : "";
     const guidedRepoReferences = isGuidedDeck
@@ -3157,6 +3158,12 @@
           ${slide.evidenceInterpretation ? `<p>${escapeHtml(slide.evidenceInterpretation)}</p>` : ""}
         </div>`
       : "";
+    const guidedTerms = isGuidedDeck && Array.isArray(slide.terms) && slide.terms.length
+      ? `<aside class="guided-terms" aria-label="Terms introduced on this slide">
+          <b>Terms</b>
+          <ul tabindex="0" aria-label="Term definitions; swipe or scroll horizontally on compact screens">${slide.terms.map((term) => `<li title="${escapeHtml(term.classification || "Term")}">${escapeHtml(term.display)}</li>`).join("")}</ul>
+        </aside>`
+      : "";
     const guidedAssessment = isGuidedDeck ? assessmentSummary() : null;
     const guidedAssessmentButton = guidedAssessment
       ? `<button type="button" class="assessment-launch" data-assessment-open aria-expanded="false" aria-controls="guided-assessment-drawer" aria-label="Open guided assessment. ${guidedAssessment.counts.answered} of ${guidedAssessment.counts.total} questions answered"><span>Assessment</span> <b><span data-assessment-count>${guidedAssessment.counts.answered}</span>/${guidedAssessment.counts.total}</b></button>`
@@ -3168,6 +3175,7 @@
           ${journeySpine}
           <div class="slide-main">
             <span class="eyebrow">${escapeHtml(slide.eyebrow)}${audience ? ` / ${escapeHtml(audience.shortLabel)} lens` : deck ? ` / ${escapeHtml(deck.shortLabel)} deck` : ""}</span>
+            ${guidedTerms}
             ${guidedEvidence}
             <div class="slide-narrative${narrativeClass}">
               <h1 class="slide-title">${escapeHtml(slide.title)}</h1>

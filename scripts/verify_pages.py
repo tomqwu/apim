@@ -188,6 +188,37 @@ KONG_GUIDED_PHASES = (
     ("KGE-P5", "Production proof", "Replace documented capability—including the Traceable adjunct—with executed target-shaped evidence and outcome gates", "kong-guided-proof-boundary"),
     ("KGE-P6", "Audit appendix", "Preserve supplied inputs, expose the Traceable feasibility line, and show the provisional uncertainty envelope without promoting it to a decision score", "kong-guided-compare-architecture"),
 )
+KONG_GUIDED_IDENTIFIER_TOKENS = (
+    "KGE", "EAG", "GTM", "GEW", "GRS", "GEO", "GEB", "KMC",
+    "KPS", "KP", "MULE", "GEP", "GSA", "KO", "GEC",
+)
+KONG_GUIDED_INTERNAL_DESCRIPTOR_TOKENS = KONG_GUIDED_IDENTIFIER_TOKENS[2:]
+KONG_GUIDED_TERM_TOKENS = (
+    ("KGE-01", ("KGE", "API", "EAG")),
+    ("KGE-02", ("GTM", "AKS", "AI", "TCO", "APIOps", "MCP", "A2A")),
+    ("KGE-03", ("GEW", "GRS", "IAM")),
+    ("KGE-04", ("KGE", "API", "APIM", "CP", "PKI", "MART", "GEO", "KP-SMH1")),
+    ("KGE-05", ("GRS",)),
+    ("KGE-06", ("E2", "E3", "E4", "HA", "DR")),
+    ("KGE-07", ("GEB", "KMC", "KP-SMH1", "E1", "DP", "KPS")),
+    ("KGE-08", ("KPS-FIT",)),
+    ("KGE-09", ("KGE", "API", "CP", "DP", "PKI", "HA", "SLO", "KPS", "E1", "RBAC", "WAF", "SIEM")),
+    ("KGE-10", ("CA", "CN", "JWKS")),
+    ("KGE-12", ("DB", "SRE", "IAM")),
+    ("KGE-13", ("KP0–KP5", "BOM", "RACI", "GP-1–GP-6")),
+    ("KGE-14", ("KGE", "API", "MULE", "SFTP")),
+    ("KGE-15", ("AKS", "CRM")),
+    ("KGE-16", ("A0–A6", "M0–M5", "SLO", "E4")),
+    ("KGE-17", ("KGE", "PoC", "KP-SMH1", "E3", "E4", "CP", "AI", "TCO")),
+    ("KGE-18", ("API", "GEP", "GSA", "LTS", "BOM", "SBOM", "APIOps", "IAM", "MCP", "A2A", "RTO", "RPO", "RACI")),
+    ("KGE-19", ("KO", "DP", "SLI", "SLO", "SRE", "OAuth", "PKI", "PR")),
+    ("KGE-20", ("DLP", "DNS")),
+    ("KGE-21", ("KPS", "E1", "E2")),
+    ("KGE-22", ("KGE", "API", "GEC", "CP", "DP")),
+    ("KGE-23", ("AI", "GenAI", "MCP", "A2A", "E1")),
+    ("KGE-24", ("TCO", "CP", "PKI", "HA", "DR", "PAYG", "RACI")),
+    ("KGE-25", ("E0", "GEW", "GRS", "IAM", "TCO", "CP")),
+)
 KONG_GUIDED_ASSESSMENT_SUMMARY_ROUTE = (
     "#/present/kong-platform-journey-guided/summary"
 )
@@ -944,6 +975,43 @@ def validate_kong_guided_evaluation(
         and early_gate_provenance.get("heading") == "Four early assessment gates"
         and early_gate_provenance.get("asOf") == "2026-08-22",
         "manifest guided early gates must retain exact doc48 provenance",
+    )
+
+    identifier_rows = guided.get("identifierCatalog", {}).get("rows", [])
+    require(
+        tuple(row.get("token") for row in identifier_rows if isinstance(row, dict))
+        == KONG_GUIDED_IDENTIFIER_TOKENS,
+        "manifest guided identifier catalog must preserve exact token order",
+    )
+    term_set_rows = guided.get("termSets", {}).get("rows", [])
+    require(
+        guided.get("termSets", {}).get("rowTotal") == len(KONG_GUIDED_TERM_TOKENS)
+        and tuple(
+            (
+                row.get("slideId"),
+                tuple(term.get("token") for term in row.get("terms", ()) if isinstance(term, dict)),
+            )
+            for row in term_set_rows
+            if isinstance(row, dict)
+        ) == KONG_GUIDED_TERM_TOKENS,
+        "manifest guided term sets must preserve exact phase-local order",
+    )
+    terms_by_slide_id = {
+        row.get("slideId"): row.get("terms", [])
+        for row in term_set_rows
+        if isinstance(row, dict)
+    }
+    guided_slides = [
+        slide for slide in presentation
+        if isinstance(slide, dict) and slide.get("visual") == "guidedEvaluation"
+    ]
+    require(
+        len(guided_slides) == 25
+        and all(
+            slide.get("terms") == terms_by_slide_id.get(slide.get("slideId"), [])
+            for slide in guided_slides
+        ),
+        "manifest guided presentation terms must exactly project the canonical term sets",
     )
 
     assessment = guided.get("assessmentContract", {})
