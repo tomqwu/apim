@@ -849,6 +849,22 @@
 
   const PORTAL_ROUTE_NAMES = new Set(["overview", "audiences", "visuals", "library", "compare", "architecture", "lab", "doc", "present"]);
 
+  function portalBase(url) {
+    return `${url.origin}${url.pathname.replace(/index\.html$/, "")}`.replace(/\/?$/, "/");
+  }
+
+  function isThisPortal(url) {
+    if (url.origin === location.origin) return true;
+    const declared = Array.isArray(state.manifest?.site?.publicBaseUrls) ? state.manifest.site.publicBaseUrls : [];
+    return declared.some((base) => {
+      try {
+        return portalBase(new URL(base)) === portalBase(url);
+      } catch (error) {
+        return false;
+      }
+    });
+  }
+
   function localizePortalLinks(container) {
     container.querySelectorAll('a[href^="http://"], a[href^="https://"]').forEach((anchor) => {
       let url;
@@ -859,6 +875,7 @@
       }
       if (!url.hash.startsWith("#/")) return;
       if (!PORTAL_ROUTE_NAMES.has(url.hash.slice(2).split("/")[0])) return;
+      if (!isThisPortal(url)) return;
       anchor.setAttribute("href", url.hash);
       anchor.removeAttribute("target");
       anchor.removeAttribute("rel");
@@ -1963,7 +1980,22 @@
       const instruction = document.createElement("small");
       instruction.textContent = "Choose Overview for the whole model, Readable for presentation-safe type, or Expand for focused inspection.";
       summaryPanel.append(kicker, heading, copy, ...[equivalent, scope].filter(Boolean), instruction);
-      if (equivalent || scope) summaryPanel.classList.add("has-contract-detail");
+      if (equivalent || scope) {
+        summaryPanel.classList.add("has-contract-detail");
+        summaryPanel.tabIndex = 0;
+        summaryPanel.setAttribute("role", "region");
+        summaryPanel.setAttribute("aria-label", `${semanticFigureId} decision brief. Scroll vertically to read the figure contract.`);
+        summaryPanel.addEventListener("keydown", (event) => {
+          if (summaryPanel.scrollHeight <= summaryPanel.clientHeight + 2) return;
+          if (!["ArrowUp", "ArrowDown", "PageUp", "PageDown", "Home", "End", " "].includes(event.key)) return;
+          event.preventDefault();
+          event.stopPropagation();
+          const step = Math.max(48, Math.round(summaryPanel.clientHeight * 0.6));
+          if (event.key === "Home") summaryPanel.scrollTop = 0;
+          else if (event.key === "End") summaryPanel.scrollTop = summaryPanel.scrollHeight;
+          else summaryPanel.scrollTop += (event.key === "ArrowUp" || event.key === "PageUp" || (event.shiftKey && event.key === " ")) ? -step : step;
+        });
+      }
     }
     target.replaceChildren(toolbar);
     if (hasSemanticSummary) target.append(summaryPanel);
@@ -2483,7 +2515,7 @@
         const figure = (visuals.kongPlatformStrategy?.figures || []).find((item) => item.figureId === slide.figureId);
         const mermaid = figure?.mermaid || "";
         return mermaid
-          ? `<div class="slide-diagram is-kps-target" data-slide-inline-mermaid="${escapeHtml(mermaid)}" data-diagram-id="${escapeHtml(slide.figureId)}" data-diagram-summary="${escapeHtml(figure?.title || "")}"${figureContractAttributes(figure)}><p>Rendering canonical ${escapeHtml(slide.figureId)}…</p></div>`
+          ? `<div class="slide-diagram is-kps-target" data-slide-inline-mermaid="${escapeHtml(mermaid)}" data-diagram-id="${escapeHtml(slide.figureId)}" data-diagram-summary="${escapeHtml(figure?.title || "")}"><p>Rendering canonical ${escapeHtml(slide.figureId)}…</p></div>`
           : `<p class="visual-empty">The canonical ${escapeHtml(slide.figureId || "KPS figure")} model is unavailable.</p>`;
       }
       case "kongPlatformCases": {
@@ -2501,7 +2533,7 @@
         const figure = (visuals.muleMigration?.figures || []).find((item) => item.figureId === slide.figureId);
         const mermaid = figure?.mermaid || "";
         return mermaid
-          ? `<div class="slide-diagram is-migration-model" data-slide-inline-mermaid="${escapeHtml(mermaid)}" data-diagram-id="${escapeHtml(slide.figureId)}" data-diagram-summary="${escapeHtml(figure?.title || "")}"${figureContractAttributes(figure)}><p>Rendering canonical ${escapeHtml(slide.figureId)}…</p></div>`
+          ? `<div class="slide-diagram is-migration-model" data-slide-inline-mermaid="${escapeHtml(mermaid)}" data-diagram-id="${escapeHtml(slide.figureId)}" data-diagram-summary="${escapeHtml(figure?.title || "")}"><p>Rendering canonical ${escapeHtml(slide.figureId)}…</p></div>`
           : `<p class="visual-empty">The canonical ${escapeHtml(slide.figureId || "migration figure")} model is unavailable.</p>`;
       }
       case "governance": return chartMarkup("governance", visuals.governance || {}, options);
@@ -2553,6 +2585,7 @@
     const comparison = document.querySelector(".presentation-stage .viz-guided-comparison-wrap");
     const surfaces = [
       [slideMain, "Expanded slide detail. Scroll vertically to inspect the opened evidence.", "vertical"],
+      [document.querySelector(".presentation-stage .slide-main .slide-visual"), "Slide visual. Scroll vertically to inspect the complete evidence.", "vertical"],
       [document.querySelector(".presentation-stage .slide-aside-content"), "Additional slide context. Scroll vertically to inspect the complete cue and source framing.", "vertical"],
       [comparison, `${comparison?.dataset.comparisonLabel || "Supplied product comparison"}. Scroll horizontally to compare every product.`, "horizontal"],
       [stage, `${stage?.getAttribute("aria-label") || "Presentation content"}. Scroll vertically to inspect the complete slide.`, "vertical", stage?.getAttribute("role"), stage?.getAttribute("aria-label")],
@@ -2573,11 +2606,28 @@
       }
       return cue;
     };
+    const cueWatched = new WeakSet();
+    const verticalScroller = (surface) => {
+      if (!surface || surface.scrollHeight <= surface.clientHeight + 2) return false;
+      return ["auto", "scroll"].includes(getComputedStyle(surface).overflowY);
+    };
+    // A box whose overflow is visible (or clipped) cannot scroll, so it must never own focus or arrow keys.
+    const verticalSurfaceScrolls = (surface) => {
+      if (!surface || surface.scrollHeight <= surface.clientHeight + 2) return false;
+      return !["visible", "clip"].includes(getComputedStyle(surface).overflowY);
+    };
     const syncScrollCue = () => {
       const cue = ensureScrollCue();
       if (!cue) return;
-      // Prefer the innermost vertical scroller so the cue sits on the surface that actually moves.
-      const scroller = [slideVisual, slideMain].find((surface) => surface && surface.scrollHeight > surface.clientHeight + 2);
+      // Prefer the innermost surface that really scrolls (computed overflow), never an overflow-visible box.
+      const candidates = [document.querySelector(".presentation-stage .diagram-summary.has-contract-detail"), slideVisual, slideMain];
+      candidates.forEach((surface) => {
+        if (surface && !cueWatched.has(surface)) {
+          cueWatched.add(surface);
+          surface.addEventListener("scroll", syncScrollCue, { passive: true });
+        }
+      });
+      const scroller = candidates.find(verticalScroller);
       if (!scroller) {
         cue.hidden = true;
         return;
@@ -2589,11 +2639,10 @@
       cue.style.left = `${Math.round(rect.left + rect.width / 2)}px`;
       cue.style.top = `${Math.round(rect.bottom)}px`;
     };
-    [slideVisual, slideMain].forEach((surface) => surface?.addEventListener("scroll", syncScrollCue, { passive: true }));
     const syncSurface = (surface, label, axis, originalRole = null, originalLabel = null) => {
       const scrollable = axis === "horizontal"
         ? surface.scrollWidth > surface.clientWidth + 2
-        : surface.scrollHeight > surface.clientHeight + 2;
+        : verticalSurfaceScrolls(surface);
       surface.tabIndex = scrollable ? 0 : -1;
       if (scrollable) {
         surface.setAttribute("role", "region");
@@ -2629,6 +2678,7 @@
       } else {
         surface.addEventListener("keydown", (event) => {
           if (!["ArrowUp", "ArrowDown", "PageUp", "PageDown", "Home", "End", " "].includes(event.key)) return;
+          if (!verticalSurfaceScrolls(surface)) return;
           if (surface.scrollHeight <= surface.clientHeight + 2) return;
           event.preventDefault();
           event.stopPropagation();

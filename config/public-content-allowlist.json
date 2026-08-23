@@ -2,7 +2,7 @@
   "binaryFiles": [
     {
       "path": "presentations/kong-platform-journey-guided.pptx",
-      "sha256": "6b48587fea5a74ce0aabbc3831fd4fd1603963e8257f6291bb14466919efd562",
+      "sha256": "95a25728303656aa089a325a6822b2edfc538f250b62a47ced5f96ff168c8ca2",
       "reviewedByRole": "Presentation and site lead",
       "reason": "Public-safe, brand-neutral 25-slide companion to docs/48 with early gates, source links, synchronized notes, dual migration gates, native PowerPoint metadata and neutral Office themes. 2026-08-22 review revision: corrected cover date, canonical GTM-07 label, docs/47 outcome names on slides 19-20 and their notes, numeral and table typefaces. Excludes customer identity, raw filenames, private paths, commercial evidence and production-fit claims."
     }
