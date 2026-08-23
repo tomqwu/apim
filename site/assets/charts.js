@@ -370,6 +370,24 @@
   function kongPlatformOutcomes(data, options = {}) {
     const rows = Array.isArray(data) ? data : data?.rows || [];
     if (!rows.length) return empty();
+    if (options.presentation && /^outcomes-/.test(String(options.viewId || ""))) {
+      const field = (label, value) => `<p data-label="${escapeHtml(label)}">${escapeHtml(value || "")}</p>`;
+      return `<figure class="viz viz-kps-outcomes is-presentation is-guided-cards" aria-label="${escapeHtml(options.title || "Kong platform outcome measures")}">
+        <ol class="viz-kps-outcome-cards" data-count="${rows.length}">${rows.map((row, index) => {
+          const id = row.id || `KO-${index + 1}`;
+          return `<li>
+            <span class="viz-kps-index">${escapeHtml(id)}</span>
+            <strong>${escapeHtml(row.label || "")}</strong>
+            ${field("Measure", row.measure)}
+            ${field("Evidence artifact", row.artifact)}
+            <details class="viz-kps-outcome-more">
+              <summary aria-label="${escapeHtml(`${id} scenario target form, review cadence and accountable owner`)}"><span class="when-closed">Target · cadence · owner</span><span class="when-open">Close</span></summary>
+              <div>${field("Scenario target form", row.target)}${field("Review cadence", row.cadence)}${field("Accountable owner", row.owner)}</div>
+            </details>
+          </li>`;
+        }).join("")}</ol>
+      </figure>`;
+    }
     return `<figure class="viz viz-kps-outcomes ${options.compact ? "is-compact" : ""} ${options.presentation ? "is-presentation" : ""}" aria-label="${escapeHtml(options.title || "Kong platform outcome measures")}">${heading(options)}
       <ol class="viz-kps-outcome-list">${rows.map((row, index) => {
         const id = row.id || `KO-${index + 1}`;
@@ -725,34 +743,47 @@
 
   function guidedBoundary(data, options) {
     const explicit = data?.boundaries || data?.boundary || {};
-    const section = guidedRows(explicit).length ? explicit : data?.platformOptions || {};
-    const requested = new Set(Array.isArray(options.optionIds) ? options.optionIds : []);
-    const rows = guidedRows(section, ["options"])
-      .filter((row) => !requested.size || requested.has(row.id))
-      .slice(0, 3);
+    const explicitRows = guidedRows(explicit);
+    const requestedRows = new Set(Array.isArray(options.rowIds) ? options.rowIds : []);
+    const requestedOptions = new Set(Array.isArray(options.optionIds) ? options.optionIds : []);
+    const section = explicitRows.length ? explicit : data?.platformOptions || {};
+    const rows = (explicitRows.length
+      ? explicitRows.filter((row) => !requestedRows.size || requestedRows.has(row.id))
+      : guidedRows(section, ["options"]).filter((row) => !requestedOptions.size || requestedOptions.has(row.id))
+    ).slice(0, 3);
     if (!rows.length) return empty();
-    const body = `<div class="viz-guided-boundaries">${rows.map((row, index) => `<article>
-      <span>${escapeHtml(row.id || String(index + 1).padStart(2, "0"))}</span>
-      <strong>${escapeHtml(row.boundary || row.journeyLabel || row.label)}</strong>
-      <p>${escapeHtml(row.description || row.journeyBoundary || row.placement || "")}</p>
-      <small>${escapeHtml(row.role || row.journeyRole || "")}</small>
-    </article>`).join("")}</div>`;
+    const body = `<div class="viz-guided-boundaries" data-count="${rows.length}">${rows.map((row, index) => {
+      const id = row.id || String(index + 1).padStart(2, "0");
+      const boundary = row.boundary || row.journeyLabel || row.label || "";
+      const description = row.description || row.journeyBoundary || row.placement || "";
+      const role = row.role || row.journeyRole || "";
+      return `<article aria-label="${escapeHtml(`${id}. ${boundary}. ${description} ${role}`.trim())}">
+      <span>${escapeHtml(id)}</span>
+      <strong>${escapeHtml(boundary)}</strong>
+      <p data-label="Operating boundary">${escapeHtml(description)}</p>
+      ${row.record ? `<p data-label="Canonical record">${escapeHtml(row.record)}</p>` : ""}
+      ${role ? `<small data-label="Decision role">${escapeHtml(role)}</small>` : ""}
+    </article>`;
+    }).join("")}</div>`;
     return guidedFrame("boundary", data, section, options, body, options.title || "Operating-boundary choices");
   }
 
   function guidedDuty(data, options) {
     const explicit = data?.duties || data?.duty || {};
-    const section = guidedRows(explicit).length ? explicit : data?.platformFit || {};
+    const explicitRows = guidedRows(explicit);
+    const section = explicitRows.length ? explicit : data?.platformFit || {};
     const requested = new Set(Array.isArray(options.rowIds) ? options.rowIds : []);
     const rows = guidedRows(section)
       .filter((row) => !requested.size || requested.has(row.id) || requested.has(row.projectionId))
       .slice(0, 2);
     if (!rows.length) return empty();
+    const paragraph = (label, value) => (value ? `<p data-label="${escapeHtml(label)}">${escapeHtml(value)}</p>` : "");
     const body = `<div class="viz-guided-duty">${rows.map((row) => `<article>
       <span>${escapeHtml(row.id || row.projectionId || "")}</span>
-      <strong>${escapeHtml(row.duty || row.outcome || row.label)}</strong>
-      <p data-label="Fit">${escapeHtml(row.fit || row.reason || row.mechanism || "")}</p>
-      <p data-label="Permanent duty">${escapeHtml(row.permanentDuty || row.concern || row.counterfactual || "")}</p>
+      <strong>${escapeHtml(row.outcome || row.label || "")}</strong>
+      ${paragraph("Why it fits", row.fit || row.reason || row.mechanism || "")}
+      ${paragraph("Permanent duty", row.permanentDuty || "")}
+      ${paragraph("Weaker when", row.counterfactual || row.concern || "")}
     </article>`).join("")}</div>`;
     return guidedFrame("duty", data, section, options, body, options.title || "Fit and permanent operating duty");
   }

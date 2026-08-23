@@ -21,6 +21,7 @@
     assessmentSession: null,
     assessmentSaveTimer: null,
     assessmentReturnFocus: null,
+    assessmentInertElements: [],
     assessmentLastSlideIndex: 0,
   };
 
@@ -846,7 +847,27 @@
     return stack.join("/");
   }
 
+  const PORTAL_ROUTE_NAMES = new Set(["overview", "audiences", "visuals", "library", "compare", "architecture", "lab", "doc", "present"]);
+
+  function localizePortalLinks(container) {
+    container.querySelectorAll('a[href^="http://"], a[href^="https://"]').forEach((anchor) => {
+      let url;
+      try {
+        url = new URL(anchor.getAttribute("href"));
+      } catch (error) {
+        return;
+      }
+      if (!url.hash.startsWith("#/")) return;
+      if (!PORTAL_ROUTE_NAMES.has(url.hash.slice(2).split("/")[0])) return;
+      anchor.setAttribute("href", url.hash);
+      anchor.removeAttribute("target");
+      anchor.removeAttribute("rel");
+      anchor.dataset.portalRoute = "true";
+    });
+  }
+
   function enhanceMarkdown(container, item) {
+    localizePortalLinks(container);
     const rail = document.querySelector("[data-document-rail]");
     const headings = [...container.querySelectorAll("h2, h3")];
     const used = new Set();
@@ -1685,6 +1706,8 @@
     const minimumLabel = isPresentation ? 18 : isPreview ? 14 : 16;
     const initialWidth = diagramContentWidth(target);
     const semanticSummary = String(target.dataset.diagramSummary || "").trim();
+    const semanticScope = String(target.dataset.diagramScope || "").trim();
+    const semanticEquivalent = String(target.dataset.diagramEquivalent || "").trim();
     const semanticFigureId = String(target.dataset.diagramId || label || "Canonical model").trim();
     const authoredOverview = String(options.authoredOverview || "").trim();
     const hasAuthoredOverview = Boolean(authoredOverview);
@@ -1771,9 +1794,23 @@
       heading.textContent = "What this model means";
       const copy = document.createElement("p");
       copy.textContent = semanticSummary;
+      const detailBlock = (labelText, value, className) => {
+        if (!value) return null;
+        const detail = document.createElement("p");
+        detail.className = `diagram-summary-detail ${className}`;
+        const labelNode = document.createElement("b");
+        labelNode.textContent = labelText;
+        const valueNode = document.createElement("span");
+        valueNode.textContent = value;
+        detail.append(labelNode, valueNode);
+        return detail;
+      };
+      const equivalent = detailBlock("In words", semanticEquivalent, "is-equivalent");
+      const scope = detailBlock("Shows", semanticScope, "is-scope");
       const instruction = document.createElement("small");
-      instruction.textContent = "Choose Readable for the full model at presentation-safe type, or Expand for focused inspection.";
-      summaryPanel.append(kicker, heading, copy, instruction);
+      instruction.textContent = "Choose Overview for the whole model, Readable for presentation-safe type, or Expand for focused inspection.";
+      summaryPanel.append(kicker, heading, copy, ...[equivalent, scope].filter(Boolean), instruction);
+      if (equivalent || scope) summaryPanel.classList.add("has-contract-detail");
     }
     target.replaceChildren(toolbar);
     if (hasSemanticSummary) target.append(summaryPanel);
@@ -1953,7 +1990,15 @@
       update();
     });
     resizeObserver.observe(viewport);
-    scale = defaultMode === "summary" ? 1 : defaultMode === "readable" ? readableScale() : overviewScale();
+    if (isPresentation && hasSemanticSummary && !hasAuthoredOverview) {
+      // Prefer the whole canonical model on screen whenever its labels stay at presentation-safe size;
+      // fall back to the takeaway panel only when the fitted diagram would be too small to read.
+      summaryPanel.hidden = true;
+      viewport.hidden = false;
+      const fittedLabel = geometry.labelSize * overviewScale();
+      if (fittedLabel >= minimumLabel - 0.5) mode = "overview";
+    }
+    scale = mode === "summary" ? 1 : mode === "readable" ? readableScale() : overviewScale();
     update();
   }
 
@@ -2159,6 +2204,12 @@
     }
   }
 
+  function figureContractAttributes(figure) {
+    const scope = String(figure?.depictedScope || "").trim();
+    const equivalent = String(figure?.accessibleEquivalent || "").trim();
+    return `${scope ? ` data-diagram-scope="${escapeHtml(scope)}"` : ""}${equivalent ? ` data-diagram-equivalent="${escapeHtml(equivalent)}"` : ""}`;
+  }
+
   function presentationVisualMarkup(slide, source, isJourneyDeck = false) {
     const visuals = state.manifest.visuals || {};
     const options = { presentation: true, compact: true, title: isJourneyDeck ? slide.title : slide.metricLabel };
@@ -2205,7 +2256,7 @@
           const mermaid = figure?.mermaid || "";
           const figureId = figure?.figureId || slide.figureId || `${kind} figure`;
           return mermaid
-            ? `<div class="slide-diagram is-guided-canonical" data-slide-inline-mermaid="${escapeHtml(mermaid)}" data-diagram-id="${escapeHtml(figureId)}" data-diagram-summary="${escapeHtml(figure?.title || slide.body || "")}"><p>Rendering canonical ${escapeHtml(figureId)}…</p></div>`
+            ? `<div class="slide-diagram is-guided-canonical" data-slide-inline-mermaid="${escapeHtml(mermaid)}" data-diagram-id="${escapeHtml(figureId)}" data-diagram-summary="${escapeHtml(figure?.title || slide.body || "")}"${figureContractAttributes(figure)}><p>Rendering canonical ${escapeHtml(figureId)}…</p></div>`
             : `<p class="visual-empty">The canonical ${escapeHtml(figureId)} model is unavailable.</p>`;
         };
         if (slide.viewId === "architecture") {
@@ -2214,7 +2265,7 @@
           const mermaid = figure?.mermaid || "";
           const overviewMarkup = chartMarkup("guidedArchitectureOverview", overview, { presentation: true, compact: true });
           return mermaid
-            ? `<div class="slide-diagram is-guided-canonical" data-slide-inline-mermaid="${escapeHtml(mermaid)}" data-diagram-id="KPS-1" data-diagram-summary="${escapeHtml(figure?.title || slide.body || "")}"><template data-diagram-overview>${overviewMarkup}</template><p>Rendering the KGE-09 overview and canonical KPS-1 inspection model…</p></div>`
+            ? `<div class="slide-diagram is-guided-canonical" data-slide-inline-mermaid="${escapeHtml(mermaid)}" data-diagram-id="KPS-1" data-diagram-summary="${escapeHtml(figure?.title || slide.body || "")}"${figureContractAttributes(figure)}><template data-diagram-overview>${overviewMarkup}</template><p>Rendering the KGE-09 overview and canonical KPS-1 inspection model…</p></div>`
             : overviewMarkup;
         }
         if (["state-trust", "degraded", "operating-model", "assurance"].includes(slide.viewId)) {
@@ -2277,7 +2328,7 @@
         const figure = (visuals.kongPlatformStrategy?.figures || []).find((item) => item.figureId === slide.figureId);
         const mermaid = figure?.mermaid || "";
         return mermaid
-          ? `<div class="slide-diagram is-kps-target" data-slide-inline-mermaid="${escapeHtml(mermaid)}" data-diagram-id="${escapeHtml(slide.figureId)}" data-diagram-summary="${escapeHtml(figure?.title || "")}"><p>Rendering canonical ${escapeHtml(slide.figureId)}…</p></div>`
+          ? `<div class="slide-diagram is-kps-target" data-slide-inline-mermaid="${escapeHtml(mermaid)}" data-diagram-id="${escapeHtml(slide.figureId)}" data-diagram-summary="${escapeHtml(figure?.title || "")}"${figureContractAttributes(figure)}><p>Rendering canonical ${escapeHtml(slide.figureId)}…</p></div>`
           : `<p class="visual-empty">The canonical ${escapeHtml(slide.figureId || "KPS figure")} model is unavailable.</p>`;
       }
       case "kongPlatformCases": {
@@ -2295,7 +2346,7 @@
         const figure = (visuals.muleMigration?.figures || []).find((item) => item.figureId === slide.figureId);
         const mermaid = figure?.mermaid || "";
         return mermaid
-          ? `<div class="slide-diagram is-migration-model" data-slide-inline-mermaid="${escapeHtml(mermaid)}" data-diagram-id="${escapeHtml(slide.figureId)}" data-diagram-summary="${escapeHtml(figure?.title || "")}"><p>Rendering canonical ${escapeHtml(slide.figureId)}…</p></div>`
+          ? `<div class="slide-diagram is-migration-model" data-slide-inline-mermaid="${escapeHtml(mermaid)}" data-diagram-id="${escapeHtml(slide.figureId)}" data-diagram-summary="${escapeHtml(figure?.title || "")}"${figureContractAttributes(figure)}><p>Rendering canonical ${escapeHtml(slide.figureId)}…</p></div>`
           : `<p class="visual-empty">The canonical ${escapeHtml(slide.figureId || "migration figure")} model is unavailable.</p>`;
       }
       case "governance": return chartMarkup("governance", visuals.governance || {}, options);
@@ -2351,6 +2402,39 @@
       [comparison, `${comparison?.dataset.comparisonLabel || "Supplied product comparison"}. Scroll horizontally to compare every product.`, "horizontal"],
       [stage, `${stage?.getAttribute("aria-label") || "Presentation content"}. Scroll vertically to inspect the complete slide.`, "vertical", stage?.getAttribute("role"), stage?.getAttribute("aria-label")],
     ].filter(([surface]) => surface);
+    const slideVisual = document.querySelector(".presentation-stage .slide-main .slide-visual");
+    const ensureScrollCue = () => {
+      if (!stage) return null;
+      let cue = stage.querySelector(":scope > .slide-scroll-cue");
+      if (!cue) {
+        cue = document.createElement("div");
+        cue.className = "slide-scroll-cue";
+        cue.setAttribute("aria-hidden", "true");
+        cue.hidden = true;
+        const pill = document.createElement("span");
+        pill.textContent = "Scroll for more ↓";
+        cue.append(pill);
+        stage.append(cue);
+      }
+      return cue;
+    };
+    const syncScrollCue = () => {
+      const cue = ensureScrollCue();
+      if (!cue) return;
+      // Prefer the innermost vertical scroller so the cue sits on the surface that actually moves.
+      const scroller = [slideVisual, slideMain].find((surface) => surface && surface.scrollHeight > surface.clientHeight + 2);
+      if (!scroller) {
+        cue.hidden = true;
+        return;
+      }
+      const atEnd = scroller.scrollTop + scroller.clientHeight >= scroller.scrollHeight - 6;
+      cue.hidden = atEnd;
+      if (atEnd) return;
+      const rect = scroller.getBoundingClientRect();
+      cue.style.left = `${Math.round(rect.left + rect.width / 2)}px`;
+      cue.style.top = `${Math.round(rect.bottom)}px`;
+    };
+    [slideVisual, slideMain].forEach((surface) => surface?.addEventListener("scroll", syncScrollCue, { passive: true }));
     const syncSurface = (surface, label, axis, originalRole = null, originalLabel = null) => {
       const scrollable = axis === "horizontal"
         ? surface.scrollWidth > surface.clientWidth + 2
@@ -2372,7 +2456,10 @@
         if (cue) cue.hidden = !scrollable;
       }
     };
-    const sync = () => surfaces.forEach(([surface, label, axis, originalRole, originalLabel]) => syncSurface(surface, label, axis, originalRole, originalLabel));
+    const sync = () => {
+      surfaces.forEach(([surface, label, axis, originalRole, originalLabel]) => syncSurface(surface, label, axis, originalRole, originalLabel));
+      syncScrollCue();
+    };
     surfaces.forEach(([surface, , axis]) => {
       surface.addEventListener("toggle", () => requestAnimationFrame(sync), true);
       if (axis === "horizontal") {
@@ -2526,9 +2613,42 @@
   function assessmentRoleOptions(selected = "") {
     const roles = guidedAssessmentContract()?.publicRoles;
     const values = Array.isArray(roles) ? roles : [];
+    const labels = {
+      IAM: assessmentTermDisplay("IAM"),
+      "SRE/performance": `${assessmentTermDisplay("SRE")} / performance`,
+      FinOps: assessmentTermDisplay("FinOps"),
+    };
     return `<option value="">Select a public role</option>${values.map((role) => (
-      `<option value="${escapeHtml(role)}"${selected === role ? " selected" : ""}>${escapeHtml(role)}</option>`
+      `<option value="${escapeHtml(role)}"${selected === role ? " selected" : ""}>${escapeHtml(labels[role] || role)}</option>`
     )).join("")}`;
+  }
+
+  function assessmentTermDisplay(token) {
+    const terms = guidedAssessmentContract()?.interfaceTerms;
+    const term = Array.isArray(terms) ? terms.find((candidate) => candidate.token === token) : null;
+    return term?.display || token;
+  }
+
+  function renderAssessmentInterfaceTerms() {
+    const terms = guidedAssessmentContract()?.interfaceTerms;
+    if (!Array.isArray(terms) || !terms.length) return "";
+    return `<aside class="assessment-interface-terms" aria-label="Assessment interface terminology" data-assessment-interface-terms>
+      <b>Form terms <span aria-hidden="true">· scroll →</span></b>
+      <ul tabindex="0" aria-label="Assessment interface term definitions; swipe or scroll horizontally">
+        ${terms.map((term) => `<li title="${escapeHtml(term.purpose || "Interface term")}">${escapeHtml(term.display || term.token || "")}</li>`).join("")}
+      </ul>
+    </aside>`;
+  }
+
+  function renderAssessmentSafeguards() {
+    return `<details class="assessment-safeguard-details" data-assessment-safeguards>
+      <summary>Privacy and evidence safeguards</summary>
+      <div>
+        <p>This feature stores responses in this browser and does not submit them. Browser storage is not private or encrypted; do not enter names, credentials, customer identifiers, private topology, or restricted evidence.</p>
+        <p>Controlled role selectors prevent named-person assignments. Obvious email, private uniform resource locator (URL), Internet Protocol (IP), credential, phone and commercial-quote patterns are removed before storage or export; automated filtering is not exhaustive.</p>
+        <p>Meeting input never upgrades evidence. Production remains unauthorized until the defined evidence and approval gates close.</p>
+      </div>
+    </details>`;
   }
 
   function assessmentGapLabel(gap) {
@@ -2609,15 +2729,15 @@
           <label class="assessment-field" for="${inputPrefix}-evidence">
             <span>Evidence level</span>
             <select id="${inputPrefix}-evidence" data-assessment-question="${escapeHtml(question.id)}" data-assessment-field="evidenceLevel">
-              ${["E0", "E1", "E2", "E3", "E4"].map((level) => `<option value="${level}"${response.evidenceLevel === level ? " selected" : ""}>${level}${level === question.minimumEvidence ? " · minimum" : ""}</option>`).join("")}
+              ${["E0", "E1", "E2", "E3", "E4"].map((level) => `<option value="${level}"${response.evidenceLevel === level ? " selected" : ""}>${escapeHtml(assessmentTermDisplay(level))}${level === question.minimumEvidence ? " · minimum" : ""}</option>`).join("")}
             </select>
           </label>
           <label class="assessment-field" for="${inputPrefix}-reference">
             <span>Evidence reference</span>
-            <input id="${inputPrefix}-reference" type="text" maxlength="500" value="${escapeHtml(response.evidenceReference || "")}" data-assessment-question="${escapeHtml(question.id)}" data-assessment-field="evidenceReference" placeholder="Public-safe source or artifact ID">
+            <input id="${inputPrefix}-reference" type="text" maxlength="500" value="${escapeHtml(response.evidenceReference || "")}" data-assessment-question="${escapeHtml(question.id)}" data-assessment-field="evidenceReference" placeholder="Public-safe source or artifact identifier">
           </label>
           <label class="assessment-field is-wide" for="${inputPrefix}-rationale">
-            <span>Rationale / notes${questionSummary?.status === "not-applicable" ? " (required for N/A)" : ""}</span>
+            <span>Rationale / notes${questionSummary?.status === "not-applicable" ? " (required when not applicable)" : ""}</span>
             <textarea id="${inputPrefix}-rationale" maxlength="2000" rows="3" data-assessment-question="${escapeHtml(question.id)}" data-assessment-field="rationale" placeholder="Capture the decision rationale without names or restricted evidence">${escapeHtml(response.rationale || "")}</textarea>
           </label>
           <label class="assessment-field" for="${inputPrefix}-owner">
@@ -2630,23 +2750,23 @@
           </label>
         </div>
         <details class="assessment-evidence-request">
-          <summary>Evidence request, IDs, dissent and forum</summary>
+          <summary>Evidence request, identifiers, dissent and forum</summary>
           <div class="assessment-field-grid">
             <label class="assessment-field" for="${inputPrefix}-criterion">
-              <span>Criterion ID</span>
-              <input id="${inputPrefix}-criterion" type="text" maxlength="120" value="${escapeHtml(response.criterionId || "")}" data-assessment-question="${escapeHtml(question.id)}" data-assessment-field="criterionId" placeholder="Controlled public criterion ID">
+              <span>Criterion identifier</span>
+              <input id="${inputPrefix}-criterion" type="text" maxlength="120" value="${escapeHtml(response.criterionId || "")}" data-assessment-question="${escapeHtml(question.id)}" data-assessment-field="criterionId" placeholder="Controlled public criterion identifier">
             </label>
             <label class="assessment-field" for="${inputPrefix}-option">
-              <span>Exact option ID</span>
-              <input id="${inputPrefix}-option" type="text" maxlength="120" value="${escapeHtml(response.optionId || "")}" data-assessment-question="${escapeHtml(question.id)}" data-assessment-field="optionId" placeholder="Controlled option or BOM ID">
+              <span>Exact option identifier</span>
+              <input id="${inputPrefix}-option" type="text" maxlength="120" value="${escapeHtml(response.optionId || "")}" data-assessment-question="${escapeHtml(question.id)}" data-assessment-field="optionId" placeholder="Controlled option or bill of materials identifier">
             </label>
             <label class="assessment-field is-wide" for="${inputPrefix}-evidence-request">
               <span>Evidence request</span>
               <textarea id="${inputPrefix}-evidence-request" maxlength="2000" rows="2" data-assessment-question="${escapeHtml(question.id)}" data-assessment-field="evidenceRequest" placeholder="Artifact, measure, threshold and reviewer needed">${escapeHtml(response.evidenceRequest || "")}</textarea>
             </label>
             <label class="assessment-field" for="${inputPrefix}-restricted-reference">
-              <span>Restricted-reference ID</span>
-              <input id="${inputPrefix}-restricted-reference" type="text" maxlength="120" value="${escapeHtml(response.restrictedReferenceId || "")}" data-assessment-question="${escapeHtml(question.id)}" data-assessment-field="restrictedReferenceId" placeholder="ID only — never paste restricted content">
+              <span>Restricted-reference identifier</span>
+              <input id="${inputPrefix}-restricted-reference" type="text" maxlength="120" value="${escapeHtml(response.restrictedReferenceId || "")}" data-assessment-question="${escapeHtml(question.id)}" data-assessment-field="restrictedReferenceId" placeholder="Identifier only — never paste restricted content">
             </label>
             <label class="assessment-field" for="${inputPrefix}-next-forum">
               <span>Next forum</span>
@@ -2671,19 +2791,17 @@
     const summaries = new Map(summary.questions.map((question) => [question.id, question]));
     const storeStatus = state.assessmentStore?.status?.() || {};
     return `
-      <aside class="assessment-drawer" id="guided-assessment-drawer" aria-labelledby="assessment-drawer-title" hidden data-assessment-drawer data-assessment-phase-id="${escapeHtml(phaseId)}">
+      <aside class="assessment-drawer" id="guided-assessment-drawer" role="dialog" aria-modal="true" aria-labelledby="assessment-drawer-title" hidden data-assessment-drawer data-assessment-phase-id="${escapeHtml(phaseId)}">
         <header class="assessment-drawer-header">
           <div>
-            <span class="eyebrow">Local facilitation record</span>
+            <span class="eyebrow">Kong Guided Evaluation (KGE)</span>
             <h2 id="assessment-drawer-title">${escapeHtml(assessmentPhaseLabel(deck, phaseId))}</h2>
           </div>
           <button type="button" class="assessment-close" data-assessment-close aria-label="Close assessment drawer">×</button>
         </header>
         <div class="assessment-local-warning" role="note" data-assessment-local-warning>
           <strong>Local browser only</strong>
-          <p>This feature stores responses in this browser and does not submit them. Browser storage is not private or encrypted; do not enter names, credentials, customer identifiers, private topology, or restricted evidence.</p>
-          <p>Controlled role selectors prevent named-person assignments. Obvious email, private URL, IP, credential, phone and commercial-quote patterns are removed before storage or export; automated filtering is not exhaustive.</p>
-          <p>Meeting input never upgrades evidence. Production remains unauthorized until the defined evidence and approval gates close.</p>
+          <p>Stored only in this browser · never paste private or restricted information · meeting input is not evidence.</p>
         </div>
         ${storeStatus.issue ? `<p class="assessment-storage-warning" role="status" data-assessment-storage-warning>${escapeHtml(storeStatus.issue)}</p>` : `<p class="assessment-storage-warning" role="status" data-assessment-storage-warning hidden></p>`}
         <nav class="assessment-view-tabs" aria-label="Assessment views">
@@ -2691,6 +2809,8 @@
           <a href="${escapeHtml(deck.summaryRoute || "#/present/kong-platform-journey-guided/summary")}">Review summary</a>
         </nav>
         <form class="assessment-form" data-assessment-form>
+          ${renderAssessmentInterfaceTerms()}
+          ${renderAssessmentSafeguards()}
           <section class="assessment-meeting-fields" aria-labelledby="assessment-meeting-title">
             <h3 id="assessment-meeting-title">Meeting record</h3>
             <div class="assessment-session-state is-wide" role="status" aria-live="polite">
@@ -2760,11 +2880,29 @@
         </form>
         <footer class="assessment-drawer-actions">
           <span class="assessment-save-status" role="status" aria-live="polite" data-assessment-save-status data-assessment-status>Autosaves locally</span>
-          <button type="button" data-assessment-export="json" data-assessment-export-json>JSON</button>
-          <button type="button" data-assessment-export="markdown" data-assessment-export-markdown>Markdown</button>
+          <button type="button" data-assessment-export="json" data-assessment-export-json>Export JSON</button>
+          <button type="button" data-assessment-export="markdown" data-assessment-export-markdown>Export Markdown</button>
           <button type="button" class="is-danger" data-assessment-clear>Clear</button>
         </footer>
       </aside>`;
+  }
+
+  function restoreAssessmentBackground() {
+    state.assessmentInertElements.forEach((element) => {
+      if (document.contains(element)) element.inert = false;
+    });
+    state.assessmentInertElements = [];
+  }
+
+  function isolateAssessmentDrawer(drawer) {
+    restoreAssessmentBackground();
+    const stage = drawer.closest(".presentation-stage");
+    const candidates = [
+      ...document.querySelectorAll(".skip-link, [data-site-header], [data-site-footer]"),
+      ...(stage ? [...stage.children].filter((element) => element !== drawer) : []),
+    ];
+    state.assessmentInertElements = [...new Set(candidates)].filter((element) => !element.inert);
+    state.assessmentInertElements.forEach((element) => { element.inert = true; });
   }
 
   function setAssessmentDrawer(open, restoreFocus = false) {
@@ -2776,11 +2914,13 @@
       drawer.hidden = false;
       trigger.setAttribute("aria-expanded", "true");
       document.body.classList.add("has-assessment-drawer");
+      isolateAssessmentDrawer(drawer);
       requestAnimationFrame(() => drawer.querySelector("[data-assessment-close]")?.focus());
     } else {
       drawer.hidden = true;
       trigger.setAttribute("aria-expanded", "false");
       document.body.classList.remove("has-assessment-drawer");
+      restoreAssessmentBackground();
       if (restoreFocus) (state.assessmentReturnFocus || trigger)?.focus?.();
       state.assessmentReturnFocus = null;
     }
@@ -2915,6 +3055,7 @@
     state.assessmentStore?.clear?.();
     state.assessmentSession = freshAssessmentSession();
     document.body.classList.remove("has-assessment-drawer");
+    restoreAssessmentBackground();
     route();
     announce("Local assessment responses cleared.");
   }
@@ -3015,12 +3156,13 @@
           const phaseStartIndex = journeyPhaseStarts[phaseIndex];
           const isCurrentPhase = phaseIndex === journeyPhaseIndex;
           const phaseId = phase.id || String(phaseIndex + 1).padStart(2, "0");
-          const phaseIdMarkup = phaseId.startsWith("KGE-")
-            ? `<span class="journey-phase-id-prefix">${escapeHtml(phaseId.slice(0, 4))}</span>${escapeHtml(phaseId.slice(4))}`
-            : escapeHtml(phaseId);
-          const phasePosition = `Phase ${phaseIndex + 1} of ${journeyPhases.length}: ${phaseLabel}`;
+          const visiblePhaseId = isGuidedDeck && /^KGE-P[1-6]$/.test(phaseId)
+            ? phaseId.slice(4)
+            : phaseId;
+          const phaseIdMarkup = escapeHtml(visiblePhaseId);
+          const phasePosition = `Phase ${phaseIndex + 1} of ${journeyPhases.length} (${phaseId}): ${phaseLabel}`;
           const phaseAction = isCurrentPhase ? `Restart at slide ${phaseStartIndex + 1}` : `Go to slide ${phaseStartIndex + 1}`;
-          return `<li class="${phaseIndex < journeyPhaseIndex ? "is-prior" : isCurrentPhase ? "is-current" : ""}"><a href="${presentationSlideHref(context, phaseStartIndex)}" aria-label="${escapeHtml(`${isCurrentPhase ? "Current " : ""}${phasePosition}. ${phaseAction}.`)}" title="${escapeHtml(`${phaseLabel} · slide ${phaseStartIndex + 1}`)}" ${isCurrentPhase ? 'aria-current="step"' : ""}><span aria-hidden="true">${phaseIdMarkup}</span><b>${escapeHtml(phaseLabel)}</b></a></li>`;
+          return `<li class="${phaseIndex < journeyPhaseIndex ? "is-prior" : isCurrentPhase ? "is-current" : ""}"><a href="${presentationSlideHref(context, phaseStartIndex)}" aria-label="${escapeHtml(`${isCurrentPhase ? "Current " : ""}${phasePosition}. ${phaseAction}.`)}" title="${escapeHtml(`${phaseId} · ${phaseLabel} · slide ${phaseStartIndex + 1}`)}" ${isCurrentPhase ? 'aria-current="step"' : ""}><span aria-hidden="true">${phaseIdMarkup}</span><b>${escapeHtml(phaseLabel)}</b></a></li>`;
         }).join("")}</ol></nav>`
       : "";
     const guidedRepoReferences = isGuidedDeck
@@ -3071,6 +3213,12 @@
           ${slide.evidenceInterpretation ? `<p>${escapeHtml(slide.evidenceInterpretation)}</p>` : ""}
         </div>`
       : "";
+    const guidedTerms = isGuidedDeck && Array.isArray(slide.terms) && slide.terms.length
+      ? `<aside class="guided-terms" aria-label="Terms introduced on this slide">
+          <b>Terms</b>
+          <ul tabindex="0" aria-label="Term definitions; swipe or scroll horizontally on compact screens">${slide.terms.map((term) => `<li title="${escapeHtml(term.classification || "Term")}">${escapeHtml(term.display)}</li>`).join("")}</ul>
+        </aside>`
+      : "";
     const guidedAssessment = isGuidedDeck ? assessmentSummary() : null;
     const guidedAssessmentButton = guidedAssessment
       ? `<button type="button" class="assessment-launch" data-assessment-open aria-expanded="false" aria-controls="guided-assessment-drawer" aria-label="Open guided assessment. ${guidedAssessment.counts.answered} of ${guidedAssessment.counts.total} questions answered"><span>Assessment</span> <b><span data-assessment-count>${guidedAssessment.counts.answered}</span>/${guidedAssessment.counts.total}</b></button>`
@@ -3082,6 +3230,7 @@
           ${journeySpine}
           <div class="slide-main">
             <span class="eyebrow">${escapeHtml(slide.eyebrow)}${audience ? ` / ${escapeHtml(audience.shortLabel)} lens` : deck ? ` / ${escapeHtml(deck.shortLabel)} deck` : ""}</span>
+            ${guidedTerms}
             ${guidedEvidence}
             <div class="slide-narrative${narrativeClass}">
               <h1 class="slide-title">${escapeHtml(slide.title)}</h1>
@@ -3122,11 +3271,13 @@
     const summary = assessmentSummary();
     if (audience || deck?.theme !== "kong-guided" || !contract || !summary) {
       document.body.classList.remove("is-presenting", "has-assessment-drawer");
+      restoreAssessmentBackground();
       renderNotFound("No guided assessment summary is configured.");
       return;
     }
     document.body.classList.add("is-presenting");
     document.body.classList.remove("has-assessment-drawer");
+    restoreAssessmentBackground();
     setPageTitle("Guided evaluation summary");
     setActiveNav("");
     const statusLabels = {
@@ -3160,7 +3311,7 @@
                   <div><dt>Evidence reference</dt><dd>${escapeHtml(question.response.evidenceReference || "Not captured")}</dd></div>
                   <div><dt>Criterion / option</dt><dd>${escapeHtml([question.response.criterionId, question.response.optionId].filter(Boolean).join(" / ") || "Not captured")}</dd></div>
                   <div><dt>Evidence request</dt><dd>${escapeHtml(question.response.evidenceRequest || "Not captured")}</dd></div>
-                  <div><dt>Restricted-reference ID</dt><dd>${escapeHtml(question.response.restrictedReferenceId || "Not captured")}</dd></div>
+                  <div><dt>Restricted-reference identifier</dt><dd>${escapeHtml(question.response.restrictedReferenceId || "Not captured")}</dd></div>
                   <div><dt>Rationale / notes</dt><dd>${escapeHtml(question.response.rationale || "Not captured")}</dd></div>
                   <div><dt>Owner role</dt><dd>${escapeHtml(question.response.ownerRole || "Not assigned")}</dd></div>
                   <div><dt>Due gate</dt><dd>${escapeHtml(question.response.dueGate || "Not assigned")}</dd></div>
@@ -3179,7 +3330,7 @@
         <article class="assessment-summary-page">
           <header class="assessment-summary-hero">
             <div>
-              <span class="eyebrow">Guided evaluation · local meeting record</span>
+              <span class="eyebrow">Kong Guided Evaluation (KGE) · local meeting record</span>
               <h1>Review the meeting inputs.</h1>
               <p>This is a facilitation summary, not a numeric readiness score or product-evidence ranking.</p>
             </div>
@@ -3188,12 +3339,12 @@
               <strong>${escapeHtml(statusLabels[summary.decisionState] || summary.decisionState)}</strong>
             </div>
           </header>
+          ${renderAssessmentInterfaceTerms()}
           <div class="assessment-local-warning" role="note" data-assessment-local-warning>
             <strong>Local browser only</strong>
-            <p>This feature stores responses in this browser and does not submit them. Browser storage is not private or encrypted; do not enter names, credentials, customer identifiers, private topology, or restricted evidence.</p>
-            <p>Controlled role selectors prevent named-person assignments. Obvious email, private URL, IP, credential, phone and commercial-quote patterns are removed before storage or export; automated filtering is not exhaustive.</p>
-            <p>Meeting input never upgrades evidence. Production remains unauthorized until the defined evidence and approval gates close.</p>
+            <p>Stored only in this browser · never paste private or restricted information · meeting input is not evidence.</p>
           </div>
+          ${renderAssessmentSafeguards()}
           ${storeStatus.issue ? `<p class="assessment-storage-warning" role="status">${escapeHtml(storeStatus.issue)}</p>` : ""}
           <section class="assessment-summary-meeting" aria-labelledby="assessment-summary-meeting-title">
             <div><span>Meeting label</span><h2 id="assessment-summary-meeting-title">${escapeHtml(summary.label || "Not labelled")}</h2></div>
@@ -3294,6 +3445,7 @@
     document.querySelector(".diagram-frame.is-expanded [data-diagram-action='expand']")?.click();
     document.body.classList.remove("has-expanded-diagram");
     document.body.classList.remove("has-assessment-drawer");
+    restoreAssessmentBackground();
     const current = parseRoute();
     if (current.name !== "present") document.body.classList.remove("is-presenting");
     switch (current.name) {
@@ -3373,7 +3525,11 @@
   }
 
   function openSearch() {
-    state.searchReturnFocus = document.activeElement instanceof HTMLElement ? document.activeElement : null;
+    const assessmentWasOpen = Boolean(document.querySelector("[data-assessment-drawer]:not([hidden])"));
+    state.searchReturnFocus = assessmentWasOpen
+      ? state.assessmentReturnFocus || document.querySelector("[data-assessment-open]")
+      : document.activeElement instanceof HTMLElement ? document.activeElement : null;
+    if (assessmentWasOpen) setAssessmentDrawer(false, false);
     document.querySelector(".diagram-frame.is-expanded")?.dispatchEvent(new CustomEvent("diagram-close-request", {
       detail: { restoreFocus: false },
     }));
@@ -3401,6 +3557,32 @@
     if (!focusable.length) return false;
     const first = focusable[0];
     const last = focusable[focusable.length - 1];
+    if (event.shiftKey && document.activeElement === first) {
+      event.preventDefault();
+      last.focus();
+      return true;
+    }
+    if (!event.shiftKey && document.activeElement === last) {
+      event.preventDefault();
+      first.focus();
+      return true;
+    }
+    return false;
+  }
+
+  function trapAssessmentFocus(event) {
+    const drawer = document.querySelector("[data-assessment-drawer]:not([hidden])");
+    if (!drawer || event.key !== "Tab") return false;
+    const focusable = [...drawer.querySelectorAll("button:not([disabled]), input:not([disabled]), select:not([disabled]), textarea:not([disabled]), a[href], summary, [tabindex='0']")]
+      .filter((element) => !element.hidden && !element.closest("[hidden]") && element.getClientRects().length);
+    if (!focusable.length) return false;
+    const first = focusable[0];
+    const last = focusable[focusable.length - 1];
+    if (!drawer.contains(document.activeElement)) {
+      event.preventDefault();
+      first.focus();
+      return true;
+    }
     if (event.shiftKey && document.activeElement === first) {
       event.preventDefault();
       last.focus();
@@ -3487,6 +3669,7 @@
   window.addEventListener("afterprint", restorePrintArtifacts);
   document.addEventListener("keydown", (event) => {
     if (event.defaultPrevented) return;
+    if (trapAssessmentFocus(event)) return;
     if (trapSearchFocus(event)) return;
     if ((event.metaKey || event.ctrlKey) && event.key.toLowerCase() === "k") {
       event.preventDefault();
@@ -3520,7 +3703,7 @@
     if (document.body.classList.contains("is-presenting")) {
       const interactive = event.target instanceof Element && event.target.closest("a, button, input, select, textarea, summary, [contenteditable='true']");
       if (interactive) return;
-      const scrollSurface = event.target instanceof Element && event.target.closest(".slide-main[tabindex='0'], .slide-aside-content[tabindex='0'], .diagram-scroll[tabindex='0'], .table-wrap[tabindex='0'], .viz-guided-comparison-wrap[tabindex='0']");
+      const scrollSurface = event.target instanceof Element && event.target.closest(".slide-main[tabindex='0'], .slide-aside-content[tabindex='0'], .diagram-scroll[tabindex='0'], .table-wrap[tabindex='0'], .viz-guided-comparison-wrap[tabindex='0'], .assessment-interface-terms ul[tabindex='0']");
       const verticalScrollKey = ["ArrowDown", "ArrowUp", "PageDown", "PageUp", " "].includes(event.key);
       const horizontalScrollKey = ["ArrowRight", "ArrowLeft"].includes(event.key);
       if (scrollSurface && verticalScrollKey && scrollSurface.scrollHeight > scrollSurface.clientHeight + 2) return;

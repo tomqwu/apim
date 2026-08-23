@@ -193,6 +193,9 @@ KONG_GUIDED_OPTION_IDS = ("GEO-KONG", "GEO-APIGEE", "GEO-MULE", "GEO-APIM")
 KONG_GUIDED_RESCORE_IDS = tuple(f"GRS-{index:02d}" for index in range(1, 7))
 KONG_GUIDED_WORKSTREAM_IDS = tuple(f"GEP-{index:02d}" for index in range(1, 8))
 KONG_GUIDED_SECURITY_ADJUNCT_IDS = ("GSA-01",)
+KONG_GUIDED_BOUNDARY_IDS = tuple(f"GEB-{index:02d}" for index in range(1, 4))
+KONG_GUIDED_DUTY_IDS = ("KPS-FIT-01", "KPS-FIT-02")
+KONG_GUIDED_BOUNDARY_OPTION_IDS = ("KMC-3", "KMC-1")
 KONG_GUIDED_COMPARISON_IDS = (
     (*tuple(f"GEC-{index:02d}" for index in range(1, 9)), "GEC-19"),
     (*tuple(f"GEC-{index:02d}" for index in range(9, 16)), "GEC-20"),
@@ -224,6 +227,43 @@ KONG_GUIDED_PHASES = (
     ("KGE-P4", "Migration", "Move Mule responsibilities or the Apigee object/state graph through coexistence, route-back, and exit evidence", "kong-guided-migration-boundary"),
     ("KGE-P5", "Production proof", "Replace documented capability—including the Traceable adjunct—with executed target-shaped evidence and outcome gates", "kong-guided-proof-boundary"),
     ("KGE-P6", "Audit appendix", "Preserve supplied inputs, expose the Traceable feasibility line, and show the provisional uncertainty envelope without promoting it to a decision score", "kong-guided-compare-architecture"),
+)
+KONG_GUIDED_IDENTIFIER_TOKENS = (
+    "KGE", "EAG", "GTM", "GEW", "GRS", "GEO", "GEB", "KMC",
+    "KPS", "KP", "MULE", "GEP", "GSA", "KO", "GEC",
+)
+KONG_GUIDED_IDENTIFIER_COLUMNS = (
+    "Token or prefix", "Canonical visible meaning", "Classification", "Use rule",
+)
+KONG_GUIDED_TERM_COLUMNS = (
+    "Slide ID", "Token", "Exact visible term", "Classification",
+)
+KONG_GUIDED_INTERNAL_DESCRIPTOR_TOKENS = KONG_GUIDED_IDENTIFIER_TOKENS[2:]
+KONG_GUIDED_TERM_TOKENS = (
+    ("KGE-01", ("KGE", "API", "EAG", "WAAP")),
+    ("KGE-02", ("GTM", "AKS", "AI", "TCO", "APIOps", "MCP", "A2A")),
+    ("KGE-03", ("GEW", "GRS", "IAM")),
+    ("KGE-04", ("KGE", "API", "APIM", "CP", "PKI", "MART", "GEO", "KP-SMH1")),
+    ("KGE-05", ("GRS",)),
+    ("KGE-06", ("E2", "E3", "E4", "HA", "DR")),
+    ("KGE-07", ("GEB", "KMC", "KP-SMH1", "E1", "DP", "KPS")),
+    ("KGE-08", ("KPS-FIT",)),
+    ("KGE-09", ("KGE", "API", "CP", "DP", "PKI", "IdP", "mTLS", "DNS", "HA", "SLO", "KPS", "E1", "RBAC", "WAF", "SIEM")),
+    ("KGE-10", ("IdP", "CA", "CN", "JSON", "JWKS")),
+    ("KGE-12", ("DB", "SRE", "IAM")),
+    ("KGE-13", ("KP0–KP5", "KP-SMH1", "E2", "E3", "E4", "BOM", "RACI", "GP-1–GP-6")),
+    ("KGE-14", ("KGE", "API", "MULE", "SFTP", "SaaS")),
+    ("KGE-15", ("AKS", "CRM")),
+    ("KGE-16", ("A0–A6", "M0–M5", "SLO", "E4")),
+    ("KGE-17", ("KGE", "API", "PoC", "KP-SMH1", "E3", "E4", "CP", "AI", "TCO")),
+    ("KGE-18", ("API", "GEP", "GSA", "LTS", "BOM", "SBOM", "APIOps", "IAM", "MCP", "A2A", "RTO", "RPO", "RACI", "WAAP")),
+    ("KGE-19", ("KO", "DP", "SLI", "SLO", "SRE", "OAuth", "mTLS", "IdP", "PKI", "PR")),
+    ("KGE-20", ("DLP", "DNS", "KP0", "FinOps")),
+    ("KGE-21", ("KPS", "E1", "E2")),
+    ("KGE-22", ("KGE", "API", "GEC", "CP", "DP")),
+    ("KGE-23", ("AI", "GenAI", "MCP", "A2A", "E1", "WAAP")),
+    ("KGE-24", ("TCO", "CP", "PKI", "HA", "DR", "PAYG", "RACI")),
+    ("KGE-25", ("E0", "GEW", "GRS", "IAM", "TCO", "CP")),
 )
 KONG_GUIDED_ASSESSMENT_SCHEMA_VERSION = 2
 KONG_GUIDED_ASSESSMENT_SOURCE_PATH = "docs/49-kong-guided-evaluation-facilitator-guide.md"
@@ -396,6 +436,29 @@ KONG_GUIDED_ASSESSMENT_CHOICE_COLUMNS = (
 )
 KONG_GUIDED_ASSESSMENT_REVIEW_REQUIREMENT_COLUMNS = (
     "Manifest field", "Applies when", "Canonical values", "Rule",
+)
+KONG_GUIDED_ASSESSMENT_INTERFACE_TERM_COLUMNS = (
+    "Token", "Exact visible term", "Interface purpose",
+)
+KONG_GUIDED_ASSESSMENT_INTERFACE_TERMS = (
+    ("API", "application programming interface (API)"),
+    ("E0", "assertion-only evidence (E0)"),
+    ("E1", "current official documentation (E1)"),
+    ("E2", "vendor answer with named version or contract term (E2)"),
+    ("E3", "repeatable lab evidence (E3)"),
+    ("E4", "representative pilot evidence (E4)"),
+    ("ID", "identifier (ID)"),
+    ("BOM", "bill of materials (BOM)"),
+    ("JSON", "JavaScript Object Notation (JSON)"),
+    ("URL", "uniform resource locator (URL)"),
+    ("IP", "Internet Protocol (IP)"),
+    ("IAM", "identity and access management (IAM)"),
+    ("SRE", "site reliability engineering (SRE)"),
+    ("FinOps", "financial operations (FinOps)"),
+    ("N/A", "not applicable (N/A)"),
+    ("TCO", "total cost of ownership (TCO)"),
+    ("HA", "high availability (HA)"),
+    ("DR", "disaster recovery (DR)"),
 )
 KONG_GUIDED_ASSESSMENT_SUMMARY_ROUTE = (
     "#/present/kong-platform-journey-guided/summary"
@@ -650,6 +713,85 @@ def canonical_kong_guided_early_gate_semantics() -> tuple[tuple[str, ...], ...]:
         "canonical doc48 early-gate rows must preserve EAG-01 through EAG-04 order",
     )
     return semantics
+
+
+def canonical_kong_guided_terminology_semantics() -> tuple[
+    tuple[tuple[str, ...], ...],
+    tuple[tuple[str, ...], ...],
+]:
+    """Reparse doc48 terminology so its native projection cannot self-validate."""
+
+    def markdown_row(line: str) -> list[str]:
+        stripped = line.strip()
+        if not stripped.startswith("|"):
+            return []
+        stripped = stripped[1:]
+        if stripped.endswith("|"):
+            stripped = stripped[:-1]
+        return [cell.replace(r"\|", "|").strip() for cell in re.split(r"(?<!\\)\|", stripped)]
+
+    def clean_inline(value: str) -> str:
+        value = re.sub(r"!\[[^\]]*\]\([^)]*\)", "", value)
+        value = re.sub(r"\[([^\]]+)\]\([^)]*\)", r"\1", value)
+        value = re.sub(r"[`*_>#|]", " ", value)
+        return re.sub(r"\s+", " ", value).strip(" -")
+
+    source = ROOT / KONG_GUIDED_SOURCE_PATHS[0]
+    require(
+        source.is_file() and not source.is_symlink(),
+        "canonical doc48 guided-evaluation source must be a regular file",
+    )
+    try:
+        text = source.read_text(encoding="utf-8")
+    except (OSError, UnicodeDecodeError) as exc:
+        raise ValidationError("canonical doc48 guided-evaluation source cannot be read as UTF-8") from exc
+    matches = re.findall(
+        r"^##\s+Guided presentation terminology and identifier contract\s*$([\s\S]*?)(?=^##\s+|\Z)",
+        text,
+        flags=re.MULTILINE | re.IGNORECASE,
+    )
+    require(len(matches) == 1, "canonical doc48 must contain one guided terminology section")
+    lines = matches[0].splitlines()
+
+    def exact_table(columns: tuple[str, ...]) -> tuple[tuple[str, ...], ...]:
+        tables: list[list[list[str]]] = []
+        for index in range(len(lines) - 1):
+            headers = markdown_row(lines[index])
+            separator = markdown_row(lines[index + 1])
+            if (
+                tuple(headers) != columns
+                or len(separator) != len(headers)
+                or not all(re.fullmatch(r":?-{3,}:?", re.sub(r"\s+", "", cell)) for cell in separator)
+            ):
+                continue
+            rows: list[list[str]] = []
+            cursor = index + 2
+            while cursor < len(lines):
+                cells = markdown_row(lines[cursor])
+                if not cells:
+                    break
+                require(
+                    len(cells) == len(columns),
+                    "canonical doc48 guided terminology row must match its exact table width",
+                )
+                rows.append(cells)
+                cursor += 1
+            tables.append(rows)
+        require(len(tables) == 1, f"canonical doc48 must contain one exact {' / '.join(columns)} table")
+        return tuple(tuple(clean_inline(cell) for cell in row) for row in tables[0])
+
+    identifiers = exact_table(KONG_GUIDED_IDENTIFIER_COLUMNS)
+    terms = exact_table(KONG_GUIDED_TERM_COLUMNS)
+    require(
+        tuple(row[0] for row in identifiers) == KONG_GUIDED_IDENTIFIER_TOKENS,
+        "canonical doc48 identifier catalog token order is invalid",
+    )
+    require(
+        tuple((slide_id, tuple(row[1] for row in terms if row[0] == slide_id)) for slide_id, _ in KONG_GUIDED_TERM_TOKENS)
+        == KONG_GUIDED_TERM_TOKENS,
+        "canonical doc48 term-set slide and token order is invalid",
+    )
+    return identifiers, terms
 
 
 def canonical_kong_guided_assessment_question_semantics() -> tuple[tuple[Any, ...], ...]:
@@ -1477,6 +1619,9 @@ def validate_kong_guided_evaluation(
         KONG_GUIDED_ASSESSMENT_AS_OF in str(metadata.get("as-of date", "")),
         "guided evaluation metadata as-of date is inconsistent",
     )
+    canonical_identifier_semantics, canonical_term_semantics = (
+        canonical_kong_guided_terminology_semantics()
+    )
 
     assessment = guided.get("assessmentContract")
     require(isinstance(assessment, dict), "guided assessmentContract must be an object")
@@ -1484,7 +1629,7 @@ def validate_kong_guided_evaluation(
         set(assessment) == {
             "schemaVersion", "deckRevision", "sourcePath", "sourceId", "sourceClass",
             "evidenceState", "asOf", "questions", "phaseQuestionIds", "choiceSets",
-            "reviewRequirements", "publicRoles", "provenance",
+            "reviewRequirements", "publicRoles", "interfaceTerms", "provenance",
         },
         "guided assessmentContract fields must match the exact v2 schema",
     )
@@ -1674,6 +1819,16 @@ def validate_kong_guided_evaluation(
         and tuple(public_roles) == KONG_GUIDED_ASSESSMENT_PUBLIC_ROLES,
         "guided assessment publicRoles must preserve the exact controlled public-role order",
     )
+    interface_terms = assessment.get("interfaceTerms")
+    require(
+        isinstance(interface_terms, list)
+        and all(isinstance(term, dict) for term in interface_terms)
+        and all(set(term) == {"token", "display", "purpose"} for term in interface_terms)
+        and tuple((term.get("token"), term.get("display")) for term in interface_terms)
+        == KONG_GUIDED_ASSESSMENT_INTERFACE_TERMS
+        and all(isinstance(term.get("purpose"), str) and term["purpose"].strip() for term in interface_terms),
+        "guided assessment interfaceTerms must preserve the exact ordered first-use terminology contract",
+    )
     review_requirements = assessment.get("reviewRequirements")
     require(isinstance(review_requirements, dict), "guided assessment reviewRequirements must be an object")
     require(
@@ -1725,6 +1880,7 @@ def validate_kong_guided_evaluation(
         set(assessment_provenance) == {
             "sourcePath", "sourceId", "sourcePaths", "sourceIds", "sourceHeading",
             "questionTableColumns", "choiceSetTableColumns", "reviewRequirementsTableColumns",
+            "interfaceTermTableColumns",
             "sourceClass", "evidenceState", "asOf",
         },
         "guided assessment provenance fields must match the exact public-safe v2 schema",
@@ -1739,6 +1895,7 @@ def validate_kong_guided_evaluation(
             tuple(assessment_provenance.get("questionTableColumns", ())),
             tuple(assessment_provenance.get("choiceSetTableColumns", ())),
             tuple(assessment_provenance.get("reviewRequirementsTableColumns", ())),
+            tuple(assessment_provenance.get("interfaceTermTableColumns", ())),
             assessment_provenance.get("sourceClass"),
             assessment_provenance.get("evidenceState"),
             assessment_provenance.get("asOf"),
@@ -1752,6 +1909,7 @@ def validate_kong_guided_evaluation(
             KONG_GUIDED_ASSESSMENT_QUESTION_COLUMNS,
             KONG_GUIDED_ASSESSMENT_CHOICE_COLUMNS,
             KONG_GUIDED_ASSESSMENT_REVIEW_REQUIREMENT_COLUMNS,
+            KONG_GUIDED_ASSESSMENT_INTERFACE_TERM_COLUMNS,
             KONG_GUIDED_ASSESSMENT_SOURCE_CLASS,
             KONG_GUIDED_ASSESSMENT_EVIDENCE_STATE,
             KONG_GUIDED_ASSESSMENT_AS_OF,
@@ -1832,6 +1990,8 @@ def validate_kong_guided_evaluation(
     )
 
     expected_headings = {
+        "identifierCatalog": "Guided presentation terminology and identifier contract",
+        "termSets": "Guided presentation terminology and identifier contract",
         "targetModel": "Stated target operating model",
         "earlyGates": "Four early assessment gates",
         "weights": "Supplied weighting model",
@@ -1842,6 +2002,8 @@ def validate_kong_guided_evaluation(
         "proofProgramme": "Seven-workstream target-aligned proof programme",
         "securityAdjuncts": "Traceable by Harness security-adjunct feasibility",
         "proofBoundary": "Current proof boundary",
+        "boundaries": "Operating boundaries to keep distinct",
+        "duties": "Custody fit and permanent duty",
         "referenceCatalog": "Guided slide official reference links",
         "phases": "Guided native deck phases",
         "slides": "Native presentation contract: KGE-01–KGE-25",
@@ -1880,6 +2042,120 @@ def validate_kong_guided_evaluation(
             and len(columns) == len(set(columns)),
             f"guided evaluation {label} provenance tableColumns are invalid",
         )
+
+    identifier_catalog = guided.get("identifierCatalog")
+    require(isinstance(identifier_catalog, dict), "guided evaluation identifierCatalog must be an object")
+    identifier_rows = identifier_catalog.get("rows")
+    require(
+        isinstance(identifier_rows, list)
+        and identifier_catalog.get("rowTotal") == len(KONG_GUIDED_IDENTIFIER_TOKENS),
+        "guided evaluation identifierCatalog must contain the exact identifier catalog",
+    )
+    require(
+        tuple(row.get("token") for row in identifier_rows if isinstance(row, dict))
+        == KONG_GUIDED_IDENTIFIER_TOKENS,
+        "guided evaluation identifierCatalog token order is invalid",
+    )
+    require(
+        tuple(
+            (row.get("token"), row.get("meaning"), row.get("classification"), row.get("useRule"))
+            for row in identifier_rows
+            if isinstance(row, dict)
+        ) == canonical_identifier_semantics,
+        "guided evaluation identifierCatalog must exactly project canonical doc48",
+    )
+    for row in identifier_rows:
+        require(isinstance(row, dict), "guided evaluation identifierCatalog rows must be objects")
+        nonempty_strings(row, ("token", "meaning", "classification", "useRule"), f"guided identifier {row.get('token')}")
+    identifier_by_token = {row["token"]: row for row in identifier_rows}
+    require(
+        identifier_by_token["KGE"]["meaning"] == "Kong Guided Evaluation"
+        and identifier_by_token["EAG"]["meaning"] == "Early Assessment Gate"
+        and identifier_by_token["KGE"]["classification"] == "Documented internal expansion"
+        and identifier_by_token["EAG"]["classification"] == "Documented internal expansion",
+        "guided evaluation must preserve the only two documented internal expansions",
+    )
+    require(
+        all(
+            identifier_by_token[token]["classification"] == "Internal record descriptor"
+            and "do not invent" in identifier_by_token[token]["useRule"].casefold()
+            for token in KONG_GUIDED_INTERNAL_DESCRIPTOR_TOKENS
+        ),
+        "guided evaluation internal prefixes must remain descriptors without invented expansions",
+    )
+    validate_block_provenance(
+        identifier_catalog,
+        "identifierCatalog",
+        expected_headings["identifierCatalog"],
+    )
+    require(
+        tuple(identifier_catalog["provenance"].get("tableColumns", ()))
+        == KONG_GUIDED_IDENTIFIER_COLUMNS,
+        "guided evaluation identifierCatalog tableColumns must match canonical doc48",
+    )
+
+    term_sets = guided.get("termSets")
+    require(isinstance(term_sets, dict), "guided evaluation termSets must be an object")
+    term_set_rows = term_sets.get("rows")
+    require(
+        isinstance(term_set_rows, list)
+        and term_sets.get("rowTotal") == len(KONG_GUIDED_TERM_TOKENS)
+        and term_sets.get("termTotal") == sum(len(tokens) for _, tokens in KONG_GUIDED_TERM_TOKENS),
+        "guided evaluation termSets totals are invalid",
+    )
+    observed_term_tokens = tuple(
+        (
+            row.get("slideId"),
+            tuple(term.get("token") for term in row.get("terms", ()) if isinstance(term, dict)),
+        )
+        for row in term_set_rows
+        if isinstance(row, dict)
+    )
+    require(
+        observed_term_tokens == KONG_GUIDED_TERM_TOKENS,
+        "guided evaluation termSets must preserve the exact phase-local slide and token order",
+    )
+    require(
+        tuple(
+            (row.get("slideId"), term.get("token"), term.get("display"), term.get("classification"))
+            for row in term_set_rows
+            if isinstance(row, dict)
+            for term in row.get("terms", ())
+            if isinstance(term, dict)
+        ) == canonical_term_semantics,
+        "guided evaluation termSets must exactly project canonical doc48",
+    )
+    require(
+        {"KGE-01", "KGE-04", "KGE-09", "KGE-14", "KGE-17", "KGE-22"}
+        .issubset({slide_id for slide_id, _ in observed_term_tokens}),
+        "guided evaluation must introduce terms on every direct-entry phase slide",
+    )
+    for row in term_set_rows:
+        for term in row["terms"]:
+            require(
+                set(term) == {"token", "display", "classification"}
+                and all(isinstance(term[field], str) and term[field].strip() for field in term),
+                f"guided terminology on {row.get('slideId')} is incomplete",
+            )
+            require(
+                term["display"].endswith(f"({term['token']})"),
+                f"guided terminology {row.get('slideId')} {term['token']} must render Full Name (ACRONYM) or descriptor (ID)",
+            )
+    term_display_by_slide_token = {
+        (row["slideId"], term["token"]): term["display"]
+        for row in term_set_rows
+        for term in row["terms"]
+    }
+    require(
+        term_display_by_slide_token[("KGE-01", "KGE")] == "Kong Guided Evaluation (KGE)"
+        and term_display_by_slide_token[("KGE-01", "EAG")] == "Early Assessment Gate (EAG)",
+        "guided evaluation must introduce KGE and EAG with their documented expansions",
+    )
+    validate_block_provenance(term_sets, "termSets", expected_headings["termSets"])
+    require(
+        tuple(term_sets["provenance"].get("tableColumns", ())) == KONG_GUIDED_TERM_COLUMNS,
+        "guided evaluation termSets tableColumns must match canonical doc48",
+    )
 
     target = guided.get("targetModel")
     require(isinstance(target, dict), "guided evaluation targetModel must be an object")
@@ -2065,6 +2341,43 @@ def validate_kong_guided_evaluation(
         nonempty_strings(row, ("id", "system", "state", "supports", "doesNotSupport"), f"guided proof boundary {row.get('id')}")
     validate_block_provenance(proof_boundary, "proofBoundary", expected_headings["proofBoundary"])
 
+    boundaries = guided.get("boundaries")
+    require(isinstance(boundaries, dict), "guided evaluation boundaries must be an object")
+    boundary_rows = boundaries.get("rows")
+    require(isinstance(boundary_rows, list) and boundaries.get("rowTotal") == 3, "guided evaluation boundaries must contain exactly three rows")
+    require(all(isinstance(row, dict) for row in boundary_rows), "guided evaluation boundaries rows must be objects")
+    require(tuple(row.get("id") for row in boundary_rows) == KONG_GUIDED_BOUNDARY_IDS, "guided evaluation boundary IDs must be GEB-01 through GEB-03")
+    for row in boundary_rows:
+        nonempty_strings(row, ("id", "boundary", "record", "description", "role"), f"guided boundary {row.get('id')}")
+    require(
+        "KMC-3" in str(boundary_rows[0].get("record", ""))
+        and "KMC-1" in str(boundary_rows[1].get("record", ""))
+        and "KMC-2" not in " ".join(str(row.get("record", "")) for row in boundary_rows),
+        "guided evaluation custody benchmark must be the customer-hosted-runtime Konnect record (KMC-1), never KMC-2",
+    )
+    validate_block_provenance(boundaries, "boundaries", expected_headings["boundaries"])
+
+    duties = guided.get("duties")
+    require(isinstance(duties, dict), "guided evaluation duties must be an object")
+    duty_rows = duties.get("rows")
+    require(isinstance(duty_rows, list) and duties.get("rowTotal") == 2, "guided evaluation duties must contain exactly two rows")
+    require(all(isinstance(row, dict) for row in duty_rows), "guided evaluation duties rows must be objects")
+    require(tuple(row.get("id") for row in duty_rows) == KONG_GUIDED_DUTY_IDS, "guided evaluation duty IDs must be KPS-FIT-01 and KPS-FIT-02")
+    for row in duty_rows:
+        nonempty_strings(row, ("id", "outcome", "fit", "permanentDuty", "counterfactual"), f"guided duty {row.get('id')}")
+    fit_rows = {
+        str(row.get("projectionId")): row
+        for row in manifest.get("visuals", {}).get("kongPlatformStrategy", {}).get("fit", {}).get("rows", [])
+        if isinstance(row, dict)
+    }
+    for row in duty_rows:
+        fit_row = fit_rows.get(str(row.get("id")), {})
+        require(
+            fit_row.get("outcome") == row.get("outcome") and fit_row.get("counterfactual") == row.get("counterfactual"),
+            f"guided duty {row.get('id')} must mirror the canonical docs/47 fit outcome and counterfactual",
+        )
+    validate_block_provenance(duties, "duties", expected_headings["duties"])
+
     evidence_states = guided.get("evidenceStates")
     require(isinstance(evidence_states, dict), "guided evaluation evidenceStates must be an object")
     evidence_rows = evidence_states.get("rows")
@@ -2154,6 +2467,10 @@ def validate_kong_guided_evaluation(
         for slide_ids, urls in KONG_GUIDED_REFERENCE_GROUPS
         for slide_id in slide_ids
     }
+    canonical_terms_by_slide_id = {
+        row["slideId"]: row["terms"]
+        for row in term_set_rows
+    }
     for row in contract_rows:
         nonempty_strings(row, ("slideId", "key", "viewId", "phaseId", "title", "body", "visualContract", "canonicalSource"), f"guided slide contract {row.get('slideId')}")
         require(row["viewId"] == row["key"].removeprefix("kong-guided-"), f"guided slide contract {row.get('slideId')} viewId is invalid")
@@ -2166,6 +2483,10 @@ def validate_kong_guided_evaluation(
         official_references = row.get("officialReferences")
         require(isinstance(official_references, list) and official_references, f"guided slide contract {row.get('slideId')} must retain official references")
         require(tuple(reference.get("url") for reference in official_references if isinstance(reference, dict)) == official_references_by_slide_id[row["slideId"]], f"guided slide contract {row.get('slideId')} official references do not match the canonical catalog")
+        require(
+            row.get("terms") == canonical_terms_by_slide_id.get(row["slideId"], []),
+            f"guided slide contract {row.get('slideId')} terms do not match the canonical phase-local set",
+        )
     contract_by_slide_id = {row["slideId"]: row for row in contract_rows}
     for slide_id, expected_content in KONG_GUIDED_EARLY_SLIDE_CONTRACT.items():
         row = contract_by_slide_id[slide_id]
@@ -2235,6 +2556,11 @@ def validate_kong_guided_evaluation(
         require(slide.get("visual") == "guidedEvaluation", f"guided presentation slide {key} must use guidedEvaluation")
         require(slide.get("phaseId") == phase[0] and slide.get("phaseLabel") == phase[1] and slide.get("phaseOutcome") == phase[2], f"guided presentation slide {key} phase metadata is invalid")
         require(
+            slide.get("eyebrow") == f"{phase[0].removeprefix('KGE-')} · {phase[1]}"
+            and slide.get("terms") == contract["terms"],
+            f"guided presentation slide {key} phase label or terms projection is invalid",
+        )
+        require(
             slide.get("evidenceState") == expected_evidence_state
             and slide.get("sourceClass") == expected_source_class
             and slide.get("evidenceInterpretation") == expected_interpretation
@@ -2255,6 +2581,8 @@ def validate_kong_guided_evaluation(
         "kong-guided-options": KONG_GUIDED_OPTION_IDS,
         "kong-guided-score": KONG_GUIDED_WEIGHT_IDS,
         "kong-guided-decision": tuple(f"KGE-AUTH-{index:02d}" for index in range(1, 6)),
+        "kong-guided-boundary": KONG_GUIDED_BOUNDARY_IDS,
+        "kong-guided-duty": KONG_GUIDED_DUTY_IDS,
         "kong-guided-proof-boundary": tuple(f"KGE-PROOF-{index:02d}" for index in range(1, 4)),
         "kong-guided-proof-programme": KONG_GUIDED_WORKSTREAM_IDS,
         "kong-guided-compare-architecture": KONG_GUIDED_COMPARISON_IDS[0],
@@ -2264,6 +2592,10 @@ def validate_kong_guided_evaluation(
     }
     for key, row_ids in expected_row_ids.items():
         require(tuple(slides_by_key[key].get("rowIds", ())) == row_ids, f"guided presentation slide {key} rowIds are invalid")
+    require(
+        tuple(slides_by_key["kong-guided-boundary"].get("optionIds", ())) == KONG_GUIDED_BOUNDARY_OPTION_IDS,
+        "guided boundary slide must reference the self-managed (KMC-3) and customer-hosted-runtime Konnect (KMC-1) records",
+    )
 
     audience_states = sum(len(audience.get("presentationSlides", ())) for audience in manifest.get("audiences", ()) if isinstance(audience, dict))
     named_states = sum(deck_item.get("slideTotal", 0) for deck_item in decks if isinstance(deck_item, dict))

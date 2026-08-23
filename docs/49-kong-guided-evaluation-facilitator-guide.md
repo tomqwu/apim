@@ -1365,7 +1365,7 @@ Translate the first five production outcomes into decision evidence.
 
 ##### Talk track
 
-Each mechanism is paired with a measurable outcome and a reviewable artifact. State fidelity, request reliability, trust admission, recovery and safe change are all separate admission dimensions.
+Each mechanism is paired with a measurable outcome and a reviewable artifact. Trustworthy active state, business reliability, trust integrity, management recoverability and safe change are all separate admission dimensions.
 
 ##### Ask
 
@@ -1426,7 +1426,7 @@ Complete the production decision with non-functional and organizational outcomes
 
 ##### Talk track
 
-Capacity and evidence safety matter, but so do adoption, operating sustainability, exit readiness and accurate estate ownership. KO-7 is an outcome: administrative/configuration audit, request and security-decision correlation, business evidence, quantified produced/queued/dropped/delivered gaps, and prohibited-field control. Traceable may be one candidate mechanism, but no product name can make KO-7 pass.
+Capacity isolation and evidence safety matter, but so do platform adoption, operating sustainability, reversibility and estate truth. KO-7 is an outcome: administrative/configuration audit, request and security-decision correlation, business evidence, quantified produced/queued/dropped/delivered gaps, and prohibited-field control. Traceable may be one candidate mechanism, but no product name can make KO-7 pass.
 
 ##### Ask
 
@@ -1793,6 +1793,31 @@ The generated public manifest exposes this question, choice-set, and reviewabili
 
 `Minimum evidence` is the floor required before the question's subject may influence the named decision; it is not evidence supplied by the answer. `Mandatory` means the question must be dispositioned on the full decision route. Route-specific questions may remain not assessed when that scope is not authorized. The full contract contains 18 questions; Phase 1 carries six, including one explicit question for each early gate. A completed question count is meeting progress only: never calculate or display a readiness percentage.
 
+### Assessment interface terminology
+
+The assessment drawer and summary project this ordered terminology rail before any form or export control that uses the token. It defines interface language only; the question and slide evidence boundaries remain authoritative.
+
+| Token | Exact visible term | Interface purpose |
+|---|---|---|
+| API | application programming interface (API) | Assessment prompt and target context |
+| E0 | assertion-only evidence (E0) | Participant evidence-level selector |
+| E1 | current official documentation (E1) | Participant evidence-level selector |
+| E2 | vendor answer with named version or contract term (E2) | Participant evidence-level selector |
+| E3 | repeatable lab evidence (E3) | Participant evidence-level selector |
+| E4 | representative pilot evidence (E4) | Participant evidence-level selector |
+| ID | identifier (ID) | Public-safe target and artifact fields |
+| BOM | bill of materials (BOM) | Exact-option field guidance |
+| JSON | JavaScript Object Notation (JSON) | Structured local-export format |
+| URL | uniform resource locator (URL) | Privacy warning and public references |
+| IP | Internet Protocol (IP) | Privacy warning |
+| IAM | identity and access management (IAM) | Controlled public-role label |
+| SRE | site reliability engineering (SRE) | Controlled public-role label |
+| FinOps | financial operations (FinOps) | Controlled public-role label |
+| N/A | not applicable (N/A) | Explicit route-specific response state |
+| TCO | total cost of ownership (TCO) | Phase 1 cost question and summary |
+| HA | high availability (HA) | Phase 1 cost question and summary |
+| DR | disaster recovery (DR) | Phase 1 cost question and summary |
+
 ### Assessment questions
 
 | Question ID | Phase ID | Slide IDs | Existing target IDs | Prompt | Decision use | Evidence boundary | Minimum evidence | Mandatory | Choice set ID | Hold rule |
@@ -1804,7 +1829,7 @@ The generated public manifest exposes this question, choice-set, and reviewabili
 | KGE-P1-Q05 | KGE-P1 | KGE-02; KGE-03 | EAG-02; GRS-04; GEC-16 | Is the required clean-exit profile—configuration, policy, identity/product state, data/history, plugins, evidence, procedures, rebuild denominator, route-back, and residual dependency—confirmed, amended, rejected, or unknown? | Distinguish a same-vendor custody switch from true non-Kong exit and freeze the reversible-foundation obligation. | A portability statement or meeting preference is not an executed non-source rebuild, semantic-loss measure, timed route-back, residual-dependency result, or exit-cost finding. | E1 | true | KGE-CS-INPUT | HOLD bounded authorization when the proposed foundation lacks a named exit profile, reversal trigger, rebuild denominator, owner, or safe route-back obligation. |
 | KGE-P1-Q06 | KGE-P1 | KGE-02; KGE-03 | EAG-03; GEW-08; GRS-05; GEC-17 | Is the common fully allocated TCO denominator—time horizon, low/base/high cases, meters/quotes, labor, infrastructure, HA/DR, telemetry, adjuncts, support, migration, dual run, incident exposure, custody switch, and exit—confirmed, amended, rejected, or unknown? | Freeze the cost-efficiency question, FinOps/sourcing ownership, evidence references, and sensitivity method before a price or cost claim influences authorization. | Public pricing, license inputs, or an early denominator choice are not comparable TCO, unit-economics, negotiated-terms, or production-cost evidence. | E1 | true | KGE-CS-INPUT | HOLD any price or cost claim that influences authorization without a common denominator, FinOps/sourcing owner, evidence request, and sensitivity method. |
 | KGE-P2-Q01 | KGE-P2 | KGE-04 | GEO-KONG; GEO-APIGEE; GEO-MULE; GEO-APIM | Which conditional option counterfactuals stay in scope, require symmetric evidence, or are excluded with an explicit rationale? | Record the conditions that could narrow Kong, switch custody, or reopen option selection. | A fit condition or exclusion is meeting scope, not comparative product evidence or a rank. | E1 | true | KGE-CS-COUNTERFACTUAL | HOLD if an agreed mandatory counterfactual condition is unresolved without symmetric evidence. |
-| KGE-P2-Q02 | KGE-P2 | KGE-05; KGE-06; KGE-07; KGE-08 | GEW-01..GEW-08; KGE-AUTH-01..KGE-AUTH-05; KMC-2; KMC-3 | Does the room approve, amend, or hold the historical score's audit-only use, bounded authorization, operating boundary, custody benchmark, true exit, and funded duty? | Set the authorization boundary and accountable operating commitments without manufacturing a new total. | Historical ratings remain stakeholder input; role acceptance and architecture preference are not E2/E3 behavior, economics, or legal conclusions. | E2 | true | KGE-CS-AUTHORIZATION | HOLD if the score is used for authorization or the exact boundary, funded duty, custody benchmark, or true exit lacks an owner. |
+| KGE-P2-Q02 | KGE-P2 | KGE-05; KGE-06; KGE-07; KGE-08 | GEW-01..GEW-08; KGE-AUTH-01..KGE-AUTH-05; GEB-01..GEB-03; KMC-1; KMC-3; KPS-FIT-01; KPS-FIT-02 | Does the room approve, amend, or hold the historical score's audit-only use, bounded authorization, operating boundary, custody benchmark, true exit, and funded duty? | Set the authorization boundary and accountable operating commitments without manufacturing a new total. | Historical ratings remain stakeholder input; role acceptance and architecture preference are not E2/E3 behavior, economics, or legal conclusions. | E2 | true | KGE-CS-AUTHORIZATION | HOLD if the score is used for authorization or the exact boundary, funded duty, custody benchmark, or true exit lacks an owner. |
 | KGE-P3-Q01 | KGE-P3 | KGE-09; KGE-10; KGE-11 | KPS-1; KPS-2; KPS-4 | Are the control, request, trust, evidence, degraded-admission, probe, threshold, owner, and reconciliation boundaries accepted, amended, held, or unknown? | Freeze the target-shaped architecture and admission questions that the proof programme must test. | An accepted model remains proposed until the exact option executes the linked tests with reviewable artifacts. | E3 | true | KGE-CS-REVIEW | HOLD target freeze when a mandatory boundary, probe, state identity, response owner, or reconciliation rule is unknown. |
 | KGE-P3-Q02 | KGE-P3 | KGE-12; KGE-13 | KPS-3; KPS-5; KP0..KP5 | Are the funded ownership model and each adoption gate's entry evidence, exit evidence, and stop authority accepted, amended, held, or unknown? | Decide whether foundation and later phase transitions have accountable owners and evidence exits. | Role and gate agreement does not show that a gate has passed or that a scenario window is a commitment. | E3 | true | KGE-CS-REVIEW | HOLD a phase transition that lacks funded ownership, exit evidence, or stop authority. |
 | KGE-P4-Q01 | KGE-P4 | KGE-14; KGE-16 | MULE-2; MULE-6; A0..A6 | Which source archetype applies, and is its responsibility, durable-state, destination, ownership, and object-state denominator sufficiently classified? | Select the applicable migration rail and create bounded classification work. | A selected source or taxonomy is not observed workload parity, converter success, migration progress, or decommission evidence. | E3 | false | KGE-CS-SOURCE | When migration is in scope, HOLD if source, responsibility, durable state, destination, denominator, or owner is unknown. |

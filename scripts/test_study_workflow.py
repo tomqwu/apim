@@ -2121,6 +2121,36 @@ process.stdout.write(window.ApiStudyCharts.render("criteriaOverview", data, {com
             ("KGE-P5", "Production proof", "kong-guided-proof-boundary"),
             ("KGE-P6", "Audit appendix", "kong-guided-compare-architecture"),
         )
+        identifier_tokens = (
+            "KGE", "EAG", "GTM", "GEW", "GRS", "GEO", "GEB", "KMC",
+            "KPS", "KP", "MULE", "GEP", "GSA", "KO", "GEC",
+        )
+        term_tokens = (
+            ("KGE-01", ("KGE", "API", "EAG", "WAAP")),
+            ("KGE-02", ("GTM", "AKS", "AI", "TCO", "APIOps", "MCP", "A2A")),
+            ("KGE-03", ("GEW", "GRS", "IAM")),
+            ("KGE-04", ("KGE", "API", "APIM", "CP", "PKI", "MART", "GEO", "KP-SMH1")),
+            ("KGE-05", ("GRS",)),
+            ("KGE-06", ("E2", "E3", "E4", "HA", "DR")),
+            ("KGE-07", ("GEB", "KMC", "KP-SMH1", "E1", "DP", "KPS")),
+            ("KGE-08", ("KPS-FIT",)),
+            ("KGE-09", ("KGE", "API", "CP", "DP", "PKI", "IdP", "mTLS", "DNS", "HA", "SLO", "KPS", "E1", "RBAC", "WAF", "SIEM")),
+            ("KGE-10", ("IdP", "CA", "CN", "JSON", "JWKS")),
+            ("KGE-12", ("DB", "SRE", "IAM")),
+            ("KGE-13", ("KP0–KP5", "KP-SMH1", "E2", "E3", "E4", "BOM", "RACI", "GP-1–GP-6")),
+            ("KGE-14", ("KGE", "API", "MULE", "SFTP", "SaaS")),
+            ("KGE-15", ("AKS", "CRM")),
+            ("KGE-16", ("A0–A6", "M0–M5", "SLO", "E4")),
+            ("KGE-17", ("KGE", "API", "PoC", "KP-SMH1", "E3", "E4", "CP", "AI", "TCO")),
+            ("KGE-18", ("API", "GEP", "GSA", "LTS", "BOM", "SBOM", "APIOps", "IAM", "MCP", "A2A", "RTO", "RPO", "RACI", "WAAP")),
+            ("KGE-19", ("KO", "DP", "SLI", "SLO", "SRE", "OAuth", "mTLS", "IdP", "PKI", "PR")),
+            ("KGE-20", ("DLP", "DNS", "KP0", "FinOps")),
+            ("KGE-21", ("KPS", "E1", "E2")),
+            ("KGE-22", ("KGE", "API", "GEC", "CP", "DP")),
+            ("KGE-23", ("AI", "GenAI", "MCP", "A2A", "E1", "WAAP")),
+            ("KGE-24", ("TCO", "CP", "PKI", "HA", "DR", "PAYG", "RACI")),
+            ("KGE-25", ("E0", "GEW", "GRS", "IAM", "TCO", "CP")),
+        )
 
         with tempfile.TemporaryDirectory(prefix="kong-guided-evaluation-") as temporary:
             output = Path(temporary) / "site"
@@ -2176,6 +2206,36 @@ process.stdout.write(window.ApiStudyCharts.render("criteriaOverview", data, {com
 
         guided = manifest["visuals"]["guidedEvaluation"]
         self.assertEqual("2026-08-22", guided["asOf"])
+        self.assertEqual(15, guided["identifierCatalog"]["rowTotal"])
+        self.assertEqual(identifier_tokens, tuple(row["token"] for row in guided["identifierCatalog"]["rows"]))
+        self.assertEqual(
+            ("Token or prefix", "Canonical visible meaning", "Classification", "Use rule"),
+            tuple(guided["identifierCatalog"]["provenance"]["tableColumns"]),
+        )
+        self.assertEqual(24, guided["termSets"]["rowTotal"])
+        self.assertEqual(141, guided["termSets"]["termTotal"])
+        self.assertEqual(
+            term_tokens,
+            tuple(
+                (row["slideId"], tuple(term["token"] for term in row["terms"]))
+                for row in guided["termSets"]["rows"]
+            ),
+        )
+        self.assertEqual(
+            ("Slide ID", "Token", "Exact visible term", "Classification"),
+            tuple(guided["termSets"]["provenance"]["tableColumns"]),
+        )
+        self.assertEqual(
+            "Kong Guided Evaluation (KGE)",
+            guided["termSets"]["rows"][0]["terms"][0]["display"],
+        )
+        self.assertTrue(
+            all(
+                term["display"].endswith(f"({term['token']})")
+                for row in guided["termSets"]["rows"]
+                for term in row["terms"]
+            )
+        )
         self.assertEqual(tuple(f"GTM-{index:02d}" for index in range(1, 10)), tuple(row["id"] for row in guided["targetModel"]["rows"]))
         self.assertEqual(
             tuple(f"EAG-{index:02d}" for index in range(1, 5)),
@@ -2199,6 +2259,37 @@ process.stdout.write(window.ApiStudyCharts.render("criteriaOverview", data, {com
             ),
             tuple(guided["earlyGates"]["provenance"]["tableColumns"]),
         )
+        boundaries = guided["boundaries"]
+        self.assertEqual(3, boundaries["rowTotal"])
+        self.assertEqual(("GEB-01", "GEB-02", "GEB-03"), tuple(row["id"] for row in boundaries["rows"]))
+        self.assertEqual("Operating boundaries to keep distinct", boundaries["provenance"]["heading"])
+        self.assertEqual("Operating boundaries to keep distinct", boundaries["provenance"]["sourceHeading"])
+        self.assertIn("KMC-3", boundaries["rows"][0]["record"])
+        self.assertIn("KMC-1", boundaries["rows"][1]["record"])
+        self.assertNotIn("KMC-2", " ".join(row["record"] for row in boundaries["rows"]))
+        for row in boundaries["rows"]:
+            for field in ("boundary", "record", "description", "role"):
+                self.assertTrue(row[field], f"{row['id']} boundary {field} must be non-empty")
+        duties = guided["duties"]
+        self.assertEqual(2, duties["rowTotal"])
+        self.assertEqual(("KPS-FIT-01", "KPS-FIT-02"), tuple(row["id"] for row in duties["rows"]))
+        self.assertEqual("Custody fit and permanent duty", duties["provenance"]["heading"])
+        fit_rows = {row["projectionId"]: row for row in manifest["visuals"]["kongPlatformStrategy"]["fit"]["rows"]}
+        for row in duties["rows"]:
+            self.assertEqual(fit_rows[row["id"]]["outcome"], row["outcome"])
+            self.assertEqual(fit_rows[row["id"]]["counterfactual"], row["counterfactual"])
+            self.assertTrue(row["permanentDuty"] and row["fit"], f"{row['id']} must carry fit and permanent-duty text")
+            self.assertNotEqual(row["permanentDuty"], row["counterfactual"], "permanent duty must not echo the counterfactual")
+        slides_by_key = {slide["key"]: slide for slide in manifest["presentation"]}
+        self.assertEqual(["GEB-01", "GEB-02", "GEB-03"], slides_by_key["kong-guided-boundary"]["rowIds"])
+        self.assertEqual(["KMC-3", "KMC-1"], slides_by_key["kong-guided-boundary"]["optionIds"])
+        self.assertEqual(["KPS-FIT-01", "KPS-FIT-02"], slides_by_key["kong-guided-duty"]["rowIds"])
+        self.assertIn("trustworthy active state", slides_by_key["kong-guided-outcomes-1"]["body"])
+        self.assertIn("capacity isolation", slides_by_key["kong-guided-outcomes-2"]["body"])
+        for figure in (*manifest["visuals"]["kongPlatformStrategy"]["figures"], *manifest["visuals"]["muleMigration"]["figures"]):
+            with self.subTest(figure=figure["figureId"]):
+                self.assertTrue(figure["depictedScope"], "figure contract depicted scope must be projected")
+                self.assertTrue(figure["accessibleEquivalent"], "figure contract accessible equivalent must be projected")
         self.assertEqual(tuple(f"GEW-{index:02d}" for index in range(1, 9)), tuple(row["id"] for row in guided["weights"]["rows"]))
         self.assertEqual(100, guided["weights"]["weightTotal"])
         self.assertEqual(tuple(f"GRS-{index:02d}" for index in range(1, 7)), tuple(row["id"] for row in guided["governedRescore"]["rows"]))
@@ -2268,6 +2359,14 @@ process.stdout.write(window.ApiStudyCharts.render("criteriaOverview", data, {com
         )
         self.assertEqual("KPS-1", architecture_overview["provenance"]["figureId"])
         guided_contract_by_key = {row["key"]: row for row in guided["slides"]["rows"]}
+        terms_by_slide_id = {row["slideId"]: row["terms"] for row in guided["termSets"]["rows"]}
+        self.assertTrue(
+            all(
+                row["terms"] == terms_by_slide_id.get(row["slideId"], [])
+                for row in guided["slides"]["rows"]
+            )
+        )
+        self.assertEqual([], guided["slides"]["rows"][10]["terms"])
         self.assertEqual(
             {
                 "title": "The operating model and four early gates drive the decision",
@@ -2317,6 +2416,17 @@ process.stdout.write(window.ApiStudyCharts.render("criteriaOverview", data, {com
         self.assertEqual(
             {key: guided_contract_by_key[key]["officialReferences"] for key in guided_keys},
             {key: guided_slides_by_key[key]["officialReferences"] for key in guided_keys},
+        )
+        self.assertEqual(
+            {key: guided_contract_by_key[key]["terms"] for key in guided_keys},
+            {key: guided_slides_by_key[key]["terms"] for key in guided_keys},
+        )
+        self.assertEqual(
+            tuple(f"P{index}" for index in range(1, 7)),
+            tuple(
+                guided_slides_by_key[start_key]["eyebrow"].split(" · ", 1)[0]
+                for _, _, start_key in phases
+            ),
         )
         app = (SOURCE_ROOT / "site" / "assets" / "app.js").read_text(encoding="utf-8")
         charts = (SOURCE_ROOT / "site" / "assets" / "charts.js").read_text(encoding="utf-8")
@@ -2392,7 +2502,7 @@ process.stdout.write(window.ApiStudyCharts.render("criteriaOverview", data, {com
         )
         self.assertRegex(
             styles,
-            r"(?s)@media screen and \(min-width:\s*1600px\).*?\.presentation-stage\.is-kong-guided\s*\{[^}]*--guided-decision-copy:\s*1\.5rem;[^}]*--guided-decision-meta:\s*1\.125rem;",
+            r"(?s)@media screen and \(min-width:\s*1600px\) and \(min-height:\s*1000px\).*?\.presentation-stage\.is-kong-guided\s*\{[^}]*--guided-decision-copy:\s*1\.5rem;[^}]*--guided-decision-meta:\s*1\.125rem;",
         )
         self.assertIn('<table class="viz-guided-comparison">', charts)
         self.assertIn('class="viz-guided-comparison-wrap" tabindex="-1" data-comparison-label=', charts)
@@ -2409,11 +2519,28 @@ process.stdout.write(window.ApiStudyCharts.render("criteriaOverview", data, {com
         self.assertIn("function presentationSlideHref(context, index)", app)
         self.assertIn('<nav class="journey-phase-nav" aria-label=', app)
         self.assertIn('href="${presentationSlideHref(context, phaseStartIndex)}"', app)
+        self.assertIn('const visiblePhaseId = isGuidedDeck && /^KGE-P[1-6]$/.test(phaseId)', app)
+        self.assertIn('`Phase ${phaseIndex + 1} of ${journeyPhases.length} (${phaseId}): ${phaseLabel}`', app)
+        self.assertNotIn("journey-phase-id-prefix", app)
         self.assertIn("isCurrentPhase ? 'aria-current=\"step\"' : \"\"", app)
         self.assertNotRegex(app, r'<li[^>]*aria-current="step"')
         self.assertIn('phaseIndex < journeyPhaseIndex ? "is-prior"', app)
         self.assertNotIn('phaseIndex < journeyPhaseIndex ? "is-complete"', app)
         self.assertIn("location.hash = presentationSlideHref(context, next)", app)
+        self.assertIn('class="guided-terms" aria-label="Terms introduced on this slide"', app)
+        self.assertIn('Array.isArray(slide.terms) && slide.terms.length', app)
+        self.assertIn('${escapeHtml(term.display)}</li>', app)
+        self.assertIn('${escapeHtml(term.classification || "Term")}', app)
+        self.assertIn('${guidedTerms}\n            ${guidedEvidence}', app)
+        self.assertRegex(styles, r"(?s)\.guided-terms\s*\{[^}]*display:\s*grid;[^}]*font-size:\s*clamp\(")
+        self.assertRegex(styles, r"(?s)\.guided-terms ul\s*\{[^}]*display:\s*flex;[^}]*flex-wrap:\s*wrap;")
+        self.assertRegex(styles, r"(?s)@media screen and \(max-width: 760px\).*?\.guided-terms\s*\{[^}]*grid-template-columns:\s*minmax\(0, 1fr\);")
+        self.assertRegex(styles, r"(?s)@media screen and \(max-width: 760px\).*?\.guided-terms ul\s*\{[^}]*flex-wrap:\s*nowrap;[^}]*overflow-x:\s*auto;")
+        self.assertRegex(styles, r"(?s)@media screen and \(min-width: 1024px\) and \(max-height: 760px\).*?\.guided-terms ul\s*\{[^}]*flex-wrap:\s*nowrap;[^}]*overflow-x:\s*auto;")
+        self.assertRegex(styles, r"(?s)@media screen and \(min-width: 1024px\) and \(max-height: 760px\).*?\.guided-terms > b::after\s*\{[^}]*content:\s*\" · scroll →\";")
+        self.assertRegex(styles, r"(?s)@media screen and \(min-width: 1024px\) and \(max-height: 760px\).*?\.is-guided-slide:has\(\.viz-guided-architecture-overview\) \.slide-diagram\.is-summary-mode\s*\{[^}]*min-height:\s*21\.5rem;")
+        self.assertIn('aria-label="Term definitions; swipe or scroll horizontally on compact screens"', app)
+        self.assertRegex(styles, r"(?s)@media print.*?\.presentation-stage\.is-kong-guided \.guided-terms\s*\{[^}]*break-inside:\s*avoid !important;")
         self.assertRegex(styles, r"(?s)\.journey-phase-spine li > a\s*\{[^}]*min-height:\s*44px;[^}]*color:\s*inherit;[^}]*text-decoration:\s*none;")
         self.assertRegex(styles, r"(?s)\.journey-phase-spine li > a:focus-visible\s*\{[^}]*outline:")
         self.assertRegex(styles, r"(?s)@media print.*?\.journey-phase-spine li > a\s*\{[^}]*color:\s*inherit !important;[^}]*text-decoration:\s*none !important;")
@@ -2424,6 +2551,7 @@ process.stdout.write(window.ApiStudyCharts.render("criteriaOverview", data, {com
         self.assertRegex(styles, r"(?s)@media screen and \(min-width: 761px\) and \(max-width: 1279px\).*?\.presentation-stage\.is-kong-guided \.journey-phase-spine li > a\s*\{[^}]*justify-content:\s*center;[^}]*font-size:\s*1rem;")
         self.assertRegex(styles, r"(?s)@media screen and \(min-width: 761px\) and \(max-width: 1279px\).*?\.presentation-stage\.is-kong-guided \.journey-phase-spine li b\s*\{[^}]*width:\s*1px;[^}]*clip-path:\s*inset\(50%\);")
         self.assertRegex(styles, r"(?s)@media screen and \(min-width: 1024px\) and \(max-width: 1199px\).*?\.presentation-stage\.is-kong-guided \.viz-guided-proof-boundary article\s*\{[^}]*padding:\s*0\.45rem;")
+        self.assertRegex(styles, r"(?s)@media screen and \(min-width: 1024px\) and \(max-height: 920px\).*?\.presentation-stage\.is-kong-guided \.is-guided-slide > \.slide-main\s*\{[^}]*overflow-y:\s*auto;")
         self.assertRegex(styles, r"(?s)@media \(max-width: 760px\).*?\.presentation-stage:not\(\.is-kong-guided\) \.slide-diagram\.is-summary-mode\s*\{[^}]*height:\s*auto;")
         self.assertRegex(styles, r"(?s)\.presentation-stage\.is-kong-guided \.slide-references > summary\s*\{[^}]*min-height:\s*44px;")
         self.assertRegex(styles, r"(?s)\.presentation-stage\.is-kong-guided \.slide-reference-menu\s*\{[^}]*overflow:\s*auto;")
@@ -2443,6 +2571,10 @@ process.stdout.write(window.ApiStudyCharts.render("criteriaOverview", data, {com
             ("theme", "theme must be kong-guided"),
             ("roles", "exact six-role order"),
             ("phase start", "six-stage spine and start keys"),
+            ("identifier catalog", "identifierCatalog must exactly project canonical doc48"),
+            ("term set", "termSets must exactly project canonical doc48"),
+            ("contract term projection", "terms do not match the canonical phase-local set"),
+            ("presentation term projection", "phase label or terms projection is invalid"),
             ("target ID", "GTM-01 through GTM-09"),
             ("early gate ID", "EAG-01 through EAG-04"),
             ("early gate semantics", "exact canonical doc48 semantic tuples"),
@@ -2480,6 +2612,14 @@ process.stdout.write(window.ApiStudyCharts.render("criteriaOverview", data, {com
                     invalid_deck["audienceRoleIds"][0:2] = reversed(invalid_deck["audienceRoleIds"][0:2])
                 elif case == "phase start":
                     invalid_deck["journeyPhases"][5]["startKey"] = "kong-guided-score-audit"
+                elif case == "identifier catalog":
+                    invalid_guided["identifierCatalog"]["rows"][2]["meaning"] = "Invented expansion"
+                elif case == "term set":
+                    invalid_guided["termSets"]["rows"][0]["terms"][0]["display"] = "KGE"
+                elif case == "contract term projection":
+                    invalid_guided["slides"]["rows"][0]["terms"].pop()
+                elif case == "presentation term projection":
+                    next(slide for slide in invalid["presentation"] if slide["key"] == "kong-guided-cover")["terms"].pop()
                 elif case == "target ID":
                     invalid_guided["targetModel"]["rows"][0]["id"] = "GTM-X"
                 elif case == "early gate ID":
@@ -2605,6 +2745,108 @@ process.stdout.write(JSON.stringify({
                 self.assertEqual(1, fallback.count('<ol class="viz-guided-programme"'))
                 self.assertIn('style="--guided-programme-count:', fallback)
 
+    def test_guided_boundary_duty_and_outcome_renderers_use_canonical_records(self) -> None:
+        node = next(
+            (
+                candidate
+                for candidate in (
+                    Path("/usr/bin/node"),
+                    Path("/bin/node"),
+                    Path("/usr/local/bin/node"),
+                    Path("/opt/homebrew/bin/node"),
+                )
+                if candidate.is_file() and os.access(candidate, os.X_OK)
+            ),
+            None,
+        )
+        self.assertIsNotNone(node, "Node.js is required to validate the guided boundary/duty/outcome renderers")
+        payload_in = {
+            "boundaries": {
+                "rows": [
+                    {"id": "GEB-01", "boundary": "Leading target", "record": "KP-SMH1 / KMC-3", "description": "Enterprise operates CP", "role": "Prove first"},
+                    {"id": "GEB-02", "boundary": "Custody benchmark", "record": "KMC-1", "description": "Konnect CP, customer DPs", "role": "Benchmark"},
+                    {"id": "GEB-03", "boundary": "Platform exit", "record": "KPS-P9", "description": "Non-Kong rebuild", "role": "True exit"},
+                ]
+            },
+            "platformOptions": {
+                "options": [
+                    {"id": "KMC-2", "journeyLabel": "Managed control and managed runtime", "journeyBoundary": "wrong", "journeyRole": "wrong"},
+                    {"id": "KMC-3", "journeyLabel": "Self-managed", "journeyBoundary": "x", "journeyRole": "y"},
+                ]
+            },
+            "duties": {
+                "rows": [
+                    {"id": "KPS-FIT-01", "outcome": "Custody", "fit": "Aligns authority", "permanentDuty": "Operate PostgreSQL", "counterfactual": "Custody is only a preference"},
+                    {"id": "KPS-FIT-02", "outcome": "Multicloud runtime", "fit": "Near workloads", "permanentDuty": "Fund every cell", "counterfactual": "One cloud dominates"},
+                ]
+            },
+            "platformFit": {
+                "rows": [
+                    {"projectionId": "KPS-FIT-01", "outcome": "Custody", "reason": "Aligns authority", "counterfactual": "Custody is only a preference"},
+                ]
+            },
+            "outcomes": [
+                {"id": "KO-1", "label": "trustworthy active state", "measure": "M1", "target": "T1", "artifact": "A1", "cadence": "C1", "owner": "O1"},
+                {"id": "KO-2", "label": "business reliability", "measure": "M2", "target": "T2", "artifact": "A2", "cadence": "C2", "owner": "O2"},
+            ],
+        }
+        script = r'''
+global.window = {};
+require("./site/assets/charts.js");
+const input = JSON.parse(require("fs").readFileSync(0, "utf8"));
+const render = window.ApiStudyCharts.render;
+const {boundaries, platformOptions, duties, platformFit, outcomes} = input;
+process.stdout.write(JSON.stringify({
+  boundary: render("guidedEvaluation", {boundaries, platformOptions}, {viewId: "boundary", rowIds: ["GEB-01", "GEB-02", "GEB-03"], optionIds: ["KMC-3", "KMC-1"]}),
+  boundaryFallback: render("guidedEvaluation", {platformOptions}, {viewId: "boundary", optionIds: ["KMC-3"]}),
+  duty: render("guidedEvaluation", {duties, platformFit}, {viewId: "duty", rowIds: ["KPS-FIT-01", "KPS-FIT-02"]}),
+  dutyFallback: render("guidedEvaluation", {platformFit}, {viewId: "duty", rowIds: ["KPS-FIT-01"]}),
+  outcomeCards: render("kongPlatformOutcomes", {rows: outcomes}, {presentation: true, viewId: "outcomes-1", title: "Outcomes"}),
+  outcomeList: render("kongPlatformOutcomes", {rows: outcomes}, {presentation: true, title: "Outcomes"}),
+}));
+'''
+        observed = subprocess.run(
+            [str(node), "-e", script],
+            cwd=SOURCE_ROOT,
+            check=False,
+            capture_output=True,
+            input=json.dumps(payload_in),
+            text=True,
+        )
+        self.assertEqual(0, observed.returncode, observed.stderr)
+        payload = json.loads(observed.stdout)
+
+        boundary = payload["boundary"]
+        self.assertEqual(3, boundary.count("<article"))
+        for marker in ("GEB-01", "GEB-02", "GEB-03", "KMC-1", "KPS-P9", 'data-label="Canonical record"', 'data-label="Decision role"'):
+            with self.subTest(marker=marker):
+                self.assertIn(marker, boundary)
+        self.assertNotIn("KMC-2", boundary)
+        fallback = payload["boundaryFallback"]
+        self.assertEqual(1, fallback.count("<article"))
+        self.assertIn("Self-managed", fallback)
+        self.assertNotIn("Managed control and managed runtime", fallback)
+
+        duty = payload["duty"]
+        self.assertEqual(2, duty.count("<article"))
+        self.assertEqual(2, duty.count('data-label="Permanent duty"'))
+        self.assertEqual(2, duty.count('data-label="Weaker when"'))
+        self.assertIn("Operate PostgreSQL", duty)
+        self.assertLess(duty.index('data-label="Permanent duty">Operate PostgreSQL'), duty.index('data-label="Weaker when">Custody is only a preference'))
+        duty_fallback = payload["dutyFallback"]
+        self.assertNotIn('data-label="Permanent duty"', duty_fallback, "a counterfactual must never be labelled as a permanent duty")
+        self.assertIn('data-label="Weaker when">Custody is only a preference', duty_fallback)
+
+        cards = payload["outcomeCards"]
+        self.assertIn('class="viz-kps-outcome-cards" data-count="2"', cards)
+        self.assertEqual(2, cards.count('data-label="Measure"'))
+        self.assertEqual(2, cards.count('data-label="Evidence artifact"'))
+        self.assertEqual(2, cards.count('data-label="Accountable owner"'))
+        self.assertIn("trustworthy active state", cards)
+        self.assertNotIn("viz-presentation-detail", cards)
+        self.assertIn("viz-presentation-detail", payload["outcomeList"])
+        self.assertNotIn("viz-kps-outcome-cards", payload["outcomeList"])
+
     def test_guided_assessment_manifest_contract_is_exact_and_falsifiable(self) -> None:
         expected_phase_questions = {
             "KGE-P1": (
@@ -2708,7 +2950,7 @@ process.stdout.write(JSON.stringify({
             {
                 "schemaVersion", "deckRevision", "sourcePath", "sourceId", "sourceClass",
                 "evidenceState", "asOf", "questions", "phaseQuestionIds", "choiceSets",
-                "reviewRequirements", "publicRoles", "provenance",
+                "reviewRequirements", "publicRoles", "interfaceTerms", "provenance",
             },
             set(assessment),
         )
@@ -2775,6 +3017,30 @@ process.stdout.write(JSON.stringify({
             },
         )
         self.assertEqual(expected_public_roles, tuple(assessment["publicRoles"]))
+        self.assertEqual(
+            (
+                ("API", "application programming interface (API)"),
+                ("E0", "assertion-only evidence (E0)"),
+                ("E1", "current official documentation (E1)"),
+                ("E2", "vendor answer with named version or contract term (E2)"),
+                ("E3", "repeatable lab evidence (E3)"),
+                ("E4", "representative pilot evidence (E4)"),
+                ("ID", "identifier (ID)"),
+                ("BOM", "bill of materials (BOM)"),
+                ("JSON", "JavaScript Object Notation (JSON)"),
+                ("URL", "uniform resource locator (URL)"),
+                ("IP", "Internet Protocol (IP)"),
+                ("IAM", "identity and access management (IAM)"),
+                ("SRE", "site reliability engineering (SRE)"),
+                ("FinOps", "financial operations (FinOps)"),
+                ("N/A", "not applicable (N/A)"),
+                ("TCO", "total cost of ownership (TCO)"),
+                ("HA", "high availability (HA)"),
+                ("DR", "disaster recovery (DR)"),
+            ),
+            tuple((term["token"], term["display"]) for term in assessment["interfaceTerms"]),
+        )
+        self.assertTrue(all(term["purpose"] for term in assessment["interfaceTerms"]))
         self.assertEqual(expected_review_requirements, assessment["reviewRequirements"])
         self.assertEqual(
             (
@@ -2786,6 +3052,7 @@ process.stdout.write(JSON.stringify({
                 (
                     "Manifest field", "Applies when", "Canonical values", "Rule",
                 ),
+                ("Token", "Exact visible term", "Interface purpose"),
                 assessment["sourceClass"],
                 assessment["evidenceState"],
                 assessment["asOf"],
@@ -2797,6 +3064,7 @@ process.stdout.write(JSON.stringify({
                 tuple(assessment["provenance"]["sourceIds"]),
                 assessment["provenance"]["sourceHeading"],
                 tuple(assessment["provenance"]["reviewRequirementsTableColumns"]),
+                tuple(assessment["provenance"]["interfaceTermTableColumns"]),
                 assessment["provenance"]["sourceClass"],
                 assessment["provenance"]["evidenceState"],
                 assessment["provenance"]["asOf"],
@@ -2835,6 +3103,7 @@ process.stdout.write(JSON.stringify({
             ("early input disposition", "mandatory E1 input disposition"),
             ("choice outcome", "invalid outcome"),
             ("public roles", "exact controlled public-role order"),
+            ("interface terms", "exact ordered first-use terminology contract"),
             ("review fields", "fields must match the exact v2 schema"),
             ("session required", "sessionRequired fields are invalid"),
             ("mandatory response", "mandatoryResponseRequired fields are invalid"),
@@ -2889,6 +3158,8 @@ process.stdout.write(JSON.stringify({
                     invalid_assessment["choiceSets"][0]["choices"][0]["outcome"] = "score"
                 elif case == "public roles":
                     invalid_assessment["publicRoles"][0:2] = reversed(invalid_assessment["publicRoles"][0:2])
+                elif case == "interface terms":
+                    invalid_assessment["interfaceTerms"][0]["display"] = "API"
                 elif case == "review fields":
                     invalid_assessment["reviewRequirements"]["sessionRequiredFields"] = []
                 elif case == "session required":
@@ -2970,6 +3241,8 @@ process.stdout.write(JSON.stringify({
             "data-assessment-open",
             "data-assessment-close",
             "data-assessment-local-warning",
+            "data-assessment-interface-terms",
+            "data-assessment-safeguards",
             "data-assessment-form",
             "data-assessment-question",
             "data-assessment-status",
@@ -2980,6 +3253,19 @@ process.stdout.write(JSON.stringify({
         ):
             with self.subTest(ui_hook=hook):
                 self.assertIn(hook, app_source)
+        self.assertIn('role="dialog" aria-modal="true"', app_source)
+        self.assertIn("function trapAssessmentFocus(event)", app_source)
+        self.assertIn("isolateAssessmentDrawer(drawer)", app_source)
+        self.assertIn("restoreAssessmentBackground()", app_source)
+        self.assertRegex(
+            app_source,
+            r'(?s)<form class="assessment-form" data-assessment-form>\s*\$\{renderAssessmentInterfaceTerms\(\)\}\s*\$\{renderAssessmentSafeguards\(\)\}',
+        )
+        self.assertIn('>Export JSON</button>', app_source)
+        self.assertIn('>Export Markdown</button>', app_source)
+        self.assertIn('placeholder="Public-safe source or artifact identifier"', app_source)
+        self.assertIn("assessmentTermDisplay(level)", app_source)
+        self.assertIn(".assessment-interface-terms ul[tabindex='0']", app_source)
         self.assertIn('class="assessment-target-bindings"', app_source)
         self.assertIn("question.targetIds", app_source)
         self.assertIn("escapeHtml(targetId)", app_source)

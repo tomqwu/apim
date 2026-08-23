@@ -1196,11 +1196,14 @@ def kong_platform_strategy_visuals(items: list[dict[str, object]]) -> dict[str, 
             section,
             flags=re.IGNORECASE,
         )
+        figure_block = match.group(0) if match else ""
         figures.append(
             {
                 "figureId": figure_id,
                 "title": clean_inline(match.group(1).strip()) if match else "",
                 "mermaid": match.group(2).strip() if match else "",
+                "depictedScope": figure_contract_field(figure_block, "Depicted scope"),
+                "accessibleEquivalent": figure_contract_field(figure_block, "Accessible equivalent"),
                 "provenance": {
                     "sourcePath": source_path,
                     "sourceId": source_id,
@@ -1377,11 +1380,14 @@ def mule_migration_visuals(items: list[dict[str, object]]) -> dict[str, object]:
             section,
             flags=re.IGNORECASE,
         )
+        figure_block = match.group(0) if match else ""
         figures.append(
             {
                 "figureId": figure_id,
                 "title": clean_inline(match.group(1).strip()) if match else "",
                 "mermaid": match.group(2).strip() if match else "",
+                "depictedScope": figure_contract_field(figure_block, "Depicted scope"),
+                "accessibleEquivalent": figure_contract_field(figure_block, "Accessible equivalent"),
                 "provenance": {
                     "sourcePath": source_path,
                     "sourceId": source_id,
@@ -1465,6 +1471,16 @@ def apigee_migration_visuals(items: list[dict[str, object]]) -> dict[str, object
     }
 
 
+def figure_contract_field(figure_block: str, label: str) -> str:
+    """Return one canonical figure-contract bullet (for example Depicted scope) as clean text."""
+    match = re.search(
+        rf"^-\s+\*\*{re.escape(label)}:\*\*\s*(.+)$",
+        figure_block,
+        flags=re.IGNORECASE | re.MULTILINE,
+    )
+    return clean_inline(match.group(1).strip()) if match else ""
+
+
 def guided_evaluation_visuals(
     items: list[dict[str, object]],
     deck_revision: str,
@@ -1535,6 +1551,44 @@ def guided_evaluation_visuals(
         except ValueError:
             return 0
         return int(number) if number.is_integer() else number
+
+    terminology_heading = "Guided presentation terminology and identifier contract"
+    identifier_columns = (
+        "Token or prefix",
+        "Canonical visible meaning",
+        "Classification",
+        "Use rule",
+    )
+    identifier_rows, identifier_provenance = scoped_rows(
+        terminology_heading,
+        identifier_columns,
+    )
+    identifier_catalog = [
+        {
+            "token": clean_inline(row_value(row, "Token or prefix")),
+            "meaning": clean_inline(row_value(row, "Canonical visible meaning")),
+            "classification": clean_inline(row_value(row, "Classification")),
+            "useRule": clean_inline(row_value(row, "Use rule")),
+        }
+        for row in identifier_rows
+    ]
+
+    term_columns = ("Slide ID", "Token", "Exact visible term", "Classification")
+    term_rows, term_provenance = scoped_rows(terminology_heading, term_columns)
+    terms_by_slide_id: dict[str, list[dict[str, str]]] = {}
+    for row in term_rows:
+        slide_id = clean_inline(row_value(row, "Slide ID"))
+        term = {
+            "token": clean_inline(row_value(row, "Token")),
+            "display": clean_inline(row_value(row, "Exact visible term")),
+            "classification": clean_inline(row_value(row, "Classification")),
+        }
+        if not slide_id or not all(term.values()):
+            raise ValueError("Guided terminology rows must include slide, token, display, and classification")
+        existing_tokens = {item["token"] for item in terms_by_slide_id.setdefault(slide_id, [])}
+        if term["token"] in existing_tokens:
+            raise ValueError(f"Guided terminology repeats {term['token']} on {slide_id}")
+        terms_by_slide_id[slide_id].append(term)
 
     target_columns = ("Lane", "Input ID", "Stated target input", "Decision implication")
     target_rows, target_provenance = scoped_rows("Stated target operating model", target_columns)
@@ -1769,6 +1823,34 @@ def guided_evaluation_visuals(
         for index, row in enumerate(proof_boundary_rows, start=1)
     ]
 
+    boundary_columns = ("Boundary ID", "Boundary", "Canonical record", "Operating description", "Decision role")
+    boundary_rows, boundary_provenance = scoped_rows("Operating boundaries to keep distinct", boundary_columns)
+    boundary_provenance["heading"] = "Operating boundaries to keep distinct"
+    boundaries = [
+        {
+            "id": clean_inline(row_value(row, "Boundary ID")),
+            "boundary": clean_inline(row_value(row, "Boundary")),
+            "record": clean_inline(row_value(row, "Canonical record")),
+            "description": clean_inline(row_value(row, "Operating description")),
+            "role": clean_inline(row_value(row, "Decision role")),
+        }
+        for row in boundary_rows
+    ]
+
+    duty_columns = ("Fit ID", "Outcome sought", "Why it fits", "Permanent duty", "Counterfactual that would change the answer")
+    duty_rows, duty_provenance = scoped_rows("Custody fit and permanent duty", duty_columns)
+    duty_provenance["heading"] = "Custody fit and permanent duty"
+    duties = [
+        {
+            "id": clean_inline(row_value(row, "Fit ID")),
+            "outcome": clean_inline(row_value(row, "Outcome sought")),
+            "fit": clean_inline(row_value(row, "Why it fits")),
+            "permanentDuty": clean_inline(row_value(row, "Permanent duty")),
+            "counterfactual": clean_inline(row_value(row, "Counterfactual that would change the answer")),
+        }
+        for row in duty_rows
+    ]
+
     comparison_columns = ("Input ID", "Criterion", "Kong input", "MuleSoft input", "Apigee input", "Evidence treatment")
 
     def comparison(heading: str) -> dict[str, object]:
@@ -1906,6 +1988,7 @@ def guided_evaluation_visuals(
                 "sourcePaths": source_paths,
                 "sourceIds": [by_path[path] for path in source_paths if path in by_path],
                 "officialReferences": official_references_by_slide_id.get(slide_id, []),
+                "terms": terms_by_slide_id.get(slide_id, []),
                 "evidenceState": str(slide_evidence.get("evidenceState", "")),
                 "sourceClass": str(slide_evidence.get("sourceClass", "")),
                 "evidenceInterpretation": str(slide_evidence.get("interpretation", "")),
@@ -1916,6 +1999,13 @@ def guided_evaluation_visuals(
         first_key_by_phase.setdefault(str(slide["phaseId"]), str(slide["key"]))
     for phase in phases:
         phase["startKey"] = first_key_by_phase.get(str(phase["id"]), "")
+    known_slide_ids = {str(slide["slideId"]) for slide in slides}
+    unknown_term_slide_ids = set(terms_by_slide_id) - known_slide_ids
+    if unknown_term_slide_ids:
+        raise ValueError(
+            "Guided terminology references unknown slides: "
+            + ", ".join(sorted(unknown_term_slide_ids))
+        )
 
     assessment_heading = "Local interactive assessment contract"
     assessment_section = markdown_section(facilitator_text, assessment_heading)
@@ -1945,6 +2035,11 @@ def guided_evaluation_visuals(
         "Canonical values",
         "Rule",
     )
+    interface_term_columns = (
+        "Token",
+        "Exact visible term",
+        "Interface purpose",
+    )
 
     def stable_ids(value: str) -> list[str]:
         """Expand semicolon-separated stable IDs and inclusive ``ID..ID`` ranges."""
@@ -1973,6 +2068,43 @@ def guided_evaluation_visuals(
                 if stable_id not in values:
                     values.append(stable_id)
         return values
+
+    interface_term_rows = markdown_table(assessment_section, interface_term_columns)
+    interface_terms = [
+        {
+            "token": clean_inline(row_value(row, "Token")),
+            "display": clean_inline(row_value(row, "Exact visible term")),
+            "purpose": clean_inline(row_value(row, "Interface purpose")),
+        }
+        for row in interface_term_rows
+    ]
+    expected_interface_terms = [
+        ("API", "application programming interface (API)"),
+        ("E0", "assertion-only evidence (E0)"),
+        ("E1", "current official documentation (E1)"),
+        ("E2", "vendor answer with named version or contract term (E2)"),
+        ("E3", "repeatable lab evidence (E3)"),
+        ("E4", "representative pilot evidence (E4)"),
+        ("ID", "identifier (ID)"),
+        ("BOM", "bill of materials (BOM)"),
+        ("JSON", "JavaScript Object Notation (JSON)"),
+        ("URL", "uniform resource locator (URL)"),
+        ("IP", "Internet Protocol (IP)"),
+        ("IAM", "identity and access management (IAM)"),
+        ("SRE", "site reliability engineering (SRE)"),
+        ("FinOps", "financial operations (FinOps)"),
+        ("N/A", "not applicable (N/A)"),
+        ("TCO", "total cost of ownership (TCO)"),
+        ("HA", "high availability (HA)"),
+        ("DR", "disaster recovery (DR)"),
+    ]
+    if [
+        (term["token"], term["display"])
+        for term in interface_terms
+    ] != expected_interface_terms:
+        raise ValueError("Assessment interface terminology does not match the canonical ordered contract")
+    if any(not term["purpose"] for term in interface_terms):
+        raise ValueError("Assessment interface terminology requires an interface purpose")
 
     question_rows = markdown_table(assessment_section, question_columns)
     questions: list[dict[str, object]] = []
@@ -2170,6 +2302,7 @@ def guided_evaluation_visuals(
         "questionTableColumns": list(question_columns),
         "choiceSetTableColumns": list(choice_set_columns),
         "reviewRequirementsTableColumns": list(review_requirement_columns),
+        "interfaceTermTableColumns": list(interface_term_columns),
         "sourceClass": facilitator_source_class,
         "evidenceState": facilitator_evidence_state,
         "asOf": facilitator_as_of,
@@ -2187,6 +2320,7 @@ def guided_evaluation_visuals(
         "choiceSets": choice_sets,
         "reviewRequirements": review_requirements,
         "publicRoles": public_roles,
+        "interfaceTerms": interface_terms,
         "provenance": assessment_provenance,
     }
 
@@ -2203,6 +2337,7 @@ def guided_evaluation_visuals(
         "choiceSets",
         "reviewRequirements",
         "publicRoles",
+        "interfaceTerms",
         "provenance",
     }
     expected_question_keys = {
@@ -2232,6 +2367,20 @@ def guided_evaluation_visuals(
         "evidenceState": evidence_state,
         "asOf": as_of,
         "metadata": metadata,
+        "identifierCatalog": {
+            "rowTotal": len(identifier_catalog),
+            "rows": identifier_catalog,
+            "provenance": identifier_provenance,
+        },
+        "termSets": {
+            "rowTotal": len(terms_by_slide_id),
+            "termTotal": sum(len(terms) for terms in terms_by_slide_id.values()),
+            "rows": [
+                {"slideId": slide_id, "terms": terms}
+                for slide_id, terms in terms_by_slide_id.items()
+            ],
+            "provenance": term_provenance,
+        },
         "targetModel": {"rowTotal": len(target_model), "rows": target_model, "provenance": target_provenance},
         "earlyGates": {"rowTotal": len(early_gates), "rows": early_gates, "provenance": early_gate_provenance},
         "weights": {"rowTotal": len(weights), "rows": weights, "weightTotal": sum(row["weight"] for row in weights), "provenance": weight_provenance},
@@ -2244,6 +2393,8 @@ def guided_evaluation_visuals(
         "proofProgramme": {"rowTotal": len(proof_programme), "rows": proof_programme, "provenance": proof_programme_provenance},
         "securityAdjuncts": {"rowTotal": len(security_adjuncts), "rows": security_adjuncts, "provenance": adjunct_provenance},
         "proofBoundary": {"rowTotal": len(proof_boundary), "rows": proof_boundary, "provenance": proof_boundary_provenance},
+        "boundaries": {"rowTotal": len(boundaries), "rows": boundaries, "provenance": boundary_provenance},
+        "duties": {"rowTotal": len(duties), "rows": duties, "provenance": duty_provenance},
         "evidenceStates": {"rowTotal": len(evidence_states), "rows": evidence_states, "provenance": evidence_provenance},
         "referenceCatalog": {"rowTotal": len(reference_catalog), "rows": reference_catalog, "provenance": reference_provenance},
         "comparisons": {
@@ -2388,11 +2539,51 @@ def validate_site_projection(stats: dict[str, int], visuals: dict[str, object]) 
     mule_migration = visuals.get("muleMigration")
     apigee_migration = visuals.get("apigeeMigration")
     guided_evaluation = visuals.get("guidedEvaluation")
+    kong_fit_rows_head = list(kong_platform.get("fit", {}).get("rows", []))[:2] if isinstance(kong_platform, dict) else []
     guided_slide_rows = (
         list(guided_evaluation.get("slides", {}).get("rows", []))
         if isinstance(guided_evaluation, dict)
         else []
     )
+    guided_identifier_tokens = [
+        "KGE", "EAG", "GTM", "GEW", "GRS", "GEO", "GEB", "KMC",
+        "KPS", "KP", "MULE", "GEP", "GSA", "KO", "GEC",
+    ]
+    guided_term_tokens = [
+        ("KGE-01", ["KGE", "API", "EAG", "WAAP"]),
+        ("KGE-02", ["GTM", "AKS", "AI", "TCO", "APIOps", "MCP", "A2A"]),
+        ("KGE-03", ["GEW", "GRS", "IAM"]),
+        ("KGE-04", ["KGE", "API", "APIM", "CP", "PKI", "MART", "GEO", "KP-SMH1"]),
+        ("KGE-05", ["GRS"]),
+        ("KGE-06", ["E2", "E3", "E4", "HA", "DR"]),
+        ("KGE-07", ["GEB", "KMC", "KP-SMH1", "E1", "DP", "KPS"]),
+        ("KGE-08", ["KPS-FIT"]),
+        ("KGE-09", ["KGE", "API", "CP", "DP", "PKI", "IdP", "mTLS", "DNS", "HA", "SLO", "KPS", "E1", "RBAC", "WAF", "SIEM"]),
+        ("KGE-10", ["IdP", "CA", "CN", "JSON", "JWKS"]),
+        ("KGE-12", ["DB", "SRE", "IAM"]),
+        ("KGE-13", ["KP0–KP5", "KP-SMH1", "E2", "E3", "E4", "BOM", "RACI", "GP-1–GP-6"]),
+        ("KGE-14", ["KGE", "API", "MULE", "SFTP", "SaaS"]),
+        ("KGE-15", ["AKS", "CRM"]),
+        ("KGE-16", ["A0–A6", "M0–M5", "SLO", "E4"]),
+        ("KGE-17", ["KGE", "API", "PoC", "KP-SMH1", "E3", "E4", "CP", "AI", "TCO"]),
+        ("KGE-18", ["API", "GEP", "GSA", "LTS", "BOM", "SBOM", "APIOps", "IAM", "MCP", "A2A", "RTO", "RPO", "RACI", "WAAP"]),
+        ("KGE-19", ["KO", "DP", "SLI", "SLO", "SRE", "OAuth", "mTLS", "IdP", "PKI", "PR"]),
+        ("KGE-20", ["DLP", "DNS", "KP0", "FinOps"]),
+        ("KGE-21", ["KPS", "E1", "E2"]),
+        ("KGE-22", ["KGE", "API", "GEC", "CP", "DP"]),
+        ("KGE-23", ["AI", "GenAI", "MCP", "A2A", "E1", "WAAP"]),
+        ("KGE-24", ["TCO", "CP", "PKI", "HA", "DR", "PAYG", "RACI"]),
+        ("KGE-25", ["E0", "GEW", "GRS", "IAM", "TCO", "CP"]),
+    ]
+    guided_term_rows = (
+        list(guided_evaluation.get("termSets", {}).get("rows", []))
+        if isinstance(guided_evaluation, dict)
+        else []
+    )
+    guided_terms_by_slide_id = {
+        str(row.get("slideId", "")): row.get("terms", [])
+        for row in guided_term_rows
+    }
     checks = {
         "bounded archetypes": isinstance(variants, list) and bool(variants),
         "methodology decision steps": isinstance(methodology, dict) and bool(methodology.get("steps")),
@@ -2569,6 +2760,26 @@ def validate_site_projection(stats: dict[str, int], visuals: dict[str, object]) 
             and guided_evaluation.get("sourceClass") == "comparative-study"
             and guided_evaluation.get("asOf") == "2026-08-22"
             and bool(guided_evaluation.get("evidenceState"))
+            and guided_evaluation.get("identifierCatalog", {}).get("rowTotal") == 15
+            and [row.get("token") for row in guided_evaluation.get("identifierCatalog", {}).get("rows", [])]
+            == guided_identifier_tokens
+            and all(
+                row.get("meaning") and row.get("classification") and row.get("useRule")
+                for row in guided_evaluation.get("identifierCatalog", {}).get("rows", [])
+            )
+            and guided_evaluation.get("termSets", {}).get("rowTotal") == 24
+            and guided_evaluation.get("termSets", {}).get("termTotal") == 141
+            and [
+                (row.get("slideId"), [term.get("token") for term in row.get("terms", [])])
+                for row in guided_evaluation.get("termSets", {}).get("rows", [])
+            ] == guided_term_tokens
+            and all(
+                term.get("display")
+                and term.get("classification")
+                and term.get("display").endswith(f"({term.get('token')})")
+                for row in guided_evaluation.get("termSets", {}).get("rows", [])
+                for term in row.get("terms", [])
+            )
             and guided_evaluation.get("targetModel", {}).get("rowTotal") == 9
             and [row.get("id") for row in guided_evaluation.get("targetModel", {}).get("rows", [])]
             == [f"GTM-{rank:02d}" for rank in range(1, 10)]
@@ -2626,6 +2837,28 @@ def validate_site_projection(stats: dict[str, int], visuals: dict[str, object]) 
             and guided_evaluation.get("proofBoundary", {}).get("rowTotal") == 3
             and [row.get("id") for row in guided_evaluation.get("proofBoundary", {}).get("rows", [])]
             == [f"KGE-PROOF-{rank:02d}" for rank in range(1, 4)]
+            and guided_evaluation.get("boundaries", {}).get("rowTotal") == 3
+            and [row.get("id") for row in guided_evaluation.get("boundaries", {}).get("rows", [])]
+            == [f"GEB-{rank:02d}" for rank in range(1, 4)]
+            and all(
+                row.get("boundary") and row.get("record") and row.get("description") and row.get("role")
+                for row in guided_evaluation.get("boundaries", {}).get("rows", [])
+            )
+            and guided_evaluation.get("boundaries", {}).get("provenance", {}).get("heading")
+            == "Operating boundaries to keep distinct"
+            and guided_evaluation.get("duties", {}).get("rowTotal") == 2
+            and [row.get("id") for row in guided_evaluation.get("duties", {}).get("rows", [])]
+            == ["KPS-FIT-01", "KPS-FIT-02"]
+            and all(
+                row.get("outcome") and row.get("fit") and row.get("permanentDuty") and row.get("counterfactual")
+                for row in guided_evaluation.get("duties", {}).get("rows", [])
+            )
+            and [row.get("id") for row in guided_evaluation.get("duties", {}).get("rows", [])]
+            == [row.get("projectionId") for row in kong_fit_rows_head]
+            and [row.get("outcome") for row in guided_evaluation.get("duties", {}).get("rows", [])]
+            == [row.get("outcome") for row in kong_fit_rows_head]
+            and [row.get("counterfactual") for row in guided_evaluation.get("duties", {}).get("rows", [])]
+            == [row.get("counterfactual") for row in kong_fit_rows_head]
             and guided_evaluation.get("evidenceStates", {}).get("rowTotal") == 15
             and [
                 slide_id
@@ -2684,6 +2917,11 @@ def validate_site_projection(stats: dict[str, int], visuals: dict[str, object]) 
             ]
             and all(row.get("sourceClass") and row.get("evidenceInterpretation") for row in guided_slide_rows)
             and all(
+                row.get("terms")
+                == guided_terms_by_slide_id.get(str(row.get("slideId", "")), [])
+                for row in guided_slide_rows
+            )
+            and all(
                 row.get("key")
                 and row.get("viewId")
                 and row.get("phaseId")
@@ -2699,6 +2937,8 @@ def validate_site_projection(stats: dict[str, int], visuals: dict[str, object]) 
                 and block.get("provenance", {}).get("sourceClass") == guided_evaluation.get("sourceClass")
                 and block.get("provenance", {}).get("asOf") == guided_evaluation.get("asOf")
                 for block in (
+                    guided_evaluation.get("identifierCatalog", {}),
+                    guided_evaluation.get("termSets", {}),
                     guided_evaluation.get("targetModel", {}),
                     guided_evaluation.get("earlyGates", {}),
                     guided_evaluation.get("weights", {}),
@@ -3109,8 +3349,8 @@ def make_presentation(items: list[dict[str, object]], stats: dict[str, int], vis
         "options": block_ids(guided.get("options", {})),
         "score": block_ids(guided.get("scoring", {})),
         "decision": block_ids(guided.get("authorization", {})),
-        "boundary": ["KMC-3", "KMC-2"],
-        "duty": [str(row.get("projectionId", "")) for row in kong_fit_rows if row.get("projectionId")],
+        "boundary": block_ids(guided.get("boundaries", {})),
+        "duty": block_ids(guided.get("duties", {})),
         "adoption": [str(row.get("id", "")) for row in kong_phases if row.get("id")],
         "migration-boundary": [str(row.get("id", "")) for row in mule_responsibilities if row.get("id")],
         "waves": [str(row.get("id", "")) for row in mule_waves if row.get("id")],
@@ -3134,16 +3374,18 @@ def make_presentation(items: list[dict[str, object]], stats: dict[str, int], vis
         "waves": ["MULE-6"],
         "assurance": ["KPS-6"],
     }
-    guided_option_ids = {"boundary": ["KMC-3", "KMC-2"]}
+    guided_option_ids = {"boundary": ["KMC-3", "KMC-1"]}
     for contract in guided_contract:
         view_id = str(contract.get("viewId", ""))
-        phase = guided_phases.get(str(contract.get("phaseId", "")), {})
+        phase_id = str(contract.get("phaseId", ""))
+        phase = guided_phases.get(phase_id, {})
+        visible_phase_id = phase_id.removeprefix("KGE-")
         figure_id_values = guided_figure_ids.get(view_id, [])
         guided_slide: dict[str, object] = {
             "index": len(slides),
             "key": str(contract.get("key", "")),
             "slideId": str(contract.get("slideId", "")),
-            "eyebrow": f"{contract.get('phaseId', '')} · {phase.get('label', '')}".strip(" ·"),
+            "eyebrow": f"{visible_phase_id} · {phase.get('label', '')}".strip(" ·"),
             "title": str(contract.get("title", "")),
             "body": str(contract.get("body", "")),
             "sourceId": str(contract.get("primarySourceId", "")),
@@ -3154,11 +3396,23 @@ def make_presentation(items: list[dict[str, object]], stats: dict[str, int], vis
                 for reference in contract.get("officialReferences", [])
                 if isinstance(reference, dict) and reference.get("label") and reference.get("url")
             ],
+            "terms": [
+                {
+                    "token": str(term.get("token", "")),
+                    "display": str(term.get("display", "")),
+                    "classification": str(term.get("classification", "")),
+                }
+                for term in contract.get("terms", [])
+                if isinstance(term, dict)
+                and term.get("token")
+                and term.get("display")
+                and term.get("classification")
+            ],
             "metric": str(contract.get("slideId", "")),
             "metricLabel": "canonical frame",
             "visual": "guidedEvaluation",
             "viewId": view_id,
-            "phaseId": str(contract.get("phaseId", "")),
+            "phaseId": phase_id,
             "phaseLabel": str(phase.get("label", "")),
             "phaseOutcome": str(phase.get("outcome", "")),
             "visualContract": str(contract.get("visualContract", "")),
