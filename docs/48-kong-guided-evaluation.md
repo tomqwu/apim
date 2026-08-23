@@ -428,6 +428,7 @@ The rows below are the exact ordered native-slide term sets. Each display string
 | KGE-01 | KGE | Kong Guided Evaluation (KGE) | Documented internal expansion |
 | KGE-01 | API | application programming interface (API) | Industry term |
 | KGE-01 | EAG | Early Assessment Gate (EAG) | Documented internal expansion |
+| KGE-01 | WAAP | Web Application & API Protection (WAAP) | Industry term |
 | KGE-02 | GTM | target-model record (GTM) | Internal record descriptor |
 | KGE-02 | AKS | Azure Kubernetes Service (AKS) | Industry term |
 | KGE-02 | AI | artificial intelligence (AI) | Industry term |
@@ -464,6 +465,9 @@ The rows below are the exact ordered native-slide term sets. Each display string
 | KGE-09 | CP | control plane (CP) | Industry term |
 | KGE-09 | DP | data plane (DP) | Industry term |
 | KGE-09 | PKI | public key infrastructure (PKI) | Industry term |
+| KGE-09 | IdP | identity provider (IdP) | Industry term |
+| KGE-09 | mTLS | mutual Transport Layer Security (mTLS) | Industry term |
+| KGE-09 | DNS | Domain Name System (DNS) | Industry term |
 | KGE-09 | HA | high availability (HA) | Industry term |
 | KGE-09 | SLO | service-level objective (SLO) | Industry term |
 | KGE-09 | KPS | platform-strategy figure (KPS) | Internal record descriptor |
@@ -471,13 +475,19 @@ The rows below are the exact ordered native-slide term sets. Each display string
 | KGE-09 | RBAC | role-based access control (RBAC) | Industry term |
 | KGE-09 | WAF | web application firewall (WAF) | Industry term |
 | KGE-09 | SIEM | security information and event management (SIEM) | Industry term |
+| KGE-10 | IdP | identity provider (IdP) | Industry term |
 | KGE-10 | CA | certificate authority (CA) | Industry term |
 | KGE-10 | CN | Common Name (CN) | Industry term |
+| KGE-10 | JSON | JavaScript Object Notation (JSON) | Industry term |
 | KGE-10 | JWKS | JSON Web Key Set (JWKS) | Industry term |
 | KGE-12 | DB | database (DB) | Industry term |
 | KGE-12 | SRE | site reliability engineering (SRE) | Industry term |
 | KGE-12 | IAM | identity and access management (IAM) | Industry term |
 | KGE-13 | KP0–KP5 | adoption-stage records (KP0–KP5) | Internal stage descriptor |
+| KGE-13 | KP-SMH1 | self-managed hybrid target (KP-SMH1) | Named target |
+| KGE-13 | E2 | vendor answer with named version or contract term (E2) | Governed evidence grade |
+| KGE-13 | E3 | repeatable lab evidence (E3) | Governed evidence grade |
+| KGE-13 | E4 | representative pilot evidence (E4) | Governed evidence grade |
 | KGE-13 | BOM | bill of materials (BOM) | Industry term |
 | KGE-13 | RACI | responsible, accountable, consulted, and informed (RACI) | Industry term |
 | KGE-13 | GP-1–GP-6 | governed-pattern records (GP-1–GP-6) | Internal stage descriptor |
@@ -485,6 +495,7 @@ The rows below are the exact ordered native-slide term sets. Each display string
 | KGE-14 | API | application programming interface (API) | Industry term |
 | KGE-14 | MULE | Mule migration figure (MULE) | Internal record descriptor |
 | KGE-14 | SFTP | Secure Shell File Transfer Protocol (SFTP) | Industry term |
+| KGE-14 | SaaS | software as a service (SaaS) | Industry term |
 | KGE-15 | AKS | Azure Kubernetes Service (AKS) | Industry term |
 | KGE-15 | CRM | customer relationship management (CRM) | Industry term |
 | KGE-16 | A0–A6 | Apigee migration stages (A0–A6) | Internal stage descriptor |
@@ -492,6 +503,7 @@ The rows below are the exact ordered native-slide term sets. Each display string
 | KGE-16 | SLO | service-level objective (SLO) | Industry term |
 | KGE-16 | E4 | representative pilot evidence (E4) | Governed evidence grade |
 | KGE-17 | KGE | Kong Guided Evaluation (KGE) | Documented internal expansion |
+| KGE-17 | API | application programming interface (API) | Industry term |
 | KGE-17 | PoC | proof of concept (PoC) | Industry term |
 | KGE-17 | KP-SMH1 | self-managed hybrid target (KP-SMH1) | Named target |
 | KGE-17 | E3 | repeatable lab evidence (E3) | Governed evidence grade |
@@ -512,16 +524,21 @@ The rows below are the exact ordered native-slide term sets. Each display string
 | KGE-18 | RTO | recovery time objective (RTO) | Industry term |
 | KGE-18 | RPO | recovery point objective (RPO) | Industry term |
 | KGE-18 | RACI | responsible, accountable, consulted, and informed (RACI) | Industry term |
+| KGE-18 | WAAP | Web Application & API Protection (WAAP) | Industry term |
 | KGE-19 | KO | outcome record (KO) | Internal record descriptor |
 | KGE-19 | DP | data plane (DP) | Industry term |
 | KGE-19 | SLI | service-level indicator (SLI) | Industry term |
 | KGE-19 | SLO | service-level objective (SLO) | Industry term |
 | KGE-19 | SRE | site reliability engineering (SRE) | Industry term |
 | KGE-19 | OAuth | OAuth 2.0 authorization framework (OAuth) | Industry term |
+| KGE-19 | mTLS | mutual Transport Layer Security (mTLS) | Industry term |
+| KGE-19 | IdP | identity provider (IdP) | Industry term |
 | KGE-19 | PKI | public key infrastructure (PKI) | Industry term |
 | KGE-19 | PR | pull request (PR) | Industry term |
 | KGE-20 | DLP | data loss prevention (DLP) | Industry term |
 | KGE-20 | DNS | Domain Name System (DNS) | Industry term |
+| KGE-20 | KP0 | adoption stage 0 (KP0) | Internal stage descriptor |
+| KGE-20 | FinOps | financial operations (FinOps) | Industry term |
 | KGE-21 | KPS | platform-strategy figure (KPS) | Internal record descriptor |
 | KGE-21 | E1 | current official documentation (E1) | Governed evidence grade |
 | KGE-21 | E2 | vendor answer with named version or contract term (E2) | Governed evidence grade |
@@ -535,6 +552,7 @@ The rows below are the exact ordered native-slide term sets. Each display string
 | KGE-23 | MCP | Model Context Protocol (MCP) | Industry term |
 | KGE-23 | A2A | Agent2Agent Protocol (A2A) | Industry term |
 | KGE-23 | E1 | current official documentation (E1) | Governed evidence grade |
+| KGE-23 | WAAP | Web Application & API Protection (WAAP) | Industry term |
 | KGE-24 | TCO | total cost of ownership (TCO) | Industry term |
 | KGE-24 | CP | control plane (CP) | Industry term |
 | KGE-24 | PKI | public key infrastructure (PKI) | Industry term |

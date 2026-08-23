@@ -1793,6 +1793,31 @@ The generated public manifest exposes this question, choice-set, and reviewabili
 
 `Minimum evidence` is the floor required before the question's subject may influence the named decision; it is not evidence supplied by the answer. `Mandatory` means the question must be dispositioned on the full decision route. Route-specific questions may remain not assessed when that scope is not authorized. The full contract contains 18 questions; Phase 1 carries six, including one explicit question for each early gate. A completed question count is meeting progress only: never calculate or display a readiness percentage.
 
+### Assessment interface terminology
+
+The assessment drawer and summary project this ordered terminology rail before any form or export control that uses the token. It defines interface language only; the question and slide evidence boundaries remain authoritative.
+
+| Token | Exact visible term | Interface purpose |
+|---|---|---|
+| API | application programming interface (API) | Assessment prompt and target context |
+| E0 | assertion-only evidence (E0) | Participant evidence-level selector |
+| E1 | current official documentation (E1) | Participant evidence-level selector |
+| E2 | vendor answer with named version or contract term (E2) | Participant evidence-level selector |
+| E3 | repeatable lab evidence (E3) | Participant evidence-level selector |
+| E4 | representative pilot evidence (E4) | Participant evidence-level selector |
+| ID | identifier (ID) | Public-safe target and artifact fields |
+| BOM | bill of materials (BOM) | Exact-option field guidance |
+| JSON | JavaScript Object Notation (JSON) | Structured local-export format |
+| URL | uniform resource locator (URL) | Privacy warning and public references |
+| IP | Internet Protocol (IP) | Privacy warning |
+| IAM | identity and access management (IAM) | Controlled public-role label |
+| SRE | site reliability engineering (SRE) | Controlled public-role label |
+| FinOps | financial operations (FinOps) | Controlled public-role label |
+| N/A | not applicable (N/A) | Explicit route-specific response state |
+| TCO | total cost of ownership (TCO) | Phase 1 cost question and summary |
+| HA | high availability (HA) | Phase 1 cost question and summary |
+| DR | disaster recovery (DR) | Phase 1 cost question and summary |
+
 ### Assessment questions
 
 | Question ID | Phase ID | Slide IDs | Existing target IDs | Prompt | Decision use | Evidence boundary | Minimum evidence | Mandatory | Choice set ID | Hold rule |

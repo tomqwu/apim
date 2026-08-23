@@ -240,7 +240,7 @@ KONG_GUIDED_TERM_COLUMNS = (
 )
 KONG_GUIDED_INTERNAL_DESCRIPTOR_TOKENS = KONG_GUIDED_IDENTIFIER_TOKENS[2:]
 KONG_GUIDED_TERM_TOKENS = (
-    ("KGE-01", ("KGE", "API", "EAG")),
+    ("KGE-01", ("KGE", "API", "EAG", "WAAP")),
     ("KGE-02", ("GTM", "AKS", "AI", "TCO", "APIOps", "MCP", "A2A")),
     ("KGE-03", ("GEW", "GRS", "IAM")),
     ("KGE-04", ("KGE", "API", "APIM", "CP", "PKI", "MART", "GEO", "KP-SMH1")),
@@ -248,20 +248,20 @@ KONG_GUIDED_TERM_TOKENS = (
     ("KGE-06", ("E2", "E3", "E4", "HA", "DR")),
     ("KGE-07", ("GEB", "KMC", "KP-SMH1", "E1", "DP", "KPS")),
     ("KGE-08", ("KPS-FIT",)),
-    ("KGE-09", ("KGE", "API", "CP", "DP", "PKI", "HA", "SLO", "KPS", "E1", "RBAC", "WAF", "SIEM")),
-    ("KGE-10", ("CA", "CN", "JWKS")),
+    ("KGE-09", ("KGE", "API", "CP", "DP", "PKI", "IdP", "mTLS", "DNS", "HA", "SLO", "KPS", "E1", "RBAC", "WAF", "SIEM")),
+    ("KGE-10", ("IdP", "CA", "CN", "JSON", "JWKS")),
     ("KGE-12", ("DB", "SRE", "IAM")),
-    ("KGE-13", ("KP0–KP5", "BOM", "RACI", "GP-1–GP-6")),
-    ("KGE-14", ("KGE", "API", "MULE", "SFTP")),
+    ("KGE-13", ("KP0–KP5", "KP-SMH1", "E2", "E3", "E4", "BOM", "RACI", "GP-1–GP-6")),
+    ("KGE-14", ("KGE", "API", "MULE", "SFTP", "SaaS")),
     ("KGE-15", ("AKS", "CRM")),
     ("KGE-16", ("A0–A6", "M0–M5", "SLO", "E4")),
-    ("KGE-17", ("KGE", "PoC", "KP-SMH1", "E3", "E4", "CP", "AI", "TCO")),
-    ("KGE-18", ("API", "GEP", "GSA", "LTS", "BOM", "SBOM", "APIOps", "IAM", "MCP", "A2A", "RTO", "RPO", "RACI")),
-    ("KGE-19", ("KO", "DP", "SLI", "SLO", "SRE", "OAuth", "PKI", "PR")),
-    ("KGE-20", ("DLP", "DNS")),
+    ("KGE-17", ("KGE", "API", "PoC", "KP-SMH1", "E3", "E4", "CP", "AI", "TCO")),
+    ("KGE-18", ("API", "GEP", "GSA", "LTS", "BOM", "SBOM", "APIOps", "IAM", "MCP", "A2A", "RTO", "RPO", "RACI", "WAAP")),
+    ("KGE-19", ("KO", "DP", "SLI", "SLO", "SRE", "OAuth", "mTLS", "IdP", "PKI", "PR")),
+    ("KGE-20", ("DLP", "DNS", "KP0", "FinOps")),
     ("KGE-21", ("KPS", "E1", "E2")),
     ("KGE-22", ("KGE", "API", "GEC", "CP", "DP")),
-    ("KGE-23", ("AI", "GenAI", "MCP", "A2A", "E1")),
+    ("KGE-23", ("AI", "GenAI", "MCP", "A2A", "E1", "WAAP")),
     ("KGE-24", ("TCO", "CP", "PKI", "HA", "DR", "PAYG", "RACI")),
     ("KGE-25", ("E0", "GEW", "GRS", "IAM", "TCO", "CP")),
 )
@@ -436,6 +436,29 @@ KONG_GUIDED_ASSESSMENT_CHOICE_COLUMNS = (
 )
 KONG_GUIDED_ASSESSMENT_REVIEW_REQUIREMENT_COLUMNS = (
     "Manifest field", "Applies when", "Canonical values", "Rule",
+)
+KONG_GUIDED_ASSESSMENT_INTERFACE_TERM_COLUMNS = (
+    "Token", "Exact visible term", "Interface purpose",
+)
+KONG_GUIDED_ASSESSMENT_INTERFACE_TERMS = (
+    ("API", "application programming interface (API)"),
+    ("E0", "assertion-only evidence (E0)"),
+    ("E1", "current official documentation (E1)"),
+    ("E2", "vendor answer with named version or contract term (E2)"),
+    ("E3", "repeatable lab evidence (E3)"),
+    ("E4", "representative pilot evidence (E4)"),
+    ("ID", "identifier (ID)"),
+    ("BOM", "bill of materials (BOM)"),
+    ("JSON", "JavaScript Object Notation (JSON)"),
+    ("URL", "uniform resource locator (URL)"),
+    ("IP", "Internet Protocol (IP)"),
+    ("IAM", "identity and access management (IAM)"),
+    ("SRE", "site reliability engineering (SRE)"),
+    ("FinOps", "financial operations (FinOps)"),
+    ("N/A", "not applicable (N/A)"),
+    ("TCO", "total cost of ownership (TCO)"),
+    ("HA", "high availability (HA)"),
+    ("DR", "disaster recovery (DR)"),
 )
 KONG_GUIDED_ASSESSMENT_SUMMARY_ROUTE = (
     "#/present/kong-platform-journey-guided/summary"
@@ -1606,7 +1629,7 @@ def validate_kong_guided_evaluation(
         set(assessment) == {
             "schemaVersion", "deckRevision", "sourcePath", "sourceId", "sourceClass",
             "evidenceState", "asOf", "questions", "phaseQuestionIds", "choiceSets",
-            "reviewRequirements", "publicRoles", "provenance",
+            "reviewRequirements", "publicRoles", "interfaceTerms", "provenance",
         },
         "guided assessmentContract fields must match the exact v2 schema",
     )
@@ -1796,6 +1819,16 @@ def validate_kong_guided_evaluation(
         and tuple(public_roles) == KONG_GUIDED_ASSESSMENT_PUBLIC_ROLES,
         "guided assessment publicRoles must preserve the exact controlled public-role order",
     )
+    interface_terms = assessment.get("interfaceTerms")
+    require(
+        isinstance(interface_terms, list)
+        and all(isinstance(term, dict) for term in interface_terms)
+        and all(set(term) == {"token", "display", "purpose"} for term in interface_terms)
+        and tuple((term.get("token"), term.get("display")) for term in interface_terms)
+        == KONG_GUIDED_ASSESSMENT_INTERFACE_TERMS
+        and all(isinstance(term.get("purpose"), str) and term["purpose"].strip() for term in interface_terms),
+        "guided assessment interfaceTerms must preserve the exact ordered first-use terminology contract",
+    )
     review_requirements = assessment.get("reviewRequirements")
     require(isinstance(review_requirements, dict), "guided assessment reviewRequirements must be an object")
     require(
@@ -1847,6 +1880,7 @@ def validate_kong_guided_evaluation(
         set(assessment_provenance) == {
             "sourcePath", "sourceId", "sourcePaths", "sourceIds", "sourceHeading",
             "questionTableColumns", "choiceSetTableColumns", "reviewRequirementsTableColumns",
+            "interfaceTermTableColumns",
             "sourceClass", "evidenceState", "asOf",
         },
         "guided assessment provenance fields must match the exact public-safe v2 schema",
@@ -1861,6 +1895,7 @@ def validate_kong_guided_evaluation(
             tuple(assessment_provenance.get("questionTableColumns", ())),
             tuple(assessment_provenance.get("choiceSetTableColumns", ())),
             tuple(assessment_provenance.get("reviewRequirementsTableColumns", ())),
+            tuple(assessment_provenance.get("interfaceTermTableColumns", ())),
             assessment_provenance.get("sourceClass"),
             assessment_provenance.get("evidenceState"),
             assessment_provenance.get("asOf"),
@@ -1874,6 +1909,7 @@ def validate_kong_guided_evaluation(
             KONG_GUIDED_ASSESSMENT_QUESTION_COLUMNS,
             KONG_GUIDED_ASSESSMENT_CHOICE_COLUMNS,
             KONG_GUIDED_ASSESSMENT_REVIEW_REQUIREMENT_COLUMNS,
+            KONG_GUIDED_ASSESSMENT_INTERFACE_TERM_COLUMNS,
             KONG_GUIDED_ASSESSMENT_SOURCE_CLASS,
             KONG_GUIDED_ASSESSMENT_EVIDENCE_STATE,
             KONG_GUIDED_ASSESSMENT_AS_OF,

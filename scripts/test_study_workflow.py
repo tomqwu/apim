@@ -2126,7 +2126,7 @@ process.stdout.write(window.ApiStudyCharts.render("criteriaOverview", data, {com
             "KPS", "KP", "MULE", "GEP", "GSA", "KO", "GEC",
         )
         term_tokens = (
-            ("KGE-01", ("KGE", "API", "EAG")),
+            ("KGE-01", ("KGE", "API", "EAG", "WAAP")),
             ("KGE-02", ("GTM", "AKS", "AI", "TCO", "APIOps", "MCP", "A2A")),
             ("KGE-03", ("GEW", "GRS", "IAM")),
             ("KGE-04", ("KGE", "API", "APIM", "CP", "PKI", "MART", "GEO", "KP-SMH1")),
@@ -2134,20 +2134,20 @@ process.stdout.write(window.ApiStudyCharts.render("criteriaOverview", data, {com
             ("KGE-06", ("E2", "E3", "E4", "HA", "DR")),
             ("KGE-07", ("GEB", "KMC", "KP-SMH1", "E1", "DP", "KPS")),
             ("KGE-08", ("KPS-FIT",)),
-            ("KGE-09", ("KGE", "API", "CP", "DP", "PKI", "HA", "SLO", "KPS", "E1", "RBAC", "WAF", "SIEM")),
-            ("KGE-10", ("CA", "CN", "JWKS")),
+            ("KGE-09", ("KGE", "API", "CP", "DP", "PKI", "IdP", "mTLS", "DNS", "HA", "SLO", "KPS", "E1", "RBAC", "WAF", "SIEM")),
+            ("KGE-10", ("IdP", "CA", "CN", "JSON", "JWKS")),
             ("KGE-12", ("DB", "SRE", "IAM")),
-            ("KGE-13", ("KP0–KP5", "BOM", "RACI", "GP-1–GP-6")),
-            ("KGE-14", ("KGE", "API", "MULE", "SFTP")),
+            ("KGE-13", ("KP0–KP5", "KP-SMH1", "E2", "E3", "E4", "BOM", "RACI", "GP-1–GP-6")),
+            ("KGE-14", ("KGE", "API", "MULE", "SFTP", "SaaS")),
             ("KGE-15", ("AKS", "CRM")),
             ("KGE-16", ("A0–A6", "M0–M5", "SLO", "E4")),
-            ("KGE-17", ("KGE", "PoC", "KP-SMH1", "E3", "E4", "CP", "AI", "TCO")),
-            ("KGE-18", ("API", "GEP", "GSA", "LTS", "BOM", "SBOM", "APIOps", "IAM", "MCP", "A2A", "RTO", "RPO", "RACI")),
-            ("KGE-19", ("KO", "DP", "SLI", "SLO", "SRE", "OAuth", "PKI", "PR")),
-            ("KGE-20", ("DLP", "DNS")),
+            ("KGE-17", ("KGE", "API", "PoC", "KP-SMH1", "E3", "E4", "CP", "AI", "TCO")),
+            ("KGE-18", ("API", "GEP", "GSA", "LTS", "BOM", "SBOM", "APIOps", "IAM", "MCP", "A2A", "RTO", "RPO", "RACI", "WAAP")),
+            ("KGE-19", ("KO", "DP", "SLI", "SLO", "SRE", "OAuth", "mTLS", "IdP", "PKI", "PR")),
+            ("KGE-20", ("DLP", "DNS", "KP0", "FinOps")),
             ("KGE-21", ("KPS", "E1", "E2")),
             ("KGE-22", ("KGE", "API", "GEC", "CP", "DP")),
-            ("KGE-23", ("AI", "GenAI", "MCP", "A2A", "E1")),
+            ("KGE-23", ("AI", "GenAI", "MCP", "A2A", "E1", "WAAP")),
             ("KGE-24", ("TCO", "CP", "PKI", "HA", "DR", "PAYG", "RACI")),
             ("KGE-25", ("E0", "GEW", "GRS", "IAM", "TCO", "CP")),
         )
@@ -2213,7 +2213,7 @@ process.stdout.write(window.ApiStudyCharts.render("criteriaOverview", data, {com
             tuple(guided["identifierCatalog"]["provenance"]["tableColumns"]),
         )
         self.assertEqual(24, guided["termSets"]["rowTotal"])
-        self.assertEqual(123, guided["termSets"]["termTotal"])
+        self.assertEqual(141, guided["termSets"]["termTotal"])
         self.assertEqual(
             term_tokens,
             tuple(
@@ -2536,6 +2536,9 @@ process.stdout.write(window.ApiStudyCharts.render("criteriaOverview", data, {com
         self.assertRegex(styles, r"(?s)\.guided-terms ul\s*\{[^}]*display:\s*flex;[^}]*flex-wrap:\s*wrap;")
         self.assertRegex(styles, r"(?s)@media screen and \(max-width: 760px\).*?\.guided-terms\s*\{[^}]*grid-template-columns:\s*minmax\(0, 1fr\);")
         self.assertRegex(styles, r"(?s)@media screen and \(max-width: 760px\).*?\.guided-terms ul\s*\{[^}]*flex-wrap:\s*nowrap;[^}]*overflow-x:\s*auto;")
+        self.assertRegex(styles, r"(?s)@media screen and \(min-width: 1024px\) and \(max-height: 760px\).*?\.guided-terms ul\s*\{[^}]*flex-wrap:\s*nowrap;[^}]*overflow-x:\s*auto;")
+        self.assertRegex(styles, r"(?s)@media screen and \(min-width: 1024px\) and \(max-height: 760px\).*?\.guided-terms > b::after\s*\{[^}]*content:\s*\" · scroll →\";")
+        self.assertRegex(styles, r"(?s)@media screen and \(min-width: 1024px\) and \(max-height: 760px\).*?\.is-guided-slide:has\(\.viz-guided-architecture-overview\) \.slide-diagram\.is-summary-mode\s*\{[^}]*min-height:\s*21\.5rem;")
         self.assertIn('aria-label="Term definitions; swipe or scroll horizontally on compact screens"', app)
         self.assertRegex(styles, r"(?s)@media print.*?\.presentation-stage\.is-kong-guided \.guided-terms\s*\{[^}]*break-inside:\s*avoid !important;")
         self.assertRegex(styles, r"(?s)\.journey-phase-spine li > a\s*\{[^}]*min-height:\s*44px;[^}]*color:\s*inherit;[^}]*text-decoration:\s*none;")
@@ -2947,7 +2950,7 @@ process.stdout.write(JSON.stringify({
             {
                 "schemaVersion", "deckRevision", "sourcePath", "sourceId", "sourceClass",
                 "evidenceState", "asOf", "questions", "phaseQuestionIds", "choiceSets",
-                "reviewRequirements", "publicRoles", "provenance",
+                "reviewRequirements", "publicRoles", "interfaceTerms", "provenance",
             },
             set(assessment),
         )
@@ -3014,6 +3017,30 @@ process.stdout.write(JSON.stringify({
             },
         )
         self.assertEqual(expected_public_roles, tuple(assessment["publicRoles"]))
+        self.assertEqual(
+            (
+                ("API", "application programming interface (API)"),
+                ("E0", "assertion-only evidence (E0)"),
+                ("E1", "current official documentation (E1)"),
+                ("E2", "vendor answer with named version or contract term (E2)"),
+                ("E3", "repeatable lab evidence (E3)"),
+                ("E4", "representative pilot evidence (E4)"),
+                ("ID", "identifier (ID)"),
+                ("BOM", "bill of materials (BOM)"),
+                ("JSON", "JavaScript Object Notation (JSON)"),
+                ("URL", "uniform resource locator (URL)"),
+                ("IP", "Internet Protocol (IP)"),
+                ("IAM", "identity and access management (IAM)"),
+                ("SRE", "site reliability engineering (SRE)"),
+                ("FinOps", "financial operations (FinOps)"),
+                ("N/A", "not applicable (N/A)"),
+                ("TCO", "total cost of ownership (TCO)"),
+                ("HA", "high availability (HA)"),
+                ("DR", "disaster recovery (DR)"),
+            ),
+            tuple((term["token"], term["display"]) for term in assessment["interfaceTerms"]),
+        )
+        self.assertTrue(all(term["purpose"] for term in assessment["interfaceTerms"]))
         self.assertEqual(expected_review_requirements, assessment["reviewRequirements"])
         self.assertEqual(
             (
@@ -3025,6 +3052,7 @@ process.stdout.write(JSON.stringify({
                 (
                     "Manifest field", "Applies when", "Canonical values", "Rule",
                 ),
+                ("Token", "Exact visible term", "Interface purpose"),
                 assessment["sourceClass"],
                 assessment["evidenceState"],
                 assessment["asOf"],
@@ -3036,6 +3064,7 @@ process.stdout.write(JSON.stringify({
                 tuple(assessment["provenance"]["sourceIds"]),
                 assessment["provenance"]["sourceHeading"],
                 tuple(assessment["provenance"]["reviewRequirementsTableColumns"]),
+                tuple(assessment["provenance"]["interfaceTermTableColumns"]),
                 assessment["provenance"]["sourceClass"],
                 assessment["provenance"]["evidenceState"],
                 assessment["provenance"]["asOf"],
@@ -3074,6 +3103,7 @@ process.stdout.write(JSON.stringify({
             ("early input disposition", "mandatory E1 input disposition"),
             ("choice outcome", "invalid outcome"),
             ("public roles", "exact controlled public-role order"),
+            ("interface terms", "exact ordered first-use terminology contract"),
             ("review fields", "fields must match the exact v2 schema"),
             ("session required", "sessionRequired fields are invalid"),
             ("mandatory response", "mandatoryResponseRequired fields are invalid"),
@@ -3128,6 +3158,8 @@ process.stdout.write(JSON.stringify({
                     invalid_assessment["choiceSets"][0]["choices"][0]["outcome"] = "score"
                 elif case == "public roles":
                     invalid_assessment["publicRoles"][0:2] = reversed(invalid_assessment["publicRoles"][0:2])
+                elif case == "interface terms":
+                    invalid_assessment["interfaceTerms"][0]["display"] = "API"
                 elif case == "review fields":
                     invalid_assessment["reviewRequirements"]["sessionRequiredFields"] = []
                 elif case == "session required":
@@ -3209,6 +3241,8 @@ process.stdout.write(JSON.stringify({
             "data-assessment-open",
             "data-assessment-close",
             "data-assessment-local-warning",
+            "data-assessment-interface-terms",
+            "data-assessment-safeguards",
             "data-assessment-form",
             "data-assessment-question",
             "data-assessment-status",
@@ -3219,6 +3253,19 @@ process.stdout.write(JSON.stringify({
         ):
             with self.subTest(ui_hook=hook):
                 self.assertIn(hook, app_source)
+        self.assertIn('role="dialog" aria-modal="true"', app_source)
+        self.assertIn("function trapAssessmentFocus(event)", app_source)
+        self.assertIn("isolateAssessmentDrawer(drawer)", app_source)
+        self.assertIn("restoreAssessmentBackground()", app_source)
+        self.assertRegex(
+            app_source,
+            r'(?s)<form class="assessment-form" data-assessment-form>\s*\$\{renderAssessmentInterfaceTerms\(\)\}\s*\$\{renderAssessmentSafeguards\(\)\}',
+        )
+        self.assertIn('>Export JSON</button>', app_source)
+        self.assertIn('>Export Markdown</button>', app_source)
+        self.assertIn('placeholder="Public-safe source or artifact identifier"', app_source)
+        self.assertIn("assessmentTermDisplay(level)", app_source)
+        self.assertIn(".assessment-interface-terms ul[tabindex='0']", app_source)
         self.assertIn('class="assessment-target-bindings"', app_source)
         self.assertIn("question.targetIds", app_source)
         self.assertIn("escapeHtml(targetId)", app_source)

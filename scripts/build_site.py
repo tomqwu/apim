@@ -2035,6 +2035,11 @@ def guided_evaluation_visuals(
         "Canonical values",
         "Rule",
     )
+    interface_term_columns = (
+        "Token",
+        "Exact visible term",
+        "Interface purpose",
+    )
 
     def stable_ids(value: str) -> list[str]:
         """Expand semicolon-separated stable IDs and inclusive ``ID..ID`` ranges."""
@@ -2063,6 +2068,43 @@ def guided_evaluation_visuals(
                 if stable_id not in values:
                     values.append(stable_id)
         return values
+
+    interface_term_rows = markdown_table(assessment_section, interface_term_columns)
+    interface_terms = [
+        {
+            "token": clean_inline(row_value(row, "Token")),
+            "display": clean_inline(row_value(row, "Exact visible term")),
+            "purpose": clean_inline(row_value(row, "Interface purpose")),
+        }
+        for row in interface_term_rows
+    ]
+    expected_interface_terms = [
+        ("API", "application programming interface (API)"),
+        ("E0", "assertion-only evidence (E0)"),
+        ("E1", "current official documentation (E1)"),
+        ("E2", "vendor answer with named version or contract term (E2)"),
+        ("E3", "repeatable lab evidence (E3)"),
+        ("E4", "representative pilot evidence (E4)"),
+        ("ID", "identifier (ID)"),
+        ("BOM", "bill of materials (BOM)"),
+        ("JSON", "JavaScript Object Notation (JSON)"),
+        ("URL", "uniform resource locator (URL)"),
+        ("IP", "Internet Protocol (IP)"),
+        ("IAM", "identity and access management (IAM)"),
+        ("SRE", "site reliability engineering (SRE)"),
+        ("FinOps", "financial operations (FinOps)"),
+        ("N/A", "not applicable (N/A)"),
+        ("TCO", "total cost of ownership (TCO)"),
+        ("HA", "high availability (HA)"),
+        ("DR", "disaster recovery (DR)"),
+    ]
+    if [
+        (term["token"], term["display"])
+        for term in interface_terms
+    ] != expected_interface_terms:
+        raise ValueError("Assessment interface terminology does not match the canonical ordered contract")
+    if any(not term["purpose"] for term in interface_terms):
+        raise ValueError("Assessment interface terminology requires an interface purpose")
 
     question_rows = markdown_table(assessment_section, question_columns)
     questions: list[dict[str, object]] = []
@@ -2260,6 +2302,7 @@ def guided_evaluation_visuals(
         "questionTableColumns": list(question_columns),
         "choiceSetTableColumns": list(choice_set_columns),
         "reviewRequirementsTableColumns": list(review_requirement_columns),
+        "interfaceTermTableColumns": list(interface_term_columns),
         "sourceClass": facilitator_source_class,
         "evidenceState": facilitator_evidence_state,
         "asOf": facilitator_as_of,
@@ -2277,6 +2320,7 @@ def guided_evaluation_visuals(
         "choiceSets": choice_sets,
         "reviewRequirements": review_requirements,
         "publicRoles": public_roles,
+        "interfaceTerms": interface_terms,
         "provenance": assessment_provenance,
     }
 
@@ -2293,6 +2337,7 @@ def guided_evaluation_visuals(
         "choiceSets",
         "reviewRequirements",
         "publicRoles",
+        "interfaceTerms",
         "provenance",
     }
     expected_question_keys = {
@@ -2505,7 +2550,7 @@ def validate_site_projection(stats: dict[str, int], visuals: dict[str, object]) 
         "KPS", "KP", "MULE", "GEP", "GSA", "KO", "GEC",
     ]
     guided_term_tokens = [
-        ("KGE-01", ["KGE", "API", "EAG"]),
+        ("KGE-01", ["KGE", "API", "EAG", "WAAP"]),
         ("KGE-02", ["GTM", "AKS", "AI", "TCO", "APIOps", "MCP", "A2A"]),
         ("KGE-03", ["GEW", "GRS", "IAM"]),
         ("KGE-04", ["KGE", "API", "APIM", "CP", "PKI", "MART", "GEO", "KP-SMH1"]),
@@ -2513,20 +2558,20 @@ def validate_site_projection(stats: dict[str, int], visuals: dict[str, object]) 
         ("KGE-06", ["E2", "E3", "E4", "HA", "DR"]),
         ("KGE-07", ["GEB", "KMC", "KP-SMH1", "E1", "DP", "KPS"]),
         ("KGE-08", ["KPS-FIT"]),
-        ("KGE-09", ["KGE", "API", "CP", "DP", "PKI", "HA", "SLO", "KPS", "E1", "RBAC", "WAF", "SIEM"]),
-        ("KGE-10", ["CA", "CN", "JWKS"]),
+        ("KGE-09", ["KGE", "API", "CP", "DP", "PKI", "IdP", "mTLS", "DNS", "HA", "SLO", "KPS", "E1", "RBAC", "WAF", "SIEM"]),
+        ("KGE-10", ["IdP", "CA", "CN", "JSON", "JWKS"]),
         ("KGE-12", ["DB", "SRE", "IAM"]),
-        ("KGE-13", ["KP0–KP5", "BOM", "RACI", "GP-1–GP-6"]),
-        ("KGE-14", ["KGE", "API", "MULE", "SFTP"]),
+        ("KGE-13", ["KP0–KP5", "KP-SMH1", "E2", "E3", "E4", "BOM", "RACI", "GP-1–GP-6"]),
+        ("KGE-14", ["KGE", "API", "MULE", "SFTP", "SaaS"]),
         ("KGE-15", ["AKS", "CRM"]),
         ("KGE-16", ["A0–A6", "M0–M5", "SLO", "E4"]),
-        ("KGE-17", ["KGE", "PoC", "KP-SMH1", "E3", "E4", "CP", "AI", "TCO"]),
-        ("KGE-18", ["API", "GEP", "GSA", "LTS", "BOM", "SBOM", "APIOps", "IAM", "MCP", "A2A", "RTO", "RPO", "RACI"]),
-        ("KGE-19", ["KO", "DP", "SLI", "SLO", "SRE", "OAuth", "PKI", "PR"]),
-        ("KGE-20", ["DLP", "DNS"]),
+        ("KGE-17", ["KGE", "API", "PoC", "KP-SMH1", "E3", "E4", "CP", "AI", "TCO"]),
+        ("KGE-18", ["API", "GEP", "GSA", "LTS", "BOM", "SBOM", "APIOps", "IAM", "MCP", "A2A", "RTO", "RPO", "RACI", "WAAP"]),
+        ("KGE-19", ["KO", "DP", "SLI", "SLO", "SRE", "OAuth", "mTLS", "IdP", "PKI", "PR"]),
+        ("KGE-20", ["DLP", "DNS", "KP0", "FinOps"]),
         ("KGE-21", ["KPS", "E1", "E2"]),
         ("KGE-22", ["KGE", "API", "GEC", "CP", "DP"]),
-        ("KGE-23", ["AI", "GenAI", "MCP", "A2A", "E1"]),
+        ("KGE-23", ["AI", "GenAI", "MCP", "A2A", "E1", "WAAP"]),
         ("KGE-24", ["TCO", "CP", "PKI", "HA", "DR", "PAYG", "RACI"]),
         ("KGE-25", ["E0", "GEW", "GRS", "IAM", "TCO", "CP"]),
     ]
@@ -2723,7 +2768,7 @@ def validate_site_projection(stats: dict[str, int], visuals: dict[str, object]) 
                 for row in guided_evaluation.get("identifierCatalog", {}).get("rows", [])
             )
             and guided_evaluation.get("termSets", {}).get("rowTotal") == 24
-            and guided_evaluation.get("termSets", {}).get("termTotal") == 123
+            and guided_evaluation.get("termSets", {}).get("termTotal") == 141
             and [
                 (row.get("slideId"), [term.get("token") for term in row.get("terms", [])])
                 for row in guided_evaluation.get("termSets", {}).get("rows", [])
