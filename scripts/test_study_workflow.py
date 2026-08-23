@@ -1780,6 +1780,61 @@ process.stdout.write(window.ApiStudyCharts.render("criteriaOverview", data, {com
         self.assertRegex(styles, r"(?s)@media \(max-width: 760px\).*?\.viz-criteria-overview\s*\{\s*grid-template-columns: 1fr;")
         self.assertRegex(styles, r"(?s)@media \(max-width: 520px\).*?\.viz-criteria-domains\s*\{\s*grid-template-columns: 1fr;")
 
+    def test_overview_donut_collapses_a_redundant_single_status(self) -> None:
+        node = next(
+            (
+                candidate
+                for candidate in (
+                    Path("/usr/bin/node"),
+                    Path("/bin/node"),
+                    Path("/usr/local/bin/node"),
+                    Path("/opt/homebrew/bin/node"),
+                )
+                if candidate.is_file() and os.access(candidate, os.X_OK)
+            ),
+            None,
+        )
+        self.assertIsNotNone(node, "Node.js is required to validate the overview donut renderer")
+        script = r'''
+global.window = {};
+require("./site/assets/charts.js");
+const samples = [
+  window.ApiStudyCharts.render("donut", [{label: "Unknown", value: 120}], {title: "Criteria status", total: 120, centerLabel: "criteria", collapseSingleStatus: true, singleStatusNote: "No criterion-level result recorded.", compact: true}),
+  window.ApiStudyCharts.render("donut", [{label: "Unknown", value: 80}, {label: "Evidenced", value: 40}], {title: "Criteria status", total: 120, centerLabel: "criteria", collapseSingleStatus: true, compact: true}),
+  window.ApiStudyCharts.render("donut", [{label: "Unknown", value: 80}], {title: "Criteria status", total: 120, centerLabel: "criteria", collapseSingleStatus: true, compact: true})
+];
+process.stdout.write(JSON.stringify(samples));
+'''
+        observed = subprocess.run(
+            [str(node), "-e", script],
+            cwd=SOURCE_ROOT,
+            check=False,
+            capture_output=True,
+            text=True,
+        )
+        self.assertEqual(0, observed.returncode, observed.stderr)
+        single_status, multiple_statuses, partial_single_status = json.loads(observed.stdout)
+        self.assertIn("viz-donut is-compact is-single-status", single_status)
+        self.assertIn("<small>criteria</small>", single_status)
+        self.assertIn("Criteria status: Unknown 120; 120 total", single_status)
+        self.assertIn("120 total. No criterion-level result recorded.", single_status)
+        self.assertIn("<strong>Unknown</strong>", single_status)
+        self.assertIn("No criterion-level result recorded.", single_status)
+        self.assertNotIn("viz-legend", single_status)
+        self.assertNotIn("is-single-status", multiple_statuses)
+        self.assertIn("<small>criteria</small>", multiple_statuses)
+        self.assertIn("Unknown</span><strong>80</strong>", multiple_statuses)
+        self.assertIn("Evidenced</span><strong>40</strong>", multiple_statuses)
+        self.assertNotIn("is-single-status", partial_single_status)
+        self.assertIn("Unknown</span><strong>80</strong>", partial_single_status)
+        self.assertIn("viz-empty", partial_single_status)
+
+        app = (SOURCE_ROOT / "site/assets/app.js").read_text(encoding="utf-8")
+        styles = (SOURCE_ROOT / "site/assets/styles.css").read_text(encoding="utf-8")
+        self.assertIn('collapseSingleStatus: true, singleStatusNote: "No criterion-level result recorded."', app)
+        self.assertIn(".overview-visual.is-evidence-state .viz-donut.is-single-status .viz-donut-layout", styles)
+        self.assertIn(".overview-visual.is-evidence-state .viz-donut-core strong", styles)
+
     def test_kong_fit_projection_is_four_bounded_complete_story_frames(self) -> None:
         fit_keys = (
             "kong-platform-fit-boundary",

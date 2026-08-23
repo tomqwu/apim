@@ -270,9 +270,9 @@
         </section>
 
         <section class="overview-visuals" aria-label="Assessment state at a glance">
-          <div class="overview-visual">
+          <div class="overview-visual is-evidence-state">
             <span class="section-index">Evidence state</span>
-            ${chartMarkup("donut", visuals.criteria?.statuses || [], { title: "Criteria status", total: visuals.criteria?.total, centerLabel: "criteria", compact: true })}
+            ${chartMarkup("donut", visuals.criteria?.statuses || [], { title: "Criteria status", total: visuals.criteria?.total, centerLabel: "criteria", collapseSingleStatus: true, singleStatusNote: "No criterion-level result recorded.", compact: true })}
           </div>
           <div class="overview-visual">
             <span class="section-index">Research balance</span>
