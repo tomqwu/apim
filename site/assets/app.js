@@ -1023,6 +1023,159 @@
     });
   }
 
+  function facilitatorTitleWithExpandedTerms(title, terms) {
+    const orderedTerms = [...terms]
+      .filter((term) => term?.token && term?.display)
+      .sort((left, right) => right.token.length - left.token.length);
+    if (!orderedTerms.length) return title;
+    const displays = [];
+    let expanded = title;
+    orderedTerms.forEach((term, index) => {
+      const placeholder = `\uE000${index}\uE001`;
+      displays.push([placeholder, term.display]);
+      if (expanded.includes(term.display)) {
+        expanded = expanded.split(term.display).join(placeholder);
+        return;
+      }
+      const escapedToken = term.token.replace(/[.*+?^${}()|[\]\\]/g, "\\$&");
+      const leadingWord = term.display.match(/^([A-Za-z][A-Za-z0-9.+-]*)\s/)?.[1];
+      if (leadingWord) {
+        const contextualPattern = new RegExp(
+          `(^|[^A-Za-z0-9])${leadingWord.replace(/[.*+?^${}()|[\]\\]/g, "\\$&")}\\s+${escapedToken}(?=$|[^A-Za-z0-9])`,
+          "g",
+        );
+        expanded = expanded.replace(contextualPattern, (match, prefix) => `${prefix}${placeholder}`);
+      }
+      const tokenPattern = new RegExp(`(^|[^A-Za-z0-9])${escapedToken}(?=$|[^A-Za-z0-9])`, "g");
+      expanded = expanded.replace(tokenPattern, (match, prefix) => `${prefix}${placeholder}`);
+    });
+    displays.forEach(([placeholder, display]) => {
+      expanded = expanded.split(placeholder).join(display);
+    });
+    return expanded ? `${expanded.charAt(0).toUpperCase()}${expanded.slice(1)}` : expanded;
+  }
+
+  function guidedFacilitatorTermCatalog() {
+    const catalog = new Map();
+    (state.manifest?.presentation || []).forEach((slide) => {
+      (slide.terms || []).forEach((term) => {
+        if (term?.token && term?.display && !catalog.has(term.token)) catalog.set(term.token, term);
+      });
+    });
+    (guidedAssessmentContract()?.interfaceTerms || []).forEach((term) => {
+      if (term?.token && term?.display && !catalog.has(term.token)) {
+        catalog.set(term.token, { ...term, classification: term.purpose || "Assessment interface term" });
+      }
+    });
+    return [...catalog.values()];
+  }
+
+  function guidedFacilitatorTermsForSection(section, catalog) {
+    const sectionText = section.textContent || "";
+    const matchedTerms = catalog
+      .map((term) => {
+        const escapedToken = term.token.replace(/[.*+?^${}()|[\]\\]/g, "\\$&");
+        const pluralSuffix = /[A-Za-z]$/.test(term.token) ? "s?" : "";
+        const match = new RegExp(`(^|[^A-Za-z0-9])${escapedToken}${pluralSuffix}(?=$|[^A-Za-z0-9])`).exec(sectionText);
+        return match ? { ...term, firstUse: match.index + match[1].length } : null;
+      })
+      .filter(Boolean)
+      .sort((left, right) => left.firstUse - right.firstUse || right.token.length - left.token.length);
+    const matchedByToken = new Map(matchedTerms.map((term) => [term.token, term]));
+    const ordered = [];
+    const visited = new Set();
+    const visiting = new Set();
+    const visit = (term) => {
+      if (visited.has(term.token) || visiting.has(term.token)) return;
+      visiting.add(term.token);
+      matchedTerms.forEach((dependency) => {
+        if (dependency.token === term.token || !matchedByToken.has(dependency.token)) return;
+        const escapedDependency = dependency.token.replace(/[.*+?^${}()|[\]\\]/g, "\\$&");
+        const displayUsesDependency = new RegExp(
+          `(^|[^A-Za-z0-9])${escapedDependency}(?=$|[^A-Za-z0-9])`,
+        ).test(term.display);
+        if (displayUsesDependency) visit(dependency);
+      });
+      visiting.delete(term.token);
+      visited.add(term.token);
+      ordered.push(term);
+    };
+    matchedTerms.forEach(visit);
+    return ordered;
+  }
+
+  function guidedFacilitatorTerms(termsForSlide, slideId) {
+    if (!termsForSlide.length) return null;
+    const terms = document.createElement("aside");
+    terms.className = "speaker-note-terms";
+    terms.setAttribute("aria-label", `Terms used in ${slideId} speaker notes`);
+    const label = document.createElement("b");
+    label.textContent = "Terms used in this note";
+    const list = document.createElement("ul");
+    termsForSlide.forEach((term) => {
+      const item = document.createElement("li");
+      item.textContent = term.display;
+      item.title = term.classification || "Term";
+      list.append(item);
+    });
+    terms.append(label, list);
+    return terms;
+  }
+
+  function enhanceGuidedFacilitatorNotes(container, item) {
+    if (item.path !== "docs/49-kong-guided-evaluation-facilitator-guide.md") return;
+    const deck = guidedAssessmentDeck();
+    const deckKeys = new Set(Array.isArray(deck?.presentationSlides) ? deck.presentationSlides : []);
+    const slides = (state.manifest?.presentation || []).filter((slide) => deckKeys.has(slide.key));
+    const slidesById = new Map(slides.map((slide) => [slide.slideId, slide]));
+    const termCatalog = guidedFacilitatorTermCatalog();
+    const headings = [...container.querySelectorAll(":scope > h4")];
+    let enhancedTotal = 0;
+
+    headings.forEach((heading) => {
+      const match = heading.textContent.trim().match(/^(KGE-\d{2})\s*[·—-]\s*(.+)$/);
+      if (!match) return;
+      const [, slideId, authoredTitle] = match;
+      const slide = slidesById.get(slideId);
+      if (!slide) return;
+
+      const section = document.createElement("section");
+      section.className = "speaker-note-slide";
+      section.dataset.slideId = slideId;
+      heading.before(section);
+      section.append(heading);
+      let next = section.nextElementSibling;
+      while (next && !next.matches("h2, h3, h4")) {
+        const current = next;
+        next = next.nextElementSibling;
+        section.append(current);
+      }
+      const termsForSlide = guidedFacilitatorTermsForSection(section, termCatalog);
+
+      heading.className = "speaker-note-slide-title";
+      heading.id = `speaker-notes-${slideId.toLowerCase()}`;
+      heading.textContent = "";
+      const kicker = document.createElement("span");
+      kicker.className = "speaker-note-slide-kicker";
+      kicker.textContent = `Kong Guided Evaluation (KGE) · slide ${slideId.slice(-2)}`;
+      const title = document.createElement("span");
+      title.className = "speaker-note-slide-heading";
+      const expandedTitle = facilitatorTitleWithExpandedTerms(authoredTitle, termsForSlide);
+      title.textContent = expandedTitle;
+      heading.setAttribute(
+        "aria-label",
+        `Kong Guided Evaluation (KGE) slide ${slideId.slice(-2)}: ${expandedTitle}`,
+      );
+      heading.append(kicker, title);
+
+      const terms = guidedFacilitatorTerms(termsForSlide, slideId);
+      if (terms) heading.after(terms);
+      enhancedTotal += 1;
+    });
+
+    container.dataset.facilitatorSlides = String(enhancedTotal);
+  }
+
   function revealDocumentSection(destination) {
     const section = destination?.closest?.(".document-section");
     if (!section || section.dataset.sectionOpen === "true") return;
@@ -2077,8 +2230,9 @@
 
   function documentScaffold(item) {
     const isMethodologyReview = item.path === "reports/methodology-review.md";
+    const isGuidedFacilitatorGuide = item.path === "docs/49-kong-guided-evaluation-facilitator-guide.md";
     return `
-      <article class="document-shell${item.type === "csv" ? " is-dataset" : ""}${isMethodologyReview ? " is-methodology-review" : ""}">
+      <article class="document-shell${item.type === "csv" ? " is-dataset" : ""}${isMethodologyReview ? " is-methodology-review" : ""}${isGuidedFacilitatorGuide ? " is-guided-facilitator-guide" : ""}">
         <header class="document-header">
           <div>
             <nav class="breadcrumb" aria-label="Breadcrumb"><a href="#/library">Library</a> / ${escapeHtml(item.section)}</nav>
@@ -2172,6 +2326,7 @@
         target.innerHTML = `<div class="prose">${markdownToHtml(text)}</div>`;
         const prose = target.querySelector(".prose");
         enhanceMarkdown(prose, item);
+        enhanceGuidedFacilitatorNotes(prose, item);
         await renderInlineMermaid(prose, item.title);
         embedDocumentVisualContext(item, prose);
         embedDocumentVisualPlacements(item, prose);
