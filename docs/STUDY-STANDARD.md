@@ -20,6 +20,12 @@ The static site is a derived presentation layer. It may parse canonical tables, 
 
 A site-only study or guide is incomplete. A diagram or chart that carries an argument belongs in the article at the point of use under the inline figure contract; the Visual Atlas, overview, comparison, audience page, and presentation remain indexes and projections of that argument.
 
+## Language and terminology contract
+
+Expand every unfamiliar acronym at its first visible use as **Full Name (ACRONYM)**. Apply the rule independently in every document, directly linked section, slide, table, figure, form, and speaker-note card because a reader may enter at any of those points without seeing earlier context. A glossary link or hover tooltip may supplement the expansion but cannot replace visible first-use language.
+
+Do not reverse-engineer a long form for an internal record ID. When an identifier has no documented expansion, preserve the stable code and pair it with its canonical plain-language descriptor. Established product names, commands, and protocol spellings remain unchanged unless the canonical terminology contract explicitly defines a display form.
+
 ## Required study header
 
 Every principal study begins with a compact metadata block containing:

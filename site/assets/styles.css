@@ -4654,6 +4654,118 @@ a {
   font-size: 1.25rem;
 }
 
+.document-shell.is-guided-facilitator-guide {
+  --guided-paper: #fffdf5;
+  --guided-paper-deep: #f3efe2;
+  --guided-ink: #11120f;
+  --guided-muted: #62645d;
+  --guided-line: #bbb7aa;
+  --guided-yellow: #ffcb2f;
+  --guided-violet: #5f38d7;
+}
+
+.document-shell.is-guided-facilitator-guide .prose {
+  max-width: 960px;
+}
+
+.speaker-note-slide {
+  margin: clamp(3rem, 6vw, 5rem) 0;
+  padding-bottom: clamp(2rem, 4vw, 3.5rem);
+  border-bottom: 1px solid var(--guided-line);
+}
+
+.prose .speaker-note-slide-title {
+  display: grid;
+  gap: 0.65rem;
+  margin: 0;
+  padding: clamp(1.25rem, 3vw, 2rem);
+  scroll-margin-top: 110px;
+  border: 1px solid var(--guided-ink);
+  border-top: 0.65rem solid var(--guided-yellow);
+  color: var(--guided-ink);
+  background: linear-gradient(135deg, var(--guided-paper) 0 74%, color-mix(in srgb, var(--guided-violet) 9%, var(--guided-paper)) 74% 100%);
+  font-family: var(--sans);
+  line-height: 0.98;
+}
+
+.speaker-note-slide-kicker {
+  color: var(--guided-violet);
+  font: 750 clamp(0.82rem, 1.4vw, 1rem)/1.2 var(--mono);
+  letter-spacing: 0.06em;
+  text-transform: uppercase;
+}
+
+.speaker-note-slide-heading {
+  max-width: 22ch;
+  font-size: clamp(2rem, 5vw, 3.65rem);
+  font-weight: 750;
+  letter-spacing: -0.05em;
+}
+
+.speaker-note-terms {
+  display: grid;
+  grid-template-columns: minmax(10rem, auto) minmax(0, 1fr);
+  gap: 0;
+  margin: 0 0 1.6rem;
+  border: 1px solid var(--guided-ink);
+  border-top: 0;
+  color: var(--guided-ink);
+  background: color-mix(in srgb, var(--guided-violet) 7%, var(--guided-paper));
+  font-family: var(--sans);
+  font-size: 1rem;
+  line-height: 1.35;
+}
+
+.speaker-note-terms > b {
+  display: flex;
+  align-items: center;
+  padding: 0.8rem 1rem;
+  border-right: 1px solid var(--guided-ink);
+  color: var(--guided-violet);
+  font: 750 0.78rem/1.2 var(--mono);
+  letter-spacing: 0.045em;
+  text-transform: uppercase;
+}
+
+.speaker-note-terms ul {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 0.4rem 1rem;
+  margin: 0;
+  padding: 0.8rem 1rem;
+  list-style: none;
+}
+
+.speaker-note-terms li {
+  margin: 0;
+}
+
+.speaker-note-terms li:not(:last-child)::after {
+  margin-left: 1rem;
+  color: var(--guided-violet);
+  content: "·";
+}
+
+@media screen and (max-width: 760px) {
+  .prose .speaker-note-slide-title {
+    padding: 1rem;
+  }
+
+  .speaker-note-slide-heading {
+    max-width: none;
+    font-size: clamp(1.85rem, 9vw, 2.7rem);
+  }
+
+  .speaker-note-terms {
+    grid-template-columns: minmax(0, 1fr);
+  }
+
+  .speaker-note-terms > b {
+    border-right: 0;
+    border-bottom: 1px solid var(--guided-ink);
+  }
+}
+
 .prose a {
   text-decoration-color: var(--signal);
   text-decoration-thickness: 2px;
@@ -11850,7 +11962,7 @@ body.is-presenting .site-footer {
 }
 
 /* At compact desktop heights, keep every guided frame reachable above the
-   fixed proof strip. Added phase-local terminology must never create clipping. */
+   fixed proof strip. Added per-slide terminology must never create clipping. */
 @media screen and (min-width: 1024px) and (max-height: 920px) {
   .presentation-stage.is-kong-guided .is-guided-slide > .slide-main {
     overflow-y: auto;
@@ -11861,7 +11973,7 @@ body.is-presenting .site-footer {
 
 /* A short, wide room display has ample horizontal space but cannot safely
    shrink the authored architecture overview into the few remaining pixels
-   below the phase-local terms and evidence bands. Keep the terms on one
+   below the per-slide terms and evidence bands. Keep the terms on one
    inspectable rail, reduce only this frame's headline, and give the overview
    its readable intrinsic height; the existing main-pane scroll then exposes
    the complete model without label collisions. */

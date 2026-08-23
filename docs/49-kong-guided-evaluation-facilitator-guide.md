@@ -30,6 +30,12 @@ This document is the **complete canonical facilitation and speaker-notes compani
 
 If this guide, the PowerPoint, or the native presentation differs from a canonical study, the canonical study wins. Do not publicly link the raw supplied input; the sanitized guided evaluation preserves the admissible decision context.
 
+### Acronym and identifier reading rule
+
+Every speaker-note card is independently enterable. At the top of each card, the native page therefore projects the canonical slide-local terms as **Full Name (ACRONYM)** before the detailed notes use shorthand. The card kicker introduces **Kong Guided Evaluation (KGE)**, and each visible slide title expands any slide-local shorthand it contains. Stable record identifiers keep their published code plus a plain-language descriptor; the guide never invents a long form for an internal ID.
+
+Apply the same rule in meeting artifacts and follow-up documents: expand an unfamiliar acronym at its first visible use in every independently opened document, section, slide, table, or note. A linked glossary is supporting context, not a substitute for the first-use expansion.
+
 ## What the meeting must produce
 
 The meeting succeeds only when it produces a decision record, not when it reaches the last slide. The chair should secure:
@@ -1800,6 +1806,8 @@ The assessment drawer and summary project this ordered terminology rail before a
 | Token | Exact visible term | Interface purpose |
 |---|---|---|
 | API | application programming interface (API) | Assessment prompt and target context |
+| EAG | Early Assessment Gate (EAG) | Phase 1 scope and evidence-gate identifiers |
+| APIM | Azure API Management (APIM) | Phase 2 counterfactual option identifier |
 | E0 | assertion-only evidence (E0) | Participant evidence-level selector |
 | E1 | current official documentation (E1) | Participant evidence-level selector |
 | E2 | vendor answer with named version or contract term (E2) | Participant evidence-level selector |

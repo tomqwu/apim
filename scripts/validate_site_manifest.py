@@ -230,7 +230,7 @@ KONG_GUIDED_PHASES = (
 )
 KONG_GUIDED_IDENTIFIER_TOKENS = (
     "KGE", "EAG", "GTM", "GEW", "GRS", "GEO", "GEB", "KMC",
-    "KPS", "KP", "MULE", "GEP", "GSA", "KO", "GEC",
+    "KPS", "KP", "P", "MULE", "GEP", "GSA", "KO", "GEC",
 )
 KONG_GUIDED_IDENTIFIER_COLUMNS = (
     "Token or prefix", "Canonical visible meaning", "Classification", "Use rule",
@@ -241,29 +241,30 @@ KONG_GUIDED_TERM_COLUMNS = (
 KONG_GUIDED_INTERNAL_DESCRIPTOR_TOKENS = KONG_GUIDED_IDENTIFIER_TOKENS[2:]
 KONG_GUIDED_TERM_TOKENS = (
     ("KGE-01", ("KGE", "API", "EAG", "WAAP")),
-    ("KGE-02", ("GTM", "AKS", "AI", "TCO", "APIOps", "MCP", "A2A")),
-    ("KGE-03", ("GEW", "GRS", "IAM")),
+    ("KGE-02", ("KGE", "GTM", "AKS", "AI", "TCO", "APIOps", "MCP", "A2A", "EAG")),
+    ("KGE-03", ("KGE", "GEW", "GRS", "IAM", "API", "EAG", "AI", "TCO")),
     ("KGE-04", ("KGE", "API", "APIM", "CP", "PKI", "MART", "GEO", "KP-SMH1")),
-    ("KGE-05", ("GRS",)),
-    ("KGE-06", ("E2", "E3", "E4", "HA", "DR")),
-    ("KGE-07", ("GEB", "KMC", "KP-SMH1", "E1", "DP", "KPS")),
-    ("KGE-08", ("KPS-FIT",)),
+    ("KGE-05", ("KGE", "GRS")),
+    ("KGE-06", ("KGE", "E2", "E3", "E4", "HA", "DR", "KP-SMH1")),
+    ("KGE-07", ("KGE", "GEB", "KMC", "KP-SMH1", "E1", "DP", "KPS", "API", "APIM", "CP", "PKI", "GEO")),
+    ("KGE-08", ("KGE", "KPS-FIT", "API", "CP", "PKI", "E1", "DP")),
     ("KGE-09", ("KGE", "API", "CP", "DP", "PKI", "IdP", "mTLS", "DNS", "HA", "SLO", "KPS", "E1", "RBAC", "WAF", "SIEM")),
-    ("KGE-10", ("IdP", "CA", "CN", "JSON", "JWKS")),
-    ("KGE-12", ("DB", "SRE", "IAM")),
-    ("KGE-13", ("KP0–KP5", "KP-SMH1", "E2", "E3", "E4", "BOM", "RACI", "GP-1–GP-6")),
+    ("KGE-10", ("KGE", "IdP", "CA", "CN", "JSON", "JWKS", "CP", "PKI", "E1", "DP", "KPS", "SIEM")),
+    ("KGE-11", ("KGE", "E1", "DP", "KPS", "CP")),
+    ("KGE-12", ("KGE", "DB", "SRE", "IAM", "PKI", "E1", "KPS", "API", "CP", "DP")),
+    ("KGE-13", ("KGE", "KP0–KP5", "KP-SMH1", "E2", "E3", "E4", "BOM", "RACI", "GP-1–GP-6", "P1–P10", "API", "CP", "DB", "DP", "IdP", "PKI", "RBAC", "SLO")),
     ("KGE-14", ("KGE", "API", "MULE", "SFTP", "SaaS")),
-    ("KGE-15", ("AKS", "CRM")),
-    ("KGE-16", ("A0–A6", "M0–M5", "SLO", "E4")),
+    ("KGE-15", ("KGE", "AKS", "CRM", "API", "MULE")),
+    ("KGE-16", ("KGE", "A0–A6", "M0–M5", "SLO", "E4", "KVM", "TLS")),
     ("KGE-17", ("KGE", "API", "PoC", "KP-SMH1", "E3", "E4", "CP", "AI", "TCO")),
-    ("KGE-18", ("API", "GEP", "GSA", "LTS", "BOM", "SBOM", "APIOps", "IAM", "MCP", "A2A", "RTO", "RPO", "RACI", "WAAP")),
-    ("KGE-19", ("KO", "DP", "SLI", "SLO", "SRE", "OAuth", "mTLS", "IdP", "PKI", "PR")),
-    ("KGE-20", ("DLP", "DNS", "KP0", "FinOps")),
-    ("KGE-21", ("KPS", "E1", "E2")),
+    ("KGE-18", ("KGE", "API", "GEP", "GSA", "LTS", "BOM", "SBOM", "APIOps", "IAM", "MCP", "A2A", "RTO", "RPO", "RACI", "WAAP", "PoC", "TPA", "EDS", "CPU", "SSE")),
+    ("KGE-19", ("KGE", "KO", "DP", "SLI", "SLO", "SRE", "OAuth", "mTLS", "IdP", "PKI", "PR", "CP", "RTO", "RPO", "IAM")),
+    ("KGE-20", ("KGE", "DLP", "DNS", "KP0", "FinOps", "KO", "API", "SRE")),
+    ("KGE-21", ("KGE", "KPS", "E1", "E2", "E3", "E4", "BOM", "CP")),
     ("KGE-22", ("KGE", "API", "GEC", "CP", "DP")),
-    ("KGE-23", ("AI", "GenAI", "MCP", "A2A", "E1", "WAAP")),
-    ("KGE-24", ("TCO", "CP", "PKI", "HA", "DR", "PAYG", "RACI")),
-    ("KGE-25", ("E0", "GEW", "GRS", "IAM", "TCO", "CP")),
+    ("KGE-23", ("KGE", "AI", "GenAI", "MCP", "A2A", "E1", "API", "WAAP", "TPA", "EDS", "GEC")),
+    ("KGE-24", ("KGE", "TCO", "CP", "PKI", "HA", "DR", "PAYG", "RACI", "GEC")),
+    ("KGE-25", ("KGE", "E0", "GEW", "GRS", "IAM", "TCO", "CP", "API", "AI")),
 )
 KONG_GUIDED_ASSESSMENT_SCHEMA_VERSION = 2
 KONG_GUIDED_ASSESSMENT_SOURCE_PATH = "docs/49-kong-guided-evaluation-facilitator-guide.md"
@@ -442,6 +443,8 @@ KONG_GUIDED_ASSESSMENT_INTERFACE_TERM_COLUMNS = (
 )
 KONG_GUIDED_ASSESSMENT_INTERFACE_TERMS = (
     ("API", "application programming interface (API)"),
+    ("EAG", "Early Assessment Gate (EAG)"),
+    ("APIM", "Azure API Management (APIM)"),
     ("E0", "assertion-only evidence (E0)"),
     ("E1", "current official documentation (E1)"),
     ("E2", "vendor answer with named version or contract term (E2)"),
@@ -2113,7 +2116,7 @@ def validate_kong_guided_evaluation(
     )
     require(
         observed_term_tokens == KONG_GUIDED_TERM_TOKENS,
-        "guided evaluation termSets must preserve the exact phase-local slide and token order",
+        "guided evaluation termSets must preserve the exact per-slide token order",
     )
     require(
         tuple(
@@ -2485,7 +2488,7 @@ def validate_kong_guided_evaluation(
         require(tuple(reference.get("url") for reference in official_references if isinstance(reference, dict)) == official_references_by_slide_id[row["slideId"]], f"guided slide contract {row.get('slideId')} official references do not match the canonical catalog")
         require(
             row.get("terms") == canonical_terms_by_slide_id.get(row["slideId"], []),
-            f"guided slide contract {row.get('slideId')} terms do not match the canonical phase-local set",
+            f"guided slide contract {row.get('slideId')} terms do not match the canonical per-slide set",
         )
     contract_by_slide_id = {row["slideId"]: row for row in contract_rows}
     for slide_id, expected_content in KONG_GUIDED_EARLY_SLIDE_CONTRACT.items():
