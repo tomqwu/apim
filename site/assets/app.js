@@ -1170,6 +1170,30 @@
 
       const terms = guidedFacilitatorTerms(termsForSlide, slideId);
       if (terms) heading.after(terms);
+
+      const primaryNotes = document.createElement("div");
+      primaryNotes.className = "speaker-note-primary";
+      primaryNotes.setAttribute("aria-label", `${slideId} ready-to-say notes`);
+      const moveNoteBlock = (label) => {
+        const noteHeading = [...section.children].find(
+          (candidate) => candidate.matches?.("h5") && candidate.textContent.trim() === label,
+        );
+        if (!noteHeading) return;
+        if (label === "Speaker script") noteHeading.textContent = "Ready-to-say speaker script";
+        let current = noteHeading;
+        while (current) {
+          const following = current.nextElementSibling;
+          primaryNotes.append(current);
+          if (!following || following.matches("h5")) break;
+          current = following;
+        }
+      };
+      moveNoteBlock("Speaker script");
+      moveNoteBlock("Talking points");
+      if (primaryNotes.children.length) {
+        if (terms) terms.after(primaryNotes);
+        else heading.after(primaryNotes);
+      }
       enhancedTotal += 1;
     });
 
@@ -3349,11 +3373,22 @@
       : source
         ? `<a class="slide-source" href="${itemHref(source)}" aria-label="Open canonical source: ${escapeHtml(source.title)}">Source · ${escapeHtml(sourceLocator)} <span aria-hidden="true">↗</span></a>`
         : "";
+    const guidedOpeningDecision = isGuidedDeck && slide.viewId === "cover"
+      ? `<strong class="guided-decision-thesis">Kong is the better strategic fit for the operating model we chose.</strong>
+          <p class="slide-body">It supports faster Git-managed delivery, central control with request runtimes near workloads, and a practical path to resilience and portability.</p>
+          <small class="guided-decision-boundary"><b>Decision boundary</b> · Approve a small, reversible start. Production scale still requires executed proof.</small>`
+      : "";
+    const guidedDecisionCopy = isGuidedDeck
+      ? `<div class="journey-proof-copy${guidedOpeningDecision ? " is-opening" : ""}">
+          <span>Product owner decision</span>
+          ${guidedOpeningDecision || `<p class="slide-body">${escapeHtml(slide.body)}</p>`}
+        </div>`
+      : `<div class="journey-proof-copy"><span>Why it matters</span><p class="slide-body">${escapeHtml(slide.body)}</p></div>`;
     const journeyProof = isJourneyDeck
       ? `<aside class="slide-aside journey-proof-strip">
           <div class="slide-aside-content">
             <div class="slide-metric"><strong>${escapeHtml(slide.metric)}</strong><span>${escapeHtml(slide.metricLabel)}</span></div>
-            <div class="journey-proof-copy"><span>${isGuidedDeck ? "Decision cue" : "Why it matters"}</span><p class="slide-body">${escapeHtml(slide.body)}</p></div>
+            ${guidedDecisionCopy}
           </div>
           ${guidedReferenceMarkup}
         </aside>`

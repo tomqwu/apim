@@ -3,17 +3,17 @@
 | Field | Value |
 |---|---|
 | Artifact type | meeting-facilitation-guide |
-| Meeting question | Should the decision owner approve, amend, or hold a bounded Kong foundation and the work required to prove it before production scale? |
-| Decision owner | API-platform product owner with the accountable architecture, security/IAM, platform, SRE, migration, sourcing, FinOps, service-management, delivery, and assurance leads |
-| Intended users | Meeting chair, presenter, facilitator, scribe, evidence steward, timekeeper, decision owners, and named technical or commercial challengers |
-| Scope | Complete speaker notes for all 25 slides; four explicit early assessment gates; an 18-question local interactive contract; meeting routes; bounded side talks; challenge navigation; evidence-safe responses; decision capture; parking-lot control; stop rules; and closing protocol for the Kong guided evaluation |
-| Evidence state | Facilitation guidance derived from the canonical guided evaluation and its presentation notes; no new product fact, executed result, commercial conclusion, or production authorization |
+| Meeting question | Should we approve, change, or pause a small, reversible Kong start and the tests needed before production scale? |
+| Decision owner | Application programming interface (API) platform product owner, supported by architecture, security, platform, reliability, migration, sourcing, finance, service-management, delivery, and independent-review leads |
+| Intended users | Product owner, meeting chair, presenter, note taker, evidence reviewer, timekeeper, and the technical or commercial leads who will own follow-up work |
+| Scope | Meeting opening, full scripts and three talking points for all 25 slides, four early questions, an 18-question local assessment, meeting routes, challenge responses, decision capture, stop conditions, and a closing checklist |
+| Evidence state | Meeting guidance based on the guided evaluation and slide notes. It adds no new product claim, test result, price conclusion, or production approval. |
 | As-of date | 2026-08-22; use the current canonical study and deck revision when facilitating |
-| Next gate | Disposition `EAG-01`–`EAG-04`, then record an explicit approve, amend, or hold decision; name owners, artifacts, thresholds, reviewers, due gates, and stop rules for every authorized proof item |
+| Next gate | Answer Early Assessment Gate (EAG) 01–04, then record approve, change, or hold. For every approved test, name its owner, measure, proof, reviewer, due date, and stop condition. |
 
 ## Use this guide with the presentation
 
-This document is the **complete canonical facilitation and speaker-notes companion** for the Kong guided evaluation. It contains a meeting opening plus a natural-language `Speaker script` and compact `Talking points` for every slide. It also preserves the synchronized `Purpose`, `Talk track`, `Ask`, `Bridge`, `Caveat`, and `Sources` blocks, together with the side talks, evidence-safe responses, follow-up probes, decision impacts, capture instructions, branches, rejoin points, and hold rules needed to run the meeting. The PowerPoint notes remain a concise projection; use this Markdown when preparing, presenting, navigating challenges, or handing the meeting to another facilitator.
+This is the **complete meeting and speaker-notes guide** for the Kong evaluation. Every slide has a ready-to-say script and three short talking points. It also includes the purpose, question to ask, transition, caution, sources, likely challenges, safe responses, follow-up questions, decisions to capture, and places to pause. Use this page to prepare the meeting, present the story, handle challenges, or hand the meeting to another facilitator.
 
 - [Open the native 25-slide presentation](https://tomqwu.github.io/apim/#/present/kong-platform-journey-guided/0)
 - [Open the PowerPoint in the repository](https://github.com/tomqwu/apim/blob/main/presentations/kong-platform-journey-guided.pptx)
@@ -28,7 +28,7 @@ This document is the **complete canonical facilitation and speaker-notes compani
 - [Inspect the Traceable security-adjunct evidence boundary](48-kong-guided-evaluation.md#traceable-by-harness-security-adjunct-feasibility)
 - [Inspect the current PoC evidence boundary](../poc/README.md)
 
-If this guide, the PowerPoint, or the native presentation differs from a canonical study, the canonical study wins. Do not publicly link the raw supplied input; the sanitized guided evaluation preserves the admissible decision context.
+If this guide and a source study disagree, use the source study. Do not publicly link the raw supplied input; the public guided evaluation contains the safe decision context.
 
 ### Acronym and identifier reading rule
 
@@ -40,54 +40,50 @@ Apply the same rule in meeting artifacts and follow-up documents: expand an unfa
 
 ### Suggested opening script — 2 to 3 minutes
 
-Good morning. Before we discuss architecture or products, I want to be precise about the decision this meeting can make.
+Good morning. Today we are deciding whether Kong is the strongest strategic fit for the application programming interface (API) platform we want to build, and whether we should fund a controlled first implementation to prove it.
 
-We are deciding whether to **approve, amend, or hold a bounded and reversible Kong foundation**, together with the work needed to prove it before production scale. We are not selecting a universal product winner. We are not treating the historical score as independent evidence. We are not approving critical production scale today.
+Kong is the better strategic fit for this operating model because it matches the direction already set by the organization: Kubernetes-based delivery, Git-reviewed change, distributed gateways across cloud and private environments, and clear platform ownership. If those priorities hold, Kong could give teams faster delivery, stronger control over where traffic runs, and a more portable foundation for modernization. That is the positive case we will test today.
 
-By the end of the session, we need a decision record—not simply agreement that the slides were reviewed. That record must say what is authorized now, what remains unauthorized, who is accountable, what evidence closes each material gap, and what result would stop or reverse the direction.
+We also need to test the cost of that control. Self-managed Kong creates ongoing responsibility for operations, recovery, security, upgrades, support, and evidence. Four Early Assessment Gates (EAGs) bring the biggest open questions into the discussion now: multicloud fit, the ability to change providers or exit, full Total Cost of Ownership (TCO), and whether to include Kong with Traceable by Harness as an optional security add-on in the study.
 
-Four Early Assessment Gates must be dispositioned early. `EAG-01` is multicloud operating fit. `EAG-02` is reversibility and vendor dependency. `EAG-03` is fully allocated total cost of ownership. `EAG-04` is admission of the optional Kong-plus-Traceable solution profile for study. An unknown answer remains an evidence gap; it does not become a pass because the room prefers forward motion.
+By the end of the meeting, we need one of three outcomes: approve a small, controlled Kong foundation and test plan; change the proposal; or hold it. We also need owners, proof, due dates, and clear reasons to stop or change direction. We are not approving critical production scale today.
 
-Throughout the discussion, I will label the evidence ceiling. Stakeholder input can explain intent. Evidence level one, `E1`, is a documented mechanism and can support test design. Evidence level two, `E2`, is a version-, contract-, or configuration-specific answer. Evidence level three, `E3`, is a repeatable result in the frozen target-shaped lab. Evidence level four, `E4`, is representative pilot evidence. We will not promote a claim without the artifact and review required for the higher level.
+I will keep the strength of each claim visible. Documentation can tell us what to test. A version-specific answer can close a narrow question. A repeatable result in a production-like lab is stronger, and a representative pilot is stronger again. We will not call a capability proven until the evidence supports that conclusion.
 
-Challenges are welcome. If you disagree with a claim, please state what decision would change, what evidence would close the question, who should own it, and when it must return. We can branch to a detailed slide, but every branch must rejoin either the authorization decision on slide 6 or the evidence-outcome decision on slide 21.
+Challenges are welcome. If you disagree, please say what decision could change and what evidence would settle the question. Each slide follows the same path: business outcome → why Kong fits → what could change the answer → decision. We can open a detailed slide, but we will return to slide 6 for authorization or slide 21 for the final outcome.
 
-Before we begin, please confirm the chair, scribe, evidence steward, and timekeeper. If no accountable decision owner is present, this becomes a working session and no authorization will be issued.
-
-With that boundary clear, let us start with the decision question and then test the operating model that makes Kong directionally attractive.
+Before we begin, please confirm the decision owner, scribe, evidence reviewer, and timekeeper. Then we will start with why Kong fits the strategy and what must be true for us to proceed.
 
 ### Opening talking points
 
-- The meeting decides **approve, amend, or hold** for a bounded foundation and proof programme.
-- Direction, documented capability, executed proof, and production authorization are different states.
-- Four early gates must receive an explicit disposition, owner, evidence request, due gate, and hold condition.
-- Challenges must identify decision impact and closure evidence; they do not become unscheduled rescoring debates.
-- Confirm the decision owner and facilitation roles before slide 1.
+- Kong is the leading strategic fit because it aligns with the target delivery and operating model.
+- The meeting decides whether to approve, change, or hold a controlled implementation and test plan—not production scale.
+- Every open risk needs an owner, evidence, due date, and a clear condition that would stop or change the direction.
 
 ## What the meeting must produce
 
 The meeting succeeds only when it produces a decision record, not when it reaches the last slide. The chair should secure:
 
-1. an explicit **approve, amend, or hold** answer for the bounded direction;
-2. a precise statement of what is authorized now and what remains unauthorized;
-3. confirmed, amended, or rejected target-model assumptions plus explicit dispositions for `EAG-01` multicloud, `EAG-02` reversibility/vendor dependency, `EAG-03` fully allocated TCO/cost efficiency, and `EAG-04` Kong-plus-Traceable solution-profile admission;
-4. accountable public roles for the operating boundary, permanent duties, Mule and Apigee migration safety, the seven proof workstreams, scoring governance, terminology enablement, and independent review;
-5. a closure artifact, threshold, independent reviewer, due gate, and stop rule for every material evidence gap;
-6. recorded dissent and the evidence that could change the answer; and
-7. an agreed next decision forum and date.
+1. an explicit **approve, change, or hold** answer for the small Kong start;
+2. a clear statement of what may begin now and what may not;
+3. an answer for `EAG-01` multicloud fit, `EAG-02` ease of exit and vendor dependency, `EAG-03` full Total Cost of Ownership (TCO), and `EAG-04` the optional Kong-plus-Traceable study;
+4. named role owners for ongoing operations, MuleSoft and Apigee migration safety, the seven test workstreams, scoring, terminology support, and independent review;
+5. a measure, result record, reviewer, due date, and stop condition for every important unknown;
+6. any disagreement and the evidence that could change the answer; and
+7. the date and forum for the next decision.
 
-The meeting does **not** authorize critical production scale, prove a universal product ranking, change a score to preserve a preferred order, convert supplied scores into observed evidence, count a third-party integration as native gateway proof, commit synthetic roadmap dates, or declare documented capability to be executed behavior.
+The meeting does **not** approve broad production scale, declare a universal product winner, change a score to protect a preferred result, treat old ratings as new evidence, count a third-party integration as native Kong capability, promise unsupported roadmap dates, or treat documentation as a completed test.
 
 ## Roles in the room
 
 | Role | Responsibility during the meeting |
 |---|---|
-| Chair / decision owner | States the decision authority, protects non-goals, resolves or holds the decision, and reads back the final authorization. |
-| Facilitator / presenter | Drives the chosen route, labels evidence states, uses challenge branches, and returns the room to slides 6 or 21. |
-| Scribe | Maintains the decision, evidence-gap, action, dissent, and parking-lot ledgers in real time. |
-| Evidence steward | Challenges unsupported promotion from stakeholder input or documentation to proof; confirms source, result, version, topology, and limitations. |
-| Timekeeper | Enforces segment timeboxes and signals when a challenge must be assigned, parked, or moved to the appendix. |
-| Accountable challengers | Security/IAM, architecture, platform/database, SRE, Mule and Apigee migration, domain, sourcing, FinOps, service-management, privacy, product enablement, and independent-assurance leads test the claims their roles will own. |
+| Chair / decision owner | States what the meeting may decide, keeps the discussion in scope, makes or pauses the decision, and reads back the result. |
+| Facilitator / presenter | Guides the chosen route, explains how strong each claim is, handles challenges, and returns the room to slide 6 or 21. |
+| Note taker | Records decisions, open evidence, actions, disagreements, and parked topics as they happen. |
+| Evidence reviewer | Challenges unsupported claims and confirms the source, product version, test result, setup, and limits. |
+| Timekeeper | Protects each timebox and signals when a challenge needs an owner, should be parked, or belongs in the appendix. |
+| Accountable leads | Security and Identity and Access Management (IAM), architecture, platform and database, Site Reliability Engineering (SRE), migration, sourcing, Financial Operations (FinOps), service management, privacy, product enablement, and independent review test the claims they will own. |
 
 Before opening slide 1, name the chair, scribe, evidence steward, and timekeeper. A meeting without a decision owner should be converted to a working session and must not produce an authorization.
 
@@ -97,11 +93,11 @@ Use the evidence ladder consistently:
 
 | Evidence state | What it can support | What it cannot support |
 |---|---|---|
-| Stakeholder input | Preference, target intent, questions, and hypotheses | Independent product fit or achieved outcome |
-| `E1` documented mechanism | Test design and bounded mechanism interpretation | Entitlement, configured behavior, operations, economics, or production outcome |
-| `E2` attributable answer | Version-, contract-, support-, or configuration-specific closure | Repeatable behavior under the target topology |
-| `E3` target-shaped lab result | Reproducible behavior inside the frozen test boundary | Representative production performance or adoption |
-| `E4` representative pilot | The strongest pre-scale evidence under expected controls, load, and operations | Universal fit outside the observed boundary |
+| Stakeholder input | Priorities, intent, questions, and ideas to test | Independent product fit or a proven outcome |
+| `E1` documented mechanism | Designing a useful test | Proof that the purchased version, configured setup, operations, cost, or production outcome will work |
+| `E2` specific answer | Closing a narrow version, contract, support, or configuration question | Repeatable behavior in the proposed setup |
+| `E3` production-like lab result | Repeatable behavior inside the agreed test setup | Representative production performance or adoption |
+| `E4` representative pilot | The strongest evidence before broad scale, under expected controls, load, and operations | Proof that the result applies outside what was observed |
 
 Room rules:
 
@@ -291,19 +287,19 @@ We start from the stated target operating model, disposition four early gates fo
 
 *If you delivered the full meeting opening, use the first paragraph as the handoff and move directly to the final paragraph. Use the complete script when slide 1 is the opening.*
 
-Welcome to the Kong Guided Evaluation. The question in front of us is deliberately narrower than “Which application programming interface platform wins?” We are deciding whether to approve, amend, or hold a bounded Kong foundation and the proof programme required before production scale.
+Welcome to the Kong Guided Evaluation (KGE). Today we are deciding whether Kong is the best fit for the application programming interface (API) platform we want to build and whether to fund a controlled first implementation.
 
-The journey begins with the stated operating model because that is what makes Kong appear directionally attractive. We then disposition four Early Assessment Gates: multicloud operating fit, reversibility and vendor dependency, fully allocated total cost of ownership, and admission of the optional Kong-plus-Traceable solution profile. From there, we test the operating boundary, permanent ownership, architecture, adoption, MuleSoft and Apigee migration, and target-shaped production evidence.
+Kong leads because it matches the organization’s direction: Kubernetes, Git-reviewed delivery, distributed gateways, and platform ownership. Those choices could help teams deliver APIs faster, run traffic closer to workloads, and keep more control over placement and operations.
 
-The important distinction is between choosing a direction and proving an outcome. The supplied evaluation is stakeholder input. It can explain why the organization prefers Kubernetes, Git-reviewed delivery, platform ownership, and distributed runtimes. It cannot independently prove product superiority or production readiness.
+That strategic fit is a reason to proceed with testing, not proof that Kong is ready for broad production use. We still need answers on multicloud operation, recovery, security, full cost, migration, and the ongoing work of running the control plane.
 
-If this feels predetermined, tell us which target assumption or counter-evidence would reverse the direction. We will record that condition and turn it into a proof obligation. Today’s acceptable result is an explicit bounded authorization, amendment, or hold—not an unqualified endorsement.
+If you believe another option would produce a better outcome, name the business condition and evidence that would change the direction. We will record it and test it fairly. The decision today is simple: approve the controlled Kong foundation and test plan, change it, or hold it.
 
 ##### Talking points
 
-- Direction plus proof, not product marketing.
-- The four early gates must be dispositioned before bounded authorization.
-- Critical production scale remains outside today’s authority.
+- Kong fits the target model of Kubernetes, Git-managed change, distributed gateways, and platform ownership.
+- Strategic fit supports a controlled implementation; it does not prove production readiness.
+- Decide whether to approve, change, or hold the Kong foundation and test plan.
 
 ##### Ask
 
@@ -369,17 +365,17 @@ The supplied assessment favors Kubernetes, GitOps, platform engineering, self-se
 
 ##### Speaker script
 
-This slide separates the target model from evidence about whether a product meets it. Read the nine target-model records in three lanes. Delivery records cover Azure Kubernetes Service, Spring Boot modernization, and Git-reviewed application programming interface operations. Platform records cover product ownership, internal-platform integration, and governed self-service. Control records cover organization-wide security and observability, multicloud and private placement, and artificial-intelligence traffic governance.
+This slide explains why Kong is the leading fit before we discuss product features. The target model has three priorities. First, delivery should run on Azure Kubernetes Service, support Spring Boot modernization, and use Git-reviewed application programming interface (API) changes. Second, the API platform should be owned as a product and offer governed self-service. Third, security, observability, multicloud placement, and artificial intelligence traffic need organization-wide control.
 
-These are target inputs to confirm or amend; they are not an observed current-state inventory. Before we use them to support a direction, we must disposition four Early Assessment Gates. The first asks whether the exact placements and dependencies really support multicloud operations. The second separates a custody change from a true non-Kong exit. The third requires a common, fully allocated total cost of ownership denominator. The fourth decides whether the self-managed hybrid target plus the Traceable security-adjunct hypothesis is admitted for study.
+Kong aligns well with that model because it is designed for Kubernetes-based operations, automated configuration, and distributed runtimes. Four Early Assessment Gates (EAGs) could still change the direction. We must confirm that the proposed setup works across the required clouds, that we can change custody or exit without unacceptable effort, that the full Total Cost of Ownership (TCO) is viable, and that Kong with Traceable by Harness should be included as an optional security add-on study.
 
-For every gate, the required output is confirm, amend, reject, or unknown—plus an accountable role, evidence request, due gate, and hold condition. Admission creates work; it does not create proof or score.
+For each gate, decide: confirm, change, reject, or mark unknown. Then name the owner, evidence, due date, and reason to stop. Including a question in the study creates work; it does not create a score or proof.
 
 ##### Talking points
 
-- Confirm the target model before interpreting product fit.
-- Early Assessment Gates are scope-and-evidence gates, not product ratings.
-- Traceable remains an optional composite profile, not native Kong capability.
+- Kong leads because its operating model matches the organization’s delivery, platform, and control priorities.
+- Four early questions—multicloud, exit, full cost, and the optional Traceable study—could still change that direction.
+- Decide each question now and assign its owner, proof, due date, and stop condition.
 
 ##### Ask
 
@@ -444,19 +440,19 @@ Eight supplied categories sum to 100%, and Kubernetes plus GitOps carry 35%. The
 
 ##### Speaker script
 
-This slide explains why the supplied scorecard points toward Kong without claiming that it proves Kong is best. The eight supplied-weight records total 100 percent. Kubernetes and Git-reviewed operations alone carry 35 percent, so the historical model strongly reflects a cloud-native delivery preference.
+The original score favors Kong for a clear reason: 35 percent of the weighting rewards Kubernetes and Git-reviewed operations. Those are central to the organization’s target model, so the result supports Kong as the current strategic leader.
 
-The proposed planning scenario does not rewrite those ratings. It rebases the historical block to 60 percent and reserves 40 percent for six missing dimensions: multicloud operating fit; scalability and robustness; enterprise identity and access management plus end-to-end traceability; reversibility and vendor dependency; fully allocated total cost of ownership; and control-plane operating responsibility. Every product rating in that new block remains unknown.
+But the score does not yet answer six important questions. Forty percent of the proposed comparison is reserved for multicloud operation, scalability and resilience, enterprise Identity and Access Management (IAM) and end-to-end traceability, ease of exit, full Total Cost of Ownership (TCO), and the work required to run the control plane. Every product score in that new block is still unknown.
 
-The early gates put these concerns into the meeting now, but their disposition cannot manufacture a score. Admitting the optional Kong-plus-Traceable profile for a security-adjunct study also gives Kong no native platform points.
+That uncertainty could confirm Kong’s lead, narrow it, or reverse it. The optional Traceable by Harness study must also remain separate; a third-party add-on cannot be counted as native Kong capability.
 
-The decision here is whether this is the right governed scoring specification: exact options, mandatory gates, evidence floor, rubric, scorers, confidence treatment, sensitivity analysis, dissent, and approval authority. The objective is a more auditable comparison, not a more convincing number.
+The decision is whether these are the right criteria and scoring rules. We need the same product boundaries, must-pass conditions, proof requirements, and independent reviewers for every option. The goal is to learn whether Kong is truly better for our priorities—not to adjust the model until Kong wins.
 
 ##### Talking points
 
-- Historical weighting explains preference; it does not prove fit.
-- Six missing dimensions remain wholly unscored.
-- Optional security tooling cannot inflate the native gateway score.
+- Kong leads the original score because the model strongly values Kubernetes and Git-managed delivery.
+- Forty percent of the proposed comparison still covers unanswered strategic and operating risks.
+- Approve fair scoring rules that can confirm, narrow, or reverse Kong’s lead.
 
 ##### Ask
 
@@ -526,19 +522,19 @@ Kong is strongest when Kubernetes, GitOps and platform ownership dominate. Apige
 
 ##### Speaker script
 
-Here we are deliberately not comparing feature counts. The four option archetypes describe conditions under which each option could become the stronger operating-model fit.
+This comparison starts with operating outcomes, not feature counts. Kong is the strongest fit when Kubernetes, Git-reviewed delivery, platform engineering, distributed runtimes, and enterprise control matter most. Those are the priorities we have heard, which is why Kong leads the current direction.
 
-Kong leads when Kubernetes, Git-reviewed operations, platform engineering, management-state custody, and distributed runtime ownership dominate. Apigee becomes stronger when external application programming interface product management, governance, analytics, and Google-aligned management services dominate. MuleSoft becomes stronger when Anypoint remains the strategic integration and application programming interface platform. Azure API Management becomes stronger when Azure consolidation matters more than platform neutrality.
+The alternatives become stronger under different conditions. Apigee may lead when external application programming interface (API) products, analytics, and Google-managed services dominate. MuleSoft may lead when Anypoint remains the strategic integration platform. Azure API Management may lead when Azure consolidation matters more than platform independence.
 
-Those are counterfactual hypotheses, not verified rankings. “Keep as a counterfactual” means preserve an option as a condition that could change the answer. Excluding it from the leading build is a scope choice, not a verdict that the product lacks capability.
+Keeping those alternatives visible is not indecision. It gives us a clear way to test the Kong recommendation. If another option would deliver a better business outcome for an agreed condition, name the specific product version, deployment model, use case, and measure. We will apply the same test and evidence standard to every option.
 
-If someone believes a feature list is incomplete or biased, the useful response is not to trade brochures. State the exact edition, topology, use case, operating condition, and measurable outcome that would reverse the direction. We can then create one symmetric evidence request and apply it to all admitted options. The output of this slide is a set of reversal conditions and proof obligations—not a winner declared from qualitative labels.
+The decision here is to agree on the conditions that make Kong better for us and the conditions that could change that answer. Excluding an alternative from the first implementation is a scope decision, not a claim that it lacks capability.
 
 ##### Talking points
 
-- Compare operating models, not inventories of features.
-- Every contender remains a legitimate counterfactual under stated conditions.
-- Exclusion from the leading build is not a capability verdict.
+- Kong leads when cloud-native delivery, platform ownership, and distributed runtimes are the priorities.
+- Other products become stronger when different business and operating conditions dominate.
+- Agree on the measurable conditions that could confirm or change Kong’s lead.
 
 ##### Ask
 
@@ -603,19 +599,19 @@ The historical inputs recalculate to 93 for Kong, 85.5 for Apigee, and 77 for Mu
 
 ##### Speaker script
 
-This slide keeps the historical scorecard visible but gives it an honest evidence ceiling. Recalculation preserves Kong at 93 and corrects Apigee to 85.5 and MuleSoft to 77. Those remain assertion-only inputs because the original model has no approved rubric, common evidence set, exact edition freeze, confidence method, or independent scorer panel.
+The historical score gives Kong a clear lead: 93, compared with 85.5 for Apigee and 77 for MuleSoft. That result is useful because it shows how strongly the original evaluation values cloud-native delivery. It is not yet enough to prove that Kong is the best production choice, because the products were not scored against one approved rulebook and common evidence set.
 
-Under the provisional 60/40 scenario, the fixed historical contributions become 55.8 for Kong, 51.3 for Apigee, and 46.2 for MuleSoft. The proposed re-score block remains unknown from zero to 40 points, creating the displayed envelopes. The ranges overlap. That is the useful finding: each option can still rank first under permitted unknown completions, so the current ordering is unstable.
+In the proposed 60/40 scenario, the historical contribution becomes 55.8 for Kong, 51.3 for Apigee, and 46.2 for MuleSoft. The remaining 40 points cover important questions that are still unknown. That creates overlapping ranges, so any option could still finish first when those questions are answered.
 
-The midpoint shown for visualization is not a score. The endpoints are not forecasts or probabilities. Strong historical inputs also cannot average away an unknown or failed mandatory gate.
+The message is not that the products are equal. It is that Kong’s current advantage is promising but not stable enough for a broad commitment. The midpoint on the chart is only a drawing aid, not a forecast or final score.
 
-If the request is to make the recommendation more convincing, the answer is better governance and common evidence—not tuned weights. We must decide how the historical score may be used, who can replace unknowns, and which independent assurance role confirms that the approved method was followed.
+Decide how the historical score may guide planning, who can replace unknowns with evidence, and who will check that the same scoring rules were applied to every option.
 
 ##### Talking points
 
-- Correct arithmetic does not improve evidence confidence.
-- Overlapping envelopes expose rank instability.
-- No new decision score exists until the governed comparison is executed.
+- The historical score explains why Kong leads the current direction.
+- Missing evidence could confirm, narrow, or reverse that lead.
+- Approve one fair scoring method before any new total affects the decision.
 
 ##### Ask
 
@@ -681,19 +677,19 @@ Proceed with Kong as the leading planning direction, but authorize only the foun
 
 ##### Speaker script
 
-This is the main authorization slide, and the rows need separate decisions. First, freeze the self-managed hybrid target as the leading exact option to test—not as a universal winner. Second, authorize one reversible foundation with named owners and explicit support, recovery, trust, change, evidence, and route-back obligations. Third, fund the seven proof workstreams, each with a measure, threshold, artifact, independent reviewer, and stop rule. Fourth, allow only bounded MuleSoft or Apigee migration cohorts with coexistence and route-back. Fifth, preserve Konnect as the same-vendor custody benchmark and a true non-Kong exit as a separate obligation.
+This is the main decision slide. Kong is the leading choice because it best matches the target operating model, but we should move in a way that protects the organization if the evidence changes.
 
-What remains unauthorized is equally important: critical production scale, broad migration factories, or conclusions based only on documentation, integrations, and scripts.
+First, agree on the specific self-managed hybrid version and deployment model to test. Second, approve a small foundation with named owners for support, recovery, security, change, and evidence. Third, fund the seven proof workstreams with clear measures, pass conditions, reviewable records, independent reviewers, and reasons to stop. Fourth, limit MuleSoft and Apigee migration to controlled groups with a tested rollback path. Fifth, keep Konnect as the managed Kong comparison and a non-Kong rebuild as the true exit test.
 
-The evidence progression is explicit. A version- or contract-specific answer can close a narrow question. Repeatable target-shaped laboratory evidence can prove behavior inside the frozen boundary. Representative pilot evidence is required for the strongest pre-scale conclusion.
+We are not approving critical production scale, a large migration factory, or claims based only on documents and demos.
 
-If the challenge is “Why choose before the proof of concept?”, the answer is that we are choosing what to build and test reversibly. For each row, I need an approve, amend, or hold decision and the evidence that could change it.
+Choosing Kong now means choosing what to build and test safely. It does not lock in the final production decision. For each row, decide whether to approve it, change it, or hold it, and state what evidence could change that answer.
 
 ##### Talking points
 
-- Authorize foundation and proof—not critical scale.
-- Decide separately on target, foundation, proof, migration, and alternatives.
-- Every authorization remains reversible and evidence-gated.
+- Kong is the leading fit, but the first commitment stays small and controlled.
+- Approve the target, foundation, tests, migration limits, and alternatives separately.
+- Critical production scale waits for reviewed, production-like evidence.
 
 ##### Ask
 
@@ -758,21 +754,19 @@ The leading target is self-managed hybrid. Konnect is a same-vendor custody benc
 
 ##### Speaker script
 
-This slide separates three operating boundaries that are easy to blur together.
+This slide separates three choices about who runs what. The leading option is self-managed hybrid: the enterprise operates Kong’s management layer while data planes handle requests in approved locations. This gives us more control over placement, offline operation, and operating policy, which is a major reason Kong fits the strategy.
 
-The leading boundary is self-managed hybrid: the enterprise operates the management boundary while data planes serve requests in approved locations. The second is the Konnect custody benchmark: Kong operates the control plane and database while customer-hosted data planes remain. That is a same-vendor custody switch, not an exit. The third is a true platform exit: rebuild a representative application programming interface, policy, identity, evidence, and runtime boundary on a non-Kong target, prove route-back, and account for semantic loss.
+The second choice is Konnect. Kong operates the control plane and database while customer-hosted data planes remain. That can reduce our operating work, but it is still a move within Kong. It does not prove that we can leave the platform.
 
-A managed-runtime multicloud option, which also moves runtime custody, is a different benchmark and should not be substituted for Konnect.
+The third choice is a true exit. We rebuild a representative application programming interface (API), its policies, identity, evidence, and runtime on a non-Kong target, then measure behavior changes, effort, and rollback.
 
-The question is not whether self-management sounds like “more control.” The question is which exact custody, sovereignty, offline, support, recovery, or operating condition makes each boundary preferable—and what evidence permits a safe switch. Current official documentation can define mechanisms to test, but it cannot establish operational fit.
-
-If someone says “Konnect is our exit,” correct the category: it changes custody within Kong. A non-Kong reconstruction is the evidence needed to test vendor dependency. Name separate owners and switching evidence for all three boundaries.
+The strategic question is whether the value of self-management is greater than its cost and risk. Documentation tells us what each model supports, but only testing can show which works for us. Confirm the leading model and name separate owners, triggers, and evidence for self-management, Konnect, and a non-Kong exit.
 
 ##### Talking points
 
-- Self-managed lead, Konnect custody switch, and non-Kong exit are distinct.
-- Same-vendor custody transfer does not prove portability.
-- Each boundary needs its own owner, trigger, and route-back evidence.
+- Self-managed Kong offers control, but the value must outweigh the ongoing work.
+- Konnect changes who operates Kong; it does not prove a non-Kong exit.
+- Approve separate owners, triggers, tests, and rollback paths for all three choices.
 
 ##### Ask
 
@@ -837,19 +831,19 @@ The same custody that makes self-managed Kong attractive transfers permanent CP,
 
 ##### Speaker script
 
-This is where the self-managed preference meets its permanent operating cost. Customer custody of the control plane also means enterprise accountability for PostgreSQL, private Admin application programming interface access, control-plane and data-plane public key infrastructure, licensing, plugin lifecycle, backups, upgrades, restore, audit evidence, observability, support coordination, and continuous response.
+Self-managed Kong gives the enterprise more control, but it also gives us the work. We would own the control plane, PostgreSQL, protected administrative access, certificates, licenses, plugins, backups, upgrades, recovery, monitoring, audit records, support coordination, and round-the-clock response.
 
-Hybrid data planes can cache accepted configuration and may continue proxying during a control-plane interruption. That narrows one failure consequence; it does not prove restart, clean-node scaling, urgent mutation or revocation, certificate renewal, reconciliation, isolated recovery, or business correctness. A healthy proxy therefore cannot be treated as a healthy platform.
+Kong’s hybrid model has a useful strength: a data plane can keep serving previously accepted configuration during some control-plane interruptions. That can protect customer traffic. It does not prove that a new node can start safely, an urgent security change can be applied, certificates can be renewed, or the platform can be fully recovered. A working proxy is not the same as a healthy service.
 
-The room must confirm accountable and funded roles across platform product, database and Site Reliability Engineering, security and public key infrastructure, release engineering, service management, sourcing and financial operations, and vendor support. For each duty, ask for capacity, response and recovery objectives, upgrade and restore evidence, escalation paths, and decision authority during degradation.
+The decision is whether the organization is willing and able to fund these ongoing responsibilities. Name the platform, database, Site Reliability Engineering (SRE), security, release, service-management, finance, and support roles that own the work. Confirm capacity, response and recovery targets, and proof of upgrades and restores.
 
-If the question becomes legal liability, keep the boundary precise. This slide allocates operational accountability and risk exposure. Contractual allocation requires exact commercial and support evidence; legal liability requires qualified counsel. Architecture language cannot settle it.
+This slide assigns operating responsibility and exposes risk. Contract terms require sourcing evidence, and legal liability requires qualified counsel. Neither can be settled by the architecture diagram.
 
 ##### Talking points
 
-- Control-plane custody brings permanent, funded enterprise duties.
-- Cached proxy continuity does not prove platform recoverability.
-- Operational accountability is not a legal-liability determination.
+- Self-managed Kong offers control and continuity, but it creates ongoing enterprise work.
+- A working data plane does not prove safe change, scaling, or full recovery.
+- Approve the owners, capacity, recovery targets, and support model—or hold the self-managed choice.
 
 ##### Ask
 
@@ -917,17 +911,19 @@ Configuration authority is centralized in the enterprise control zone. Data plan
 
 ##### Speaker script
 
-Let me start with the architectural bargain shown here. One enterprise control boundary owns approved gateway intent, while distributed data-plane cells serve requests close to workloads. The control plane and PostgreSQL are management dependencies; they are not intended to sit in the ordinary application programming interface request path. Local collectors keep operational evidence near each runtime, while enterprise public key infrastructure, identity, Domain Name System, traffic steering, and network controls remain explicit dependencies.
+This diagram shows the main architectural reason Kong fits the strategy. One enterprise control zone manages approved gateway policy, while distributed data-plane cells handle application programming interface (API) requests close to workloads. That supports central governance without forcing every request through one central runtime. Local evidence collection also keeps operational records close to where traffic runs.
 
-That gives us centralized authority without forcing every request through one central runtime. It does not give us proven high availability or multiregion recovery. This is still a proposed target informed by current official documentation, not an executed design. The picture does not select regions, replica counts, database replication, failover automation, capacity, sovereignty treatment, or clean-node behavior during isolation.
+The control plane and PostgreSQL support management; they are not meant to sit in the normal request path. Enterprise certificates, identity, Domain Name System (DNS), traffic steering, and networks remain important dependencies.
 
-If someone reads these arrows as proof that failover is solved, the answer is: the diagram defines what we must test; it is not the result. I need the room to validate five things—control-zone ownership, data-plane placement, request locality, trust paths, and evidence custody. Any disagreement changes the bill of materials, failure model, ownership, and proof programme. If a mandatory boundary remains unknown, we hold the target freeze.
+This design could improve placement flexibility, fault isolation, and multicloud operation. The diagram does not prove those outcomes. We still need to choose regions, capacity, database replication, failover behavior, sovereignty rules, and what happens when a new node starts during isolation.
+
+Please confirm five things: who owns the control zone, where data planes run, whether requests stay local, how trust is managed, and where evidence is stored. A disagreement changes the components, risks, owners, and tests. If a must-have boundary is still unknown, decide to hold the target design.
 
 ##### Talking points
 
-- Centralize approved intent; distribute request handling and evidence.
-- The diagram defines test boundaries; it does not prove resilience.
-- Confirm ownership, placement, locality, trust, and evidence custody.
+- Kong can centralize policy while running traffic and collecting evidence close to workloads.
+- That design supports the strategy, but resilience and multicloud operation still require testing.
+- Confirm ownership, placement, locality, trust, and evidence storage before locking the design.
 
 ##### Ask
 
@@ -992,17 +988,21 @@ Kong hybrid separates configuration distribution from request proxying. Trust ad
 
 ##### Speaker script
 
-I want to retire one dangerous sentence: “The proxy is healthy, therefore the service is healthy.” This model separates the paths that sentence collapses. Configuration can be accepted while its freshness is aging. A data plane can receive a request while its identity provider, JSON Web Key Set, or client certificate authority is degraded. A backend can return an apparently successful response while the durable business action is absent, duplicated, or ambiguous. Request handling can also remain green while required audit or security evidence is being dropped.
+Kong can keep application programming interface (API) traffic moving even when parts of the management system are unavailable. That is valuable, but it creates a risk: a healthy gateway does not always mean a healthy customer journey.
 
-These are examples of independent failure paths, not claims that any one is occurring today. The model is proposed and must be tested against the exact option. The service-level objective for the business journey is therefore not the same as gateway uptime.
+Configuration may be old. The identity provider, JSON Web Key Set (JWKS), or certificate authority may be unavailable. A backend may return success even though the business action was missed or duplicated. Traffic may also look healthy while required security or audit records are being lost.
 
-If the room says this creates too many probes, narrow them to the mandatory journeys and risks—do not collapse them into one misleading signal. For each admitted service, name the configuration identity, trust-age rule, backend-readiness test, business verifier, evidence-gap signal, threshold, and response owner. The decision here is whether those paths receive separate proof gates. Without them, we can admit traffic into a false-ready service and discover the failure only after customer or audit impact.
+These are risks to test, not claims about the current environment. The business Service-Level Objective (SLO) must therefore include more than gateway uptime.
+
+For each critical service, choose the few signals that show real readiness: approved configuration, valid trust, a ready backend, a completed business transaction, and complete evidence. Give each signal a threshold and an owner. Kong’s ability to separate these paths is useful only if we monitor and govern them separately.
+
+The decision is whether every critical journey needs these independent checks before traffic is admitted. Without them, we could send customers to a service that looks available but is not working correctly.
 
 ##### Talking points
 
-- A successful gateway request proves only that one path worked.
-- Configuration, trust, backend, business, and evidence health are separate.
-- Each mandatory journey needs independent signals and owners.
+- Kong can keep traffic moving, but gateway uptime alone does not prove the business outcome.
+- Configuration, identity, backend, transaction, and evidence health can fail separately.
+- Approve independent checks and owners for every critical journey.
 
 ##### Ask
 
@@ -1067,17 +1067,19 @@ A data plane can continue proxying accepted state while isolated. Reconnection m
 
 ##### Speaker script
 
-Once we separate the health paths, control-plane loss stops being a simple up-or-down event. An existing data plane may keep serving accepted configuration after losing its control-plane connection. A restarted node may be a candidate if it can recover an approved state. A clean or empty node is different: it should not be admitted merely because the process is running. Configuration age, urgent revocation, incompatible identity, missing evidence, or failed business probes may move a cell from continue to hold or quarantine.
+When the control plane is unavailable, Kong does not become simply “up” or “down.” An existing data plane may keep serving its last approved configuration. A restarted node may be safe if it can recover that approved state. A new or empty node is different and should not receive traffic just because its process is running.
 
-The key point is that the platform does not automatically make all of these organizational risk decisions for us. “Always serve” can preserve traffic while extending an unsafe policy. “Always stop” can turn a manageable management-plane interruption into an unnecessary business outage. The correct response depends on the journey, allowed staleness, revocation risk, and recovery evidence.
+This flexibility can protect continuity, which is one of Kong’s strengths. It also means the organization must decide when to continue, pause, isolate, or stop a service. Always serving could keep an unsafe policy active. Always stopping could turn a manageable control-plane interruption into a customer outage.
 
-For every state, the room must assign an owner, expiry condition, response objective, break-glass authority, and stop rule. Reconnection alone is not recovery: desired and effective state must reconcile, evidence gaps must be declared, and an outside-in business probe must pass. If any mandatory state lacks an owner, clock, probe, or reconciliation artifact, the architecture remains on hold.
+The right response depends on the business journey, how old configuration may become, whether an urgent security change is waiting, and what recovery proof is available.
+
+For each state, name the owner, time limit, response target, emergency authority, and reason to stop. A restored connection is not enough; the intended and actual state must match, missing evidence must be declared, and an outside-in business check must pass. If those controls are missing, decide to hold the design.
 
 ##### Talking points
 
-- Cached continuity requires pre-agreed continue, hold, quarantine, and stop states.
-- Reconnection is not the same as recovery.
-- Every state needs an owner, clock, probe, and reconciliation artifact.
+- Kong’s cached configuration can protect continuity, but the response rules belong to the organization.
+- A restored connection is not a completed recovery.
+- Approve an owner, time limit, business check, and stop rule for every degraded state.
 
 ##### Ask
 
@@ -1142,17 +1144,19 @@ Self-managed Kong succeeds only when the platform team owns the service lifecycl
 
 ##### Speaker script
 
-This slide is where architecture becomes an operating commitment. It does not describe a shared cluster that application teams simply consume. It describes a funded platform product and a continuous service. The platform team owns Kong lifecycle, control-plane and database operations, release engineering, recovery, upgrade, evidence, and vendor escalation. Domain teams retain application programming interface contracts, business authorization, data correctness, and customer outcomes. Identity and access management, public key infrastructure, and security teams own trust profiles, rotation, revocation, and exceptions. Site Reliability Engineering, network, and database teams operate the failure seams with the platform.
+Kong’s self-managed model can give the enterprise strong control over application programming interface (API) delivery, but only if we run it as a funded platform service. It is not simply a shared cluster that application teams consume.
 
-Vendor support is an escalation path; it does not become the enterprise’s accountable service owner. That is an operating-model statement, not a legal-liability conclusion. Contractual liability belongs with sourcing, risk, and qualified counsel.
+The platform team would own Kong’s lifecycle, control plane, database operations, releases, recovery, upgrades, evidence, and vendor escalation. Domain teams would continue to own API contracts, business rules, data correctness, and customer outcomes. Identity and Access Management (IAM), certificate, and security teams would own trust, rotation, revocation, and exceptions. Site Reliability Engineering (SRE), network, and database teams would operate the failure points with the platform team.
 
-The challenge I expect is: “Can existing teams absorb this?” We should not answer by assumption. We need funded capacity, on-call coverage, response and recovery objectives, restore and upgrade evidence, and an explicit responsible, accountable, consulted, and informed model. We also need one authority for incidents where platform, security, and domain signals disagree. If a permanent duty has no funded accountable role, the self-managed target is non-admissible regardless of product capability.
+Vendor support helps when problems escalate, but it does not run the service for us. Contract and legal questions remain with sourcing, risk, and qualified counsel.
+
+The decision is whether existing teams have funded capacity, on-call coverage, recovery targets, and proof that upgrades and restores work. We also need one authority when platform, security, and business signals disagree. If any ongoing responsibility has no funded owner, decide to hold the self-managed Kong choice.
 
 ##### Talking points
 
-- Self-management is a funded service, not merely a topology choice.
-- Vendor support does not replace enterprise accountability.
-- An unfunded permanent duty makes the target non-admissible.
+- Self-managed Kong can deliver control only when it is funded as an ongoing platform service.
+- Platform, business, security, reliability, and vendor roles must remain clear.
+- Approve named teams and capacity before the foundation build begins.
 
 ##### Ask
 
@@ -1217,17 +1221,19 @@ The roadmap begins with owners and inventory, builds a reversible foundation, ru
 
 ##### Speaker script
 
-Please read this as a sequence of earned decisions, not as a Gantt chart. The adoption stages deliberately overlap because discovery, foundation work, proof, enablement, and migration can proceed in parallel. The displayed zero-to-eighteen-month windows are scenario assumptions. They are not current status, approved dates, workload commitments, or evidence that any phase has passed.
+This roadmap shows how Kong can move from strategic fit to a safe production decision. It is a sequence of earned choices, not a fixed schedule. Discovery, foundation work, testing, team enablement, and migration can overlap. The zero-to-eighteen-month windows are planning assumptions, not committed dates or proof of progress.
 
-The first stage freezes the self-managed hybrid target, owners, bill of materials, critical journeys, and stop rules. The second builds a reversible, evidence-producing foundation. The third executes hard failure seams and seeks repeatable laboratory evidence. The fourth opens bounded paved roads and a migration capability only after ownership and controls work. The fifth seeks representative pilot evidence from materially different production patterns. The final stage is the decision to scale, narrow, switch custody, retain exceptions, or exit—not an automatic expansion step.
+First, agree on the self-managed hybrid design, owners, exact component list, critical journeys, and reasons to stop. Next, build a small foundation that produces reviewable evidence and can be rolled back. Then test the hard failure points in a production-like lab. Only after ownership and controls work should we open standard delivery paths and a migration service. Representative pilots follow, using different workload patterns.
 
-If the challenge is “Can we move faster?”, the answer is yes where work is parallelizable, but not by removing evidence dependencies. Every stage needs entry evidence, exit evidence, a funded owner, and stop authority. The room should approve that gate logic today. Calendar planning follows observed inventory and capacity; it cannot substitute for proof.
+The final stage is a decision: scale Kong, narrow its use, move management to Konnect, keep exceptions elsewhere, or exit. Expansion is not automatic.
+
+We can move faster by doing independent work in parallel, but not by skipping proof that later stages depend on. Approve the entry and exit evidence, funded owner, and stop authority for each stage. Detailed dates should follow real inventory and capacity.
 
 ##### Talking points
 
-- Adoption stages are evidence gates, not calendar commitments.
-- Work may overlap, but evidence dependencies remain.
-- Scale is a decision earned by outcomes, not the next scheduled phase.
+- Kong adoption moves through evidence-based stages, not a fixed rollout calendar.
+- Work can run in parallel, but later decisions still depend on earlier proof.
+- Approve the go/no-go evidence, owner, and stop authority for every stage.
 
 ##### Ask
 
@@ -1294,17 +1300,19 @@ Only gateway policy is unambiguously a Kong destination. Thin facades may stay a
 
 ##### Speaker script
 
-A MuleSoft application is a packaging boundary, not necessarily an architectural responsibility. This model asks us to decompose each application before choosing destinations. Gateway policy—authentication, request limits, routing, and cross-cutting headers—is the only responsibility that is unambiguously an application programming interface edge concern. A thin facade may remain at the edge or become an owned service, depending on semantics and ownership. Transformation, orchestration, messaging, scheduled or file work, connectors, replay, and durable state need destination owners suited to those responsibilities.
+A MuleSoft application is a package, but that does not mean every part belongs in Kong. We first separate what the package does, where it stores important state, and who owns the business result.
 
-Consider a package that authenticates a client, transforms a payload, schedules a file pickup, and records an idempotency watermark. Calling that one “API migration” hides four different state, recovery, and ownership questions. A plugin may technically reproduce some behavior, but extensibility does not prove that durable business or integration logic belongs in gateway policy.
+Gateway policy—authentication, request limits, routing, and shared headers—is a natural Kong responsibility. A thin application programming interface (API) facade may stay at the edge or move into an owned service. Transformation, orchestration, messaging, scheduled jobs, file handling, connectors, replay, and durable state need destinations designed for those jobs.
 
-For each component, ask: what does it do, where is durable truth held, who owns its side effects, how does it recover, and which target preserves that authority? Retirement is a separate decision requiring dependency and route-back evidence; absence of recent traffic is not enough. If responsibility, state authority, destination, or owner is unknown, that workload stays out of a migration cohort.
+For example, one MuleSoft package might authenticate a client, change a payload, schedule a file pickup, and record whether work has already been completed. Calling that one API migration hides four different ownership and recovery decisions. A Kong plugin may reproduce some behavior, but technical possibility does not prove that long-lived business logic belongs in the gateway.
+
+For each component, decide what it does, where the source of truth lives, who owns side effects, how it recovers, and which destination preserves that responsibility. If any answer is unknown, keep that workload out of the migration group.
 
 ##### Talking points
 
-- Migrate responsibilities and durable state—not packages.
-- Extensibility does not prove that logic belongs at the gateway edge.
-- Unknown ownership or state authority blocks cohort admission.
+- Move only true gateway responsibilities into Kong; do not copy whole MuleSoft packages.
+- Technical extensibility does not prove that business or stateful logic belongs at the edge.
+- Approve a migration group only when responsibility, state, destination, and owner are clear.
 
 ##### Ask
 
@@ -1369,17 +1377,17 @@ Consumers see a stable API edge. A bounded cohort can route to the existing Mule
 
 ##### Speaker script
 
-This coexistence model keeps the external application programming interface edge stable while a bounded cohort moves between the existing MuleSoft runtime and a new owned runtime. The stable edge is deliberately product-neutral; this picture does not declare that the edge is already Kong. Its purpose is to reduce consumer change while we compare old and new behavior under controlled routing.
+This approach keeps the external application programming interface (API) edge stable while a small group of services moves from MuleSoft to a new runtime. Kong may become that stable edge, but the safety pattern does not depend on choosing it in advance. The outcome is less consumer disruption and a controlled way to compare old and new behavior.
 
-The parity question is larger than response-code matching. We need contract and error semantics, identity propagation, side effects, ordering, idempotency, latency, service-level objectives, evidence production, and the durable business outcome. A route-back trigger and decision owner remain active until those results reconcile. Moving traffic back is not sufficient if credentials, counters, state, or an irreversible backend action have diverged.
+Matching response codes is not enough. We must compare contracts, errors, identity, side effects, ordering, duplicate protection, latency, Service-Level Objectives (SLOs), evidence, and the final business result. A rollback trigger and decision owner remain active until those results match. Sending traffic back is not enough if credentials, counters, state, or an irreversible backend action have already changed.
 
-The expected objection is that dual run costs too much. That cost is real and belongs in the fully allocated migration model. But it must be compared with the business, security, and recovery exposure of an irreversible cutover whose semantic drift has not been measured. The room should approve bounded cohorts, representative parity corpora, business verification, reconciliation, evidence retention, and timed route-back as mandatory controls. A cohort remains on hold until its verifier, owner, stop condition, and route-back evidence are explicit.
+Running both paths costs money, and that belongs in the migration cost model. The alternative is an irreversible cutover before business differences are understood. Decide whether small migration groups, representative test cases, business verification, state checks, evidence retention, and timed rollback are required controls. Hold a group until its verifier, owner, stop condition, and rollback proof are clear.
 
 ##### Talking points
 
-- Coexistence is a controlled experiment, not duplicate routing.
-- Parity includes business outcome, identity, side effects, and evidence.
-- Route-back remains active until state and outcomes reconcile.
+- A stable edge lets Kong and existing runtimes coexist with less consumer disruption.
+- Matching means the business result, identity, side effects, performance, and evidence agree.
+- Approve controlled groups and keep rollback active until old and new states match.
 
 ##### Ask
 
@@ -1444,17 +1452,17 @@ For Apigee, A0 inventories the complete object/state graph; A1 classifies semant
 
 ##### Speaker script
 
-Apigee needs its own migration rail because its migration unit is a connected object and state graph, not a proxy bundle. Phase A0 reconciles the source archetype, active objects, state, traffic, owners, and dependencies. A1 classifies each behavior as direct map, configure, rewrite, retain, or retire. A2 builds a reversible target with executable infrastructure, configuration promotion, identity, restore, evidence, support, cost, and route-back controls. A3 proves one hard representative slice, including product and application credentials, key-value or quota state, transformations, errors, failure, load, and business semantics. A4 moves bounded cohorts while identity, state, outcomes, and evidence reconcile. A5 seeks representative pilot evidence. A6 permits retirement only after technical, operating, recovery, data, support, and commercial dependency zero.
+Apigee migration involves much more than exporting proxy files. Products, applications, credentials, shared policies, key-value data, quotas, caches, targets, portals, analytics, and runtime dependencies can all affect the business outcome. Kong may be the destination, but a safe move must account for that full picture.
 
-MuleSoft uses a different responsibility-and-state rail because the source structures differ. The common doctrine is stable edge, reconciled source truth, semantic proof, business verification, timed route-back, and independent exit authority.
+The A0–A6 roadmap makes the work understandable. A0 inventories what exists. A1 decides what can map directly, needs configuration, must be rewritten, stays temporarily, or can retire. A2 builds a controlled Kong target with automation, identity, recovery, support, cost, and rollback. A3 proves one difficult representative service. A4 moves small groups while identity, state, outcomes, and evidence are compared. A5 runs a representative pilot. A6 retires Apigee only when no technical, operating, recovery, data, support, or commercial dependency remains.
 
-If someone proposes measuring progress by exported proxies, packages, or elapsed time, none of those proves identity, runtime state, portal or analytics continuity, business parity, or safe retirement. These phases are proposed and not run. Today we choose the applicable source rail, owners, denominators, entry and exit evidence, and stop authority—we do not authorize irreversible cutover.
+MuleSoft uses a different roadmap because its source model is different, but both migrations need a stable edge, accurate inventory, business verification, state comparison, timed rollback, and independent approval to exit. Decide which roadmap applies and who owns each gate. Export counts and elapsed time do not prove safe retirement.
 
 ##### Talking points
 
-- Apigee migration moves a connected object and state graph.
-- MuleSoft and Apigee use distinct source rails with common evidence gates.
-- Exported objects and elapsed time do not prove safe retirement.
+- Moving from Apigee to Kong includes identities, state, policies, portals, analytics, and runtime dependencies.
+- Apigee and MuleSoft need different roadmaps but the same business and rollback controls.
+- Approve retirement only when reviewed evidence shows no remaining dependency.
 
 ##### Ask
 
@@ -1522,19 +1530,19 @@ Five of sixteen aggregate register items are automated local-baseline checks; el
 
 ##### Speaker script
 
-This slide resets our confidence before we ask for more investment. The current proof of concept contains 16 aggregate scenario records. Five are automated local-baseline checks and 11 are explicitly not run. A separate comparison protocol defines 28 atomic cases. That is useful structure, but it is not evidence that the proposed self-managed hybrid target has passed.
+This slide gives us an honest starting point before we invest more in Kong. The current Proof of Concept (PoC) has 16 high-level scenario records. Five automated local checks ran, and 11 did not. A separate comparison plan defines 28 detailed future tests. Both are useful, but neither proves that the proposed self-managed hybrid setup is ready.
 
-The two denominators also answer different questions. The 16 records describe scenario state. The 28 cases describe a future comparison protocol. We must not merge them, convert them into a readiness percentage, or imply that defined tests were executed. For the exact target option, there are currently no repeatable target-shaped laboratory results and no representative pilot results.
+The numbers answer different questions. Sixteen describes the status of broad scenarios. Twenty-eight describes tests that could be run later. We must not add them together or turn them into a readiness percentage. For the proposed Kong setup, we currently have no repeatable production-like lab result and no representative pilot result.
 
-The correct conclusion is not that the proof of concept failed. It established a functional baseline and exposed the work that remains. The evidence ceiling simply prevents us from overclaiming.
+That does not mean the PoC failed. It confirmed a basic functional starting point and showed what work remains. The decision is to use the result for planning without claiming more than it shows.
 
-Ask the evidence steward to confirm three ledgers separately: what was automated and passed, what was scripted but not run, and what has not yet been designed against the frozen target. If someone proposes a readiness percentage, ask for the denominator, exact environment, raw artifacts, repeatability, reviewer, and link to the production decision it supports. Until those exist, the authorization remains foundation and proof only.
+Confirm three lists separately: what passed, what was prepared but not run, and what has not yet been designed for the agreed production setup. Approve further investment only against named tests, environments, reviewable records, repeatability, reviewers, and the production decision each result supports.
 
 ##### Talking points
 
-- Five automated local checks are not production-target proof.
-- The 16 scenario records and 28 atomic cases are separate denominators.
-- No readiness percentage or production conclusion is supported yet.
+- The current Kong PoC proves a basic starting point, not production readiness.
+- The 16 scenarios and 28 future tests are different lists and must stay separate.
+- Approve the next investment against named tests, environments, results, and reviewers.
 
 ##### Ask
 
@@ -1599,17 +1607,19 @@ This is not a larger feature demonstration. GEP-01–06 prove the target, APIOps
 
 ##### Speaker script
 
-The next proof of concept is not a larger feature demonstration. It must mirror the proposed production boundary closely enough that a result can change the decision. Seven proof-workstream records define that programme.
+The next Kong Proof of Concept (PoC) must look enough like production that its results can change the decision. It is not simply a larger feature demo.
 
-The first freezes and runs the target-aligned hybrid topology. The second makes Terraform provisioning and decK application programming interface operations executable, including validation, difference review, promotion, drift detection, and scoped recovery. The third executes multiregion failure, isolated recovery, reconciliation, and scaling under representative load. The fourth exercises the enterprise identity and access lifecycle across workforce, workload, consumer, application programming interface, and service-account identities. The fifth is a separate agentic-gateway study covering Model Context Protocol, agent-to-agent communication, model routing, semantic caching, content safety, and agent and Model Context Protocol catalogs. The sixth requires the recommendation to follow executed results. The seventh evaluates Kong plus Traceable as a security adjunct against the security team’s MuleSoft baseline; documentation only establishes feasibility to test.
+The seven workstreams answer four business questions. First, can the self-managed hybrid design and its Terraform and decK automation be built, promoted, recovered, and kept free of unwanted change? Second, can it survive regional failure, recover in isolation, and scale under realistic load? Third, can it manage the full Identity and Access Management (IAM) lifecycle for employees, workloads, consumers, application programming interfaces (APIs), and service accounts? Fourth, do the separate artificial intelligence and Traceable by Harness studies deliver useful outcomes without unacceptable security, privacy, performance, support, or cost trade-offs?
 
-Every workstream needs an exact bill of materials, representative environment, accountable public role, method, measure, threshold, raw artifact, independent reviewer, and stop condition. If any of those is missing, we have an interesting demo—not decision-capable evidence.
+The Traceable study remains an optional third-party security add-on comparison with the MuleSoft baseline. It cannot add native Kong points. Documentation tells us what can be tested; it does not prove the result.
+
+For each workstream, decide the exact components, environment, owner, method, measure, pass condition, reviewable record, independent reviewer, and reason to stop. Without those items, approve it only as a demo—not as evidence for production.
 
 ##### Talking points
 
-- Mirror the proposed production boundary; do not enlarge a generic demo.
-- Each workstream needs a measure, threshold, artifact, reviewer, and stop rule.
-- Kong plus Traceable is a separate adjunct study and earns no native score.
+- The next Kong PoC must answer production decisions, not demonstrate more features.
+- Group the work around automation, resilience, identity, and separate emerging-capability studies.
+- Approve every workstream with a measure, pass condition, reviewable result, reviewer, and stop rule.
 
 ##### Ask
 
@@ -1675,19 +1685,19 @@ Each mechanism is paired with a measurable outcome and a reviewable artifact. Tr
 
 ##### Speaker script
 
-This slide changes the conversation from “Does the mechanism exist?” to “Did the intended outcome occur?” The first five outcomes must be reviewed independently.
+This slide asks whether Kong produces the outcomes we need, not simply whether a feature exists. Five results must be checked separately.
 
-Trustworthy active state means the effective configuration and trust material are identifiable, current enough for the journey, and reconciled with approved intent. Business reliability means the customer or operational transaction completes correctly—not merely that the proxy returns a success code. Trust integrity means authentication, authorization, certificate, secret, and revocation behavior remain correct through normal and degraded states. Management recoverability means the control plane, PostgreSQL, credentials, and evidence can be restored and reconciled within approved objectives. Safe change means promotion, rollback, drift handling, and emergency change produce the intended state without hidden residue.
+First, the active configuration and security material must be known, approved, and current enough for the business journey. Second, the customer or operational transaction must finish correctly; a successful proxy response is not enough. Third, authentication, authorization, certificates, secrets, and revocation must remain correct during normal and degraded operation. Fourth, the control plane, PostgreSQL, credentials, and evidence must recover within approved targets. Fifth, normal, emergency, and rollback changes must leave the intended state without hidden leftovers.
 
-For each outcome, pre-approve the measure, threshold, observation window, raw artifact, independent reviewer, and failure disposition before execution. Otherwise the team can redefine success after seeing the result.
+Before testing, decide the measure, pass condition, observation period, reviewable record, independent reviewer, and response to failure for each outcome. Otherwise success can be redefined after the result is known.
 
-If someone asks for a single pass/fail light, resist collapsing these outcomes. A green request path can coexist with stale policy, broken recovery, missing evidence, or an incorrect business outcome. The decision needs to show which outcome passed, which remains unknown, and which blocks admission.
+Do not reduce these checks to one green light. Kong could serve traffic while policy is old, recovery is broken, evidence is missing, or the business result is wrong. Approve each outcome separately and state which failure would block production use.
 
 ##### Talking points
 
-- Pair every mechanism with an observable outcome and reviewable artifact.
-- Proxy success, business correctness, trust, recovery, and safe change are distinct.
-- Define thresholds and failure dispositions before running the test.
+- Judge Kong by business and operating outcomes, not by the presence of features.
+- Business correctness, trust, recovery, and safe change must pass separately.
+- Approve each measure, pass condition, reviewer, and response to failure before testing.
 
 ##### Ask
 
@@ -1752,19 +1762,21 @@ Capacity isolation and evidence safety matter, but so do platform adoption, oper
 
 ##### Speaker script
 
-The second outcome set asks whether the whole operating system can scale, not merely whether gateway throughput rises. Capacity and fault isolation must show headroom, saturation order, noisy-neighbor behavior, clean-node scale, and recovery under the frozen topology. Traceability and evidence safety must correlate administrative change, request handling, security decisions, and business evidence while quantifying produced, queued, dropped, and delivered gaps and protecting prohibited fields.
+Kong is ready to scale only when the whole operating model works, not simply when gateway throughput increases. We can group the remaining outcomes into three questions.
 
-Platform adoption asks whether teams can use the paved road without bespoke intervention. Operating sustainability asks whether staffing, on-call, upgrades, support, infrastructure, and fully allocated total cost of ownership remain viable. Reversibility asks whether we can switch custody or reconstruct a representative boundary on a non-Kong target without unacceptable semantic loss. Estate truth asks whether inventory, owners, versions, dependencies, exceptions, and retirement state remain reconciled.
+Can we run it safely? Capacity tests must show headroom, fault isolation, new-node scaling, and recovery. Traceability must connect administrative changes, requests, security decisions, and business records while showing what was produced, delayed, lost, or delivered and protecting prohibited data.
 
-Traceable may be one candidate mechanism for part of the traceability and security-evidence outcome. It cannot define that outcome, make it pass by presence, or substitute adjunct telemetry for business verification. Likewise, a load-test headline cannot prove sustainable scale.
+Can teams adopt it sustainably? Delivery teams should use the standard path without constant expert help. Staffing, on-call work, upgrades, support, infrastructure, and full Total Cost of Ownership (TCO) must remain practical.
 
-For each outcome, identify the operational consumer of the evidence and the decision it enables. If nobody will act on the signal, or the artifact cannot be independently reviewed, the proof design is incomplete.
+Can we change direction safely? We need current inventory and ownership, a tested move to a managed Kong model, and a representative rebuild outside Kong with acceptable behavior change and effort.
+
+Traceable by Harness may help with part of the security and traceability outcome, but an installed add-on does not make that outcome pass. A load-test headline also does not prove sustainable scale. Decide who uses each result, what action it triggers, and which failure blocks expansion.
 
 ##### Talking points
 
-- Scale depends on capacity, adoption, operations, economics, reversibility, and estate truth.
-- Traceability is an end-to-end outcome, not a product line item.
-- Every signal needs an owner and a decision it can trigger.
+- Kong can scale only when it is safe to run, sustainable to adopt, and practical to change or exit.
+- Traceability is an end-to-end outcome; Traceable by Harness is only one possible mechanism.
+- Decide who owns each result, what action it triggers, and which failure blocks expansion.
 
 ##### Ask
 
@@ -1830,19 +1842,19 @@ Before evidence runs, commit to four possible outcomes: scale, narrow, switch cu
 
 ##### Speaker script
 
-This is the point where we protect the evaluation from becoming a one-way ratchet. Before evidence runs, the decision owner must pre-commit to the outcomes the evidence can produce.
+This slide keeps the Kong recommendation honest. Before testing begins, the decision owner must agree on every result the evidence can produce.
 
-Scale means the admitted target and representative cohorts meet their mandatory outcomes and the organization funds the operating model. Narrow means Kong remains useful for a bounded set of patterns while exceptions stay elsewhere. Switch custody means the Kong boundary remains, but management responsibility moves—for example to the Konnect benchmark. Exit means a representative non-Kong reconstruction and route-back obligation become the direction. Hold means the evidence is insufficient, contradictory, or blocked by an unowned mandatory gate.
+Scale means Kong meets the must-pass outcomes for representative services and the organization funds the operating model. Narrow means Kong remains valuable for selected patterns while exceptions stay elsewhere. Switch management means Kong stays, but the control plane moves to a managed model such as Konnect. Exit means the direction changes to a representative non-Kong platform with a tested rollback path. Hold means the evidence is incomplete, conflicting, or blocked by an unowned risk.
 
-Negative evidence must be allowed to change the recommendation. External application programming interface governance may make Apigee stronger. Continued strategic dependence on Anypoint may make MuleSoft stronger. Azure consolidation may make Azure API Management the better benchmark. Failed custody, offline, recovery, security, cost, adoption, or reversibility evidence may narrow or reverse Kong.
+Unfavorable evidence must be allowed to change the recommendation. Stronger external application programming interface (API) product needs may favor Apigee. Continued reliance on Anypoint may favor MuleSoft. Azure consolidation may favor Azure API Management. Failure on recovery, security, cost, adoption, offline operation, or exit may narrow or reverse Kong.
 
-Do not confuse a same-vendor custody switch with a non-Kong exit. They close different risks. I need the decision owner to name who can invoke each outcome, what threshold triggers it, what work stops, and what artifact records the transition. Without that authority, the proof programme can generate evidence but cannot govern a decision.
+A move to Konnect and an exit from Kong solve different risks. Decide who can choose each outcome, what result triggers it, what work stops, and which reviewable record confirms the change. Without that authority, testing becomes a demonstration rather than a decision process.
 
 ##### Talking points
 
-- Pre-commit to scale, narrow, switch custody, exit, or hold.
-- Negative evidence must be allowed to change direction and funding.
-- Konnect custody switch and non-Kong exit remain separate outcomes.
+- Decide in advance whether evidence can scale, narrow, move management, exit, or hold Kong.
+- Unfavorable evidence must be able to change scope, funding, or platform direction.
+- A move to Konnect and a non-Kong exit remain separate choices.
 
 ##### Ask
 
@@ -1909,19 +1921,19 @@ The supplied labels remain stakeholder assessments preserved in docs/48. Officia
 
 ##### Speaker script
 
-This appendix slide is an audit branch, not a place to rescore products in the room. The supplied architecture labels are stakeholder assessments preserved for traceability. Current official documentation can confirm high-level deployment mechanisms, but it cannot establish relative production outcomes.
+This appendix answers a strategic question: does Kong’s distributed design produce better multicloud operation and resilience for our workloads? Kong can place data planes close to workloads while centralizing policy. That is a strong fit for the target model, but deployment flexibility alone does not prove independent operation across clouds.
 
-For multicloud, separate runtime placement from management dependency, sovereignty, failure independence, network and identity dependencies, support, and operating cost. A product that can place data planes in several clouds has not automatically proved independent operation across them. For scalability and robustness, require equivalent target-shaped evidence for every admitted option: workload mix, load ramp, headroom, saturation order, noisy-neighbor behavior, clean-node scale, region or dependency failure, recovery, reconciliation, and the business service-level objective.
+We must test runtime placement, management dependencies, data location, network and identity dependencies, support, and operating cost. Resilience testing should use the same workload mix, load increase, capacity headroom, shared-resource pressure, new-node scaling, regional or dependency failure, recovery, and business Service-Level Objective (SLO) for every option.
 
-Symmetry matters. The same scenario, measurement rules, evidence floor, and independent review must apply to Kong, Apigee, MuleSoft, and any approved benchmark. If one option is tested in a target-shaped lab while another is described from documentation, the comparison is not score-capable.
+Fairness matters. Kong, Apigee, MuleSoft, and any approved benchmark must face the same scenario, measures, minimum proof, and independent review. A production-like Kong test cannot be compared with a brochure description for another product.
 
-When challenged on a label, capture the exact option, edition, topology, workload, fault profile, measure, threshold, artifact, owner, and reviewer. Return that evidence request to the governed comparison; do not repair the label with an opinion or a new score during this branch.
+When someone challenges a label, decide which specific version, deployment model, workload, failure, measure, pass condition, reviewable record, owner, and reviewer would settle it. Send that question back to the formal comparison. Do not change a score in the room based on opinion.
 
 ##### Talking points
 
-- Appendix labels are preserved input, not validated product outcomes.
-- Multicloud placement is not the same as failure independence or portability.
-- Use exact, symmetric tests and never rescore in the room.
+- Kong’s distributed design is promising for multicloud use, but placement alone does not prove resilience.
+- Compare every option with the same workloads, failures, measures, and independent review.
+- Approve the test question in the room; do not change product scores from opinion.
 
 ##### Ask
 
@@ -1987,19 +1999,19 @@ Lifecycle, governance, portal, developer experience, AI, customization, and best
 
 ##### Speaker script
 
-This appendix branch covers management, artificial intelligence, and security-traceability claims. Treat every adjective—easy, complete, native, secure, observable, scalable—as a hypothesis tied to an exact use case, version, entitlement, topology, and support boundary.
+This appendix keeps two promising Kong extensions separate from the core gateway decision: artificial intelligence features and Traceable by Harness security integration. Product words such as easy, complete, secure, observable, and scalable are questions to test, not results.
 
-Current Traceable documentation describes a Kong plugin and agent path, including deployment choices that can support a test design. That is evidence of a documented mechanism only. It does not prove compatibility with the frozen Kong Gateway Enterprise 3.14 bill of materials, security effectiveness, end-to-end traceability, prohibited-field protection, performance, scaling, comparative parity with the MuleSoft security baseline, fully allocated cost, or safe upgrade and removal.
+Traceable documentation shows a Kong plugin and agent path. That is enough to design a study, but it does not prove that the exact Kong Gateway Enterprise 3.14 setup will be supported, effective, private, fast, scalable, affordable, or easy to upgrade and remove.
 
-The dedicated security-adjunct workstream must freeze the Kong, plugin, platform-agent, and supporting-service versions; map request, response, security-decision, and prohibited-data paths; exercise approved synchronous and asynchronous modes and fail behavior; classify protocol, body, and streaming coverage; measure latency and resources; verify privacy and correlation; and rehearse upgrade, rollback, uninstall, and route-back.
+The Traceable study should answer four questions. Does it cover the required protocols, bodies, streams, and security decisions? What happens in synchronous, asynchronous, and failure modes? What are the latency, resource, scaling, privacy, and data-handling effects? Can we upgrade, roll back, remove it, and return safely to the baseline?
 
-Keep the scoring boundary clear. The adjunct may help satisfy an outcome, but it is not native Kong capability and cannot add gateway points. The separate agentic-gateway study must follow the same rule: documented Model Context Protocol, agent-to-agent, routing, caching, and safety features create tests—not proof.
+The artificial intelligence study should separately test Model Context Protocol (MCP), agent-to-agent communication, model routing, semantic caching, content safety, and catalogs. Decide which outcomes matter and how they will be measured. Neither study may add native Kong points until executed evidence supports the specific outcome.
 
 ##### Talking points
 
-- Product and adjunct claims require exact use cases, versions, and support boundaries.
-- A documented plugin or agent path is feasibility evidence, not an executed result.
-- Traceable and agentic evidence cannot inflate the core gateway score.
+- Kong’s Traceable and artificial intelligence options are promising, but they require separate studies.
+- Test coverage, failure behavior, performance, privacy, support, and safe removal.
+- Approve outcome measures without adding unproved points to Kong’s core score.
 
 ##### Ask
 
@@ -2065,19 +2077,17 @@ Public price pages define meters or quote boundaries, not a comparable price ran
 
 ##### Speaker script
 
-A public price page can identify a meter or quote boundary. It cannot establish which option is cheaper for this organization. A comparable total cost of ownership model needs the exact options and commercial terms plus infrastructure, PostgreSQL, public key infrastructure, platform engineering, Site Reliability Engineering and on-call labor, high availability and disaster recovery, telemetry, portal and product tooling, network and egress, plugins and security adjuncts, support, migration, dual run, incident exposure, custody switching, and clean exit.
+Kong may be cost-effective, but a lower license price would not prove it. We need one Total Cost of Ownership (TCO) comparison covering six areas: commercial terms, infrastructure, people and on-call work, migration and dual running, security and monitoring tools, and the cost of incidents or exit. Use the same time period and workload basis for low, expected, and high cases. Keep confidential quotes in the approved commercial system and publish only safe assumptions and conclusions.
 
-Use one time horizon and one workload denominator, with low, base, and high cases. Keep restricted quotes in the approved commercial system while publishing assumptions, boundaries, evidence state, accountable roles, and disposition in the study.
+Vendor dependency needs a practical test. Moving the control plane to Konnect would show whether management responsibility can move within Kong. It would not prove that we can leave Kong. A true exit test rebuilds a representative application programming interface (API), policies, identity, product state, evidence, and runtime on an approved alternative. It records behavior changes, rewrite effort, lost history, remaining procedures, support or contract dependencies, and rollback.
 
-Vendor dependency also needs executed evidence. Konnect is the same-vendor custody benchmark; only an executed and reviewed transition can demonstrate the switch, and it still would not prove a non-Kong exit. Rebuild a representative application programming interface, policy, identity, product state, evidence, and runtime boundary on an approved non-source target. Record semantic loss, rewrite effort, state and history loss, procedural dependency, support and contract dependency, route-back, and residual coupling.
-
-Finally, keep operational responsibility and legal liability separate. This study can expose duties, cost, risk, and contractual questions. It cannot make a legal determination. If an economics or exit conclusion lacks normalized evidence and an independent reviewer, it remains unknown and blocks that rating.
+The business decision is whether Kong’s control and flexibility are worth the full operating and exit cost. Operating responsibility is not the same as legal liability; legal conclusions require qualified counsel. Approve a cost or exit rating only when the comparison is normalized and independently reviewed.
 
 ##### Talking points
 
-- Public pricing is not fully allocated total cost of ownership.
-- Measure lock-in through custody switch and representative non-Kong rebuild evidence.
-- Operating risk is not a legal-liability verdict.
+- Judge Kong on full operating cost, not license price alone.
+- Test both a move to Konnect and a representative non-Kong rebuild.
+- Approve cost and exit ratings only with comparable evidence and independent review.
 
 ##### Ask
 
@@ -2143,19 +2153,19 @@ The sanitized inputs still recalculate to 93 for Kong, 85.5 for Apigee, and 77 f
 
 ##### Speaker script
 
-This final appendix slide preserves two things at once: the historical arithmetic and the uncertainty that remains after the meeting feedback is added.
+This final appendix keeps the original scores visible while showing how much remains unknown. Kong still leads at 93, compared with 85.5 for Apigee and 77 for MuleSoft. In the proposed 60/40 planning model, the known contributions become 55.8, 51.3, and 46.2.
 
-The supplied ratings still recalculate to 93 for Kong, 85.5 for Apigee, and 77 for MuleSoft. Under the provisional 60/40 planning scenario, their fixed historical contributions become 55.8, 51.3, and 46.2. The remaining 40 percent covers six proposed dimensions—multicloud; scalability and robustness; enterprise identity and access management plus traceability; reversibility and vendor dependency; fully allocated total cost of ownership; and control-plane operating responsibility. Every product rating in that block is still unknown from zero to ten.
+The remaining 40 percent covers multicloud operation, scalability and resilience, enterprise Identity and Access Management (IAM) and traceability, ease of exit, full Total Cost of Ownership (TCO), and control-plane responsibility. Every product rating in that block is still unknown from zero to ten.
 
-The displayed envelopes therefore overlap enough that every option can still rank first. That does not mean the products are equal. It means the current evidence does not stabilize the ranking. The midpoint of five is only a drawing aid. It is not a score, estimate, forecast, or probability.
+The possible ranges overlap, so every option could still finish first. That does not mean the products are equal. It means Kong’s current lead is strategic and promising, but the missing evidence could confirm, narrow, or reverse it. The midpoint of five is only a drawing aid, not a score or forecast.
 
-Do not close the meeting here. This is audit evidence about why governed comparison work remains necessary. Capture approval or amendment of the scoring method, exact options, mandatory gates, common evidence, confidence rules, scorer and assurance roles, sensitivity analysis, dissent, and permitted use. Then return to slide 6 for authorization or slide 21 for outcome authority.
+Do not make the final decision on this appendix slide. Decide whether to approve or change the scoring method, product boundaries, must-pass conditions, common evidence, reviewers, and rules for uncertainty. Then return to slide 6 for the Kong authorization or slide 21 for the evidence outcome.
 
 ##### Talking points
 
-- Preserve historical arithmetic while exposing unresolved uncertainty.
-- Overlap means rank instability, not product equality.
-- The midpoint is not a score; close on slides 6 or 21, never in the appendix.
+- Kong leads the historical score, but important questions remain unscored.
+- Overlapping ranges mean the lead could be confirmed, narrowed, or reversed.
+- Approve the comparison method here, then make the decision on slide 6 or 21.
 
 ##### Ask
 

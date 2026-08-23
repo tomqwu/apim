@@ -1079,6 +1079,16 @@ class CanonicalContractTests(WorkflowTestCase):
         self.assertIn("## Opening the meeting", source)
         self.assertIn("### Suggested opening script — 2 to 3 minutes", source)
         self.assertIn("### Opening talking points", source)
+        self.assertIn(
+            "Kong is the better strategic fit for this operating model",
+            source,
+            "the opening must give the product owner a clear, conditional recommendation",
+        )
+        self.assertIn(
+            "business outcome → why Kong fits → what could change the answer → decision",
+            source,
+            "the guide must state the plain-language discussion pattern used on every slide",
+        )
         self.assertIn("## Choose the meeting route", source)
         self.assertIn("## Challenge-handling protocol", source)
         self.assertIn("## Slide-by-slide facilitation index", source)
@@ -1103,12 +1113,35 @@ class CanonicalContractTests(WorkflowTestCase):
         self.assertIn('Kong Guided Evaluation (KGE) · slide ${slideId.slice(-2)}', app)
         self.assertIn('Kong Guided Evaluation (KGE) slide ${slideId.slice(-2)}: ${expandedTitle}', app)
         self.assertIn('label.textContent = "Terms used in this note"', app)
+        self.assertIn('primaryNotes.className = "speaker-note-primary"', app)
+        self.assertIn('moveNoteBlock("Speaker script")', app)
+        self.assertIn('moveNoteBlock("Talking points")', app)
+        self.assertIn('noteHeading.textContent = "Ready-to-say speaker script"', app)
+        self.assertIn("<span>Product owner decision</span>", app)
+        self.assertIn(
+            "Kong is the better strategic fit for the operating model we chose.",
+            app,
+        )
+        self.assertIn(
+            "Approve a small, reversible start. Production scale still requires executed proof.",
+            app,
+        )
+        charts = (SOURCE_ROOT / "site/assets/charts.js").read_text(encoding="utf-8")
+        self.assertIn(
+            "Agree on the business priorities and four questions that could change the recommendation.",
+            charts,
+        )
+        self.assertIn("Answer all four early questions", charts)
+        self.assertIn("Record the answer · evidence needed · stop condition", charts)
         self.assertIn('enhanceGuidedFacilitatorNotes(prose, item)', app)
         self.assertIn('heading.setAttribute("aria-label", headingTitle)', app)
         self.assertIn('"Collapse" : "Expand"} section:', app)
         styles = (SOURCE_ROOT / "site/assets/styles.css").read_text(encoding="utf-8")
         self.assertIn(".speaker-note-slide-heading", styles)
         self.assertIn(".speaker-note-terms", styles)
+        self.assertIn(".speaker-note-primary", styles)
+        self.assertIn(".guided-decision-thesis", styles)
+        self.assertIn(".guided-decision-boundary", styles)
         self.assertRegex(
             styles,
             r"\.speaker-note-slide-heading\s*\{[^}]*font-size: clamp\(2rem, 5vw, 3\.65rem\);",
@@ -1334,16 +1367,45 @@ class CanonicalContractTests(WorkflowTestCase):
                     )
 
                 speaker_script = require_h5_field(section, "Speaker script", slide_id)
+                speaker_word_count = len(re.findall(r"\b[\w’-]+\b", speaker_script))
                 self.assertGreaterEqual(
-                    len(re.findall(r"\b[\w’-]+\b", speaker_script)),
+                    speaker_word_count,
                     110,
                     f"{slide_id} speaker script must be a substantial, ready-to-say narrative",
                 )
+                self.assertLessEqual(
+                    speaker_word_count,
+                    200,
+                    f"{slide_id} speaker script must remain concise enough to deliver conversationally",
+                )
+                self.assertRegex(
+                    speaker_script.casefold(),
+                    r"\bkong\b",
+                    f"{slide_id} speaker script must connect the topic back to Kong",
+                )
+                self.assertRegex(
+                    speaker_script.casefold(),
+                    r"\b(decid\w*|approve\w*|confirm\w*|choose\w*|hold\w*|agree\w*)\b",
+                    f"{slide_id} speaker script must end in a clear product-owner decision or choice",
+                )
+                for jargon in (
+                    "disposition",
+                    "evidence ceiling",
+                    "target-shaped",
+                    "proof obligation",
+                    "canonicalized",
+                    "mechanical envelope",
+                ):
+                    self.assertNotIn(
+                        jargon,
+                        speaker_script.casefold(),
+                        f"{slide_id} speaker script uses audit-heavy wording `{jargon}`",
+                    )
                 talking_points = require_h5_field(section, "Talking points", slide_id)
-                self.assertGreaterEqual(
+                self.assertEqual(
                     len(re.findall(r"(?m)^[ \t]*[-*+][ \t]+\S", talking_points)),
                     3,
-                    f"{slide_id} must provide at least three compact talking points",
+                    f"{slide_id} must provide exactly three compact talking points",
                 )
 
                 self.assertTrue(extracted["Sources"], f"{slide_id} embedded sources are empty")

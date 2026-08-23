@@ -271,8 +271,8 @@ KONG_GUIDED_ASSESSMENT_SOURCE_PATH = "docs/49-kong-guided-evaluation-facilitator
 KONG_GUIDED_ASSESSMENT_SOURCE_ID = "docs-49-kong-guided-evaluation-facilitator-guide"
 KONG_GUIDED_ASSESSMENT_SOURCE_CLASS = "meeting-facilitation-guide"
 KONG_GUIDED_ASSESSMENT_EVIDENCE_STATE = (
-    "Facilitation guidance derived from the canonical guided evaluation and its presentation notes; "
-    "no new product fact, executed result, commercial conclusion, or production authorization"
+    "Meeting guidance based on the guided evaluation and slide notes. "
+    "It adds no new product claim, test result, price conclusion, or production approval."
 )
 KONG_GUIDED_ASSESSMENT_AS_OF = "2026-08-22"
 KONG_GUIDED_ASSESSMENT_PHASE_QUESTION_IDS = {
