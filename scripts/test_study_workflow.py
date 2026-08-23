@@ -2386,11 +2386,17 @@ process.stdout.write(JSON.stringify(samples));
             self.assertEqual(fit_rows[row["id"]]["outcome"], row["outcome"])
             self.assertEqual(fit_rows[row["id"]]["counterfactual"], row["counterfactual"])
             self.assertTrue(row["permanentDuty"] and row["fit"], f"{row['id']} must carry fit and permanent-duty text")
+            self.assertIn("docs/47", row["record"], f"{row['id']} permanent duty must cite its docs/47 rows")
             self.assertNotEqual(row["permanentDuty"], row["counterfactual"], "permanent duty must not echo the counterfactual")
         slides_by_key = {slide["key"]: slide for slide in manifest["presentation"]}
         self.assertEqual(["GEB-01", "GEB-02", "GEB-03"], slides_by_key["kong-guided-boundary"]["rowIds"])
         self.assertEqual(["KMC-3", "KMC-1"], slides_by_key["kong-guided-boundary"]["optionIds"])
         self.assertEqual(["KPS-FIT-01", "KPS-FIT-02"], slides_by_key["kong-guided-duty"]["rowIds"])
+        boundary_question = next(question for question in guided["assessmentContract"]["questions"] if question["id"] == "KGE-P2-Q02")
+        self.assertIn("KMC-1", boundary_question["targetIds"])
+        self.assertIn("GEB-02", boundary_question["targetIds"])
+        self.assertNotIn("KMC-2", boundary_question["targetIds"])
+        self.assertEqual("KP-SMH1, Konnect custody benchmark, and true exit are distinct", slides_by_key["kong-guided-boundary"]["body"])
         self.assertIn("trustworthy active state", slides_by_key["kong-guided-outcomes-1"]["body"])
         self.assertIn("capacity isolation", slides_by_key["kong-guided-outcomes-2"]["body"])
         for figure in (*manifest["visuals"]["kongPlatformStrategy"]["figures"], *manifest["visuals"]["muleMigration"]["figures"]):

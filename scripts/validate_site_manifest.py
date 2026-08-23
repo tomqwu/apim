@@ -196,6 +196,12 @@ KONG_GUIDED_SECURITY_ADJUNCT_IDS = ("GSA-01",)
 KONG_GUIDED_BOUNDARY_IDS = tuple(f"GEB-{index:02d}" for index in range(1, 4))
 KONG_GUIDED_DUTY_IDS = ("KPS-FIT-01", "KPS-FIT-02")
 KONG_GUIDED_BOUNDARY_OPTION_IDS = ("KMC-3", "KMC-1")
+KONG_GUIDED_P2_Q02_TARGET_IDS = (
+    *tuple(f"GEW-{index:02d}" for index in range(1, 9)),
+    *tuple(f"KGE-AUTH-{index:02d}" for index in range(1, 6)),
+    *KONG_GUIDED_BOUNDARY_IDS,
+    "KMC-1", "KMC-3", "KPS-FIT-01", "KPS-FIT-02",
+)
 KONG_GUIDED_COMPARISON_IDS = (
     (*tuple(f"GEC-{index:02d}" for index in range(1, 9)), "GEC-19"),
     (*tuple(f"GEC-{index:02d}" for index in range(9, 16)), "GEC-20"),
@@ -667,7 +673,9 @@ def canonical_kong_guided_early_gate_semantics() -> tuple[tuple[str, ...], ...]:
         value = re.sub(r"!\[[^\]]*\]\([^)]*\)", "", value)
         value = re.sub(r"\[([^\]]+)\]\([^)]*\)", r"\1", value)
         value = re.sub(r"[`*_>#|]", " ", value)
-        return re.sub(r"\s+", " ", value).strip(" -")
+        value = re.sub(r"\s+", " ", value)
+        value = re.sub(r" ([,;:.?!)])", r"\1", value)
+        return value.strip(" -")
 
     source = ROOT / KONG_GUIDED_SOURCE_PATHS[0]
     require(
@@ -819,7 +827,9 @@ def canonical_kong_guided_assessment_question_semantics() -> tuple[tuple[Any, ..
         value = re.sub(r"!\[[^\]]*\]\([^)]*\)", "", value)
         value = re.sub(r"\[([^\]]+)\]\([^)]*\)", r"\1", value)
         value = re.sub(r"[`*_>#|]", " ", value)
-        return re.sub(r"\s+", " ", value).strip(" -")
+        value = re.sub(r"\s+", " ", value)
+        value = re.sub(r" ([,;:.?!)])", r"\1", value)
+        return value.strip(" -")
 
     def stable_ids(value: str) -> tuple[str, ...]:
         values: list[str] = []
@@ -1815,6 +1825,11 @@ def validate_kong_guided_evaluation(
             observed_semantics == canonical_semantics,
             f"guided assessment question {canonical_semantics[0]} must match its exact canonical doc49 semantic tuple",
         )
+    boundary_question = next((question for question in questions if question.get("id") == "KGE-P2-Q02"), {})
+    require(
+        tuple(boundary_question.get("targetIds", ())) == KONG_GUIDED_P2_Q02_TARGET_IDS,
+        "guided assessment KGE-P2-Q02 must bind the operating boundary to GEB-01..03, KMC-1/KMC-3 and the custody-fit duties, never KMC-2",
+    )
 
     public_roles = assessment.get("publicRoles")
     require(
@@ -2367,7 +2382,8 @@ def validate_kong_guided_evaluation(
     require(all(isinstance(row, dict) for row in duty_rows), "guided evaluation duties rows must be objects")
     require(tuple(row.get("id") for row in duty_rows) == KONG_GUIDED_DUTY_IDS, "guided evaluation duty IDs must be KPS-FIT-01 and KPS-FIT-02")
     for row in duty_rows:
-        nonempty_strings(row, ("id", "outcome", "fit", "permanentDuty", "counterfactual"), f"guided duty {row.get('id')}")
+        nonempty_strings(row, ("id", "outcome", "fit", "permanentDuty", "record", "counterfactual"), f"guided duty {row.get('id')}")
+        require("docs/47" in str(row.get("record", "")), f"guided duty {row.get('id')} must cite its docs/47 duty rows")
     fit_rows = {
         str(row.get("projectionId")): row
         for row in manifest.get("visuals", {}).get("kongPlatformStrategy", {}).get("fit", {}).get("rows", [])
@@ -2623,6 +2639,12 @@ def validate_kong_guided_evaluation(
         "configured presentation state total including the guided summary must be exactly 181",
     )
 
+    for block_name in ("kongPlatformStrategy", "muleMigration"):
+        for figure in manifest.get("visuals", {}).get(block_name, {}).get("figures", []):
+            require(
+                isinstance(figure, dict) and bool(figure.get("depictedScope")) and bool(figure.get("accessibleEquivalent")),
+                f"{block_name} figure {figure.get('figureId') if isinstance(figure, dict) else figure} must project its canonical depicted scope and accessible equivalent",
+            )
     recursively_reject_private_paths(guided, "visuals.guidedEvaluation")
     recursively_reject_private_paths(architecture_overview, "visuals.kongPlatformStrategy.guidedArchitectureOverview")
     recursively_reject_private_paths(deck, "guided presentation deck")
