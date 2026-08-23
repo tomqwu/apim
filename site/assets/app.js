@@ -846,7 +846,27 @@
     return stack.join("/");
   }
 
+  const PORTAL_ROUTE_NAMES = new Set(["overview", "audiences", "visuals", "library", "compare", "architecture", "lab", "doc", "present"]);
+
+  function localizePortalLinks(container) {
+    container.querySelectorAll('a[href^="http://"], a[href^="https://"]').forEach((anchor) => {
+      let url;
+      try {
+        url = new URL(anchor.getAttribute("href"));
+      } catch (error) {
+        return;
+      }
+      if (!url.hash.startsWith("#/")) return;
+      if (!PORTAL_ROUTE_NAMES.has(url.hash.slice(2).split("/")[0])) return;
+      anchor.setAttribute("href", url.hash);
+      anchor.removeAttribute("target");
+      anchor.removeAttribute("rel");
+      anchor.dataset.portalRoute = "true";
+    });
+  }
+
   function enhanceMarkdown(container, item) {
+    localizePortalLinks(container);
     const rail = document.querySelector("[data-document-rail]");
     const headings = [...container.querySelectorAll("h2, h3")];
     const used = new Set();
@@ -1685,6 +1705,8 @@
     const minimumLabel = isPresentation ? 18 : isPreview ? 14 : 16;
     const initialWidth = diagramContentWidth(target);
     const semanticSummary = String(target.dataset.diagramSummary || "").trim();
+    const semanticScope = String(target.dataset.diagramScope || "").trim();
+    const semanticEquivalent = String(target.dataset.diagramEquivalent || "").trim();
     const semanticFigureId = String(target.dataset.diagramId || label || "Canonical model").trim();
     const authoredOverview = String(options.authoredOverview || "").trim();
     const hasAuthoredOverview = Boolean(authoredOverview);
@@ -1771,9 +1793,23 @@
       heading.textContent = "What this model means";
       const copy = document.createElement("p");
       copy.textContent = semanticSummary;
+      const detailBlock = (labelText, value, className) => {
+        if (!value) return null;
+        const detail = document.createElement("p");
+        detail.className = `diagram-summary-detail ${className}`;
+        const labelNode = document.createElement("b");
+        labelNode.textContent = labelText;
+        const valueNode = document.createElement("span");
+        valueNode.textContent = value;
+        detail.append(labelNode, valueNode);
+        return detail;
+      };
+      const equivalent = detailBlock("In words", semanticEquivalent, "is-equivalent");
+      const scope = detailBlock("Shows", semanticScope, "is-scope");
       const instruction = document.createElement("small");
-      instruction.textContent = "Choose Readable for the full model at presentation-safe type, or Expand for focused inspection.";
-      summaryPanel.append(kicker, heading, copy, instruction);
+      instruction.textContent = "Choose Overview for the whole model, Readable for presentation-safe type, or Expand for focused inspection.";
+      summaryPanel.append(kicker, heading, copy, ...[equivalent, scope].filter(Boolean), instruction);
+      if (equivalent || scope) summaryPanel.classList.add("has-contract-detail");
     }
     target.replaceChildren(toolbar);
     if (hasSemanticSummary) target.append(summaryPanel);
@@ -1953,7 +1989,15 @@
       update();
     });
     resizeObserver.observe(viewport);
-    scale = defaultMode === "summary" ? 1 : defaultMode === "readable" ? readableScale() : overviewScale();
+    if (isPresentation && hasSemanticSummary && !hasAuthoredOverview) {
+      // Prefer the whole canonical model on screen whenever its labels stay at presentation-safe size;
+      // fall back to the takeaway panel only when the fitted diagram would be too small to read.
+      summaryPanel.hidden = true;
+      viewport.hidden = false;
+      const fittedLabel = geometry.labelSize * overviewScale();
+      if (fittedLabel >= minimumLabel - 0.5) mode = "overview";
+    }
+    scale = mode === "summary" ? 1 : mode === "readable" ? readableScale() : overviewScale();
     update();
   }
 
@@ -2159,6 +2203,12 @@
     }
   }
 
+  function figureContractAttributes(figure) {
+    const scope = String(figure?.depictedScope || "").trim();
+    const equivalent = String(figure?.accessibleEquivalent || "").trim();
+    return `${scope ? ` data-diagram-scope="${escapeHtml(scope)}"` : ""}${equivalent ? ` data-diagram-equivalent="${escapeHtml(equivalent)}"` : ""}`;
+  }
+
   function presentationVisualMarkup(slide, source, isJourneyDeck = false) {
     const visuals = state.manifest.visuals || {};
     const options = { presentation: true, compact: true, title: isJourneyDeck ? slide.title : slide.metricLabel };
@@ -2205,7 +2255,7 @@
           const mermaid = figure?.mermaid || "";
           const figureId = figure?.figureId || slide.figureId || `${kind} figure`;
           return mermaid
-            ? `<div class="slide-diagram is-guided-canonical" data-slide-inline-mermaid="${escapeHtml(mermaid)}" data-diagram-id="${escapeHtml(figureId)}" data-diagram-summary="${escapeHtml(figure?.title || slide.body || "")}"><p>Rendering canonical ${escapeHtml(figureId)}…</p></div>`
+            ? `<div class="slide-diagram is-guided-canonical" data-slide-inline-mermaid="${escapeHtml(mermaid)}" data-diagram-id="${escapeHtml(figureId)}" data-diagram-summary="${escapeHtml(figure?.title || slide.body || "")}"${figureContractAttributes(figure)}><p>Rendering canonical ${escapeHtml(figureId)}…</p></div>`
             : `<p class="visual-empty">The canonical ${escapeHtml(figureId)} model is unavailable.</p>`;
         };
         if (slide.viewId === "architecture") {
@@ -2214,7 +2264,7 @@
           const mermaid = figure?.mermaid || "";
           const overviewMarkup = chartMarkup("guidedArchitectureOverview", overview, { presentation: true, compact: true });
           return mermaid
-            ? `<div class="slide-diagram is-guided-canonical" data-slide-inline-mermaid="${escapeHtml(mermaid)}" data-diagram-id="KPS-1" data-diagram-summary="${escapeHtml(figure?.title || slide.body || "")}"><template data-diagram-overview>${overviewMarkup}</template><p>Rendering the KGE-09 overview and canonical KPS-1 inspection model…</p></div>`
+            ? `<div class="slide-diagram is-guided-canonical" data-slide-inline-mermaid="${escapeHtml(mermaid)}" data-diagram-id="KPS-1" data-diagram-summary="${escapeHtml(figure?.title || slide.body || "")}"${figureContractAttributes(figure)}><template data-diagram-overview>${overviewMarkup}</template><p>Rendering the KGE-09 overview and canonical KPS-1 inspection model…</p></div>`
             : overviewMarkup;
         }
         if (["state-trust", "degraded", "operating-model", "assurance"].includes(slide.viewId)) {
@@ -2277,7 +2327,7 @@
         const figure = (visuals.kongPlatformStrategy?.figures || []).find((item) => item.figureId === slide.figureId);
         const mermaid = figure?.mermaid || "";
         return mermaid
-          ? `<div class="slide-diagram is-kps-target" data-slide-inline-mermaid="${escapeHtml(mermaid)}" data-diagram-id="${escapeHtml(slide.figureId)}" data-diagram-summary="${escapeHtml(figure?.title || "")}"><p>Rendering canonical ${escapeHtml(slide.figureId)}…</p></div>`
+          ? `<div class="slide-diagram is-kps-target" data-slide-inline-mermaid="${escapeHtml(mermaid)}" data-diagram-id="${escapeHtml(slide.figureId)}" data-diagram-summary="${escapeHtml(figure?.title || "")}"${figureContractAttributes(figure)}><p>Rendering canonical ${escapeHtml(slide.figureId)}…</p></div>`
           : `<p class="visual-empty">The canonical ${escapeHtml(slide.figureId || "KPS figure")} model is unavailable.</p>`;
       }
       case "kongPlatformCases": {
@@ -2295,7 +2345,7 @@
         const figure = (visuals.muleMigration?.figures || []).find((item) => item.figureId === slide.figureId);
         const mermaid = figure?.mermaid || "";
         return mermaid
-          ? `<div class="slide-diagram is-migration-model" data-slide-inline-mermaid="${escapeHtml(mermaid)}" data-diagram-id="${escapeHtml(slide.figureId)}" data-diagram-summary="${escapeHtml(figure?.title || "")}"><p>Rendering canonical ${escapeHtml(slide.figureId)}…</p></div>`
+          ? `<div class="slide-diagram is-migration-model" data-slide-inline-mermaid="${escapeHtml(mermaid)}" data-diagram-id="${escapeHtml(slide.figureId)}" data-diagram-summary="${escapeHtml(figure?.title || "")}"${figureContractAttributes(figure)}><p>Rendering canonical ${escapeHtml(slide.figureId)}…</p></div>`
           : `<p class="visual-empty">The canonical ${escapeHtml(slide.figureId || "migration figure")} model is unavailable.</p>`;
       }
       case "governance": return chartMarkup("governance", visuals.governance || {}, options);
@@ -2351,6 +2401,39 @@
       [comparison, `${comparison?.dataset.comparisonLabel || "Supplied product comparison"}. Scroll horizontally to compare every product.`, "horizontal"],
       [stage, `${stage?.getAttribute("aria-label") || "Presentation content"}. Scroll vertically to inspect the complete slide.`, "vertical", stage?.getAttribute("role"), stage?.getAttribute("aria-label")],
     ].filter(([surface]) => surface);
+    const slideVisual = document.querySelector(".presentation-stage .slide-main .slide-visual");
+    const ensureScrollCue = () => {
+      if (!stage) return null;
+      let cue = stage.querySelector(":scope > .slide-scroll-cue");
+      if (!cue) {
+        cue = document.createElement("div");
+        cue.className = "slide-scroll-cue";
+        cue.setAttribute("aria-hidden", "true");
+        cue.hidden = true;
+        const pill = document.createElement("span");
+        pill.textContent = "Scroll for more ↓";
+        cue.append(pill);
+        stage.append(cue);
+      }
+      return cue;
+    };
+    const syncScrollCue = () => {
+      const cue = ensureScrollCue();
+      if (!cue) return;
+      // Prefer the innermost vertical scroller so the cue sits on the surface that actually moves.
+      const scroller = [slideVisual, slideMain].find((surface) => surface && surface.scrollHeight > surface.clientHeight + 2);
+      if (!scroller) {
+        cue.hidden = true;
+        return;
+      }
+      const atEnd = scroller.scrollTop + scroller.clientHeight >= scroller.scrollHeight - 6;
+      cue.hidden = atEnd;
+      if (atEnd) return;
+      const rect = scroller.getBoundingClientRect();
+      cue.style.left = `${Math.round(rect.left + rect.width / 2)}px`;
+      cue.style.top = `${Math.round(rect.bottom)}px`;
+    };
+    [slideVisual, slideMain].forEach((surface) => surface?.addEventListener("scroll", syncScrollCue, { passive: true }));
     const syncSurface = (surface, label, axis, originalRole = null, originalLabel = null) => {
       const scrollable = axis === "horizontal"
         ? surface.scrollWidth > surface.clientWidth + 2
@@ -2372,7 +2455,10 @@
         if (cue) cue.hidden = !scrollable;
       }
     };
-    const sync = () => surfaces.forEach(([surface, label, axis, originalRole, originalLabel]) => syncSurface(surface, label, axis, originalRole, originalLabel));
+    const sync = () => {
+      surfaces.forEach(([surface, label, axis, originalRole, originalLabel]) => syncSurface(surface, label, axis, originalRole, originalLabel));
+      syncScrollCue();
+    };
     surfaces.forEach(([surface, , axis]) => {
       surface.addEventListener("toggle", () => requestAnimationFrame(sync), true);
       if (axis === "horizontal") {

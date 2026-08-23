@@ -2199,6 +2199,37 @@ process.stdout.write(window.ApiStudyCharts.render("criteriaOverview", data, {com
             ),
             tuple(guided["earlyGates"]["provenance"]["tableColumns"]),
         )
+        boundaries = guided["boundaries"]
+        self.assertEqual(3, boundaries["rowTotal"])
+        self.assertEqual(("GEB-01", "GEB-02", "GEB-03"), tuple(row["id"] for row in boundaries["rows"]))
+        self.assertEqual("Operating boundaries to keep distinct", boundaries["provenance"]["heading"])
+        self.assertEqual("Operating boundaries to keep distinct", boundaries["provenance"]["sourceHeading"])
+        self.assertIn("KMC-3", boundaries["rows"][0]["record"])
+        self.assertIn("KMC-1", boundaries["rows"][1]["record"])
+        self.assertNotIn("KMC-2", " ".join(row["record"] for row in boundaries["rows"]))
+        for row in boundaries["rows"]:
+            for field in ("boundary", "record", "description", "role"):
+                self.assertTrue(row[field], f"{row['id']} boundary {field} must be non-empty")
+        duties = guided["duties"]
+        self.assertEqual(2, duties["rowTotal"])
+        self.assertEqual(("KPS-FIT-01", "KPS-FIT-02"), tuple(row["id"] for row in duties["rows"]))
+        self.assertEqual("Custody fit and permanent duty", duties["provenance"]["heading"])
+        fit_rows = {row["projectionId"]: row for row in manifest["visuals"]["kongPlatformStrategy"]["fit"]["rows"]}
+        for row in duties["rows"]:
+            self.assertEqual(fit_rows[row["id"]]["outcome"], row["outcome"])
+            self.assertEqual(fit_rows[row["id"]]["counterfactual"], row["counterfactual"])
+            self.assertTrue(row["permanentDuty"] and row["fit"], f"{row['id']} must carry fit and permanent-duty text")
+            self.assertNotEqual(row["permanentDuty"], row["counterfactual"], "permanent duty must not echo the counterfactual")
+        slides_by_key = {slide["key"]: slide for slide in manifest["presentation"]}
+        self.assertEqual(["GEB-01", "GEB-02", "GEB-03"], slides_by_key["kong-guided-boundary"]["rowIds"])
+        self.assertEqual(["KMC-3", "KMC-1"], slides_by_key["kong-guided-boundary"]["optionIds"])
+        self.assertEqual(["KPS-FIT-01", "KPS-FIT-02"], slides_by_key["kong-guided-duty"]["rowIds"])
+        self.assertIn("trustworthy active state", slides_by_key["kong-guided-outcomes-1"]["body"])
+        self.assertIn("capacity isolation", slides_by_key["kong-guided-outcomes-2"]["body"])
+        for figure in (*manifest["visuals"]["kongPlatformStrategy"]["figures"], *manifest["visuals"]["muleMigration"]["figures"]):
+            with self.subTest(figure=figure["figureId"]):
+                self.assertTrue(figure["depictedScope"], "figure contract depicted scope must be projected")
+                self.assertTrue(figure["accessibleEquivalent"], "figure contract accessible equivalent must be projected")
         self.assertEqual(tuple(f"GEW-{index:02d}" for index in range(1, 9)), tuple(row["id"] for row in guided["weights"]["rows"]))
         self.assertEqual(100, guided["weights"]["weightTotal"])
         self.assertEqual(tuple(f"GRS-{index:02d}" for index in range(1, 7)), tuple(row["id"] for row in guided["governedRescore"]["rows"]))
@@ -2604,6 +2635,108 @@ process.stdout.write(JSON.stringify({
                 self.assertNotIn("viz-guided-programme-group", fallback)
                 self.assertEqual(1, fallback.count('<ol class="viz-guided-programme"'))
                 self.assertIn('style="--guided-programme-count:', fallback)
+
+    def test_guided_boundary_duty_and_outcome_renderers_use_canonical_records(self) -> None:
+        node = next(
+            (
+                candidate
+                for candidate in (
+                    Path("/usr/bin/node"),
+                    Path("/bin/node"),
+                    Path("/usr/local/bin/node"),
+                    Path("/opt/homebrew/bin/node"),
+                )
+                if candidate.is_file() and os.access(candidate, os.X_OK)
+            ),
+            None,
+        )
+        self.assertIsNotNone(node, "Node.js is required to validate the guided boundary/duty/outcome renderers")
+        payload_in = {
+            "boundaries": {
+                "rows": [
+                    {"id": "GEB-01", "boundary": "Leading target", "record": "KP-SMH1 / KMC-3", "description": "Enterprise operates CP", "role": "Prove first"},
+                    {"id": "GEB-02", "boundary": "Custody benchmark", "record": "KMC-1", "description": "Konnect CP, customer DPs", "role": "Benchmark"},
+                    {"id": "GEB-03", "boundary": "Platform exit", "record": "KPS-P9", "description": "Non-Kong rebuild", "role": "True exit"},
+                ]
+            },
+            "platformOptions": {
+                "options": [
+                    {"id": "KMC-2", "journeyLabel": "Managed control and managed runtime", "journeyBoundary": "wrong", "journeyRole": "wrong"},
+                    {"id": "KMC-3", "journeyLabel": "Self-managed", "journeyBoundary": "x", "journeyRole": "y"},
+                ]
+            },
+            "duties": {
+                "rows": [
+                    {"id": "KPS-FIT-01", "outcome": "Custody", "fit": "Aligns authority", "permanentDuty": "Operate PostgreSQL", "counterfactual": "Custody is only a preference"},
+                    {"id": "KPS-FIT-02", "outcome": "Multicloud runtime", "fit": "Near workloads", "permanentDuty": "Fund every cell", "counterfactual": "One cloud dominates"},
+                ]
+            },
+            "platformFit": {
+                "rows": [
+                    {"projectionId": "KPS-FIT-01", "outcome": "Custody", "reason": "Aligns authority", "counterfactual": "Custody is only a preference"},
+                ]
+            },
+            "outcomes": [
+                {"id": "KO-1", "label": "trustworthy active state", "measure": "M1", "target": "T1", "artifact": "A1", "cadence": "C1", "owner": "O1"},
+                {"id": "KO-2", "label": "business reliability", "measure": "M2", "target": "T2", "artifact": "A2", "cadence": "C2", "owner": "O2"},
+            ],
+        }
+        script = r'''
+global.window = {};
+require("./site/assets/charts.js");
+const input = JSON.parse(require("fs").readFileSync(0, "utf8"));
+const render = window.ApiStudyCharts.render;
+const {boundaries, platformOptions, duties, platformFit, outcomes} = input;
+process.stdout.write(JSON.stringify({
+  boundary: render("guidedEvaluation", {boundaries, platformOptions}, {viewId: "boundary", rowIds: ["GEB-01", "GEB-02", "GEB-03"], optionIds: ["KMC-3", "KMC-1"]}),
+  boundaryFallback: render("guidedEvaluation", {platformOptions}, {viewId: "boundary", optionIds: ["KMC-3"]}),
+  duty: render("guidedEvaluation", {duties, platformFit}, {viewId: "duty", rowIds: ["KPS-FIT-01", "KPS-FIT-02"]}),
+  dutyFallback: render("guidedEvaluation", {platformFit}, {viewId: "duty", rowIds: ["KPS-FIT-01"]}),
+  outcomeCards: render("kongPlatformOutcomes", {rows: outcomes}, {presentation: true, viewId: "outcomes-1", title: "Outcomes"}),
+  outcomeList: render("kongPlatformOutcomes", {rows: outcomes}, {presentation: true, title: "Outcomes"}),
+}));
+'''
+        observed = subprocess.run(
+            [str(node), "-e", script],
+            cwd=SOURCE_ROOT,
+            check=False,
+            capture_output=True,
+            input=json.dumps(payload_in),
+            text=True,
+        )
+        self.assertEqual(0, observed.returncode, observed.stderr)
+        payload = json.loads(observed.stdout)
+
+        boundary = payload["boundary"]
+        self.assertEqual(3, boundary.count("<article"))
+        for marker in ("GEB-01", "GEB-02", "GEB-03", "KMC-1", "KPS-P9", 'data-label="Canonical record"', 'data-label="Decision role"'):
+            with self.subTest(marker=marker):
+                self.assertIn(marker, boundary)
+        self.assertNotIn("KMC-2", boundary)
+        fallback = payload["boundaryFallback"]
+        self.assertEqual(1, fallback.count("<article"))
+        self.assertIn("Self-managed", fallback)
+        self.assertNotIn("Managed control and managed runtime", fallback)
+
+        duty = payload["duty"]
+        self.assertEqual(2, duty.count("<article"))
+        self.assertEqual(2, duty.count('data-label="Permanent duty"'))
+        self.assertEqual(2, duty.count('data-label="Weaker when"'))
+        self.assertIn("Operate PostgreSQL", duty)
+        self.assertLess(duty.index('data-label="Permanent duty">Operate PostgreSQL'), duty.index('data-label="Weaker when">Custody is only a preference'))
+        duty_fallback = payload["dutyFallback"]
+        self.assertNotIn('data-label="Permanent duty"', duty_fallback, "a counterfactual must never be labelled as a permanent duty")
+        self.assertIn('data-label="Weaker when">Custody is only a preference', duty_fallback)
+
+        cards = payload["outcomeCards"]
+        self.assertIn('class="viz-kps-outcome-cards" data-count="2"', cards)
+        self.assertEqual(2, cards.count('data-label="Measure"'))
+        self.assertEqual(2, cards.count('data-label="Evidence artifact"'))
+        self.assertEqual(2, cards.count('data-label="Accountable owner"'))
+        self.assertIn("trustworthy active state", cards)
+        self.assertNotIn("viz-presentation-detail", cards)
+        self.assertIn("viz-presentation-detail", payload["outcomeList"])
+        self.assertNotIn("viz-kps-outcome-cards", payload["outcomeList"])
 
     def test_guided_assessment_manifest_contract_is_exact_and_falsifiable(self) -> None:
         expected_phase_questions = {

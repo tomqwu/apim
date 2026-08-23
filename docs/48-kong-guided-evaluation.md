@@ -247,6 +247,29 @@ Before any scoring gate, add the exact options, rubric, scorers, evidence links,
 | Migration | Bounded Mule or Apigee cohorts with coexistence, business probes, identity/state reconciliation, and route-back | Big-bang or proxy-bundle-only migration factory | Per-wave entry/exit, state, dependency, recovery, and owner evidence |
 | Alternatives | Konnect custody benchmark and a true non-Kong exit | Parallel production builds without a decision purpose | Equivalent outcomes, cost, effort, support, and rebuild evidence |
 
+## Operating boundaries to keep distinct
+
+The decision slide separates three boundaries that the supplied evaluation and everyday language tend to merge. Each is a different obligation with a different proof; none of them is a product score.
+
+| Boundary ID | Boundary | Canonical record | Operating description | Decision role |
+|---|---|---|---|---|
+| GEB-01 | Leading target: self-managed hybrid | `KP-SMH1` bounded target in docs/47; `KMC-3` proof track in docs/44 | The enterprise operates the control-plane cell, PostgreSQL, Admin API, CP/DP PKI, backups, upgrades, and admission policy, with customer-hosted data-plane cells across its approved zones. | Exact option to freeze and prove first; the only boundary authorized for foundation work |
+| GEB-02 | Custody benchmark: Konnect control plane | `KMC-1` in docs/44 (Konnect regional control plane plus customer-hosted hybrid data planes); `KPS-P11` benchmark in docs/47 | Same-vendor custody switch that keeps the customer-hosted data planes while Kong operates the control plane and database; compare custody, support boundary, migration effort, parity, and route-back under one outcome contract. | Mandatory same-vendor benchmark; a custody switch, not a vendor exit |
+| GEB-03 | Platform exit: non-Kong target | `KPS-P9` clean-room exit in docs/47 with GEO-APIGEE, GEO-MULE, or GEO-APIM as counterfactual targets | Independent exit obligation: API contracts, routes and policies, consumers and credentials, PKI and identity, plugins, evidence history, and runtime must remain portable and are proved by a representative non-source rebuild with timed route-back. | True exit proof that no Konnect switch can close |
+
+`KMC-2` (Konnect plus Dedicated Cloud Gateways) is a managed-runtime benchmark inside the Konnect record, not the custody benchmark: it moves the data planes as well as the control plane and therefore cannot preserve the customer-hosted runtime investment that makes GEB-02 a reversible switch.
+
+## Custody fit and permanent duty
+
+The two strongest fit conditions in docs/47 each carry a permanent enterprise obligation. The slide shows both sides together so that the custody advantage is never read without the duty that pays for it, and the counterfactual that would reverse the preference stays visible.
+
+| Fit ID | Outcome sought | Why it fits | Permanent duty | Counterfactual that would change the answer |
+|---|---|---|---|---|
+| KPS-FIT-01 | Customer custody of management state | Aligns configuration authority, administrative evidence, backup, and recovery with the enterprise boundary | Operate and secure the PostgreSQL service, control-plane instances, backups, migrations, private Admin API access, CP/DP PKI, licensing, upgrades, audit evidence, and support coordination, with 24×7 response and rehearsed isolated restore | Control-plane custody is only a preference and managed lifecycle reduction is more valuable |
+| KPS-FIT-02 | Multicloud runtime without a database in every zone | Places request enforcement near workloads while avoiding a regional Kong database per DP group | Design and fund the traffic, capacity, certificate, cache, telemetry, and recovery path of every data-plane cell; prove each support, telemetry, license, registry, and backup flow per placement; carry the per-cell labour, network, and telemetry cost | Most workloads and dependencies consolidate in one managed cloud |
+
+These duties describe operating accountability and risk exposure in the proposed architecture. They are not a legal-liability determination; contractual allocation depends on exact support and commercial evidence and on qualified counsel.
+
 ## Architecture, adoption, and migration chain
 
 The detailed canonical evidence remains in the underlying studies:
@@ -416,8 +439,8 @@ The PowerPoint and the native Pages deck project this same 25-frame contract. Th
 | KGE-16 | `kong-guided-waves` | KGE-P4 | Apigee A0–A6 moves the full object and state graph | Apigee advances from reconciled source truth through semantic mapping, reversible target, hard-slice parity, bounded coexistence, production canary and dependency zero; Mule M0–M5 remains the responsibility/state counterpart | Dedicated seven-stage Apigee evidence rail with Mule counterpart and common route-back gates | docs/50 / A0–A6 plus docs/35 / MULE-6 |
 | KGE-17 | `kong-guided-proof-boundary` | KGE-P5 | Current PoC is a functional baseline—not KP-SMH1 proof | 5 automated, 11 not run, 28 separate atomic cases, 0 target E3/E4 results | Non-additive evidence-system boundary | This study / Current proof boundary plus poc/README |
 | KGE-18 | `kong-guided-proof-programme` | KGE-P5 | The next PoC must mirror the production target | Seven workstreams require an owner, measure, threshold, executed artifact, reviewer and stop rule; GEP-07 tests Kong plus Traceable without awarding unearned platform confidence | Seven-workstream execution map | This study / Seven-workstream target-aligned proof programme plus GSA-01 |
-| KGE-19 | `kong-guided-outcomes-1` | KGE-P5 | Five reviewable outcomes anchor production proof | KO-1 state fidelity through KO-5 safe change | Source-derived KO-1–KO-5 outcome cards | docs/47 / Outcome measures and acceptance artifacts |
-| KGE-20 | `kong-guided-outcomes-2` | KGE-P5 | Scale depends on the whole operating system | KO-6 capacity through KO-11 estate ownership; KO-7 is security traceability and evidence safety with correlation, quantified gaps and prohibited-field control | Source-derived KO-6–KO-11 outcome cards | docs/47 / Outcome measures and acceptance artifacts |
+| KGE-19 | `kong-guided-outcomes-1` | KGE-P5 | Five reviewable outcomes anchor production proof | KO-1 trustworthy active state through KO-5 safe change | Source-derived KO-1–KO-5 outcome cards | docs/47 / Outcome measures and acceptance artifacts |
+| KGE-20 | `kong-guided-outcomes-2` | KGE-P5 | Scale depends on the whole operating system | KO-6 capacity isolation through KO-11 estate truth; KO-7 is security traceability and evidence safety with correlation, quantified gaps and prohibited-field control | Source-derived KO-6–KO-11 outcome cards | docs/47 / Outcome measures and acceptance artifacts |
 | KGE-21 | `kong-guided-assurance` | KGE-P5 | Negative evidence must change the decision | Pre-commit scale, narrow, switch custody, exit, and hold outcomes | Source-derived KPS-6 assurance brief | docs/47 / KPS-6 |
 | KGE-22 | `kong-guided-compare-architecture` | KGE-P6 | Comparison input — architecture, multicloud and robustness | Preserve supplied labels; make GEC-19 scalability/robustness explicitly unscored and bind every claim to equivalent execution | GEC-01–08 plus GEC-19 evidence-obligation records | This study / Supplied comparison input: architecture and delivery |
 | KGE-23 | `kong-guided-compare-management` | KGE-P6 | Comparison input — management, AI and security traceability | Keep capabilities versioned; show GEC-20 Kong-plus-Traceable as documented feasibility, not gateway proof or score | GEC-09–15 plus GEC-20 evidence-obligation records | This study / management and AI comparison plus GSA-01 |

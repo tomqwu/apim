@@ -1196,11 +1196,14 @@ def kong_platform_strategy_visuals(items: list[dict[str, object]]) -> dict[str, 
             section,
             flags=re.IGNORECASE,
         )
+        figure_block = match.group(0) if match else ""
         figures.append(
             {
                 "figureId": figure_id,
                 "title": clean_inline(match.group(1).strip()) if match else "",
                 "mermaid": match.group(2).strip() if match else "",
+                "depictedScope": figure_contract_field(figure_block, "Depicted scope"),
+                "accessibleEquivalent": figure_contract_field(figure_block, "Accessible equivalent"),
                 "provenance": {
                     "sourcePath": source_path,
                     "sourceId": source_id,
@@ -1377,11 +1380,14 @@ def mule_migration_visuals(items: list[dict[str, object]]) -> dict[str, object]:
             section,
             flags=re.IGNORECASE,
         )
+        figure_block = match.group(0) if match else ""
         figures.append(
             {
                 "figureId": figure_id,
                 "title": clean_inline(match.group(1).strip()) if match else "",
                 "mermaid": match.group(2).strip() if match else "",
+                "depictedScope": figure_contract_field(figure_block, "Depicted scope"),
+                "accessibleEquivalent": figure_contract_field(figure_block, "Accessible equivalent"),
                 "provenance": {
                     "sourcePath": source_path,
                     "sourceId": source_id,
@@ -1463,6 +1469,16 @@ def apigee_migration_visuals(items: list[dict[str, object]]) -> dict[str, object
         "phases": phases,
         "provenance": provenance,
     }
+
+
+def figure_contract_field(figure_block: str, label: str) -> str:
+    """Return one canonical figure-contract bullet (for example Depicted scope) as clean text."""
+    match = re.search(
+        rf"^-\s+\*\*{re.escape(label)}:\*\*\s*(.+)$",
+        figure_block,
+        flags=re.IGNORECASE | re.MULTILINE,
+    )
+    return clean_inline(match.group(1).strip()) if match else ""
 
 
 def guided_evaluation_visuals(
@@ -1767,6 +1783,34 @@ def guided_evaluation_visuals(
             "doesNotSupport": clean_inline(row_value(row, "What it cannot support")),
         }
         for index, row in enumerate(proof_boundary_rows, start=1)
+    ]
+
+    boundary_columns = ("Boundary ID", "Boundary", "Canonical record", "Operating description", "Decision role")
+    boundary_rows, boundary_provenance = scoped_rows("Operating boundaries to keep distinct", boundary_columns)
+    boundary_provenance["heading"] = "Operating boundaries to keep distinct"
+    boundaries = [
+        {
+            "id": clean_inline(row_value(row, "Boundary ID")),
+            "boundary": clean_inline(row_value(row, "Boundary")),
+            "record": clean_inline(row_value(row, "Canonical record")),
+            "description": clean_inline(row_value(row, "Operating description")),
+            "role": clean_inline(row_value(row, "Decision role")),
+        }
+        for row in boundary_rows
+    ]
+
+    duty_columns = ("Fit ID", "Outcome sought", "Why it fits", "Permanent duty", "Counterfactual that would change the answer")
+    duty_rows, duty_provenance = scoped_rows("Custody fit and permanent duty", duty_columns)
+    duty_provenance["heading"] = "Custody fit and permanent duty"
+    duties = [
+        {
+            "id": clean_inline(row_value(row, "Fit ID")),
+            "outcome": clean_inline(row_value(row, "Outcome sought")),
+            "fit": clean_inline(row_value(row, "Why it fits")),
+            "permanentDuty": clean_inline(row_value(row, "Permanent duty")),
+            "counterfactual": clean_inline(row_value(row, "Counterfactual that would change the answer")),
+        }
+        for row in duty_rows
     ]
 
     comparison_columns = ("Input ID", "Criterion", "Kong input", "MuleSoft input", "Apigee input", "Evidence treatment")
@@ -2244,6 +2288,8 @@ def guided_evaluation_visuals(
         "proofProgramme": {"rowTotal": len(proof_programme), "rows": proof_programme, "provenance": proof_programme_provenance},
         "securityAdjuncts": {"rowTotal": len(security_adjuncts), "rows": security_adjuncts, "provenance": adjunct_provenance},
         "proofBoundary": {"rowTotal": len(proof_boundary), "rows": proof_boundary, "provenance": proof_boundary_provenance},
+        "boundaries": {"rowTotal": len(boundaries), "rows": boundaries, "provenance": boundary_provenance},
+        "duties": {"rowTotal": len(duties), "rows": duties, "provenance": duty_provenance},
         "evidenceStates": {"rowTotal": len(evidence_states), "rows": evidence_states, "provenance": evidence_provenance},
         "referenceCatalog": {"rowTotal": len(reference_catalog), "rows": reference_catalog, "provenance": reference_provenance},
         "comparisons": {
@@ -2388,6 +2434,7 @@ def validate_site_projection(stats: dict[str, int], visuals: dict[str, object]) 
     mule_migration = visuals.get("muleMigration")
     apigee_migration = visuals.get("apigeeMigration")
     guided_evaluation = visuals.get("guidedEvaluation")
+    kong_fit_rows_head = list(kong_platform.get("fit", {}).get("rows", []))[:2] if isinstance(kong_platform, dict) else []
     guided_slide_rows = (
         list(guided_evaluation.get("slides", {}).get("rows", []))
         if isinstance(guided_evaluation, dict)
@@ -2626,6 +2673,28 @@ def validate_site_projection(stats: dict[str, int], visuals: dict[str, object]) 
             and guided_evaluation.get("proofBoundary", {}).get("rowTotal") == 3
             and [row.get("id") for row in guided_evaluation.get("proofBoundary", {}).get("rows", [])]
             == [f"KGE-PROOF-{rank:02d}" for rank in range(1, 4)]
+            and guided_evaluation.get("boundaries", {}).get("rowTotal") == 3
+            and [row.get("id") for row in guided_evaluation.get("boundaries", {}).get("rows", [])]
+            == [f"GEB-{rank:02d}" for rank in range(1, 4)]
+            and all(
+                row.get("boundary") and row.get("record") and row.get("description") and row.get("role")
+                for row in guided_evaluation.get("boundaries", {}).get("rows", [])
+            )
+            and guided_evaluation.get("boundaries", {}).get("provenance", {}).get("heading")
+            == "Operating boundaries to keep distinct"
+            and guided_evaluation.get("duties", {}).get("rowTotal") == 2
+            and [row.get("id") for row in guided_evaluation.get("duties", {}).get("rows", [])]
+            == ["KPS-FIT-01", "KPS-FIT-02"]
+            and all(
+                row.get("outcome") and row.get("fit") and row.get("permanentDuty") and row.get("counterfactual")
+                for row in guided_evaluation.get("duties", {}).get("rows", [])
+            )
+            and [row.get("id") for row in guided_evaluation.get("duties", {}).get("rows", [])]
+            == [row.get("projectionId") for row in kong_fit_rows_head]
+            and [row.get("outcome") for row in guided_evaluation.get("duties", {}).get("rows", [])]
+            == [row.get("outcome") for row in kong_fit_rows_head]
+            and [row.get("counterfactual") for row in guided_evaluation.get("duties", {}).get("rows", [])]
+            == [row.get("counterfactual") for row in kong_fit_rows_head]
             and guided_evaluation.get("evidenceStates", {}).get("rowTotal") == 15
             and [
                 slide_id
@@ -3109,8 +3178,8 @@ def make_presentation(items: list[dict[str, object]], stats: dict[str, int], vis
         "options": block_ids(guided.get("options", {})),
         "score": block_ids(guided.get("scoring", {})),
         "decision": block_ids(guided.get("authorization", {})),
-        "boundary": ["KMC-3", "KMC-2"],
-        "duty": [str(row.get("projectionId", "")) for row in kong_fit_rows if row.get("projectionId")],
+        "boundary": block_ids(guided.get("boundaries", {})),
+        "duty": block_ids(guided.get("duties", {})),
         "adoption": [str(row.get("id", "")) for row in kong_phases if row.get("id")],
         "migration-boundary": [str(row.get("id", "")) for row in mule_responsibilities if row.get("id")],
         "waves": [str(row.get("id", "")) for row in mule_waves if row.get("id")],
@@ -3134,7 +3203,7 @@ def make_presentation(items: list[dict[str, object]], stats: dict[str, int], vis
         "waves": ["MULE-6"],
         "assurance": ["KPS-6"],
     }
-    guided_option_ids = {"boundary": ["KMC-3", "KMC-2"]}
+    guided_option_ids = {"boundary": ["KMC-3", "KMC-1"]}
     for contract in guided_contract:
         view_id = str(contract.get("viewId", ""))
         phase = guided_phases.get(str(contract.get("phaseId", "")), {})

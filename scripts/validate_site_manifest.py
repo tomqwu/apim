@@ -193,6 +193,9 @@ KONG_GUIDED_OPTION_IDS = ("GEO-KONG", "GEO-APIGEE", "GEO-MULE", "GEO-APIM")
 KONG_GUIDED_RESCORE_IDS = tuple(f"GRS-{index:02d}" for index in range(1, 7))
 KONG_GUIDED_WORKSTREAM_IDS = tuple(f"GEP-{index:02d}" for index in range(1, 8))
 KONG_GUIDED_SECURITY_ADJUNCT_IDS = ("GSA-01",)
+KONG_GUIDED_BOUNDARY_IDS = tuple(f"GEB-{index:02d}" for index in range(1, 4))
+KONG_GUIDED_DUTY_IDS = ("KPS-FIT-01", "KPS-FIT-02")
+KONG_GUIDED_BOUNDARY_OPTION_IDS = ("KMC-3", "KMC-1")
 KONG_GUIDED_COMPARISON_IDS = (
     (*tuple(f"GEC-{index:02d}" for index in range(1, 9)), "GEC-19"),
     (*tuple(f"GEC-{index:02d}" for index in range(9, 16)), "GEC-20"),
@@ -1842,6 +1845,8 @@ def validate_kong_guided_evaluation(
         "proofProgramme": "Seven-workstream target-aligned proof programme",
         "securityAdjuncts": "Traceable by Harness security-adjunct feasibility",
         "proofBoundary": "Current proof boundary",
+        "boundaries": "Operating boundaries to keep distinct",
+        "duties": "Custody fit and permanent duty",
         "referenceCatalog": "Guided slide official reference links",
         "phases": "Guided native deck phases",
         "slides": "Native presentation contract: KGE-01–KGE-25",
@@ -2065,6 +2070,43 @@ def validate_kong_guided_evaluation(
         nonempty_strings(row, ("id", "system", "state", "supports", "doesNotSupport"), f"guided proof boundary {row.get('id')}")
     validate_block_provenance(proof_boundary, "proofBoundary", expected_headings["proofBoundary"])
 
+    boundaries = guided.get("boundaries")
+    require(isinstance(boundaries, dict), "guided evaluation boundaries must be an object")
+    boundary_rows = boundaries.get("rows")
+    require(isinstance(boundary_rows, list) and boundaries.get("rowTotal") == 3, "guided evaluation boundaries must contain exactly three rows")
+    require(all(isinstance(row, dict) for row in boundary_rows), "guided evaluation boundaries rows must be objects")
+    require(tuple(row.get("id") for row in boundary_rows) == KONG_GUIDED_BOUNDARY_IDS, "guided evaluation boundary IDs must be GEB-01 through GEB-03")
+    for row in boundary_rows:
+        nonempty_strings(row, ("id", "boundary", "record", "description", "role"), f"guided boundary {row.get('id')}")
+    require(
+        "KMC-3" in str(boundary_rows[0].get("record", ""))
+        and "KMC-1" in str(boundary_rows[1].get("record", ""))
+        and "KMC-2" not in " ".join(str(row.get("record", "")) for row in boundary_rows),
+        "guided evaluation custody benchmark must be the customer-hosted-runtime Konnect record (KMC-1), never KMC-2",
+    )
+    validate_block_provenance(boundaries, "boundaries", expected_headings["boundaries"])
+
+    duties = guided.get("duties")
+    require(isinstance(duties, dict), "guided evaluation duties must be an object")
+    duty_rows = duties.get("rows")
+    require(isinstance(duty_rows, list) and duties.get("rowTotal") == 2, "guided evaluation duties must contain exactly two rows")
+    require(all(isinstance(row, dict) for row in duty_rows), "guided evaluation duties rows must be objects")
+    require(tuple(row.get("id") for row in duty_rows) == KONG_GUIDED_DUTY_IDS, "guided evaluation duty IDs must be KPS-FIT-01 and KPS-FIT-02")
+    for row in duty_rows:
+        nonempty_strings(row, ("id", "outcome", "fit", "permanentDuty", "counterfactual"), f"guided duty {row.get('id')}")
+    fit_rows = {
+        str(row.get("projectionId")): row
+        for row in manifest.get("visuals", {}).get("kongPlatformStrategy", {}).get("fit", {}).get("rows", [])
+        if isinstance(row, dict)
+    }
+    for row in duty_rows:
+        fit_row = fit_rows.get(str(row.get("id")), {})
+        require(
+            fit_row.get("outcome") == row.get("outcome") and fit_row.get("counterfactual") == row.get("counterfactual"),
+            f"guided duty {row.get('id')} must mirror the canonical docs/47 fit outcome and counterfactual",
+        )
+    validate_block_provenance(duties, "duties", expected_headings["duties"])
+
     evidence_states = guided.get("evidenceStates")
     require(isinstance(evidence_states, dict), "guided evaluation evidenceStates must be an object")
     evidence_rows = evidence_states.get("rows")
@@ -2255,6 +2297,8 @@ def validate_kong_guided_evaluation(
         "kong-guided-options": KONG_GUIDED_OPTION_IDS,
         "kong-guided-score": KONG_GUIDED_WEIGHT_IDS,
         "kong-guided-decision": tuple(f"KGE-AUTH-{index:02d}" for index in range(1, 6)),
+        "kong-guided-boundary": KONG_GUIDED_BOUNDARY_IDS,
+        "kong-guided-duty": KONG_GUIDED_DUTY_IDS,
         "kong-guided-proof-boundary": tuple(f"KGE-PROOF-{index:02d}" for index in range(1, 4)),
         "kong-guided-proof-programme": KONG_GUIDED_WORKSTREAM_IDS,
         "kong-guided-compare-architecture": KONG_GUIDED_COMPARISON_IDS[0],
@@ -2264,6 +2308,10 @@ def validate_kong_guided_evaluation(
     }
     for key, row_ids in expected_row_ids.items():
         require(tuple(slides_by_key[key].get("rowIds", ())) == row_ids, f"guided presentation slide {key} rowIds are invalid")
+    require(
+        tuple(slides_by_key["kong-guided-boundary"].get("optionIds", ())) == KONG_GUIDED_BOUNDARY_OPTION_IDS,
+        "guided boundary slide must reference the self-managed (KMC-3) and customer-hosted-runtime Konnect (KMC-1) records",
+    )
 
     audience_states = sum(len(audience.get("presentationSlides", ())) for audience in manifest.get("audiences", ()) if isinstance(audience, dict))
     named_states = sum(deck_item.get("slideTotal", 0) for deck_item in decks if isinstance(deck_item, dict))
