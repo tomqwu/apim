@@ -1079,8 +1079,11 @@ class CanonicalContractTests(WorkflowTestCase):
         self.assertIn("## Opening the meeting", source)
         self.assertIn("### Suggested opening script — 2 to 3 minutes", source)
         self.assertIn("### Opening talking points", source)
+        self.assertIn("### Plain-language decision words", source)
+        self.assertIn("**change** is stored as **amend**", source)
+        self.assertIn("**pause** is stored as **hold**", source)
         self.assertIn(
-            "Kong is the better strategic fit for this operating model",
+            "If those priorities hold, Kong is the better strategic fit",
             source,
             "the opening must give the product owner a clear, conditional recommendation",
         )
@@ -1091,6 +1094,9 @@ class CanonicalContractTests(WorkflowTestCase):
         )
         self.assertIn("## Choose the meeting route", source)
         self.assertIn("## Challenge-handling protocol", source)
+        self.assertIn("**Terms used in this section:** evidence level 1 through evidence level 4", source)
+        self.assertIn("Proof of Concept (`PoC`)", source)
+        self.assertIn("bill of materials (`BOM`)", source)
         self.assertIn("## Slide-by-slide facilitation index", source)
         self.assertIn("## Decision, evidence, and parking-lot ledgers", source)
         self.assertIn("## Stop and hold rules", source)
@@ -1119,20 +1125,28 @@ class CanonicalContractTests(WorkflowTestCase):
         self.assertIn('noteHeading.textContent = "Ready-to-say speaker script"', app)
         self.assertIn("<span>Product owner decision</span>", app)
         self.assertIn(
-            "Kong is the better strategic fit for the operating model we chose.",
+            "Working thesis: if these are our priorities, Kong is the better strategic fit.",
             app,
         )
         self.assertIn(
-            "Approve a small, reversible start. Production scale still requires executed proof.",
+            "Confirm the priorities, then approve, change, or hold a small, reversible start.",
             app,
         )
+        self.assertIn('const isUserScrollable = (surface, axis) => {', app)
+        self.assertIn('isUserScrollable(surface, "vertical")', app)
         charts = (SOURCE_ROOT / "site/assets/charts.js").read_text(encoding="utf-8")
+        canonical_study = (SOURCE_ROOT / "docs/48-kong-guided-evaluation.md").read_text(encoding="utf-8")
         self.assertIn(
-            "Agree on the business priorities and four questions that could change the recommendation.",
-            charts,
+            "Agree on the business priorities and four questions that could change the recommendation",
+            canonical_study,
         )
+        self.assertNotIn("plainOutcomeByPhase", charts)
+        self.assertIn("phase.audienceDecision || phase.outcome", charts)
         self.assertIn("Answer all four early questions", charts)
         self.assertIn("Record the answer · evidence needed · stop condition", charts)
+        self.assertIn('const guidedTerms = document.querySelector(".presentation-stage .guided-terms ul")', app)
+        self.assertIn('[guidedTerms, "Terms introduced on this slide.', app)
+        self.assertIn(".guided-terms ul[tabindex='0']", app)
         self.assertIn('enhanceGuidedFacilitatorNotes(prose, item)', app)
         self.assertIn('heading.setAttribute("aria-label", headingTitle)', app)
         self.assertIn('"Collapse" : "Expand"} section:', app)

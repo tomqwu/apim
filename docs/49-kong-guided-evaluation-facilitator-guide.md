@@ -3,7 +3,7 @@
 | Field | Value |
 |---|---|
 | Artifact type | meeting-facilitation-guide |
-| Meeting question | Should we approve, change, or pause a small, reversible Kong start and the tests needed before production scale? |
+| Meeting question | Should we approve, change, or hold a small, reversible Kong start and the tests needed before production scale? |
 | Decision owner | Application programming interface (API) platform product owner, supported by architecture, security, platform, reliability, migration, sourcing, finance, service-management, delivery, and independent-review leads |
 | Intended users | Product owner, meeting chair, presenter, note taker, evidence reviewer, timekeeper, and the technical or commercial leads who will own follow-up work |
 | Scope | Meeting opening, full scripts and three talking points for all 25 slides, four early questions, an 18-question local assessment, meeting routes, challenge responses, decision capture, stop conditions, and a closing checklist |
@@ -26,7 +26,7 @@ This is the **complete meeting and speaker-notes guide** for the Kong evaluation
 - [Inspect the Apigee A0–A6 migration roadmap](50-apigee-migration-strategy.md)
 - [Use the Kong terminology crosswalk](../research/glossary.md#kong-terminology-crosswalk)
 - [Inspect the Traceable security-adjunct evidence boundary](48-kong-guided-evaluation.md#traceable-by-harness-security-adjunct-feasibility)
-- [Inspect the current PoC evidence boundary](../poc/README.md)
+- [Inspect the current Proof of Concept (PoC) evidence boundary](../poc/README.md)
 
 If this guide and a source study disagree, use the source study. Do not publicly link the raw supplied input; the public guided evaluation contains the safe decision context.
 
@@ -36,13 +36,17 @@ Every speaker-note card is independently enterable. At the top of each card, the
 
 Apply the same rule in meeting artifacts and follow-up documents: expand an unfamiliar acronym at its first visible use in every independently opened document, section, slide, table, or note. A linked glossary is supporting context, not a substitute for the first-use expansion.
 
+### Plain-language decision words
+
+In the room, say **approve, change, or hold**. In the formal assessment record and export, **change** is stored as **amend**, and a request to **pause** is stored as **hold**. This is one three-state decision vocabulary, not two different decision models.
+
 ## Opening the meeting
 
 ### Suggested opening script — 2 to 3 minutes
 
-Good morning. Today we are deciding whether Kong is the strongest strategic fit for the application programming interface (API) platform we want to build, and whether we should fund a controlled first implementation to prove it.
+Good morning. Today we are testing a clear working thesis: if the product owner's priorities are Kubernetes-based delivery, Git-reviewed change, distributed gateways, and accountable platform ownership, Kong is the strongest strategic fit for the application programming interface (API) platform we want to build. We will first confirm those priorities, then decide whether to fund a controlled first implementation to test the thesis.
 
-Kong is the better strategic fit for this operating model because it matches the direction already set by the organization: Kubernetes-based delivery, Git-reviewed change, distributed gateways across cloud and private environments, and clear platform ownership. If those priorities hold, Kong could give teams faster delivery, stronger control over where traffic runs, and a more portable foundation for modernization. That is the positive case we will test today.
+If those priorities hold, Kong is the better strategic fit because its operating model aligns with them. It could give teams faster delivery, stronger control over where traffic runs, and a more portable foundation for modernization. These are the outcomes we want; they are not results we have proved. If the priorities change, the recommendation can change too.
 
 We also need to test the cost of that control. Self-managed Kong creates ongoing responsibility for operations, recovery, security, upgrades, support, and evidence. Four Early Assessment Gates (EAGs) bring the biggest open questions into the discussion now: multicloud fit, the ability to change providers or exit, full Total Cost of Ownership (TCO), and whether to include Kong with Traceable by Harness as an optional security add-on in the study.
 
@@ -56,7 +60,7 @@ Before we begin, please confirm the decision owner, scribe, evidence reviewer, a
 
 ### Opening talking points
 
-- Kong is the leading strategic fit because it aligns with the target delivery and operating model.
+- Working thesis: if the stated priorities hold, Kong is the leading strategic fit because its operating model aligns with them.
 - The meeting decides whether to approve, change, or hold a controlled implementation and test plan—not production scale.
 - Every open risk needs an owner, evidence, due date, and a clear condition that would stop or change the direction.
 
@@ -174,6 +178,8 @@ Use slides [2](https://tomqwu.github.io/apim/#/present/kong-platform-journey-gui
 
 When a challenge interrupts the planned route:
 
+**Terms used in this section:** evidence level 1 through evidence level 4 (`E1`–`E4`); Early Assessment Gate (`EAG`); high availability (`HA`); disaster recovery (`DR`); Total Cost of Ownership (`TCO`); Azure API Management (`APIM`); control plane (`CP`); Public Key Infrastructure (`PKI`); application programming interface operations (`APIOps`); Identity and Access Management (`IAM`); key-value map (`KVM`); Transport Layer Security (`TLS`); Proof of Concept (`PoC`); Model Context Protocol (`MCP`); agent-to-agent communication (`A2A`); artificial intelligence (`AI`); and bill of materials (`BOM`). Stable record identifiers refer to the Kong self-managed hybrid profile (`KP-SMH1`), the Gateway Security Adjunct profile (`GSA-01`), Gateway Evidence Programme workstream 07 (`GEP-07`), and Apigee migration phases `A0`–`A6`.
+
 1. **Acknowledge** the concern without defending the slide.
 2. **Restate the decision impact**: what answer could change if the challenge is true?
 3. **Label the current evidence state**: stakeholder input, `E1`, `E2`, `E3`, `E4`, proposed, not run, or accepted.
@@ -287,17 +293,17 @@ We start from the stated target operating model, disposition four early gates fo
 
 *If you delivered the full meeting opening, use the first paragraph as the handoff and move directly to the final paragraph. Use the complete script when slide 1 is the opening.*
 
-Welcome to the Kong Guided Evaluation (KGE). Today we are deciding whether Kong is the best fit for the application programming interface (API) platform we want to build and whether to fund a controlled first implementation.
+Welcome to the Kong Guided Evaluation (KGE). Today we are testing a working thesis: if the product owner's priorities hold, Kong is the best fit for the application programming interface (API) platform we want to build.
 
-Kong leads because it matches the organization’s direction: Kubernetes, Git-reviewed delivery, distributed gateways, and platform ownership. Those choices could help teams deliver APIs faster, run traffic closer to workloads, and keep more control over placement and operations.
+Those stated priorities are Kubernetes, Git-reviewed delivery, distributed gateways, and platform ownership. Kong's operating model aligns with them. That could help teams deliver APIs faster, run traffic closer to workloads, and keep more control over placement and operations.
 
-That strategic fit is a reason to proceed with testing, not proof that Kong is ready for broad production use. We still need answers on multicloud operation, recovery, security, full cost, migration, and the ongoing work of running the control plane.
+This is a starting thesis, not a settled conclusion. Slide 2 asks the room to confirm, change, or reject the priorities. If they hold, the fit supports a controlled test—not broad production approval. We still need proof for multicloud operation, recovery, security, full cost, migration, and control-plane operations.
 
-If you believe another option would produce a better outcome, name the business condition and evidence that would change the direction. We will record it and test it fairly. The decision today is simple: approve the controlled Kong foundation and test plan, change it, or hold it.
+If another option could produce a better outcome, name the business condition and evidence that would change the direction. We will record it and test it fairly. Decide whether to approve the controlled Kong foundation and test plan, change it, or hold it.
 
 ##### Talking points
 
-- Kong fits the target model of Kubernetes, Git-managed change, distributed gateways, and platform ownership.
+- If the stated priorities hold, Kong fits the target model of Kubernetes, Git-managed change, distributed gateways, and platform ownership.
 - Strategic fit supports a controlled implementation; it does not prove production readiness.
 - Decide whether to approve, change, or hold the Kong foundation and test plan.
 
@@ -1999,7 +2005,7 @@ Lifecycle, governance, portal, developer experience, AI, customization, and best
 
 ##### Speaker script
 
-This appendix keeps two promising Kong extensions separate from the core gateway decision: artificial intelligence features and Traceable by Harness security integration. Product words such as easy, complete, secure, observable, and scalable are questions to test, not results.
+This appendix keeps two separate studies outside the core gateway decision: Kong's artificial intelligence capabilities and the third-party Kong-plus-Traceable by Harness security-adjunct hypothesis. Product words such as easy, complete, secure, observable, and scalable are questions to test, not results.
 
 Traceable documentation shows a Kong plugin and agent path. That is enough to design a study, but it does not prove that the exact Kong Gateway Enterprise 3.14 setup will be supported, effective, private, fast, scalable, affordable, or easy to upgrade and remove.
 
@@ -2009,7 +2015,7 @@ The artificial intelligence study should separately test Model Context Protocol 
 
 ##### Talking points
 
-- Kong’s Traceable and artificial intelligence options are promising, but they require separate studies.
+- Kong's artificial intelligence capabilities and the third-party Kong-plus-Traceable security-adjunct hypothesis require separate studies.
 - Test coverage, failure behavior, performance, privacy, support, and safe removal.
 - Approve outcome measures without adding unproved points to Kong’s core score.
 

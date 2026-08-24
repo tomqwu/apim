@@ -591,18 +591,10 @@
     const section = data?.phases || {};
     const phases = guidedRows(section, ["phases"]);
     if (!phases.length) return empty();
-    const plainOutcomeByPhase = {
-      "KGE-P1": "Agree on the business priorities and four questions that could change the recommendation.",
-      "KGE-P2": "Compare options by outcomes and decide whether Kong earns a small first implementation.",
-      "KGE-P3": "Decide who runs what, how traffic continues, and how teams adopt the platform safely.",
-      "KGE-P4": "Move MuleSoft or Apigee in controlled waves while keeping the customer endpoint stable.",
-      "KGE-P5": "Run production-like tests for recovery, security, scale, cost, and ongoing operations.",
-      "KGE-P6": "Inspect the inputs and unknowns when the recommendation is challenged.",
-    };
     const body = `<ol class="viz-guided-phases">${phases.map((phase, index) => `<li>
       <span>${escapeHtml(phase.id || String(index + 1).padStart(2, "0"))}</span>
       <strong>${escapeHtml(phase.phase || phase.label)}</strong>
-      <p>${escapeHtml(plainOutcomeByPhase[phase.id] || phase.audienceDecision || phase.outcome || "")}</p>
+      <p>${escapeHtml(phase.audienceDecision || phase.outcome || "")}</p>
     </li>`).join("")}</ol>`;
     return guidedFrame("cover", data, section, options, body, options.title || "Guided decision phases");
   }

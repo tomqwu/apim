@@ -390,12 +390,12 @@ flowchart LR
 
 | Phase ID | Phase | Slides | Audience decision |
 |---|---|---:|---|
-| KGE-P1 | Why now | 1–3 | Confirm the target operating model, make its weights visible, and disposition `EAG-01`–`EAG-04` before any bounded authorization |
-| KGE-P2 | Options and decision | 4–8 | Compare conditional archetypes and authorize only the bounded Kong boundary |
-| KGE-P3 | Architecture and adoption | 9–13 | Understand the target topology, failure paths, ownership, and evidence-gated adoption |
-| KGE-P4 | Migration | 14–16 | Move Mule responsibilities or the Apigee object/state graph through coexistence, route-back, and exit evidence |
-| KGE-P5 | Production proof | 17–21 | Replace documented capability—including the Traceable adjunct—with executed target-shaped evidence and outcome gates |
-| KGE-P6 | Audit appendix | 22–25 | Preserve supplied inputs, expose the Traceable feasibility line, and show the provisional uncertainty envelope without promoting it to a decision score |
+| KGE-P1 | Why now | 1–3 | Agree on the business priorities and four questions that could change the recommendation |
+| KGE-P2 | Options and decision | 4–8 | Compare options by outcomes and decide whether Kong earns a small first implementation |
+| KGE-P3 | Architecture and adoption | 9–13 | Decide who runs what, how traffic continues, and how teams adopt the platform safely |
+| KGE-P4 | Migration | 14–16 | Move MuleSoft responsibilities or Apigee in controlled waves while keeping the customer endpoint stable |
+| KGE-P5 | Production proof | 17–21 | Run production-like tests for recovery, security, scale, cost, and ongoing operations |
+| KGE-P6 | Audit appendix | 22–25 | Inspect the inputs and unknowns when the recommendation is challenged |
 
 ## Guided presentation terminology and identifier contract
 

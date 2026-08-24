@@ -219,14 +219,14 @@ KONG_GUIDED_PHASES = (
     (
         "KGE-P1",
         "Why now",
-        "Confirm the target operating model, make its weights visible, and disposition EAG-01 – EAG-04 before any bounded authorization",
+        "Agree on the business priorities and four questions that could change the recommendation",
         "kong-guided-cover",
     ),
-    ("KGE-P2", "Options and decision", "Compare conditional archetypes and authorize only the bounded Kong boundary", "kong-guided-options"),
-    ("KGE-P3", "Architecture and adoption", "Understand the target topology, failure paths, ownership, and evidence-gated adoption", "kong-guided-architecture"),
-    ("KGE-P4", "Migration", "Move Mule responsibilities or the Apigee object/state graph through coexistence, route-back, and exit evidence", "kong-guided-migration-boundary"),
-    ("KGE-P5", "Production proof", "Replace documented capability—including the Traceable adjunct—with executed target-shaped evidence and outcome gates", "kong-guided-proof-boundary"),
-    ("KGE-P6", "Audit appendix", "Preserve supplied inputs, expose the Traceable feasibility line, and show the provisional uncertainty envelope without promoting it to a decision score", "kong-guided-compare-architecture"),
+    ("KGE-P2", "Options and decision", "Compare options by outcomes and decide whether Kong earns a small first implementation", "kong-guided-options"),
+    ("KGE-P3", "Architecture and adoption", "Decide who runs what, how traffic continues, and how teams adopt the platform safely", "kong-guided-architecture"),
+    ("KGE-P4", "Migration", "Move MuleSoft responsibilities or Apigee in controlled waves while keeping the customer endpoint stable", "kong-guided-migration-boundary"),
+    ("KGE-P5", "Production proof", "Run production-like tests for recovery, security, scale, cost, and ongoing operations", "kong-guided-proof-boundary"),
+    ("KGE-P6", "Audit appendix", "Inspect the inputs and unknowns when the recommendation is challenged", "kong-guided-compare-architecture"),
 )
 KONG_GUIDED_IDENTIFIER_TOKENS = (
     "KGE", "EAG", "GTM", "GEW", "GRS", "GEO", "GEB", "KMC",

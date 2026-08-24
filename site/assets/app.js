@@ -2575,13 +2575,25 @@
     if (!slideMain) return;
     const stage = document.querySelector(".presentation-stage");
     const comparison = document.querySelector(".presentation-stage .viz-guided-comparison-wrap");
+    const guidedTerms = document.querySelector(".presentation-stage .guided-terms ul");
     const surfaces = [
       [slideMain, "Expanded slide detail. Scroll vertically to inspect the opened evidence.", "vertical"],
       [document.querySelector(".presentation-stage .slide-aside-content"), "Additional slide context. Scroll vertically to inspect the complete cue and source framing.", "vertical"],
+      [guidedTerms, "Terms introduced on this slide. Scroll horizontally to read every definition.", "horizontal"],
       [comparison, `${comparison?.dataset.comparisonLabel || "Supplied product comparison"}. Scroll horizontally to compare every product.`, "horizontal"],
       [stage, `${stage?.getAttribute("aria-label") || "Presentation content"}. Scroll vertically to inspect the complete slide.`, "vertical", stage?.getAttribute("role"), stage?.getAttribute("aria-label")],
     ].filter(([surface]) => surface);
     const slideVisual = document.querySelector(".presentation-stage .slide-main .slide-visual");
+    const isUserScrollable = (surface, axis) => {
+      if (!surface) return false;
+      const styles = window.getComputedStyle(surface);
+      const overflow = axis === "horizontal" ? styles.overflowX : styles.overflowY;
+      const allowsUserScroll = ["auto", "scroll", "overlay"].includes(overflow);
+      const hasOverflow = axis === "horizontal"
+        ? surface.scrollWidth > surface.clientWidth + 2
+        : surface.scrollHeight > surface.clientHeight + 2;
+      return allowsUserScroll && hasOverflow;
+    };
     const ensureScrollCue = () => {
       if (!stage) return null;
       let cue = stage.querySelector(":scope > .slide-scroll-cue");
@@ -2601,7 +2613,7 @@
       const cue = ensureScrollCue();
       if (!cue) return;
       // Prefer the innermost vertical scroller so the cue sits on the surface that actually moves.
-      const scroller = [slideVisual, slideMain].find((surface) => surface && surface.scrollHeight > surface.clientHeight + 2);
+      const scroller = [slideVisual, slideMain].find((surface) => isUserScrollable(surface, "vertical"));
       if (!scroller) {
         cue.hidden = true;
         return;
@@ -2615,9 +2627,7 @@
     };
     [slideVisual, slideMain].forEach((surface) => surface?.addEventListener("scroll", syncScrollCue, { passive: true }));
     const syncSurface = (surface, label, axis, originalRole = null, originalLabel = null) => {
-      const scrollable = axis === "horizontal"
-        ? surface.scrollWidth > surface.clientWidth + 2
-        : surface.scrollHeight > surface.clientHeight + 2;
+      const scrollable = isUserScrollable(surface, axis);
       surface.tabIndex = scrollable ? 0 : -1;
       if (scrollable) {
         surface.setAttribute("role", "region");
@@ -3374,9 +3384,9 @@
         ? `<a class="slide-source" href="${itemHref(source)}" aria-label="Open canonical source: ${escapeHtml(source.title)}">Source · ${escapeHtml(sourceLocator)} <span aria-hidden="true">↗</span></a>`
         : "";
     const guidedOpeningDecision = isGuidedDeck && slide.viewId === "cover"
-      ? `<strong class="guided-decision-thesis">Kong is the better strategic fit for the operating model we chose.</strong>
-          <p class="slide-body">It supports faster Git-managed delivery, central control with request runtimes near workloads, and a practical path to resilience and portability.</p>
-          <small class="guided-decision-boundary"><b>Decision boundary</b> · Approve a small, reversible start. Production scale still requires executed proof.</small>`
+      ? `<strong class="guided-decision-thesis">Working thesis: if these are our priorities, Kong is the better strategic fit.</strong>
+          <p class="slide-body">Kong's operating model gives us a credible path to test faster Git-managed delivery, request runtimes near workloads, resilience, and portability.</p>
+          <small class="guided-decision-boundary"><b>Product owner decision</b> · Confirm the priorities, then approve, change, or hold a small, reversible start. Production scale still requires executed proof.</small>`
       : "";
     const guidedDecisionCopy = isGuidedDeck
       ? `<div class="journey-proof-copy${guidedOpeningDecision ? " is-opening" : ""}">
@@ -3898,7 +3908,7 @@
     if (document.body.classList.contains("is-presenting")) {
       const interactive = event.target instanceof Element && event.target.closest("a, button, input, select, textarea, summary, [contenteditable='true']");
       if (interactive) return;
-      const scrollSurface = event.target instanceof Element && event.target.closest(".slide-main[tabindex='0'], .slide-aside-content[tabindex='0'], .diagram-scroll[tabindex='0'], .table-wrap[tabindex='0'], .viz-guided-comparison-wrap[tabindex='0'], .assessment-interface-terms ul[tabindex='0']");
+      const scrollSurface = event.target instanceof Element && event.target.closest(".slide-main[tabindex='0'], .slide-aside-content[tabindex='0'], .diagram-scroll[tabindex='0'], .table-wrap[tabindex='0'], .guided-terms ul[tabindex='0'], .viz-guided-comparison-wrap[tabindex='0'], .assessment-interface-terms ul[tabindex='0']");
       const verticalScrollKey = ["ArrowDown", "ArrowUp", "PageDown", "PageUp", " "].includes(event.key);
       const horizontalScrollKey = ["ArrowRight", "ArrowLeft"].includes(event.key);
       if (scrollSurface && verticalScrollKey && scrollSurface.scrollHeight > scrollSurface.clientHeight + 2) return;
