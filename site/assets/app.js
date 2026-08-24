@@ -2819,6 +2819,148 @@
     return term?.display || token;
   }
 
+  function normalizeDecisionReferenceSelector(value = "") {
+    return String(value)
+      .trim()
+      .replace(/[\u2010\u2011\u2012\u2013\u2014\u2015\u2212]/g, "-");
+  }
+
+  function assessmentDecisionReferences() {
+    const references = guidedAssessmentContract()?.decisionReferences;
+    return Array.isArray(references) ? references : [];
+  }
+
+  function assessmentDecisionReference(selector = "") {
+    const normalizedSelector = normalizeDecisionReferenceSelector(selector);
+    if (!normalizedSelector) return null;
+    return assessmentDecisionReferences().find((reference) => (
+      Array.isArray(reference?.selectors)
+      && reference.selectors.some((candidate) => normalizeDecisionReferenceSelector(candidate) === normalizedSelector)
+    )) || null;
+  }
+
+  function assessmentDecisionReferenceHref(reference) {
+    if (!reference?.sourceId || !reference?.sourceHeading) return "";
+    return `#/doc/${encodeURIComponent(reference.sourceId)}?anchor=${encodeURIComponent(slug(reference.sourceHeading))}`;
+  }
+
+  function renderAssessmentReferenceLink(selector, options = {}) {
+    const reference = assessmentDecisionReference(selector);
+    const href = assessmentDecisionReferenceHref(reference);
+    const stableId = String(selector || "").trim();
+    const plainLabel = String(reference?.label || "Canonical reference unavailable").trim();
+    const className = options.className ? ` ${escapeHtml(options.className)}` : "";
+    if (!href) {
+      return `<span class="assessment-reference-link is-unresolved${className}" aria-label="${escapeHtml(`${stableId}: canonical reference unavailable`)}">
+        <b>${escapeHtml(stableId)}</b><span>${escapeHtml(plainLabel)}</span>
+      </span>`;
+    }
+    const ariaLabel = options.ariaLabel
+      || `Open canonical reference for ${stableId}: ${plainLabel} (new tab)`;
+    return `<a class="assessment-reference-link${className}" href="${escapeHtml(href)}" target="_blank" rel="noreferrer" aria-label="${escapeHtml(ariaLabel)}" data-decision-reference="${escapeHtml(stableId)}">
+      <b>${escapeHtml(stableId)}</b><span>${escapeHtml(plainLabel)}</span><span class="assessment-reference-cue" aria-hidden="true">↗</span>
+    </a>`;
+  }
+
+  function renderGuidedTerm(term) {
+    const display = term?.display || term?.token || "";
+    const reference = assessmentDecisionReference(term?.token || "");
+    const href = assessmentDecisionReferenceHref(reference);
+    if (!href) return escapeHtml(display);
+    return `<a class="guided-term-link" href="${escapeHtml(href)}" target="_blank" rel="noreferrer" aria-label="${escapeHtml(`Open canonical reference for ${display}: ${reference.label || term.token} (new tab)`)}">${escapeHtml(display)} <span aria-hidden="true">↗</span></a>`;
+  }
+
+  function assessmentQuestionSupportingReferences(question) {
+    const { deck, context, slides } = presentationContext("kong-platform-journey-guided");
+    const sourceSlideIds = new Set(Array.isArray(question?.slideIds) ? question.slideIds : []);
+    const sourceSlides = slides
+      .map((slide, index) => ({ slide, index }))
+      .filter(({ slide }) => sourceSlideIds.has(slide.slideId));
+    const officialByUrl = new Map();
+    sourceSlides.forEach(({ slide }) => {
+      (Array.isArray(slide.officialReferences) ? slide.officialReferences : []).forEach((reference) => {
+        if (reference?.label && /^https:\/\//.test(reference?.url || "") && !officialByUrl.has(reference.url)) {
+          officialByUrl.set(reference.url, reference);
+        }
+      });
+    });
+    return {
+      presentationContext: context || deck,
+      sourceSlides,
+      officialReferences: [...officialByUrl.values()],
+    };
+  }
+
+  function renderAssessmentReferenceList(selectors, options = {}) {
+    const values = Array.isArray(selectors) ? selectors.filter(Boolean) : [];
+    if (!values.length) return "";
+    const accessibleName = options.labelledBy
+      ? ` aria-labelledby="${escapeHtml(options.labelledBy)}"`
+      : ' aria-label="Canonical decision references"';
+    return `<ul class="assessment-reference-list${options.compact ? " is-compact" : ""}"${accessibleName}>
+      ${values.map((selector) => `<li>${renderAssessmentReferenceLink(selector)}</li>`).join("")}
+    </ul>`;
+  }
+
+  function renderAssessmentReviewBeforeDeciding(question, inputPrefix) {
+    const targetIds = Array.isArray(question.targetIds) ? question.targetIds : [];
+    const minimumEvidence = /^E[0-4]$/.test(question.minimumEvidence || "") ? question.minimumEvidence : "";
+    const minimumEvidenceReference = minimumEvidence ? assessmentDecisionReference(minimumEvidence) : null;
+    const { presentationContext: context, sourceSlides, officialReferences } = assessmentQuestionSupportingReferences(question);
+    const supportingLinks = sourceSlides.length || officialReferences.length
+      ? `<details class="assessment-supporting-references">
+          <summary>Source slides and official documentation</summary>
+          <div>
+            ${sourceSlides.length ? `<section aria-labelledby="${inputPrefix}-source-slides-label">
+              <b id="${inputPrefix}-source-slides-label">Source slides</b>
+              <ul class="assessment-context-link-list">
+                ${sourceSlides.map(({ slide, index }) => `<li><a href="${escapeHtml(presentationSlideHref(context, index))}" target="_blank" rel="noreferrer" aria-label="Open source slide ${escapeHtml(slide.slideId || String(index + 1))}: ${escapeHtml(slide.title)} (new tab)"><b>${escapeHtml(slide.slideId || `Slide ${index + 1}`)}</b><span>${escapeHtml(slide.title)}</span><span aria-hidden="true">↗</span></a></li>`).join("")}
+              </ul>
+            </section>` : ""}
+            ${officialReferences.length ? `<section aria-labelledby="${inputPrefix}-official-docs-label">
+              <b id="${inputPrefix}-official-docs-label">Official documentation</b>
+              <ul class="assessment-context-link-list">
+                ${officialReferences.map((reference) => `<li><a class="is-official" href="${escapeHtml(reference.url)}" target="_blank" rel="noreferrer" aria-label="Open official documentation: ${escapeHtml(reference.label)} (new tab)"><span>${escapeHtml(reference.label)}</span><span aria-hidden="true">↗</span></a></li>`).join("")}
+              </ul>
+            </section>` : ""}
+          </div>
+        </details>`
+      : "";
+    return `<section class="assessment-review-before" aria-labelledby="${inputPrefix}-review-title">
+      <header>
+        <b id="${inputPrefix}-review-title">Review before deciding</b>
+        <p>These records define this question's scope and context. They do not prove a pass.</p>
+      </header>
+      ${targetIds.length ? `<div class="assessment-reference-group">
+        <span id="${inputPrefix}-targets-label">Decision records</span>
+        ${renderAssessmentReferenceList(targetIds, { labelledBy: `${inputPrefix}-targets-label` })}
+      </div>` : ""}
+      ${minimumEvidenceReference ? `<div class="assessment-reference-group is-minimum-evidence">
+        <span id="${inputPrefix}-minimum-evidence-label">Minimum evidence</span>
+        <ul class="assessment-reference-list is-compact" aria-labelledby="${inputPrefix}-minimum-evidence-label"><li>${renderAssessmentReferenceLink(minimumEvidence)}</li></ul>
+      </div>` : ""}
+      ${supportingLinks}
+    </section>`;
+  }
+
+  function renderAssessmentSummaryReferences(question) {
+    const targetIds = Array.isArray(question?.targetIds) ? question.targetIds : [];
+    const minimumEvidence = /^E[0-4]$/.test(question?.minimumEvidence || "")
+      && assessmentDecisionReference(question.minimumEvidence)
+      ? question.minimumEvidence
+      : "";
+    if (!targetIds.length && !minimumEvidence) return "";
+    const labelId = `assessment-summary-${slug(question.id)}-references`;
+    return `<section class="assessment-summary-references" aria-labelledby="${labelId}">
+      <header>
+        <b id="${labelId}">Canonical decision references</b>
+        <p>Scope and context only — not proof of a pass.</p>
+      </header>
+      ${renderAssessmentReferenceList(targetIds, { compact: true, labelledBy: labelId })}
+      ${minimumEvidence ? `<div class="assessment-summary-minimum"><span>Minimum evidence</span>${renderAssessmentReferenceLink(minimumEvidence)}</div>` : ""}
+    </section>`;
+  }
+
   function renderAssessmentInterfaceTerms() {
     const terms = guidedAssessmentContract()?.interfaceTerms;
     if (!Array.isArray(terms) || !terms.length) return "";
@@ -2877,7 +3019,6 @@
     const response = state.assessmentSession?.responses?.[question.id] || {};
     const choiceSet = assessmentChoiceSet(question);
     const choices = Array.isArray(choiceSet?.choices) ? choiceSet.choices : [];
-    const targetIds = Array.isArray(question.targetIds) ? question.targetIds : [];
     const inputPrefix = `assessment-${slug(question.id)}-${index}`;
     const statusClass = questionSummary?.gaps?.length || ["hold", "unknown"].includes(questionSummary?.status)
       ? " is-gap"
@@ -2892,10 +3033,7 @@
           <span>Minimum evidence · ${escapeHtml(question.minimumEvidence || "E0")}</span>
           <strong data-assessment-question-status>${escapeHtml(assessmentStatusLabel(questionSummary))}</strong>
         </div>
-        ${targetIds.length ? `<div class="assessment-target-bindings">
-          <b id="${inputPrefix}-targets-label">Bound targets</b>
-          <ul aria-labelledby="${inputPrefix}-targets-label">${targetIds.map((targetId) => `<li>${escapeHtml(targetId)}</li>`).join("")}</ul>
-        </div>` : ""}
+        ${renderAssessmentReviewBeforeDeciding(question, inputPrefix)}
         ${question.decisionUse ? `<p class="assessment-decision-use"><b>Decision use</b>${escapeHtml(question.decisionUse)}</p>` : ""}
         <div class="assessment-hold-rule" role="note">
           <b>Hold rule</b>
@@ -3422,7 +3560,7 @@
     const guidedTerms = isGuidedDeck && Array.isArray(slide.terms) && slide.terms.length
       ? `<aside class="guided-terms" aria-label="Terms introduced on this slide">
           <b>Terms</b>
-          <ul tabindex="0" aria-label="Term definitions; swipe or scroll horizontally on compact screens">${slide.terms.map((term) => `<li title="${escapeHtml(term.classification || "Term")}">${escapeHtml(term.display)}</li>`).join("")}</ul>
+          <ul tabindex="0" aria-label="Term definitions; swipe or scroll horizontally on compact screens">${slide.terms.map((term) => `<li title="${escapeHtml(term.classification || "Term")}">${renderGuidedTerm(term)}</li>`).join("")}</ul>
         </aside>`
       : "";
     const guidedAssessment = isGuidedDeck ? assessmentSummary() : null;
@@ -3509,6 +3647,7 @@
                   <strong>${escapeHtml(assessmentStatusLabel(question))}</strong>
                 </header>
                 <h3>${escapeHtml(question.prompt)}</h3>
+                ${renderAssessmentSummaryReferences(question)}
                 <dl>
                   <div><dt>Meeting answer</dt><dd>${escapeHtml(question.choiceLabel || "Unanswered")}</dd></div>
                   <div><dt>Hold rule</dt><dd>${escapeHtml(question.holdRule || "Not recorded")}</dd></div>
@@ -3525,7 +3664,7 @@
                   <div><dt>Next forum</dt><dd>${escapeHtml(question.response.nextForum || "Not assigned")}</dd></div>
                   <div><dt>Open gaps</dt><dd>${question.gaps.length ? escapeHtml(question.gaps.map(assessmentGapLabel).join(", ")) : "None recorded"}</dd></div>
                 </dl>
-                <a href="${assessmentQuestionHref(context, slides, question)}">Open source slide <span aria-hidden="true">→</span></a>
+                <a href="${assessmentQuestionHref(context, slides, question)}" target="_blank" rel="noreferrer" aria-label="Open source slide for ${escapeHtml(question.id)} (new tab)">Open source slide <span aria-hidden="true">↗</span></a>
               </article>`).join("")}
           </div>
         </section>`;

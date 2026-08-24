@@ -239,13 +239,13 @@ Before any scoring gate, add the exact options, rubric, scorers, evidence links,
 
 ## Bounded authorization
 
-| Decision | Authorize now | Do not authorize | Exit evidence |
-|---|---|---|---|
-| Kong platform direction | Freeze `KP-SMH1` as the leading exact-option target | Universal product superiority | Exact option contract plus equivalent counterfactual evidence |
-| Foundation | One reversible self-managed hybrid foundation with named owners | Critical production scale | Target environment, supported BOM, restore, trust, change, evidence, and route-back artifacts |
-| Proof | Seven funded workstreams with measures, thresholds, artifacts, reviewers, and stop rules | Treating documentation, partner integrations, or scripts as results | Executed, reviewable E2/E3/E4 evidence |
-| Migration | Bounded Mule or Apigee cohorts with coexistence, business probes, identity/state reconciliation, and route-back | Big-bang or proxy-bundle-only migration factory | Per-wave entry/exit, state, dependency, recovery, and owner evidence |
-| Alternatives | Konnect custody benchmark and a true non-Kong exit | Parallel production builds without a decision purpose | Equivalent outcomes, cost, effort, support, and rebuild evidence |
+| Stable ID | Decision | Authorize now | Do not authorize | Exit evidence |
+|---|---|---|---|---|
+| KGE-AUTH-01 | Kong platform direction | Freeze `KP-SMH1` as the leading exact-option target | Universal product superiority | Exact option contract plus equivalent counterfactual evidence |
+| KGE-AUTH-02 | Foundation | One reversible self-managed hybrid foundation with named owners | Critical production scale | Target environment, supported BOM, restore, trust, change, evidence, and route-back artifacts |
+| KGE-AUTH-03 | Proof | Seven funded workstreams with measures, thresholds, artifacts, reviewers, and stop rules | Treating documentation, partner integrations, or scripts as results | Executed, reviewable E2/E3/E4 evidence |
+| KGE-AUTH-04 | Migration | Bounded Mule or Apigee cohorts with coexistence, business probes, identity/state reconciliation, and route-back | Big-bang or proxy-bundle-only migration factory | Per-wave entry/exit, state, dependency, recovery, and owner evidence |
+| KGE-AUTH-05 | Alternatives | Konnect custody benchmark and a true non-Kong exit | Parallel production builds without a decision purpose | Equivalent outcomes, cost, effort, support, and rebuild evidence |
 
 ## Operating boundaries to keep distinct
 
@@ -311,11 +311,11 @@ These workstreams are **required proof activities**, not completed results.
 
 The existing public PoC is a useful functional baseline, but it is not evidence for `KP-SMH1`. Its two evidence systems must remain separate:
 
-| Evidence system | Current state | What it can support | What it cannot support |
-|---|---|---|---|
-| Aggregate PoC register | 16 items: 5 automated local-baseline checks and 11 not run | Reproducibility of a small local harness and explicit unexecuted status | Target hybrid topology, representative failure, production scale, or comparative superiority |
-| Atomic comparison protocols | 28 cases across request/workload, platform/failure, and operating-model/TCO protocols | A symmetric future experiment contract | Any result until candidate-by-case cells contain reviewed execution artifacts |
-| Target-option evidence | 0 independently reviewed `KP-SMH1` E3 results and 0 representative E4 pilots | A precise statement of the current evidence gap | Production recommendation, long-term cost, or scale admission |
+| Stable ID | Evidence system | Current state | What it can support | What it cannot support |
+|---|---|---|---|---|
+| KGE-PROOF-01 | Aggregate PoC register | 16 items: 5 automated local-baseline checks and 11 not run | Reproducibility of a small local harness and explicit unexecuted status | Target hybrid topology, representative failure, production scale, or comparative superiority |
+| KGE-PROOF-02 | Atomic comparison protocols | 28 cases across request/workload, platform/failure, and operating-model/TCO protocols | A symmetric future experiment contract | Any result until candidate-by-case cells contain reviewed execution artifacts |
+| KGE-PROOF-03 | Target-option evidence | 0 independently reviewed `KP-SMH1` E3 results and 0 representative E4 pilots | A precise statement of the current evidence gap | Production recommendation, long-term cost, or scale admission |
 
 The counts are non-additive. A runnable script is not an executed result, and a documented mechanism is not a passed scenario.
 

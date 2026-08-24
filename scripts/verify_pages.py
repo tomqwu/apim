@@ -256,9 +256,29 @@ KONG_GUIDED_ASSESSMENT_PHASE_QUESTION_IDS = {
     "KGE-P5": ("KGE-P5-Q01", "KGE-P5-Q02", "KGE-P5-Q03", "KGE-P5-Q04"),
     "KGE-P6": ("KGE-P6-Q01", "KGE-P6-Q02"),
 }
+KONG_GUIDED_DECISION_REFERENCE_KEYS = {
+    "selectors", "label", "sourcePath", "sourceId", "sourceHeading", "decisionUse",
+}
+KONG_GUIDED_DECISION_REFERENCE_CANONICAL = {
+    "KP-SMH1": (
+        "docs/47-kong-enterprise-platform-strategy.md",
+        "docs-47-kong-enterprise-platform-strategy",
+        "Bounded target option and non-goals",
+    ),
+    "KGE-AUTH-01": (
+        "docs/48-kong-guided-evaluation.md",
+        "docs-48-kong-guided-evaluation",
+        "Bounded authorization",
+    ),
+    "KGE-PROOF-01": (
+        "docs/48-kong-guided-evaluation.md",
+        "docs-48-kong-guided-evaluation",
+        "Current proof boundary",
+    ),
+}
 KONG_GUIDED_EARLY_QUESTION_TARGET_IDS = {
     "KGE-P1-Q02": KONG_GUIDED_TARGET_IDS,
-    "KGE-P1-Q03": ("EAG-04", "GSA-01", "GEP-07", "GEC-20"),
+    "KGE-P1-Q03": ("KP-SMH1", "EAG-04", "GSA-01", "GEP-07", "GEC-20"),
     "KGE-P1-Q04": ("EAG-01", "GTM-08", "GRS-01", "GEC-07"),
     "KGE-P1-Q05": ("EAG-02", "GRS-04", "GEC-16"),
     "KGE-P1-Q06": ("EAG-03", "GEW-08", "GRS-05", "GEC-17"),
@@ -1080,6 +1100,64 @@ def validate_kong_guided_evaluation(
             and question.get("mandatory") is True
             and question.get("choiceSetId") == "KGE-CS-INPUT",
             f"manifest guided assessment {question_id} early-gate binding is invalid",
+        )
+
+    decision_references = assessment.get("decisionReferences", [])
+    require(
+        isinstance(decision_references, list) and bool(decision_references)
+        and all(
+            isinstance(reference, dict)
+            and set(reference) == KONG_GUIDED_DECISION_REFERENCE_KEYS
+            for reference in decision_references
+        ),
+        "manifest guided assessment decisionReferences must preserve the exact v2 schema",
+    )
+    selectors = [
+        selector
+        for reference in decision_references
+        for selector in reference.get("selectors", [])
+    ]
+    require(
+        all(isinstance(selector, str) and selector.strip() for selector in selectors)
+        and len(selectors) == len(set(selectors)),
+        "manifest guided assessment decision-reference selectors must be globally unique non-empty strings",
+    )
+    reference_by_selector = {
+        selector: reference
+        for reference in decision_references
+        for selector in reference["selectors"]
+    }
+    require(
+        all(
+            target_id in reference_by_selector
+            for question in questions
+            if isinstance(question, dict)
+            for target_id in question.get("targetIds", [])
+        ),
+        "manifest guided assessment target IDs must each resolve to exactly one decision reference",
+    )
+    manifest_documents = {
+        (item.get("path"), item.get("id"))
+        for item in manifest.get("items", [])
+        if isinstance(item, dict) and item.get("type") == "markdown"
+    }
+    require(
+        all(
+            (reference.get("sourcePath"), reference.get("sourceId"))
+            in manifest_documents
+            for reference in decision_references
+        ),
+        "manifest guided assessment decision references must identify manifest Markdown documents",
+    )
+    for selector, expected in KONG_GUIDED_DECISION_REFERENCE_CANONICAL.items():
+        reference = reference_by_selector.get(selector, {})
+        require(
+            (
+                reference.get("sourcePath"),
+                reference.get("sourceId"),
+                reference.get("sourceHeading"),
+            ) == expected,
+            f"manifest guided assessment decision reference {selector} is invalid",
         )
 
     contract_by_slide_id = {

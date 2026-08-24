@@ -275,6 +275,33 @@ KONG_GUIDED_ASSESSMENT_EVIDENCE_STATE = (
     "It adds no new product claim, test result, price conclusion, or production approval."
 )
 KONG_GUIDED_ASSESSMENT_AS_OF = "2026-08-22"
+KONG_GUIDED_ASSESSMENT_REFERENCE_COLUMNS = (
+    "Selectors",
+    "Plain-language meaning",
+    "Reference path",
+    "Reference heading",
+    "Decision use",
+)
+KONG_GUIDED_DECISION_REFERENCE_KEYS = {
+    "selectors", "label", "sourcePath", "sourceId", "sourceHeading", "decisionUse",
+}
+KONG_GUIDED_DECISION_REFERENCE_CANONICAL = {
+    "KP-SMH1": (
+        "docs/47-kong-enterprise-platform-strategy.md",
+        "docs-47-kong-enterprise-platform-strategy",
+        "Bounded target option and non-goals",
+    ),
+    "KGE-AUTH-01": (
+        "docs/48-kong-guided-evaluation.md",
+        "docs-48-kong-guided-evaluation",
+        "Bounded authorization",
+    ),
+    "KGE-PROOF-01": (
+        "docs/48-kong-guided-evaluation.md",
+        "docs-48-kong-guided-evaluation",
+        "Current proof boundary",
+    ),
+}
 KONG_GUIDED_ASSESSMENT_PHASE_QUESTION_IDS = {
     "KGE-P1": (
         "KGE-P1-Q01", "KGE-P1-Q02", "KGE-P1-Q03",
@@ -293,7 +320,7 @@ KONG_GUIDED_EARLY_QUESTION_BINDINGS = {
     },
     "KGE-P1-Q03": {
         "slideIds": ("KGE-02", "KGE-03"),
-        "targetIds": ("EAG-04", "GSA-01", "GEP-07", "GEC-20"),
+        "targetIds": ("KP-SMH1", "EAG-04", "GSA-01", "GEP-07", "GEC-20"),
     },
     "KGE-P1-Q04": {
         "slideIds": ("KGE-02", "KGE-03"),
@@ -1632,7 +1659,8 @@ def validate_kong_guided_evaluation(
         set(assessment) == {
             "schemaVersion", "deckRevision", "sourcePath", "sourceId", "sourceClass",
             "evidenceState", "asOf", "questions", "phaseQuestionIds", "choiceSets",
-            "reviewRequirements", "publicRoles", "interfaceTerms", "provenance",
+            "reviewRequirements", "publicRoles", "interfaceTerms", "decisionReferences",
+            "provenance",
         },
         "guided assessmentContract fields must match the exact v2 schema",
     )
@@ -1816,6 +1844,99 @@ def validate_kong_guided_evaluation(
             f"guided assessment question {canonical_semantics[0]} must match its exact canonical doc49 semantic tuple",
         )
 
+    decision_references = assessment.get("decisionReferences")
+    require(
+        isinstance(decision_references, list) and bool(decision_references)
+        and all(isinstance(reference, dict) for reference in decision_references),
+        "guided assessment decisionReferences must be a non-empty list of objects",
+    )
+    manifest_documents = {
+        (item.get("path"), item.get("id")): item
+        for item in manifest.get("items", [])
+        if isinstance(item, dict) and item.get("type") == "markdown"
+    }
+    selector_owners: dict[str, dict[str, Any]] = {}
+    source_anchors: dict[str, dict[str, list[str]]] = {}
+
+    def heading_anchor(value: str) -> str:
+        return re.sub(r"^-|-$", "", re.sub(r"[^a-z0-9]+", "-", value.casefold())) or "section"
+
+    def heading_anchors(source_path: str) -> dict[str, list[str]]:
+        cached = source_anchors.get(source_path)
+        if cached is not None:
+            return cached
+        source_file = (ROOT / source_path).resolve()
+        require(
+            source_file.is_relative_to(ROOT.resolve()) and source_file.is_file(),
+            f"guided assessment decision reference source is unavailable: {source_path}",
+        )
+        text = source_file.read_text(encoding="utf-8")
+        used: set[str] = set()
+        anchors: dict[str, list[str]] = {}
+        for match in re.finditer(r"^#{2,3}\s+(.+?)\s*$", text, flags=re.MULTILINE):
+            heading = match.group(1).strip()
+            anchor = heading_anchor(heading)
+            while anchor in used:
+                anchor = f"{anchor}-section"
+            used.add(anchor)
+            anchors.setdefault(heading, []).append(anchor)
+        source_anchors[source_path] = anchors
+        return anchors
+
+    for index, reference in enumerate(decision_references, start=1):
+        require(
+            set(reference) == KONG_GUIDED_DECISION_REFERENCE_KEYS,
+            f"guided assessment decision reference {index} fields must match the exact v2 schema",
+        )
+        nonempty_strings(
+            reference,
+            ("label", "sourcePath", "sourceId", "sourceHeading", "decisionUse"),
+            f"guided assessment decision reference {index}",
+        )
+        selectors = reference.get("selectors")
+        require(
+            isinstance(selectors, list) and bool(selectors)
+            and all(isinstance(selector, str) and selector.strip() for selector in selectors)
+            and len(selectors) == len(set(selectors)),
+            f"guided assessment decision reference {index} selectors must be unique non-empty strings",
+        )
+        overlapping = sorted(selector for selector in selectors if selector in selector_owners)
+        require(
+            not overlapping,
+            "guided assessment decision reference selectors must be globally unique: "
+            + ", ".join(overlapping),
+        )
+        source_key = (reference["sourcePath"], reference["sourceId"])
+        require(
+            source_key in manifest_documents,
+            f"guided assessment decision reference {index} must identify one manifest Markdown document",
+        )
+        anchors = heading_anchors(reference["sourcePath"])
+        require(
+            anchors.get(reference["sourceHeading"])
+            == [heading_anchor(reference["sourceHeading"])],
+            f"guided assessment decision reference {index} sourceHeading anchor must exist exactly once",
+        )
+        for selector in selectors:
+            selector_owners[selector] = reference
+
+    for question in questions:
+        for target_id in question["targetIds"]:
+            require(
+                target_id in selector_owners,
+                f"guided assessment target {target_id} on {question['id']} must resolve to exactly one decision reference",
+            )
+    for selector, expected in KONG_GUIDED_DECISION_REFERENCE_CANONICAL.items():
+        reference = selector_owners.get(selector, {})
+        require(
+            (
+                reference.get("sourcePath"),
+                reference.get("sourceId"),
+                reference.get("sourceHeading"),
+            ) == expected,
+            f"guided assessment decision reference {selector} must resolve to its canonical document section",
+        )
+
     public_roles = assessment.get("publicRoles")
     require(
         isinstance(public_roles, list)
@@ -1883,7 +2004,7 @@ def validate_kong_guided_evaluation(
         set(assessment_provenance) == {
             "sourcePath", "sourceId", "sourcePaths", "sourceIds", "sourceHeading",
             "questionTableColumns", "choiceSetTableColumns", "reviewRequirementsTableColumns",
-            "interfaceTermTableColumns",
+            "interfaceTermTableColumns", "referenceTableColumns",
             "sourceClass", "evidenceState", "asOf",
         },
         "guided assessment provenance fields must match the exact public-safe v2 schema",
@@ -1899,6 +2020,7 @@ def validate_kong_guided_evaluation(
             tuple(assessment_provenance.get("choiceSetTableColumns", ())),
             tuple(assessment_provenance.get("reviewRequirementsTableColumns", ())),
             tuple(assessment_provenance.get("interfaceTermTableColumns", ())),
+            tuple(assessment_provenance.get("referenceTableColumns", ())),
             assessment_provenance.get("sourceClass"),
             assessment_provenance.get("evidenceState"),
             assessment_provenance.get("asOf"),
@@ -1913,6 +2035,7 @@ def validate_kong_guided_evaluation(
             KONG_GUIDED_ASSESSMENT_CHOICE_COLUMNS,
             KONG_GUIDED_ASSESSMENT_REVIEW_REQUIREMENT_COLUMNS,
             KONG_GUIDED_ASSESSMENT_INTERFACE_TERM_COLUMNS,
+            KONG_GUIDED_ASSESSMENT_REFERENCE_COLUMNS,
             KONG_GUIDED_ASSESSMENT_SOURCE_CLASS,
             KONG_GUIDED_ASSESSMENT_EVIDENCE_STATE,
             KONG_GUIDED_ASSESSMENT_AS_OF,
