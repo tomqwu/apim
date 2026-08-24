@@ -2041,7 +2041,7 @@ def guided_evaluation_visuals(
         "Interface purpose",
     )
 
-    def stable_ids(value: str) -> list[str]:
+    def stable_ids(value: str, *, deduplicate: bool = True) -> list[str]:
         """Expand semicolon-separated stable IDs and inclusive ``ID..ID`` ranges."""
         values: list[str] = []
         for raw_part in value.split(";"):
@@ -2053,7 +2053,7 @@ def guided_evaluation_visuals(
                 part,
             )
             if not range_match:
-                if part not in values:
+                if not deduplicate or part not in values:
                     values.append(part)
                 continue
             start_prefix, start_text, end_prefix, end_text = range_match.groups()
@@ -2065,9 +2065,94 @@ def guided_evaluation_visuals(
             for number in range(start, end + 1):
                 suffix = f"{number:0{width}d}" if width else str(number)
                 stable_id = f"{start_prefix}{suffix}"
-                if stable_id not in values:
+                if not deduplicate or stable_id not in values:
                     values.append(stable_id)
         return values
+
+    reference_heading = "Decision reference index"
+    reference_columns = (
+        "Selectors",
+        "Plain-language meaning",
+        "Reference path",
+        "Reference heading",
+        "Decision use",
+    )
+    reference_heading_matches = re.findall(
+        rf"^###\s+{re.escape(reference_heading)}\s*$",
+        facilitator_text,
+        flags=re.MULTILINE,
+    )
+    if len(reference_heading_matches) != 1:
+        raise ValueError(
+            f"Assessment facilitator guide must contain exactly one {reference_heading} subsection"
+        )
+    reference_section = markdown_section(facilitator_text, reference_heading, level=3)
+    matching_reference_tables = [
+        rows
+        for rows in markdown_tables(reference_section)
+        if rows and tuple(rows[0]) == reference_columns
+    ]
+    if len(matching_reference_tables) != 1:
+        raise ValueError(
+            f"{reference_heading} must contain exactly one table with the canonical columns"
+        )
+
+    decision_references: list[dict[str, object]] = []
+    selector_owners: dict[str, int] = {}
+    source_text_by_path: dict[str, str] = {}
+    for index, row in enumerate(matching_reference_tables[0], start=1):
+        selector_cell = row_value(row, "Selectors")
+        if not selector_cell or any(not clean_inline(part) for part in selector_cell.split(";")):
+            raise ValueError(f"Decision reference row {index} contains an empty selector")
+        selectors = stable_ids(selector_cell, deduplicate=False)
+        if not selectors:
+            raise ValueError(f"Decision reference row {index} requires at least one selector")
+        if len(selectors) != len(set(selectors)):
+            raise ValueError(f"Decision reference row {index} repeats a selector")
+        overlaps = sorted(selector for selector in selectors if selector in selector_owners)
+        if overlaps:
+            raise ValueError(
+                "Decision reference selectors overlap: " + ", ".join(overlaps)
+            )
+
+        label = clean_inline(row_value(row, "Plain-language meaning"))
+        reference_path = clean_inline(row_value(row, "Reference path"))
+        source_heading = clean_inline(row_value(row, "Reference heading"))
+        decision_use = clean_inline(row_value(row, "Decision use"))
+        if not all((label, reference_path, source_heading, decision_use)):
+            raise ValueError(f"Decision reference row {index} has an empty required field")
+        if reference_path not in by_path:
+            raise ValueError(
+                f"Decision reference row {index} points to a path outside the public manifest: "
+                f"{reference_path}"
+            )
+        reference_text = source_text_by_path.setdefault(
+            reference_path,
+            safe_text(ROOT / reference_path),
+        )
+        source_heading_matches = re.findall(
+            rf"^#{{1,6}}\s+{re.escape(source_heading)}\s*$",
+            reference_text,
+            flags=re.MULTILINE,
+        )
+        if len(source_heading_matches) != 1:
+            raise ValueError(
+                f"Decision reference row {index} heading must occur exactly once in "
+                f"{reference_path}: {source_heading}"
+            )
+
+        for selector in selectors:
+            selector_owners[selector] = index
+        decision_references.append(
+            {
+                "selectors": selectors,
+                "label": label,
+                "sourcePath": reference_path,
+                "sourceId": by_path[reference_path],
+                "sourceHeading": source_heading,
+                "decisionUse": decision_use,
+            }
+        )
 
     interface_term_rows = markdown_table(assessment_section, interface_term_columns)
     interface_terms = [
@@ -2132,6 +2217,19 @@ def guided_evaluation_visuals(
             raise ValueError(f"Assessment question {question['id']} has no hold rule")
         questions.append(question)
         phase_question_ids.setdefault(str(question["phaseId"]), []).append(str(question["id"]))
+
+    for question in questions:
+        for target_id in question["targetIds"]:
+            matches = [
+                reference
+                for reference in decision_references
+                if target_id in reference["selectors"]
+            ]
+            if len(matches) != 1:
+                raise ValueError(
+                    f"Assessment target {target_id} on {question['id']} must resolve to exactly "
+                    "one decision reference"
+                )
 
     choice_rows = markdown_table(assessment_section, choice_set_columns)
     choice_sets_by_id: dict[str, dict[str, object]] = {}
@@ -2305,6 +2403,7 @@ def guided_evaluation_visuals(
         "choiceSetTableColumns": list(choice_set_columns),
         "reviewRequirementsTableColumns": list(review_requirement_columns),
         "interfaceTermTableColumns": list(interface_term_columns),
+        "referenceTableColumns": list(reference_columns),
         "sourceClass": facilitator_source_class,
         "evidenceState": facilitator_evidence_state,
         "asOf": facilitator_as_of,
@@ -2323,6 +2422,7 @@ def guided_evaluation_visuals(
         "reviewRequirements": review_requirements,
         "publicRoles": public_roles,
         "interfaceTerms": interface_terms,
+        "decisionReferences": decision_references,
         "provenance": assessment_provenance,
     }
 
@@ -2340,6 +2440,7 @@ def guided_evaluation_visuals(
         "reviewRequirements",
         "publicRoles",
         "interfaceTerms",
+        "decisionReferences",
         "provenance",
     }
     expected_question_keys = {
@@ -2355,12 +2456,25 @@ def guided_evaluation_visuals(
         "mandatory",
         "choiceSetId",
     }
+    expected_decision_reference_keys = {
+        "selectors",
+        "label",
+        "sourcePath",
+        "sourceId",
+        "sourceHeading",
+        "decisionUse",
+    }
     if set(assessment_contract) != expected_contract_keys:
         raise ValueError("Assessment contract does not match the canonical v2 schema")
     if not deck_revision or assessment_contract["deckRevision"] != deck_revision:
         raise ValueError("Assessment contract deckRevision must equal the resolved build revision")
     if any(set(question) != expected_question_keys for question in questions):
         raise ValueError("Assessment questions do not match the canonical v2 schema")
+    if any(
+        set(reference) != expected_decision_reference_keys
+        for reference in decision_references
+    ):
+        raise ValueError("Assessment decision references do not match the canonical v2 schema")
 
     return {
         "sourcePath": source_path,

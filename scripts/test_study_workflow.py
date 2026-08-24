@@ -2732,7 +2732,9 @@ process.stdout.write(JSON.stringify(samples));
         self.assertIn("location.hash = presentationSlideHref(context, next)", app)
         self.assertIn('class="guided-terms" aria-label="Terms introduced on this slide"', app)
         self.assertIn('Array.isArray(slide.terms) && slide.terms.length', app)
-        self.assertIn('${escapeHtml(term.display)}</li>', app)
+        self.assertIn("function renderGuidedTerm(term)", app)
+        self.assertIn("${renderGuidedTerm(term)}</li>", app)
+        self.assertIn("if (!href) return escapeHtml(display)", app)
         self.assertIn('${escapeHtml(term.classification || "Term")}', app)
         self.assertIn('${guidedTerms}\n            ${guidedEvidence}', app)
         self.assertRegex(styles, r"(?s)\.guided-terms\s*\{[^}]*display:\s*grid;[^}]*font-size:\s*clamp\(")
@@ -3157,7 +3159,8 @@ process.stdout.write(JSON.stringify({
             {
                 "schemaVersion", "deckRevision", "sourcePath", "sourceId", "sourceClass",
                 "evidenceState", "asOf", "questions", "phaseQuestionIds", "choiceSets",
-                "reviewRequirements", "publicRoles", "interfaceTerms", "provenance",
+                "reviewRequirements", "publicRoles", "interfaceTerms", "decisionReferences",
+                "provenance",
             },
             set(assessment),
         )
@@ -3198,7 +3201,7 @@ process.stdout.write(JSON.stringify({
         question_by_id = {question["id"]: question for question in questions}
         expected_early_bindings = {
             "KGE-P1-Q02": tuple(f"GTM-{index:02d}" for index in range(1, 10)),
-            "KGE-P1-Q03": ("EAG-04", "GSA-01", "GEP-07", "GEC-20"),
+            "KGE-P1-Q03": ("KP-SMH1", "EAG-04", "GSA-01", "GEP-07", "GEC-20"),
             "KGE-P1-Q04": ("EAG-01", "GTM-08", "GRS-01", "GEC-07"),
             "KGE-P1-Q05": ("EAG-02", "GRS-04", "GEC-16"),
             "KGE-P1-Q06": ("EAG-03", "GEW-08", "GRS-05", "GEC-17"),
@@ -3224,6 +3227,81 @@ process.stdout.write(JSON.stringify({
             },
         )
         self.assertEqual(expected_public_roles, tuple(assessment["publicRoles"]))
+        decision_references = assessment["decisionReferences"]
+        self.assertTrue(decision_references)
+        self.assertTrue(
+            all(
+                set(reference) == {
+                    "selectors", "label", "sourcePath", "sourceId", "sourceHeading",
+                    "decisionUse",
+                }
+                for reference in decision_references
+            )
+        )
+        selectors = [
+            selector
+            for reference in decision_references
+            for selector in reference["selectors"]
+        ]
+        self.assertTrue(all(selector.strip() for selector in selectors))
+        self.assertEqual(len(selectors), len(set(selectors)))
+        reference_by_selector = {
+            selector: reference
+            for reference in decision_references
+            for selector in reference["selectors"]
+        }
+        self.assertTrue(
+            all(
+                target_id in reference_by_selector
+                for question in questions
+                for target_id in question["targetIds"]
+            )
+        )
+        manifest_documents = {
+            (item["path"], item["id"])
+            for item in manifest["items"]
+            if item["type"] == "markdown"
+        }
+        self.assertTrue(
+            all(
+                (reference["sourcePath"], reference["sourceId"])
+                in manifest_documents
+                for reference in decision_references
+            )
+        )
+        self.assertEqual(
+            (
+                "docs/47-kong-enterprise-platform-strategy.md",
+                "docs-47-kong-enterprise-platform-strategy",
+                "Bounded target option and non-goals",
+            ),
+            tuple(
+                reference_by_selector["KP-SMH1"][field]
+                for field in ("sourcePath", "sourceId", "sourceHeading")
+            ),
+        )
+        self.assertEqual(
+            (
+                "docs/48-kong-guided-evaluation.md",
+                "docs-48-kong-guided-evaluation",
+                "Bounded authorization",
+            ),
+            tuple(
+                reference_by_selector["KGE-AUTH-01"][field]
+                for field in ("sourcePath", "sourceId", "sourceHeading")
+            ),
+        )
+        self.assertEqual(
+            (
+                "docs/48-kong-guided-evaluation.md",
+                "docs-48-kong-guided-evaluation",
+                "Current proof boundary",
+            ),
+            tuple(
+                reference_by_selector["KGE-PROOF-01"][field]
+                for field in ("sourcePath", "sourceId", "sourceHeading")
+            ),
+        )
         self.assertEqual(
             (
                 ("API", "application programming interface (API)"),
@@ -3262,6 +3340,10 @@ process.stdout.write(JSON.stringify({
                     "Manifest field", "Applies when", "Canonical values", "Rule",
                 ),
                 ("Token", "Exact visible term", "Interface purpose"),
+                (
+                    "Selectors", "Plain-language meaning", "Reference path",
+                    "Reference heading", "Decision use",
+                ),
                 assessment["sourceClass"],
                 assessment["evidenceState"],
                 assessment["asOf"],
@@ -3274,6 +3356,7 @@ process.stdout.write(JSON.stringify({
                 assessment["provenance"]["sourceHeading"],
                 tuple(assessment["provenance"]["reviewRequirementsTableColumns"]),
                 tuple(assessment["provenance"]["interfaceTermTableColumns"]),
+                tuple(assessment["provenance"]["referenceTableColumns"]),
                 assessment["provenance"]["sourceClass"],
                 assessment["provenance"]["evidenceState"],
                 assessment["provenance"]["asOf"],
@@ -3311,6 +3394,15 @@ process.stdout.write(JSON.stringify({
             ("early target binding", "exact early-gate slide and target bindings"),
             ("early input disposition", "mandatory E1 input disposition"),
             ("choice outcome", "invalid outcome"),
+            ("decision reference fields", "fields must match the exact v2 schema"),
+            ("decision reference empty selector", "selectors must be unique non-empty strings"),
+            ("decision reference duplicate selector", "selectors must be globally unique"),
+            ("decision reference unresolved target", "must resolve to exactly one decision reference"),
+            ("decision reference source document", "must identify one manifest Markdown document"),
+            ("decision reference heading", "sourceHeading anchor must exist exactly once"),
+            ("decision reference KP-SMH1", "KP-SMH1 must resolve to its canonical document section"),
+            ("decision reference authorization", "KGE-AUTH-01 must resolve to its canonical document section"),
+            ("decision reference proof", "KGE-PROOF-01 must resolve to its canonical document section"),
             ("public roles", "exact controlled public-role order"),
             ("interface terms", "exact ordered first-use terminology contract"),
             ("review fields", "fields must match the exact v2 schema"),
@@ -3365,6 +3457,46 @@ process.stdout.write(JSON.stringify({
                     invalid_assessment["questions"][2]["mandatory"] = False
                 elif case == "choice outcome":
                     invalid_assessment["choiceSets"][0]["choices"][0]["outcome"] = "score"
+                elif case == "decision reference fields":
+                    invalid_assessment["decisionReferences"][0]["anchor"] = "invented"
+                elif case == "decision reference empty selector":
+                    invalid_assessment["decisionReferences"][0]["selectors"][0] = ""
+                elif case == "decision reference duplicate selector":
+                    invalid_assessment["decisionReferences"][1]["selectors"].append(
+                        invalid_assessment["decisionReferences"][0]["selectors"][0]
+                    )
+                elif case == "decision reference unresolved target":
+                    reference = next(
+                        item
+                        for item in invalid_assessment["decisionReferences"]
+                        if "KGE-AUTH-05" in item["selectors"]
+                    )
+                    reference["selectors"].remove("KGE-AUTH-05")
+                elif case == "decision reference source document":
+                    invalid_assessment["decisionReferences"][0]["sourceId"] = "missing-document"
+                elif case == "decision reference heading":
+                    invalid_assessment["decisionReferences"][0]["sourceHeading"] = "Missing heading"
+                elif case == "decision reference KP-SMH1":
+                    reference = next(
+                        item
+                        for item in invalid_assessment["decisionReferences"]
+                        if "KP-SMH1" in item["selectors"]
+                    )
+                    reference["sourceHeading"] = "Executive answer"
+                elif case == "decision reference authorization":
+                    reference = next(
+                        item
+                        for item in invalid_assessment["decisionReferences"]
+                        if "KGE-AUTH-01" in item["selectors"]
+                    )
+                    reference["sourceHeading"] = "Current proof boundary"
+                elif case == "decision reference proof":
+                    reference = next(
+                        item
+                        for item in invalid_assessment["decisionReferences"]
+                        if "KGE-PROOF-01" in item["selectors"]
+                    )
+                    reference["sourceHeading"] = "Bounded authorization"
                 elif case == "public roles":
                     invalid_assessment["publicRoles"][0:2] = reversed(invalid_assessment["publicRoles"][0:2])
                 elif case == "interface terms":
@@ -3475,19 +3607,27 @@ process.stdout.write(JSON.stringify({
         self.assertIn('placeholder="Public-safe source or artifact identifier"', app_source)
         self.assertIn("assessmentTermDisplay(level)", app_source)
         self.assertIn(".assessment-interface-terms ul[tabindex='0']", app_source)
-        self.assertIn('class="assessment-target-bindings"', app_source)
+        self.assertIn("decisionReferences", app_source)
         self.assertIn("question.targetIds", app_source)
-        self.assertIn("escapeHtml(targetId)", app_source)
-        self.assertIn('<ul aria-labelledby="${inputPrefix}-targets-label">', app_source)
-        self.assertIn('targetIds.map((targetId) => `<li>${escapeHtml(targetId)}</li>`)', app_source)
-        self.assertNotIn('targetIds.map((targetId) => `<span>${escapeHtml(targetId)}</span>`)', app_source)
+        self.assertIn("function assessmentDecisionReference(selector", app_source)
+        self.assertIn("function renderAssessmentReviewBeforeDeciding(question, inputPrefix)", app_source)
+        self.assertIn(">Review before deciding</b>", app_source)
+        self.assertIn("reference?.label", app_source)
+        self.assertIn('target="_blank" rel="noreferrer"', app_source)
+        self.assertIn("assessmentDecisionReference(question.minimumEvidence)", app_source)
+        self.assertIn("renderAssessmentReferenceLink(minimumEvidence)", app_source)
+        self.assertIn("renderGuidedTerm(term)", app_source)
+        self.assertIn("function renderAssessmentSummaryReferences(question)", app_source)
+        self.assertIn("renderAssessmentSummaryReferences(question)", app_source)
+        self.assertIn("renderAssessmentReviewBeforeDeciding(question, inputPrefix)", app_source)
+        self.assertNotIn('targetIds.map((targetId) => `<li>${escapeHtml(targetId)}</li>`)', app_source)
         self.assertRegex(
             (SOURCE_ROOT / "site" / "assets" / "styles.css").read_text(encoding="utf-8"),
-            r"(?s)\.assessment-target-bindings\s*\{[^}]*display:\s*grid;",
+            r"(?s)\.assessment-review-before\s*\{[^}]*display:\s*grid;",
         )
         self.assertRegex(
             (SOURCE_ROOT / "site" / "assets" / "styles.css").read_text(encoding="utf-8"),
-            r"(?s)\.assessment-target-bindings\s*>\s*ul\s*\{[^}]*display:\s*flex;[^}]*list-style:\s*none;",
+            r"(?s)\.assessment-reference-link,\s*\.assessment-context-link-list a\s*\{[^}]*display:\s*grid;",
         )
         self.assertIn("ApiStudyAssessment", app_source)
         self.assertIn("#/present/kong-platform-journey-guided/summary", app_source)
