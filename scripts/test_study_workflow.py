@@ -1129,9 +1129,15 @@ class CanonicalContractTests(WorkflowTestCase):
             app,
         )
         self.assertIn(
-            "Confirm the priorities, then approve, change, or hold a small, reversible start.",
+            "Confirm the priorities, then approve, change (recorded as amend), or hold a small, reversible start.",
             app,
         )
+        self.assertIn("Change before review (recorded as amend)", app)
+        self.assertIn("Agent2Agent Protocol (`A2A`)", source)
+        self.assertIn("security-adjunct hypothesis record `GSA-01`", source)
+        self.assertIn("proof-workstream record `GEP-07`", source)
+        self.assertNotIn("Gateway Security Adjunct profile", source)
+        self.assertNotIn("Gateway Evidence Programme workstream", source)
         self.assertIn('const isUserScrollable = (surface, axis) => {', app)
         self.assertIn('isUserScrollable(surface, "vertical")', app)
         charts = (SOURCE_ROOT / "site/assets/charts.js").read_text(encoding="utf-8")
@@ -1145,8 +1151,10 @@ class CanonicalContractTests(WorkflowTestCase):
         self.assertIn("Answer all four early questions", charts)
         self.assertIn("Record the answer · evidence needed · stop condition", charts)
         self.assertIn('const guidedTerms = document.querySelector(".presentation-stage .guided-terms ul")', app)
+        self.assertIn('[slideVisual, "Slide visual detail. Scroll vertically to inspect the complete model.", "vertical"]', app)
         self.assertIn('[guidedTerms, "Terms introduced on this slide.', app)
         self.assertIn(".guided-terms ul[tabindex='0']", app)
+        self.assertIn(".slide-visual[tabindex='0']", app)
         self.assertIn('enhanceGuidedFacilitatorNotes(prose, item)', app)
         self.assertIn('heading.setAttribute("aria-label", headingTitle)', app)
         self.assertIn('"Collapse" : "Expand"} section:', app)
@@ -2741,6 +2749,10 @@ process.stdout.write(JSON.stringify(samples));
         self.assertRegex(styles, r"(?s)@media screen and \(min-width: 761px\) and \(max-width: 1279px\).*?\.presentation-stage\.is-kong-guided \.journey-phase-spine li b\s*\{[^}]*width:\s*1px;[^}]*clip-path:\s*inset\(50%\);")
         self.assertRegex(styles, r"(?s)@media screen and \(min-width: 1024px\) and \(max-width: 1199px\).*?\.presentation-stage\.is-kong-guided \.viz-guided-proof-boundary article\s*\{[^}]*padding:\s*0\.45rem;")
         self.assertRegex(styles, r"(?s)@media screen and \(min-width: 1024px\) and \(max-height: 920px\).*?\.presentation-stage\.is-kong-guided \.is-guided-slide > \.slide-main\s*\{[^}]*overflow-y:\s*auto;")
+        self.assertRegex(
+            styles,
+            r"(?s)\.presentation-stage\.is-kong-guided \.is-guided-slide:has\(\.viz-guided-programme-board\) > \.slide-main\s*\{\s*overflow-y:\s*auto;\s*overscroll-behavior:\s*contain;\s*scrollbar-gutter:\s*stable;",
+        )
         self.assertRegex(styles, r"(?s)@media \(max-width: 760px\).*?\.presentation-stage:not\(\.is-kong-guided\) \.slide-diagram\.is-summary-mode\s*\{[^}]*height:\s*auto;")
         self.assertRegex(styles, r"(?s)\.presentation-stage\.is-kong-guided \.slide-references > summary\s*\{[^}]*min-height:\s*44px;")
         self.assertRegex(styles, r"(?s)\.presentation-stage\.is-kong-guided \.slide-reference-menu\s*\{[^}]*overflow:\s*auto;")

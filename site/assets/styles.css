@@ -11558,6 +11558,16 @@ body.is-presenting .site-footer {
   display: block;
 }
 
+/* The proof programme is intentionally information-dense. Its intrinsic board
+   can exceed the pane even on a 1080p room display once the fixed decision
+   strip is reserved, so keep the complete workstream reachable at every
+   viewport instead of clipping the last row behind the strip. */
+.presentation-stage.is-kong-guided .is-guided-slide:has(.viz-guided-programme-board) > .slide-main {
+  overflow-y: auto;
+  overscroll-behavior: contain;
+  scrollbar-gutter: stable;
+}
+
 .viz-guided-programme-contract {
   min-width: 0;
   display: grid;
