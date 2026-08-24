@@ -131,18 +131,22 @@ KONG_GUIDED_SOURCE_PATHS = (
     "docs/48-kong-guided-evaluation.md",
     "docs/44-kong-multicloud-study-roadmap.md",
     "docs/47-kong-enterprise-platform-strategy.md",
+    "poc/federated-api-delivery/README.md",
     "docs/35-mule-migration-strategy.md",
     "research/glossary.md",
     "docs/50-apigee-migration-strategy.md",
+    "poc/apigee-migration/README.md",
     "poc/README.md",
 )
 KONG_GUIDED_SOURCE_IDS = (
     "docs-48-kong-guided-evaluation",
     "docs-44-kong-multicloud-study-roadmap",
     "docs-47-kong-enterprise-platform-strategy",
+    "poc-federated-api-delivery-readme",
     "docs-35-mule-migration-strategy",
     "research-glossary",
     "docs-50-apigee-migration-strategy",
+    "poc-apigee-migration-readme",
     "poc-readme",
 )
 KONG_GUIDED_ARCHITECTURE_CONTROL_IDS = (
@@ -189,8 +193,8 @@ KONG_GUIDED_PHASES = (
     ("KGE-P6", "Audit appendix", "Inspect the inputs and unknowns when the recommendation is challenged", "kong-guided-compare-architecture"),
 )
 KONG_GUIDED_IDENTIFIER_TOKENS = (
-    "KGE", "EAG", "GTM", "GEW", "GRS", "GEO", "GEB", "KMC",
-    "KPS", "KP", "P", "MULE", "GEP", "GSA", "KO", "GEC",
+    "KGE", "EAG", "APIG-M", "GTM", "GEW", "GRS", "GEO", "GEB",
+    "KMC", "KPS", "KP", "P", "MULE", "GEP", "GSA", "KO", "GEC",
 )
 KONG_GUIDED_INTERNAL_DESCRIPTOR_TOKENS = KONG_GUIDED_IDENTIFIER_TOKENS[2:]
 KONG_GUIDED_TERM_TOKENS = (
@@ -205,11 +209,11 @@ KONG_GUIDED_TERM_TOKENS = (
     ("KGE-09", ("KGE", "API", "CP", "DP", "PKI", "IdP", "mTLS", "DNS", "HA", "SLO", "KPS", "E1", "RBAC", "WAF", "SIEM")),
     ("KGE-10", ("KGE", "IdP", "CA", "CN", "JSON", "JWKS", "CP", "PKI", "E1", "DP", "KPS", "SIEM")),
     ("KGE-11", ("KGE", "E1", "DP", "KPS", "CP")),
-    ("KGE-12", ("KGE", "DB", "SRE", "IAM", "PKI", "E1", "KPS", "API", "CP", "DP")),
+    ("KGE-12", ("KGE", "DB", "SRE", "IAM", "PKI", "E1", "KPS", "API", "CP", "DP", "APIOps", "RBAC")),
     ("KGE-13", ("KGE", "KP0–KP5", "KP-SMH1", "E2", "E3", "E4", "BOM", "RACI", "GP-1–GP-6", "P1–P10", "API", "CP", "DB", "DP", "IdP", "PKI", "RBAC", "SLO")),
     ("KGE-14", ("KGE", "API", "MULE", "SFTP", "SaaS")),
     ("KGE-15", ("KGE", "AKS", "CRM", "API", "MULE")),
-    ("KGE-16", ("KGE", "A0–A6", "M0–M5", "SLO", "E4", "KVM", "TLS")),
+    ("KGE-16", ("KGE", "A0–A6", "M0–M5", "SLO", "E4", "KVM", "TLS", "APIG-M", "API", "OAuth", "IdP")),
     ("KGE-17", ("KGE", "API", "PoC", "KP-SMH1", "E3", "E4", "CP", "AI", "TCO")),
     ("KGE-18", ("KGE", "API", "GEP", "GSA", "LTS", "BOM", "SBOM", "APIOps", "IAM", "MCP", "A2A", "RTO", "RPO", "RACI", "WAAP", "PoC", "TPA", "EDS", "CPU", "SSE")),
     ("KGE-19", ("KGE", "KO", "DP", "SLI", "SLO", "SRE", "OAuth", "mTLS", "IdP", "PKI", "PR", "CP", "RTO", "RPO", "IAM")),
@@ -222,6 +226,7 @@ KONG_GUIDED_TERM_TOKENS = (
 )
 KONG_GUIDED_ASSESSMENT_INTERFACE_TERMS = (
     ("API", "application programming interface (API)"),
+    ("APIG-M", "Apigee migration proof-protocol record (APIG-M)"),
     ("EAG", "Early Assessment Gate (EAG)"),
     ("APIM", "Azure API Management (APIM)"),
     ("E0", "assertion-only evidence (E0)"),
@@ -299,9 +304,9 @@ KONG_GUIDED_POINT_SOURCE_BY_KEY = {
     **{key: KONG_GUIDED_SOURCE_IDS[0] for key in KONG_GUIDED_SLIDE_KEYS},
     "kong-guided-boundary": KONG_GUIDED_SOURCE_IDS[1],
     **{key: KONG_GUIDED_SOURCE_IDS[2] for key in KONG_GUIDED_SLIDE_KEYS[7:13]},
-    **{key: KONG_GUIDED_SOURCE_IDS[3] for key in KONG_GUIDED_SLIDE_KEYS[13:16]},
-    "kong-guided-waves": KONG_GUIDED_SOURCE_IDS[5],
-    "kong-guided-proof-boundary": KONG_GUIDED_SOURCE_IDS[6],
+    **{key: KONG_GUIDED_SOURCE_IDS[4] for key in KONG_GUIDED_SLIDE_KEYS[13:16]},
+    "kong-guided-waves": KONG_GUIDED_SOURCE_IDS[6],
+    "kong-guided-proof-boundary": KONG_GUIDED_SOURCE_IDS[8],
     **{key: KONG_GUIDED_SOURCE_IDS[2] for key in KONG_GUIDED_SLIDE_KEYS[18:21]},
 }
 KONG_GUIDED_EVIDENCE_GROUPS = (
@@ -344,17 +349,37 @@ KONG_GUIDED_REFERENCE_GROUPS = (
         "https://developer.konghq.com/gateway/hybrid-mode/",
         "https://developer.konghq.com/gateway/version-support-policy/",
     )),
-    (("KGE-09", "KGE-10", "KGE-11", "KGE-12", "KGE-13"), (
+    (("KGE-09", "KGE-10", "KGE-11"), (
         "https://developer.konghq.com/gateway/hybrid-mode/",
         "https://developer.konghq.com/gateway/monitoring/",
     )),
-    (("KGE-14", "KGE-15", "KGE-16"), (
+    (("KGE-12",), (
+        "https://developer.konghq.com/gateway/hybrid-mode/",
+        "https://developer.konghq.com/gateway/monitoring/",
+        "https://developer.konghq.com/deck/gateway/sync/",
+        "https://developer.konghq.com/terraform/",
+    )),
+    (("KGE-13",), (
+        "https://developer.konghq.com/gateway/hybrid-mode/",
+        "https://developer.konghq.com/gateway/monitoring/",
+    )),
+    (("KGE-14", "KGE-15"), (
         "https://docs.mulesoft.com/gateway/latest/",
         "https://developer.konghq.com/gateway/entities/",
         "https://developer.konghq.com/gateway/entities/plugin/",
-        "https://developer.konghq.com/gateway/deployment-topologies/",
+    )),
+    (("KGE-16",), (
+        "https://docs.mulesoft.com/gateway/latest/",
+        "https://developer.konghq.com/gateway/entities/",
+        "https://developer.konghq.com/gateway/entities/plugin/",
+        "https://developer.konghq.com/plugins/compatibility/",
+        "https://developer.konghq.com/gateway/entities/workspace/",
         "https://docs.cloud.google.com/apigee/docs/api-platform/fundamentals/download-api-proxies",
         "https://docs.cloud.google.com/apigee/docs/api-platform/reference/api-proxy-configuration-reference",
+        "https://docs.cloud.google.com/apigee/docs/api-platform/publish/create-api-products",
+        "https://docs.cloud.google.com/apigee/docs/api-platform/publish/creating-apps-surface-your-api",
+        "https://docs.cloud.google.com/apigee/docs/api-platform/cache/key-value-maps",
+        "https://docs.cloud.google.com/apigee/docs/api-platform/reference/policies/quota-policy",
     )),
     (("KGE-17",), (
         "https://developer.konghq.com/gateway/hybrid-mode/",

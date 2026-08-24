@@ -8,11 +8,11 @@
 | Gateway API | Kubernetes SIG Network resources for role-oriented service networking; not itself an API management product |
 | Golden tests | Curated input/output cases proving migrated behavior |
 | Hybrid | Management and runtime components placed across vendor and customer locations; never a single yes/no capability |
-| KIC | Kong Ingress Controller |
-| MART | Apigee Management API for Runtime data |
+| Kong Ingress Controller (KIC) | Kubernetes controller that reconciles supported ingress and Gateway API intent into Kong configuration |
+| Management API for Runtime data (MART) | Apigee runtime component that exposes management data to the management plane |
 | PCF | Assumed Pivotal Cloud Foundry pending organizational confirmation |
-| RTO/RPO | Recovery time/recovery point objective |
-| SLO | Service-level objective |
+| Recovery time objective / recovery point objective (RTO/RPO) | Maximum intended recovery duration and maximum acceptable data-loss interval |
+| Service-level objective (SLO) | Quantified reliability or service target used for admission and operation |
 | Strangler | Incrementally redirect functionality from a legacy implementation behind a stable boundary |
 
 ## Kong terminology crosswalk
@@ -33,7 +33,7 @@ Use this as a **nearest operating analogue**, not a one-to-one translation. A fa
 | Data Plane (DP) | Request-serving Kong nodes that receive and cache accepted CP configuration | Mule Gateway/Omni Gateway runtime; Apigee Message Processor/runtime plane | Existing cached service, restart, clean-node scaling, urgent mutation/revocation, license, and telemetry behavior differ during CP loss and require separate admission rules. |
 | Kong Manager / Admin API | Human and programmable administration surfaces for a self-managed CP | Anypoint API Manager; Apigee UI/API | The Admin API is full-control infrastructure. UI/API presence does not define Git authority, approval, deletion safety, audit completeness, or organizational access lifecycle. |
 | decK | Declarative Kong entity validation, diff, apply/sync, dump, and related APIOps tooling | Mule CLI/policy deployment automation; Apigee API/proxy bundle pipeline | decK does not manage every platform artifact, and `sync` can delete unmanaged entities. Define one writer per entity and prove deletion preview, rollback, drift, active digest, and restore. |
-| KIC | Controller that reconciles Kubernetes ingress/Gateway API intent into Kong configuration | Mule Kubernetes deployment/operator path; Apigee hybrid ingress/runtime controllers | Kubernetes resources and decK/Admin API must not become competing writers for the same entity. Confirm conformance, attachment policy, status truth, CRD lifecycle, and exact support. |
+| Kong Ingress Controller (KIC) | Controller that reconciles Kubernetes ingress/Gateway API intent into Kong configuration | Mule Kubernetes deployment/operator path; Apigee hybrid ingress/runtime controllers | Kubernetes resources and decK/Admin API must not become competing writers for the same entity. Confirm conformance, attachment policy, status truth, custom-resource-definition lifecycle, and exact support. |
 | Kong Operator | Kubernetes operator for supported Kong resource and lifecycle patterns | Mule/Apigee deployment operators and Helm controllers | Operator ownership is not automatic platform ownership. Freeze supported versions, authority, privileges, upgrade/rollback, recovery, and support responsibility. |
 | API contract / catalog product | Remains a source-controlled OpenAPI/RAML contract plus the chosen catalog/product and owner system | Mule API asset/version and Exchange/API Manager product surface; Apigee API product/catalog | No single Gateway Service, Route, or Workspace replaces the full asset/product/subscription lifecycle. Keep contract, catalog, entitlement, consumer, and runtime identities linked by immutable IDs. |
 

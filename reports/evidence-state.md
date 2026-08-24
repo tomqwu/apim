@@ -51,8 +51,8 @@ The source register contains 56 primary or official sources. Thirty-four source 
 ```mermaid
 pie showData
   title Registered official sources
-  "Used in findings" : 34
-  "Not yet used" : 22
+  "Used in findings" : 70
+  "Not yet used" : 20
 ```
 
 Source: [sources.csv](../research/sources.csv) and [findings.md](../research/findings.md).

@@ -1,0 +1,35 @@
+{
+  "schema_version": 1,
+  "entities": [
+    {
+      "kind": "service",
+      "name": "orders-v1",
+      "writer_id": "app:orders-api"
+    },
+    {
+      "kind": "route",
+      "name": "orders-v1-public",
+      "writer_id": "app:orders-api"
+    },
+    {
+      "kind": "plugin",
+      "name": "orders-v1-authn-01",
+      "writer_id": "platform:api-policy"
+    },
+    {
+      "kind": "plugin",
+      "name": "orders-v1-corr-01",
+      "writer_id": "platform:api-policy"
+    },
+    {
+      "kind": "plugin",
+      "name": "orders-v1-obs-01",
+      "writer_id": "platform:api-policy"
+    },
+    {
+      "kind": "plugin",
+      "name": "orders-v1-app-request-size-limiting",
+      "writer_id": "app:orders-api"
+    }
+  ]
+}

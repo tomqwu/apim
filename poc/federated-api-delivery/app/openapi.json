@@ -1,0 +1,96 @@
+{
+  "openapi": "3.0.3",
+  "info": {
+    "title": "Synthetic Orders API",
+    "version": "1.0.0",
+    "description": "Public-safe contract used only to exercise the federated delivery harness."
+  },
+  "servers": [
+    {
+      "url": "https://orders.api.example.test"
+    }
+  ],
+  "paths": {
+    "/orders": {
+      "get": {
+        "operationId": "listOrders",
+        "summary": "List synthetic orders",
+        "security": [
+          {
+            "workloadIdentity": [
+              "orders.read"
+            ]
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "Synthetic order list"
+          }
+        }
+      },
+      "post": {
+        "operationId": "createOrder",
+        "summary": "Create a synthetic order",
+        "security": [
+          {
+            "workloadIdentity": [
+              "orders.write"
+            ]
+          }
+        ],
+        "responses": {
+          "202": {
+            "description": "Synthetic order accepted"
+          }
+        }
+      }
+    },
+    "/orders/{orderId}": {
+      "get": {
+        "operationId": "getOrder",
+        "summary": "Read one synthetic order",
+        "security": [
+          {
+            "workloadIdentity": [
+              "orders.read"
+            ]
+          }
+        ],
+        "parameters": [
+          {
+            "name": "orderId",
+            "in": "path",
+            "required": true,
+            "schema": {
+              "type": "string"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "Synthetic order"
+          },
+          "404": {
+            "description": "Synthetic order not found"
+          }
+        }
+      }
+    }
+  },
+  "components": {
+    "securitySchemes": {
+      "workloadIdentity": {
+        "type": "oauth2",
+        "flows": {
+          "clientCredentials": {
+            "tokenUrl": "https://identity.example.test/oauth2/token",
+            "scopes": {
+              "orders.read": "Read synthetic orders",
+              "orders.write": "Create synthetic orders"
+            }
+          }
+        }
+      }
+    }
+  }
+}

@@ -804,6 +804,8 @@ class CanonicalContractTests(WorkflowTestCase):
         snapshot_title_overrides = {
             3: "The scorecard favors cloud-native delivery",
             5: "Preserve the historical score; expose the uncertainty",
+            12: "Self-managed control is a funded platform service",
+            16: "Apigee A0–A6 moves the full object and state graph",
             25: "Historical audit; provisional uncertainty envelope",
         }
 
@@ -1331,7 +1333,7 @@ class CanonicalContractTests(WorkflowTestCase):
         presentation = "http://schemas.openxmlformats.org/presentationml/2006/main"
         namespaces = {"a": drawing, "p": presentation}
         note_labels = ("Purpose", "Talk track", "Ask", "Bridge", "Caveat", "Sources")
-        native_only_note_overrides = {"KGE-03", "KGE-04", "KGE-05", "KGE-24", "KGE-25"}
+        native_only_note_overrides = {"KGE-03", "KGE-04", "KGE-05", "KGE-12", "KGE-16", "KGE-24", "KGE-25"}
         discussion_labels = (
             "Listen for",
             "Evidence-safe response",
@@ -1343,8 +1345,9 @@ class CanonicalContractTests(WorkflowTestCase):
 
         pptx = SOURCE_ROOT / "presentations" / "kong-platform-journey-guided.pptx"
         with zipfile.ZipFile(pptx) as archive:
+            self.assertEqual(len(detailed_matches), len(contract))
             for index, (match, slide_contract) in enumerate(
-                zip(detailed_matches, contract, strict=True),
+                zip(detailed_matches, contract),
                 start=1,
             ):
                 slide_id = f"KGE-{index:02d}"
@@ -1461,8 +1464,9 @@ class CanonicalContractTests(WorkflowTestCase):
                     len(ppt_sources),
                     f"{slide_id} embedded sources must remain target-only list entries",
                 )
+                required_ppt_sources = () if slide_id in native_only_note_overrides else ppt_sources
                 for target in (
-                    *ppt_sources,
+                    *required_ppt_sources,
                     *slide_contract["sourcePaths"],
                     *(reference["url"] for reference in slide_contract["officialReferences"]),
                 ):
@@ -2302,9 +2306,11 @@ process.stdout.write(JSON.stringify(samples));
             "docs/48-kong-guided-evaluation.md",
             "docs/44-kong-multicloud-study-roadmap.md",
             "docs/47-kong-enterprise-platform-strategy.md",
+            "poc/federated-api-delivery/README.md",
             "docs/35-mule-migration-strategy.md",
             "research/glossary.md",
             "docs/50-apigee-migration-strategy.md",
+            "poc/apigee-migration/README.md",
             "poc/README.md",
         )
         phases = (
@@ -2316,8 +2322,8 @@ process.stdout.write(JSON.stringify(samples));
             ("KGE-P6", "Audit appendix", "kong-guided-compare-architecture"),
         )
         identifier_tokens = (
-            "KGE", "EAG", "GTM", "GEW", "GRS", "GEO", "GEB", "KMC",
-            "KPS", "KP", "P", "MULE", "GEP", "GSA", "KO", "GEC",
+            "KGE", "EAG", "APIG-M", "GTM", "GEW", "GRS", "GEO", "GEB",
+            "KMC", "KPS", "KP", "P", "MULE", "GEP", "GSA", "KO", "GEC",
         )
         term_tokens = (
             ("KGE-01", ("KGE", "API", "EAG", "WAAP")),
@@ -2331,11 +2337,11 @@ process.stdout.write(JSON.stringify(samples));
             ("KGE-09", ("KGE", "API", "CP", "DP", "PKI", "IdP", "mTLS", "DNS", "HA", "SLO", "KPS", "E1", "RBAC", "WAF", "SIEM")),
             ("KGE-10", ("KGE", "IdP", "CA", "CN", "JSON", "JWKS", "CP", "PKI", "E1", "DP", "KPS", "SIEM")),
             ("KGE-11", ("KGE", "E1", "DP", "KPS", "CP")),
-            ("KGE-12", ("KGE", "DB", "SRE", "IAM", "PKI", "E1", "KPS", "API", "CP", "DP")),
+            ("KGE-12", ("KGE", "DB", "SRE", "IAM", "PKI", "E1", "KPS", "API", "CP", "DP", "APIOps", "RBAC")),
             ("KGE-13", ("KGE", "KP0–KP5", "KP-SMH1", "E2", "E3", "E4", "BOM", "RACI", "GP-1–GP-6", "P1–P10", "API", "CP", "DB", "DP", "IdP", "PKI", "RBAC", "SLO")),
             ("KGE-14", ("KGE", "API", "MULE", "SFTP", "SaaS")),
             ("KGE-15", ("KGE", "AKS", "CRM", "API", "MULE")),
-            ("KGE-16", ("KGE", "A0–A6", "M0–M5", "SLO", "E4", "KVM", "TLS")),
+            ("KGE-16", ("KGE", "A0–A6", "M0–M5", "SLO", "E4", "KVM", "TLS", "APIG-M", "API", "OAuth", "IdP")),
             ("KGE-17", ("KGE", "API", "PoC", "KP-SMH1", "E3", "E4", "CP", "AI", "TCO")),
             ("KGE-18", ("KGE", "API", "GEP", "GSA", "LTS", "BOM", "SBOM", "APIOps", "IAM", "MCP", "A2A", "RTO", "RPO", "RACI", "WAAP", "PoC", "TPA", "EDS", "CPU", "SSE")),
             ("KGE-19", ("KGE", "KO", "DP", "SLI", "SLO", "SRE", "OAuth", "mTLS", "IdP", "PKI", "PR", "CP", "RTO", "RPO", "IAM")),
@@ -2401,7 +2407,7 @@ process.stdout.write(JSON.stringify(samples));
 
         guided = manifest["visuals"]["guidedEvaluation"]
         self.assertEqual("2026-08-24", guided["asOf"])
-        self.assertEqual(16, guided["identifierCatalog"]["rowTotal"])
+        self.assertEqual(17, guided["identifierCatalog"]["rowTotal"])
         self.assertEqual(identifier_tokens, tuple(row["token"] for row in guided["identifierCatalog"]["rows"]))
         identifier_by_token = {
             row["token"]: row for row in guided["identifierCatalog"]["rows"]
@@ -2415,7 +2421,7 @@ process.stdout.write(JSON.stringify(samples));
             tuple(guided["identifierCatalog"]["provenance"]["tableColumns"]),
         )
         self.assertEqual(25, guided["termSets"]["rowTotal"])
-        self.assertEqual(228, guided["termSets"]["termTotal"])
+        self.assertEqual(234, guided["termSets"]["termTotal"])
         self.assertEqual(
             term_tokens,
             tuple(
@@ -2541,7 +2547,7 @@ process.stdout.write(JSON.stringify(samples));
             tuple(tuple(row["slideIds"]) for row in guided["evidenceStates"]["rows"][-4:]),
         )
         reference_catalog = guided["referenceCatalog"]
-        self.assertEqual(11, reference_catalog["rowTotal"])
+        self.assertEqual(14, reference_catalog["rowTotal"])
         self.assertEqual(
             tuple(f"KGE-{index:02d}" for index in range(1, 26)),
             tuple(slide_id for row in reference_catalog["rows"] for slide_id in row["slideIds"]),
@@ -3328,6 +3334,7 @@ process.stdout.write(JSON.stringify({
         self.assertEqual(
             (
                 ("API", "application programming interface (API)"),
+                ("APIG-M", "Apigee migration proof-protocol record (APIG-M)"),
                 ("EAG", "Early Assessment Gate (EAG)"),
                 ("APIM", "Azure API Management (APIM)"),
                 ("E0", "assertion-only evidence (E0)"),
