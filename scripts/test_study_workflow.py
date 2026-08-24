@@ -1079,8 +1079,24 @@ class CanonicalContractTests(WorkflowTestCase):
         self.assertIn("## Opening the meeting", source)
         self.assertIn("### Suggested opening script — 2 to 3 minutes", source)
         self.assertIn("### Opening talking points", source)
+        self.assertIn("### Plain-language decision words", source)
+        self.assertIn("**change** is stored as **amend**", source)
+        self.assertIn("**pause** is stored as **hold**", source)
+        self.assertIn(
+            "If those priorities hold, Kong is the better strategic fit",
+            source,
+            "the opening must give the product owner a clear, conditional recommendation",
+        )
+        self.assertIn(
+            "business outcome → why Kong fits → what could change the answer → decision",
+            source,
+            "the guide must state the plain-language discussion pattern used on every slide",
+        )
         self.assertIn("## Choose the meeting route", source)
         self.assertIn("## Challenge-handling protocol", source)
+        self.assertIn("**Terms used in this section:** current official documentation (`E1`)", source)
+        self.assertIn("Proof of Concept (`PoC`)", source)
+        self.assertIn("bill of materials (`BOM`)", source)
         self.assertIn("## Slide-by-slide facilitation index", source)
         self.assertIn("## Decision, evidence, and parking-lot ledgers", source)
         self.assertIn("## Stop and hold rules", source)
@@ -1103,12 +1119,57 @@ class CanonicalContractTests(WorkflowTestCase):
         self.assertIn('Kong Guided Evaluation (KGE) · slide ${slideId.slice(-2)}', app)
         self.assertIn('Kong Guided Evaluation (KGE) slide ${slideId.slice(-2)}: ${expandedTitle}', app)
         self.assertIn('label.textContent = "Terms used in this note"', app)
+        self.assertIn('primaryNotes.className = "speaker-note-primary"', app)
+        self.assertIn('moveNoteBlock("Speaker script")', app)
+        self.assertIn('moveNoteBlock("Talking points")', app)
+        self.assertIn('noteHeading.textContent = "Ready-to-say speaker script"', app)
+        self.assertIn("<span>Product owner decision</span>", app)
+        self.assertIn(
+            "Working thesis: if these are our priorities, Kong is the better strategic fit.",
+            app,
+        )
+        self.assertIn(
+            "Confirm the priorities, then approve, change (recorded as amend), or hold a small, reversible start.",
+            app,
+        )
+        self.assertIn("Change before review (recorded as amend)", app)
+        self.assertIn("Agent2Agent Protocol (`A2A`)", source)
+        self.assertIn("security-adjunct hypothesis record `GSA-01`", source)
+        self.assertIn("proof-workstream record `GEP-07`", source)
+        self.assertIn("current official documentation (`E1`)", source)
+        self.assertIn("vendor answer with named version or contract term (`E2`)", source)
+        self.assertIn("repeatable lab evidence (`E3`)", source)
+        self.assertIn("representative pilot evidence (`E4`)", source)
+        self.assertIn("self-managed hybrid target (`KP-SMH1`)", source)
+        self.assertIn("Apigee migration roadmap (`A0`–`A6`)", source)
+        self.assertNotIn("Gateway Security Adjunct profile", source)
+        self.assertNotIn("Gateway Evidence Programme workstream", source)
+        self.assertIn('const isUserScrollable = (surface, axis) => {', app)
+        self.assertIn('isUserScrollable(surface, "vertical")', app)
+        charts = (SOURCE_ROOT / "site/assets/charts.js").read_text(encoding="utf-8")
+        canonical_study = (SOURCE_ROOT / "docs/48-kong-guided-evaluation.md").read_text(encoding="utf-8")
+        self.assertIn(
+            "Agree on the business priorities and four questions that could change the recommendation",
+            canonical_study,
+        )
+        self.assertNotIn("plainOutcomeByPhase", charts)
+        self.assertIn("phase.audienceDecision || phase.outcome", charts)
+        self.assertIn("Answer all four early questions", charts)
+        self.assertIn("Record the answer · evidence needed · stop condition", charts)
+        self.assertIn('const guidedTerms = document.querySelector(".presentation-stage .guided-terms ul")', app)
+        self.assertIn('[slideVisual, "Slide visual detail. Scroll vertically to inspect the complete model.", "vertical"]', app)
+        self.assertIn('[guidedTerms, "Terms introduced on this slide.', app)
+        self.assertIn(".guided-terms ul[tabindex='0']", app)
+        self.assertIn(".slide-visual[tabindex='0']", app)
         self.assertIn('enhanceGuidedFacilitatorNotes(prose, item)', app)
         self.assertIn('heading.setAttribute("aria-label", headingTitle)', app)
         self.assertIn('"Collapse" : "Expand"} section:', app)
         styles = (SOURCE_ROOT / "site/assets/styles.css").read_text(encoding="utf-8")
         self.assertIn(".speaker-note-slide-heading", styles)
         self.assertIn(".speaker-note-terms", styles)
+        self.assertIn(".speaker-note-primary", styles)
+        self.assertIn(".guided-decision-thesis", styles)
+        self.assertIn(".guided-decision-boundary", styles)
         self.assertRegex(
             styles,
             r"\.speaker-note-slide-heading\s*\{[^}]*font-size: clamp\(2rem, 5vw, 3\.65rem\);",
@@ -1334,16 +1395,45 @@ class CanonicalContractTests(WorkflowTestCase):
                     )
 
                 speaker_script = require_h5_field(section, "Speaker script", slide_id)
+                speaker_word_count = len(re.findall(r"\b[\w’-]+\b", speaker_script))
                 self.assertGreaterEqual(
-                    len(re.findall(r"\b[\w’-]+\b", speaker_script)),
+                    speaker_word_count,
                     110,
                     f"{slide_id} speaker script must be a substantial, ready-to-say narrative",
                 )
+                self.assertLessEqual(
+                    speaker_word_count,
+                    200,
+                    f"{slide_id} speaker script must remain concise enough to deliver conversationally",
+                )
+                self.assertRegex(
+                    speaker_script.casefold(),
+                    r"\bkong\b",
+                    f"{slide_id} speaker script must connect the topic back to Kong",
+                )
+                self.assertRegex(
+                    speaker_script.casefold(),
+                    r"\b(decid\w*|approve\w*|confirm\w*|choose\w*|hold\w*|agree\w*)\b",
+                    f"{slide_id} speaker script must end in a clear product-owner decision or choice",
+                )
+                for jargon in (
+                    "disposition",
+                    "evidence ceiling",
+                    "target-shaped",
+                    "proof obligation",
+                    "canonicalized",
+                    "mechanical envelope",
+                ):
+                    self.assertNotIn(
+                        jargon,
+                        speaker_script.casefold(),
+                        f"{slide_id} speaker script uses audit-heavy wording `{jargon}`",
+                    )
                 talking_points = require_h5_field(section, "Talking points", slide_id)
-                self.assertGreaterEqual(
+                self.assertEqual(
                     len(re.findall(r"(?m)^[ \t]*[-*+][ \t]+\S", talking_points)),
                     3,
-                    f"{slide_id} must provide at least three compact talking points",
+                    f"{slide_id} must provide exactly three compact talking points",
                 )
 
                 self.assertTrue(extracted["Sources"], f"{slide_id} embedded sources are empty")
@@ -2665,6 +2755,10 @@ process.stdout.write(JSON.stringify(samples));
         self.assertRegex(styles, r"(?s)@media screen and \(min-width: 761px\) and \(max-width: 1279px\).*?\.presentation-stage\.is-kong-guided \.journey-phase-spine li b\s*\{[^}]*width:\s*1px;[^}]*clip-path:\s*inset\(50%\);")
         self.assertRegex(styles, r"(?s)@media screen and \(min-width: 1024px\) and \(max-width: 1199px\).*?\.presentation-stage\.is-kong-guided \.viz-guided-proof-boundary article\s*\{[^}]*padding:\s*0\.45rem;")
         self.assertRegex(styles, r"(?s)@media screen and \(min-width: 1024px\) and \(max-height: 920px\).*?\.presentation-stage\.is-kong-guided \.is-guided-slide > \.slide-main\s*\{[^}]*overflow-y:\s*auto;")
+        self.assertRegex(
+            styles,
+            r"(?s)\.presentation-stage\.is-kong-guided \.is-guided-slide:has\(\.viz-guided-programme-board\) > \.slide-main\s*\{\s*overflow-y:\s*auto;\s*overscroll-behavior:\s*contain;\s*scrollbar-gutter:\s*stable;",
+        )
         self.assertRegex(styles, r"(?s)@media \(max-width: 760px\).*?\.presentation-stage:not\(\.is-kong-guided\) \.slide-diagram\.is-summary-mode\s*\{[^}]*height:\s*auto;")
         self.assertRegex(styles, r"(?s)\.presentation-stage\.is-kong-guided \.slide-references > summary\s*\{[^}]*min-height:\s*44px;")
         self.assertRegex(styles, r"(?s)\.presentation-stage\.is-kong-guided \.slide-reference-menu\s*\{[^}]*overflow:\s*auto;")

@@ -4816,6 +4816,65 @@ a {
   content: "·";
 }
 
+.speaker-note-primary {
+  display: grid;
+  gap: 0.9rem;
+  margin: 0 0 2rem;
+  padding: clamp(1.2rem, 2.5vw, 1.8rem);
+  border: 1px solid var(--guided-ink);
+  border-left: 0.65rem solid var(--guided-yellow);
+  color: var(--guided-ink);
+  background: var(--guided-paper);
+}
+
+.prose .speaker-note-primary > h5 {
+  margin: 0;
+  color: var(--guided-violet);
+  font-family: var(--sans);
+  font-size: clamp(1.2rem, 2vw, 1.55rem);
+  letter-spacing: -0.025em;
+  line-height: 1.1;
+}
+
+.prose .speaker-note-primary > h5:not(:first-child) {
+  margin-top: 0.65rem;
+  padding-top: 1rem;
+  border-top: 1px solid var(--guided-line);
+}
+
+.prose .speaker-note-primary > p {
+  margin: 0;
+  font-size: clamp(1.08rem, 1.3vw, 1.22rem);
+  line-height: 1.55;
+}
+
+.prose .speaker-note-primary > p > em:only-child {
+  color: var(--guided-muted);
+  font-size: 0.95em;
+}
+
+.prose .speaker-note-primary > ul {
+  display: grid;
+  grid-template-columns: repeat(3, minmax(0, 1fr));
+  gap: 0;
+  margin: 0;
+  padding: 0;
+  border-top: 1px solid var(--guided-ink);
+  border-left: 1px solid var(--guided-ink);
+  list-style: none;
+}
+
+.prose .speaker-note-primary > ul > li {
+  min-width: 0;
+  margin: 0;
+  padding: 0.85rem;
+  border-right: 1px solid var(--guided-ink);
+  border-bottom: 1px solid var(--guided-ink);
+  font-family: var(--sans);
+  font-size: 1rem;
+  line-height: 1.35;
+}
+
 @media screen and (max-width: 760px) {
   .prose .speaker-note-slide-title {
     padding: 1rem;
@@ -4833,6 +4892,10 @@ a {
   .speaker-note-terms > b {
     border-right: 0;
     border-bottom: 1px solid var(--guided-ink);
+  }
+
+  .prose .speaker-note-primary > ul {
+    grid-template-columns: minmax(0, 1fr);
   }
 }
 
@@ -10384,6 +10447,43 @@ body.is-presenting .site-footer {
   color: var(--guided-yellow);
 }
 
+.presentation-stage.is-kong-guided .journey-proof-copy {
+  display: grid;
+  gap: 0.25rem;
+  padding-left: clamp(0.8rem, 1.25vw, 1.25rem);
+  border-left: 0.3rem solid var(--guided-yellow);
+}
+
+.presentation-stage.is-kong-guided .journey-proof-copy > span {
+  margin-top: 0;
+  font-weight: 800;
+}
+
+.presentation-stage.is-kong-guided .guided-decision-thesis {
+  display: block;
+  color: var(--guided-paper);
+  font-family: "Avenir Next", Avenir, "Century Gothic", Trebuchet MS, sans-serif;
+  font-size: clamp(1.25rem, 1.45vw, 1.65rem);
+  line-height: 1.05;
+  text-wrap: balance;
+}
+
+.presentation-stage.is-kong-guided .guided-decision-boundary {
+  display: block;
+  max-width: 92ch;
+  margin-top: 0.15rem;
+  color: #bdc2b8;
+  font-size: clamp(0.9rem, 0.9vw, 1.05rem);
+  line-height: 1.25;
+}
+
+.presentation-stage.is-kong-guided .guided-decision-boundary b {
+  color: var(--guided-yellow);
+  font-family: var(--mono);
+  letter-spacing: 0.045em;
+  text-transform: uppercase;
+}
+
 .presentation-stage.is-kong-guided .slide-reference-actions {
   position: relative;
   z-index: 5;
@@ -10486,6 +10586,11 @@ body.is-presenting .site-footer {
 
 .presentation-stage.is-kong-guided .journey-proof-copy .slide-body {
   color: var(--guided-paper);
+}
+
+.presentation-stage.is-kong-guided .journey-proof-copy.is-opening .slide-body {
+  max-width: 92ch;
+  margin-top: 0;
 }
 
 .presentation-stage.is-kong-guided .slide-controls {
@@ -11451,6 +11556,16 @@ body.is-presenting .site-footer {
 
 .presentation-stage.is-kong-guided .is-guided-slide:has(.viz-guided-programme-board) > .slide-main > .eyebrow {
   display: block;
+}
+
+/* The proof programme is intentionally information-dense. Its intrinsic board
+   can exceed the pane even on a 1080p room display once the fixed decision
+   strip is reserved, so keep the complete workstream reachable at every
+   viewport instead of clipping the last row behind the strip. */
+.presentation-stage.is-kong-guided .is-guided-slide:has(.viz-guided-programme-board) > .slide-main {
+  overflow-y: auto;
+  overscroll-behavior: contain;
+  scrollbar-gutter: stable;
 }
 
 .viz-guided-programme-contract {

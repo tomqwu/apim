@@ -618,11 +618,11 @@
         <ol>${laneRows.map((row) => `<li><strong>${escapeHtml(row.input || row.label)}</strong></li>`).join("")}</ol>
       </section>`;
     }).join("")}</div>${gates.length ? `<section class="viz-guided-early-gates" aria-label="Four early assessment gates">
-      <header><span>Before bounded authorization</span><strong>Disposition all four early gates</strong></header>
+      <header><span>Before the first implementation</span><strong>Answer all four early questions</strong></header>
       <ol>${gates.map((gate) => `<li>
         <span>${escapeHtml(gate.id || "")}</span>
         <strong>${escapeHtml(gate.decision || "Early gate")}</strong>
-        <small>Record disposition · evidence request · HOLD condition</small>
+        <small>Record the answer · evidence needed · stop condition</small>
       </li>`).join("")}</ol>
     </section>` : ""}</div>`;
     return guidedFrame("target-model", data, section, options, body, options.title || "Stated target operating model");
