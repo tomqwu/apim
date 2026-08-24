@@ -1137,7 +1137,7 @@ class CanonicalContractTests(WorkflowTestCase):
         self.assertIn("security-adjunct hypothesis record `GSA-01`", source)
         self.assertIn("proof-workstream record `GEP-07`", source)
         self.assertIn("current official documentation (`E1`)", source)
-        self.assertIn("vendor answer with a named version or contract term (`E2`)", source)
+        self.assertIn("vendor answer with named version or contract term (`E2`)", source)
         self.assertIn("repeatable lab evidence (`E3`)", source)
         self.assertIn("representative pilot evidence (`E4`)", source)
         self.assertIn("self-managed hybrid target (`KP-SMH1`)", source)
