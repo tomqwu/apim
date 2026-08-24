@@ -1,0 +1,53 @@
+{
+  "schemaVersion": 1,
+  "evidenceState": "not-run",
+  "protocols": [
+    {
+      "id": "APIG-M01",
+      "name": "Reconciled source denominator and dependency closure",
+      "requiredMeasurements": {
+        "requiredInventoryCoverage": {"operator": "gte", "expected": 1.0},
+        "unexplainedActiveObjects": {"operator": "eq", "expected": 0},
+        "unownedActiveObjects": {"operator": "eq", "expected": 0},
+        "sharedCutSetsReviewed": {"operator": "eq", "expected": true}
+      },
+      "requiredArtifacts": ["source-denominator", "exception-ledger", "dependency-graph", "shared-cut-set-review"],
+      "independentReviewerRoles": ["API product reviewer", "platform assurance reviewer"]
+    },
+    {
+      "id": "APIG-M02",
+      "name": "Representative semantic, identity, and state parity",
+      "requiredMeasurements": {
+        "requiredCorpusCoverage": {"operator": "gte", "expected": 1.0},
+        "unacceptedCriticalVariance": {"operator": "eq", "expected": 0},
+        "unauthorizedSuccess": {"operator": "eq", "expected": 0},
+        "unexplainedStateDivergence": {"operator": "eq", "expected": 0}
+      },
+      "requiredArtifacts": ["source-release", "target-release", "effective-kong-config", "golden-negative-error-load-fault-results", "variance-disposition"],
+      "independentReviewerRoles": ["domain reviewer", "identity and security reviewer", "performance reviewer"]
+    },
+    {
+      "id": "APIG-M03",
+      "name": "Bounded coexistence, reconciliation, and route-back",
+      "requiredMeasurements": {
+        "orphanCredentials": {"operator": "eq", "expected": 0},
+        "ambiguousBusinessOutcomes": {"operator": "eq", "expected": 0},
+        "unreconciledStateRecords": {"operator": "eq", "expected": 0},
+        "evidenceContinuityGaps": {"operator": "eq", "expected": 0},
+        "routeBackWithinApprovedObjective": {"operator": "eq", "expected": true}
+      },
+      "requiredArtifacts": ["cohort-manifest", "traffic-timeline", "identity-state-ledger", "business-probe-results", "timed-route-back-record"],
+      "independentReviewerRoles": ["site reliability engineering reviewer", "business risk reviewer"]
+    },
+    {
+      "id": "APIG-M04",
+      "name": "Dependency-zero retirement",
+      "requiredMeasurements": {
+        "unresolvedDependencies": {"operator": "eq", "expected": 0},
+        "allDependencyDecisionsApproved": {"operator": "eq", "expected": true}
+      },
+      "requiredArtifacts": ["dependency-zero-register", "archive-and-retention-record", "support-and-runbook-closure", "commercial-closure"],
+      "independentReviewerRoles": ["operational readiness reviewer", "sourcing and financial operations reviewer"]
+    }
+  ]
+}

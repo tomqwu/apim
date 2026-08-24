@@ -5,13 +5,13 @@ override SITE_OUTPUT := _site
 override SITE_PORT := 8008
 override PYTHON := python3 -I
 
-.PHONY: help validate validate-public-source validate-openapi validate-yaml validate-counts validate-links validate-sources validate-source-coverage validate-visuals validate-studies validate-workflow validate-public-content validate-site validate-site-manifest lint-shell site site-serve poc-up poc-down smoke rate-limit-test kind-up kind-down k8s-smoke
+.PHONY: help validate validate-public-source validate-openapi validate-yaml validate-counts validate-links validate-sources validate-source-coverage validate-visuals validate-studies validate-migration-protocols validate-federated-delivery validate-workflow validate-public-content validate-site validate-site-manifest lint-shell site site-serve poc-up poc-down smoke rate-limit-test kind-up kind-down k8s-smoke
 
 help:
 	@sed -n 's/^## //p' Makefile
 
 ## validate: Run all repository checks that do not require a live cluster.
-validate: validate-public-content validate-openapi validate-yaml validate-counts validate-links validate-sources validate-source-coverage validate-visuals validate-studies validate-workflow validate-site lint-shell
+validate: validate-public-content validate-openapi validate-yaml validate-counts validate-links validate-sources validate-source-coverage validate-visuals validate-studies validate-migration-protocols validate-federated-delivery validate-workflow validate-site lint-shell
 
 ## validate-openapi: Parse every OpenAPI document and enforce key fields.
 validate-openapi: validate-public-source
@@ -48,6 +48,14 @@ validate-visuals: validate-public-source
 ## validate-studies: Enforce the opt-in principal-study depth and evidence contract.
 validate-studies: validate-public-source
 	@$(PYTHON) scripts/validate_studies.py
+
+## validate-migration-protocols: Self-test the Apigee migration evidence gate without claiming product execution.
+validate-migration-protocols: validate-public-source
+	@$(PYTHON) poc/apigee-migration/validate_evidence.py --self-test
+
+## validate-federated-delivery: Run the offline federated-delivery governance and drift reference.
+validate-federated-delivery: validate-public-source
+	@$(MAKE) -C poc/federated-api-delivery check
 
 ## validate-workflow: Validate the publication workflow, reusable skill, intake template, and committed packets.
 validate-workflow: site

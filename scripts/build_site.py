@@ -1954,7 +1954,9 @@ def guided_evaluation_visuals(
         references = {
             "docs/44": "docs/44-kong-multicloud-study-roadmap.md",
             "docs/47": "docs/47-kong-enterprise-platform-strategy.md",
+            "poc/federated-api-delivery": "poc/federated-api-delivery/README.md",
             "docs/50": "docs/50-apigee-migration-strategy.md",
+            "poc/apigee-migration": "poc/apigee-migration/README.md",
             "docs/35": "docs/35-mule-migration-strategy.md",
             "terminology crosswalk": "research/glossary.md",
             "poc/README": "poc/README.md",
@@ -2165,6 +2167,7 @@ def guided_evaluation_visuals(
     ]
     expected_interface_terms = [
         ("API", "application programming interface (API)"),
+        ("APIG-M", "Apigee migration proof-protocol record (APIG-M)"),
         ("EAG", "Early Assessment Gate (EAG)"),
         ("APIM", "Azure API Management (APIM)"),
         ("E0", "assertion-only evidence (E0)"),
@@ -2662,8 +2665,8 @@ def validate_site_projection(stats: dict[str, int], visuals: dict[str, object]) 
         else []
     )
     guided_identifier_tokens = [
-        "KGE", "EAG", "GTM", "GEW", "GRS", "GEO", "GEB", "KMC",
-        "KPS", "KP", "P", "MULE", "GEP", "GSA", "KO", "GEC",
+        "KGE", "EAG", "APIG-M", "GTM", "GEW", "GRS", "GEO", "GEB",
+        "KMC", "KPS", "KP", "P", "MULE", "GEP", "GSA", "KO", "GEC",
     ]
     guided_term_tokens = [
         ("KGE-01", ["KGE", "API", "EAG", "WAAP"]),
@@ -2677,11 +2680,11 @@ def validate_site_projection(stats: dict[str, int], visuals: dict[str, object]) 
         ("KGE-09", ["KGE", "API", "CP", "DP", "PKI", "IdP", "mTLS", "DNS", "HA", "SLO", "KPS", "E1", "RBAC", "WAF", "SIEM"]),
         ("KGE-10", ["KGE", "IdP", "CA", "CN", "JSON", "JWKS", "CP", "PKI", "E1", "DP", "KPS", "SIEM"]),
         ("KGE-11", ["KGE", "E1", "DP", "KPS", "CP"]),
-        ("KGE-12", ["KGE", "DB", "SRE", "IAM", "PKI", "E1", "KPS", "API", "CP", "DP"]),
+        ("KGE-12", ["KGE", "DB", "SRE", "IAM", "PKI", "E1", "KPS", "API", "CP", "DP", "APIOps", "RBAC"]),
         ("KGE-13", ["KGE", "KP0–KP5", "KP-SMH1", "E2", "E3", "E4", "BOM", "RACI", "GP-1–GP-6", "P1–P10", "API", "CP", "DB", "DP", "IdP", "PKI", "RBAC", "SLO"]),
         ("KGE-14", ["KGE", "API", "MULE", "SFTP", "SaaS"]),
         ("KGE-15", ["KGE", "AKS", "CRM", "API", "MULE"]),
-        ("KGE-16", ["KGE", "A0–A6", "M0–M5", "SLO", "E4", "KVM", "TLS"]),
+        ("KGE-16", ["KGE", "A0–A6", "M0–M5", "SLO", "E4", "KVM", "TLS", "APIG-M", "API", "OAuth", "IdP"]),
         ("KGE-17", ["KGE", "API", "PoC", "KP-SMH1", "E3", "E4", "CP", "AI", "TCO"]),
         ("KGE-18", ["KGE", "API", "GEP", "GSA", "LTS", "BOM", "SBOM", "APIOps", "IAM", "MCP", "A2A", "RTO", "RPO", "RACI", "WAAP", "PoC", "TPA", "EDS", "CPU", "SSE"]),
         ("KGE-19", ["KGE", "KO", "DP", "SLI", "SLO", "SRE", "OAuth", "mTLS", "IdP", "PKI", "PR", "CP", "RTO", "RPO", "IAM"]),
@@ -2877,7 +2880,7 @@ def validate_site_projection(stats: dict[str, int], visuals: dict[str, object]) 
             and guided_evaluation.get("sourceClass") == "comparative-study"
             and guided_evaluation.get("asOf") == "2026-08-24"
             and bool(guided_evaluation.get("evidenceState"))
-            and guided_evaluation.get("identifierCatalog", {}).get("rowTotal") == 16
+            and guided_evaluation.get("identifierCatalog", {}).get("rowTotal") == 17
             and [row.get("token") for row in guided_evaluation.get("identifierCatalog", {}).get("rows", [])]
             == guided_identifier_tokens
             and all(
@@ -2885,7 +2888,7 @@ def validate_site_projection(stats: dict[str, int], visuals: dict[str, object]) 
                 for row in guided_evaluation.get("identifierCatalog", {}).get("rows", [])
             )
             and guided_evaluation.get("termSets", {}).get("rowTotal") == 25
-            and guided_evaluation.get("termSets", {}).get("termTotal") == 228
+            and guided_evaluation.get("termSets", {}).get("termTotal") == 234
             and [
                 (row.get("slideId"), [term.get("token") for term in row.get("terms", [])])
                 for row in guided_evaluation.get("termSets", {}).get("rows", [])

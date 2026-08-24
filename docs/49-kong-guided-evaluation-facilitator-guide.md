@@ -238,7 +238,7 @@ Use the index below as the compact discussion control. The complete point-of-use
 | [9 · KGE-09](https://tomqwu.github.io/apim/#/present/kong-platform-journey-guided/8) | Validate control zone, DP cells, request lanes, evidence paths, network, and sovereignty boundaries. | “The diagram oversimplifies HA or database behavior.” It is an E1-informed discussion view; inspect canonical `KPS-1`. | Capture topology disputes. Do not infer a DP database path or uniform arrow semantics. Continue → 10. |
 | [10 · KGE-10](https://tomqwu.github.io/apim/#/present/kong-platform-journey-guided/9) | Separate configuration, trust, request, business, and evidence paths. Ask which path governs service admission. | “Proxy success proves availability.” Gateway uptime is not the API or business SLO. | Capture probes, state identity, trust age, backend readiness, and owners. Resilience → 11 or 17–19. |
 | [11 · KGE-11](https://tomqwu.github.io/apim/#/present/kong-platform-journey-guided/10) | Assign continue, hold, quarantine, reconcile, override, and response authority. | “Kong automates these states.” They are a proposed organizational policy around documented behavior. | Capture state owners, objectives, break-glass, and reconciliation. Continue → 12. |
-| [12 · KGE-12](https://tomqwu.github.io/apim/#/present/kong-platform-journey-guided/11) | Name the teams and capacity for platform lifecycle, domain correctness, security admission, reliability, and escalation. | “The vendor or a ticket queue owns it.” Support does not transfer service accountability. | Capture RACI and staffing exceptions. Unnamed teams or heroics = HOLD. |
+| [12 · KGE-12](https://tomqwu.github.io/apim/#/present/kong-platform-journey-guided/11) | Approve the application-repository versus platform ownership matrix, composed policy, one-writer boundary, reviewable effective configuration, exception expiry, and funded operations. | “Every team can run decK” or “copy the central plugins.” Federation delegates intent, not platform authority; copied policy, overlapping writers, hidden composition, or permanent exceptions create drift. | Capture repository contract, mandatory controls, writer matrix, promotion/rollback authority, evidence chain, exception owner/expiry, and capacity. Any unowned or overridable control = HOLD. |
 | [13 · KGE-13](https://tomqwu.github.io/apim/#/present/kong-platform-journey-guided/12) | Approve the KP0–KP5 gate sequence and evidence needed to leave each phase. | “Are these dates committed?” The overlapping 0–18 month windows are scenario assumptions. | Replace date debate with entry/exit evidence. Migration → 14; proof-first → 18. |
 
 ### Phase 4 — Migration
@@ -247,7 +247,7 @@ Use the index below as the compact discussion control. The complete point-of-use
 |---|---|---|---|
 | [14 · KGE-14](https://tomqwu.github.io/apim/#/present/kong-platform-journey-guided/13) | Adopt the responsibility and durable-state taxonomy. | “Move Mule packages to Kong.” Only gateway policy is unambiguous; facade is conditional and other duties need owned destinations. | Name inventory, classification, destination, and state-authority owners. Continue → 15. |
 | [15 · KGE-15](https://tomqwu.github.io/apim/#/present/kong-platform-journey-guided/14) | Require bounded cohorts, parity probes, reconciliation, and route-back. | “Dual run is too costly” or “the edge must already be Kong.” The stable-edge pattern is product-neutral and safety-driven. | Capture cohort, business-verifier, route-back, and evidence-retention owners. Continue → 16. |
-| [16 · KGE-16](https://tomqwu.github.io/apim/#/present/kong-platform-journey-guided/15) | Adopt Apigee A0–A6 as the explicit object/state migration rail; keep Mule M0–M5 as its responsibility/state counterpart. | “Exported proxies are the Apigee roadmap.” Bundles omit product/app/credential, KVM/quota/cache, portal, analytics, placement, and Hybrid state. Names are not semantic mappings. | Capture source archetype, denominator, semantic map, hard-slice corpus, coexistence ledger, timed route-back, and dependency-zero authority. |
+| [16 · KGE-16](https://tomqwu.github.io/apim/#/present/kong-platform-journey-guided/15) | Approve the dependency-closed A0 denominator, direct/configure/redesign/custom-or-external/retain/retire classes, exact identity and lifecycle design, state treatment, topology boundary, and `APIG-M01`–`APIG-M04` gates. | “Exported proxies are the roadmap,” “Consumer Group equals product,” “Workspace equals environment,” or “direct means no test.” Names and bundles are not semantic, authorization, state, or retirement proof. | Capture shared cut sets, product/application/credential boundary, external IdP design, counter/cache drain/reset/reconciliation/loss, writer split, protocol artifacts/thresholds/reviewers, timed route-back, and dependency-zero authority. |
 
 ### Phase 5 — Production proof
 
@@ -1133,41 +1133,41 @@ Branch to slide 12 for ownership or slides 18–19 for execution and artifacts. 
 
 HOLD when a mandatory degraded state lacks an owner, expiry, response rule, probe, or reconciliation artifact.
 
-#### KGE-12 · Self-managed control is a funded platform service
+#### KGE-12 · Central guardrails enable federated API delivery
 
 - **Phase:** `KGE-P3 — Architecture and adoption`
 - **Native route:** [Open slide 12](https://tomqwu.github.io/apim/#/present/kong-platform-journey-guided/11) (`#/present/kong-platform-journey-guided/11`)
 - **Timebox:** 4 minutes
 - **Evidence state:** Proposed target
-- **Meeting job:** Name accountable teams and funded capacity for platform lifecycle, domain correctness, admission, reliability, and escalation.
+- **Meeting job:** Approve the application-versus-platform ownership boundary, the composed release path, and the funded teams that operate it.
 
 ##### Purpose
 
-Translate architecture into durable operating ownership.
+Translate architecture into a delivery model that gives application teams autonomy without duplicating or weakening central controls.
 
 ##### Talk track
 
-Self-managed Kong succeeds only when the platform team owns the service lifecycle, product teams own API outcomes, security and SRE own admission and reliability gates, and the vendor remains support—not the accountable owner.
+Application teams own the contract, safe gateway intent, service metadata, tests, and promotion request. The platform owns mandatory policy, identity and trust, topology, release authority, and evidence. A standard pipeline composes both into one visible effective configuration, with one writer per entity and time-bounded exceptions.
 
 ##### Speaker script
 
-Kong’s self-managed model can give the enterprise strong control over application programming interface (API) delivery, but only if we run it as a funded platform service. It is not simply a shared cluster that application teams consume.
+Kong can support federated application programming interface (API) delivery, but federation means delegated intent under common controls—not a gateway platform inside every application repository.
 
-The platform team would own Kong’s lifecycle, control plane, database operations, releases, recovery, upgrades, evidence, and vendor escalation. Domain teams would continue to own API contracts, business rules, data correctness, and customer outcomes. Identity and Access Management (IAM), certificate, and security teams would own trust, rotation, revocation, and exceptions. Site Reliability Engineering (SRE), network, and database teams would operate the failure points with the platform team.
+Application teams own the OpenAPI contract, safe Service and Route intent, service metadata, tests, and the request to promote a versioned release. They do not receive unrestricted control-plane access. The platform owns mandatory policy, identity and trust, topology, release authority, drift, recovery, and evidence. Identity and access management (IAM), security, and site reliability engineering (SRE) retain their organization-wide accountability.
 
-Vendor support helps when problems escalate, but it does not run the service for us. Contract and legal questions remain with sourcing, risk, and qualified counsel.
+The application programming interface operations (APIOps) pipeline composes application intent with independently versioned central bundles. Reviewers must see the effective configuration and deletion diff before promotion. One tool is the authoritative writer for each entity, so Terraform and decK cannot manage the same object. Exceptions require an owner, approval, visible scope, and automatic expiry.
 
-The decision is whether existing teams have funded capacity, on-call coverage, recovery targets, and proof that upgrades and restores work. We also need one authority when platform, security, and business signals disagree. If any ongoing responsibility has no funded owner, decide to hold the self-managed Kong choice.
+This model offers teams a faster standard path without hiding central responsibility. Approve it if the ownership matrix, composition review, writer boundary, exception lifecycle, evidence chain, and funded operations are acceptable. Amend the exact boundary if they are not. Hold if any responsibility is unowned, the effective result is hidden, mandatory controls can be bypassed, or writers overlap.
 
 ##### Talking points
 
-- Self-managed Kong can deliver control only when it is funded as an ongoing platform service.
-- Platform, business, security, reliability, and vendor roles must remain clear.
-- Approve named teams and capacity before the foundation build begins.
+- Application repositories own contracts, safe intent, metadata, tests, and promotion requests.
+- The platform owns immutable controls, trust, topology, release authority, drift, exceptions, recovery, and evidence.
+- The pipeline must show the composed effective configuration and preserve one authoritative writer per entity.
 
 ##### Ask
 
-Name accountable teams and capacity before foundation build starts.
+Approve the ownership matrix, reference application repository, central bundle boundary, exception expiry, and promotion evidence—or identify exactly what must change.
 
 ##### Bridge
 
@@ -1175,40 +1175,40 @@ The adoption roadmap sequences those responsibilities and evidence gates.
 
 ##### Caveat
 
-The exact RACI is a target model and must be reconciled with the enterprise organizational design.
+This is a proposed operating model, not executed proof. The exact responsible, accountable, consulted, and informed (RACI) assignments, repository permissions, policy composition, and target-version behavior still require implementation and review.
 
 ##### Sources
 
-- Canonical operating model: [Kong enterprise platform deployment strategy](47-kong-enterprise-platform-strategy.md) and [Kong guided evaluation](48-kong-guided-evaluation.md).
-- Official documented mechanisms (`E1` only): [Kong hybrid mode](https://developer.konghq.com/gateway/hybrid-mode/) and [Kong Gateway monitoring](https://developer.konghq.com/gateway/monitoring/).
+- Canonical operating model: [Kong enterprise platform deployment strategy](47-kong-enterprise-platform-strategy.md), [developer portal and API products](30-developer-portal-api-products.md), [federated API delivery reference](../poc/federated-api-delivery/README.md), and [Kong guided evaluation](48-kong-guided-evaluation.md).
+- Official documented mechanisms (`E1` only): [Kong hybrid mode](https://developer.konghq.com/gateway/hybrid-mode/), [Kong Gateway monitoring](https://developer.konghq.com/gateway/monitoring/), [decK synchronization](https://developer.konghq.com/deck/gateway/sync/), [Kong Terraform providers](https://developer.konghq.com/terraform/), [Kong Route entity](https://developer.konghq.com/gateway/entities/route/), and [Kong plugin scope](https://developer.konghq.com/gateway/entities/plugin/).
 
 ##### Listen for
 
-“The vendor or service desk owns it,” “the platform team owns business correctness,” or an assumption that existing teams can absorb the duty without capacity evidence.
+“Every team can run decK directly,” “copy the central plugin settings into each repository,” “Terraform and decK can both manage it,” “we can inspect the effective configuration after deployment,” or an assumption that a permanent exception needs no expiry.
 
 ##### Evidence-safe response
 
-Support can assist but does not transfer service accountability. Platform lifecycle, domain correctness, IAM/security admission, reliability, evidence, and escalation need explicit owners and funded capacity.
+Federation delegates application intent, not platform accountability. Central controls stay independently versioned and immutable; the pipeline composes them with application intent and exposes the result before change. One entity has one authoritative writer, and every exception is owned, time-bounded, reviewable, and reversible.
 
 ##### Follow-up probe
 
-Which team is accountable for each outcome, what capacity is funded, and who acts when product, platform, security, and domain signals disagree?
+Which files can an application team change, which controls can it never override, where is the composed configuration shown, who approves promotion and exceptions, and which tool is the sole writer for every entity class?
 
 ##### Decision impact
 
-Unnamed teams or heroic operating assumptions make the self-managed option non-admissible.
+Overlapping writers, copied policy, hidden composition, permanent exceptions, or unowned lifecycle duties turn federation into configuration drift and make the delivery model non-admissible.
 
 ##### Capture
 
-Record RACI, capacity, sourcing, service-desk boundary, vendor escalation, exceptions, and unresolved role conflicts.
+Record the application/platform ownership matrix, repository and metadata contract, central bundle owners and versions, mandatory-control list, prohibited overrides, effective-configuration review, promotion and rollback authority, writer matrix, exception owner and expiry, drift evidence, funded capacity, vendor escalation, and unresolved role conflicts.
 
 ##### Branch/rejoin
 
-Branch to slide 8 for permanent duty, slide 13 for adoption gates, or slide 20 for sustainability. Rejoin at slide 6 or 21.
+Branch to slide 8 for permanent duty, slide 13 for adoption gates, slide 18 for executable proof, or slide 20 for sustainability. Rejoin at slide 6 or 21.
 
 ##### HOLD/park
 
-HOLD when any mandatory outcome relies on an unnamed team, unfunded capacity, or a support contract in place of accountability.
+HOLD when an application or platform responsibility is unowned, mandatory controls can be overridden or copied, effective configuration is not reviewable, entity writers overlap, exceptions do not expire, or operations remain unfunded.
 
 #### KGE-13 · Foundation is work; scale is an outcome gate
 
@@ -1441,39 +1441,41 @@ Branch to slide 14 for classification, slide 16 for wave controls, or slide 24 f
 
 HOLD a cohort without representative parity, business correctness, reconciliation, and route-back. Park cost optimization only after the safety boundary is preserved.
 
-#### KGE-16 · Apigee A0–A6 moves the full object and state graph
+#### KGE-16 · Classify every Apigee behavior before conversion
 
 - **Phase:** `KGE-P4 — Migration`
 - **Native route:** [Open slide 16](https://tomqwu.github.io/apim/#/present/kong-platform-journey-guided/15) (`#/present/kong-platform-journey-guided/15`)
 - **Timebox:** 4 minutes
 - **Evidence state:** Proposed migration model
-- **Meeting job:** Make the Apigee A0–A6 roadmap explicit, then relate it to Mule M0–M5 without collapsing either source into a proxy-package conversion exercise.
+- **Meeting job:** Approve a dependency-closed Apigee denominator, six explicit disposition classes, target-specific identity and lifecycle designs, and four executable migration evidence gates.
 
 ##### Purpose
 
-Use one stable-edge and evidence-gate doctrine while preserving the different migration units and state boundaries of Mule and Apigee.
+Prevent a proxy export or same-named Kong object from being mistaken for semantic, authorization, state, lifecycle, or retirement proof.
 
 ##### Talk track
 
-For Apigee, A0 inventories the complete object/state graph; A1 classifies semantic disposition; A2 builds a reversible target; A3 proves a hard representative slice; A4 runs bounded coexistence; A5 collects production-canary evidence; and A6 closes technical, operating, recovery, data, support, and commercial dependency zero. Mule uses a different M0–M5 responsibility/state rail. Both share reconciled source truth, semantic proof, a stable edge, business verification, timed route-back, state reconciliation and dependency-zero authority.
+For Apigee, A0 inventories the dependency-closed object, identity, state, evidence and commercial graph. A1 classifies each behavior as direct, configure, redesign, custom or external, retain or retire. A2 resolves the exact Kong topology and retained systems. A3 requires positive and negative authorization plus zero unaccepted critical variance. A4 and A5 prove bounded coexistence, drain/reset/reconciliation, route-back and representative operation. A6 requires dependency zero. The Apigee migration proof-protocol records (`APIG-M01`–`APIG-M04`) make the denominator, parity, coexistence and retirement records mechanically checkable. Mule keeps its separate M0–M5 responsibility/state rail.
 
 ##### Speaker script
 
-Apigee migration involves much more than exporting proxy files. Products, applications, credentials, shared policies, key-value data, quotas, caches, targets, portals, analytics, and runtime dependencies can all affect the business outcome. Kong may be the destination, but a safe move must account for that full picture.
+An Apigee proxy bundle is not the migration denominator. Inventory the dependency-closed graph: proxies, shared flows, products, applications, credentials, identity, state, portals, evidence, integrations, and runtime objects. Classify every behavior as `Direct`, `Configure`, `Redesign`, `Custom or external`, `Retain`, or `Retire`. A name match is not semantic proof.
 
-The A0–A6 roadmap makes the work understandable. A0 inventories what exists. A1 decides what can map directly, needs configuration, must be rewritten, stays temporarily, or can retire. A2 builds a controlled Kong target with automation, identity, recovery, support, cost, and rollback. A3 proves one difficult representative service. A4 moves small groups while identity, state, outcomes, and evidence are compared. A5 runs a representative pilot. A6 retires Apigee only when no technical, operating, recovery, data, support, or commercial dependency remains.
+Boundaries need design. A Kong Consumer Group is not an Apigee API product. An external identity provider (IdP) must handle the OAuth 2.0 authorization framework (OAuth) for hybrid. Product, application, and credential lifecycles need owners. Key value maps (KVMs) split into secrets, static configuration, mutable state, or retirement. Quota counters and cache entries require a drain, reset, reconciliation, or accepted-loss decision. A Workspace is an administrative namespace, not separate control-plane, data-plane, network, placement, or release isolation.
 
-MuleSoft uses a different roadmap because its source model is different, but both migrations need a stable edge, accurate inventory, business verification, state comparison, timed rollback, and independent approval to exit. Decide which roadmap applies and who owns each gate. Export counts and elapsed time do not prove safe retirement.
+The Apigee migration proof-protocol records (`APIG-M01`–`APIG-M04`) test denominator closure, semantics and authorization, coexistence and route-back, then dependency-zero retirement. Each requires objective thresholds, raw artifacts, and independent review; the product migration remains Not run.
+
+Approve if the inventory, six classes, identity and lifecycle designs, state treatment, topology, thresholds, and reviewers are complete. Amend the missing boundary if they are not. Hold if a proxy export, object-name match, or validator self-test is being used as migration proof.
 
 ##### Talking points
 
-- Moving from Apigee to Kong includes identities, state, policies, portals, analytics, and runtime dependencies.
-- Apigee and MuleSoft need different roadmaps but the same business and rollback controls.
-- Approve retirement only when reviewed evidence shows no remaining dependency.
+- Inventory the full dependency graph, including products, applications, credentials, shared objects, state, evidence, monetization and retained systems.
+- Classify each behavior as direct, configure, redesign, custom or external, retain or retire; a name match is not parity.
+- Use `APIG-M01`–`APIG-M04` to gate denominator, semantics/authorization, coexistence/reconciliation, and dependency-zero retirement.
 
 ##### Ask
 
-Confirm the actual source archetype, choose the relevant rail, and adopt entry/exit evidence rather than elapsed time, package count, or exported proxy count. Assign migration architecture, API product, IAM/security, SRE, domain, FinOps/sourcing, and independent-review roles.
+Approve or amend the A0 inventory, shared-object cut-set review, six disposition classes, external identity-provider and application-lifecycle boundary, workspace-versus-control-plane/data-plane topology, counter/cache treatment, Terraform/decK writer split, `APIG-M01`–`APIG-M04` thresholds, and independent reviewers.
 
 ##### Bridge
 
@@ -1481,25 +1483,25 @@ The current PoC evidence is far earlier than these production gates.
 
 ##### Caveat
 
-These phases are proposed and not run. They do not assert current programme progress, duration, object count, converter success, or semantic parity. The terminology crosswalk supplies nearest analogues only; each mapping still requires behavior, state, lifecycle, authority, evidence, and ownership proof.
+These phases and protocols are proposed. The harness self-test checks only its validator contract; it does not connect to either product or prove a migration. No current programme progress, duration, object count, converter success, semantic parity, authorization parity, recovery, cost, or retirement result is asserted.
 
 ##### Sources
 
-- Canonical wave and decision content: [Apigee migration strategy](50-apigee-migration-strategy.md#proposed-a0a6-migration-roadmap), [Mule migration strategy](35-mule-migration-strategy.md), and [Kong guided evaluation](48-kong-guided-evaluation.md).
+- Canonical wave and decision content: [Apigee migration strategy](50-apigee-migration-strategy.md#proposed-a0a6-migration-roadmap), [Apigee migration evidence harness](../poc/apigee-migration/README.md), [Mule migration strategy](35-mule-migration-strategy.md), and [Kong guided evaluation](48-kong-guided-evaluation.md).
 - Mapping aid: [Kong terminology crosswalk](../research/glossary.md#kong-terminology-crosswalk).
-- Official contextual mechanisms (`E1` only): [MuleSoft Omni Gateway](https://docs.mulesoft.com/gateway/latest/), [Apigee proxy-bundle export and import](https://docs.cloud.google.com/apigee/docs/api-platform/fundamentals/download-api-proxies), [Apigee proxy configuration](https://docs.cloud.google.com/apigee/docs/api-platform/reference/api-proxy-configuration-reference), [Kong entities](https://developer.konghq.com/gateway/entities/), [Kong plugin scope](https://developer.konghq.com/gateway/entities/plugin/), and [Kong deployment topologies](https://developer.konghq.com/gateway/deployment-topologies/).
+- Official contextual mechanisms (`E1` only): [MuleSoft Omni Gateway](https://docs.mulesoft.com/gateway/latest/), [Kong entities](https://developer.konghq.com/gateway/entities/), [Kong plugin scope](https://developer.konghq.com/gateway/entities/plugin/), [Kong plugin compatibility](https://developer.konghq.com/plugins/compatibility/), [Kong Consumer Groups](https://developer.konghq.com/gateway/entities/consumer-group/), [Kong Workspaces](https://developer.konghq.com/gateway/entities/workspace/), [Kong rate-limiting strategies](https://developer.konghq.com/gateway/rate-limiting/strategies/), [decK synchronization](https://developer.konghq.com/deck/gateway/sync/), [Kong Terraform providers](https://developer.konghq.com/terraform/), [Apigee proxy-bundle export and import](https://docs.cloud.google.com/apigee/docs/api-platform/fundamentals/download-api-proxies), [Apigee proxy configuration](https://docs.cloud.google.com/apigee/docs/api-platform/reference/api-proxy-configuration-reference), [Apigee API products](https://docs.cloud.google.com/apigee/docs/api-platform/publish/create-api-products), [Apigee applications and credentials](https://docs.cloud.google.com/apigee/docs/api-platform/publish/creating-apps-surface-your-api), [Apigee key value maps](https://docs.cloud.google.com/apigee/docs/api-platform/cache/key-value-maps), and [Apigee quota](https://docs.cloud.google.com/apigee/docs/api-platform/reference/policies/quota-policy).
 
 ##### Listen for
 
-“Give us committed counts and dates,” “object migration percentage proves progress,” “Apigee proxy export is the roadmap,” “this source object maps directly to a same-named Kong entity,” or pressure to retire the source before dependency zero.
+“Give us committed counts and dates,” “the proxy export is the denominator,” “Consumer Group equals product,” “Workspace equals environment isolation,” “we can copy OAuth tokens,” “quota/cache state will move,” “direct means no test,” or pressure to retire before `APIG-M04` passes.
 
 ##### Evidence-safe response
 
-Elapsed time, package count, and proxy bundles do not prove business parity, identity/product state, KVM/quota/cache behavior, portal/evidence continuity, residual dependency, reconciliation, or safe retirement. A source term is a mapping prompt, not a semantic result. Each rail advances only on source-specific, owned entry and exit evidence.
+Elapsed time, package count, and proxy bundles do not prove business parity, identity/product state, key value map/quota/cache behavior, portal/evidence continuity, residual dependency, reconciliation, or safe retirement. `Direct` is a structural mapping with proven semantics—not permission to skip negative and failure tests. Each rail advances only on source-specific, owned entry and exit evidence.
 
 ##### Follow-up probe
 
-Which source archetype and object/state denominator apply, what evidence opens and closes each wave, which business and identity/state probes govern route-back, who validates dependency zero, and which role can stop or reverse retirement?
+Which active source objects or shared cut sets are missing, where do product and application lifecycles live, which state is drained/reset/reconciled/lost, what evidence opens and closes each protocol, and who can stop or reverse retirement?
 
 ##### Decision impact
 
@@ -1507,7 +1509,7 @@ Time-led or proxy-only progression can produce irreversible cutover while semant
 
 ##### Capture
 
-Record source archetype, reconciled object/state/traffic/owner denominator, terminology non-equivalences, per-wave entry and exit evidence, representative hard cases, identity/state authority, business probes, route-back and reconciliation conditions, dependency-zero definition, public role owners, independent reviewers, and unresolved assumptions.
+Record source archetype; dependency-closed object/state/traffic/owner denominator; shared cut sets; six disposition classes; product/application/credential and identity-provider design; Workspace/control-plane/data-plane boundary; Terraform/decK writer ownership; counter/cache drain, reset, reconciliation or loss; `APIG-M01`–`APIG-M04` artifacts and thresholds; business probes; route-back; dependency-zero definition; public role owners; independent reviewers; and unresolved assumptions.
 
 ##### Branch/rejoin
 
@@ -1515,7 +1517,7 @@ Branch to slides 14–15 for responsibility/coexistence, slides 17–18 for the 
 
 ##### HOLD/park
 
-HOLD when source archetype, object/state denominator, semantic parity, identity/state authority, business probes, reconciliation, route-back, or dependency-zero evidence is missing. An exported bundle or name mapping cannot close the hold. Do not park an irreversible cutover risk.
+HOLD when the denominator, shared cut sets, disposition, identity/application lifecycle, topology isolation, semantic or authorization parity, state treatment, writer ownership, business probes, reconciliation, route-back, independent review, or dependency-zero evidence is missing. An exported bundle, name mapping, or validator self-test cannot close the hold.
 
 ### Phase 5 — Production proof
 
@@ -2235,6 +2237,7 @@ The assessment drawer and summary project this ordered terminology rail before a
 | Token | Exact visible term | Interface purpose |
 |---|---|---|
 | API | application programming interface (API) | Assessment prompt and target context |
+| APIG-M | Apigee migration proof-protocol record (APIG-M) | Migration evidence-gate identifiers |
 | EAG | Early Assessment Gate (EAG) | Phase 1 scope and evidence-gate identifiers |
 | APIM | Azure API Management (APIM) | Phase 2 counterfactual option identifier |
 | E0 | assertion-only evidence (E0) | Participant evidence-level selector |
@@ -2280,7 +2283,8 @@ Stable identifiers are navigation aids, not evidence. Before a participant appro
 | KPS-FIT; KPS-FIT-01..KPS-FIT-02 | Custody-fit conditions and permanent duties | docs/48-kong-guided-evaluation.md | Custody fit and permanent duty | Review when custody helps and which operating duties remain. |
 | KPS; KPS-1 | Self-managed target architecture | docs/47-kong-enterprise-platform-strategy.md | Target architecture: self-managed control, distributed runtime | Inspect the proposed control and request-runtime boundaries before accepting the model. |
 | KPS-2 | State, trust, and responsibility paths | docs/47-kong-enterprise-platform-strategy.md | State, trust, and responsibility ledger | Review the authoritative state, trust, replication, evidence, and owner path. |
-| KPS-3 | Funded platform operating model | docs/47-kong-enterprise-platform-strategy.md | Platform operating model | Check the organization-wide duties and funded owner roles. |
+| KPS-3 | Federated delivery and funded platform operating model | docs/47-kong-enterprise-platform-strategy.md | Platform operating model | Review the application/platform ownership matrix, composed policy, writer boundary, exception expiry, evidence chain, and funded operating roles. |
+| FED-API | Executable federated API delivery reference | poc/federated-api-delivery/README.md | Answer first | Inspect the application intent, central policy, composition, review, attestation, drift, exception, and single-writer contract before accepting the delivery model. |
 | KPS-4 | Degraded-mode admission and state machine | docs/47-kong-enterprise-platform-strategy.md | Failure chains and safe degraded modes | Review failure behavior, reconciliation, and safe admission before proof. |
 | KPS-5; KP0–KP5; KP0..KP5 | Evidence-gated adoption roadmap and stages | docs/47-kong-enterprise-platform-strategy.md | 0–18 month platform roadmap | Review each stage's entry evidence, exit evidence, and stop authority. |
 | KPS-6 | Evidence-gated scale, narrow, switch, and exit logic | docs/47-kong-enterprise-platform-strategy.md | Falsification and proof plan | Confirm that failed or unknown evidence can change the outcome. |
@@ -2288,6 +2292,7 @@ Stable identifiers are navigation aids, not evidence. Before a participant appro
 | MULE-3 | Stable-edge Mule coexistence architecture | docs/35-mule-migration-strategy.md | Target coexistence architecture | Review how coexistence, rollback, and request continuity are bounded. |
 | M0–M5; MULE-6 | Evidence-gated Mule migration waves | docs/35-mule-migration-strategy.md | Migration waves | Review wave entry, parity, route-back, and dependency-zero controls. |
 | A0–A6; A0..A6 | Apigee object-and-state migration roadmap | docs/50-apigee-migration-strategy.md | Proposed A0–A6 migration roadmap | Review the Apigee discovery-to-decommission stages and stop conditions. |
+| APIG-M; APIG-M01..APIG-M04 | Apigee migration proof-protocol records | poc/apigee-migration/README.md | Protocol boundary | Review the objective denominator, parity, coexistence, reconciliation, route-back, artifact, reviewer, and dependency-zero gates before a cohort advances. |
 | KGE-PROOF; KGE-PROOF-01..KGE-PROOF-03 | Current non-additive proof systems | docs/48-kong-guided-evaluation.md | Current proof boundary | Distinguish executed local checks, unexecuted protocols, and target-option evidence. |
 | KO; KO-1..KO-11 | Production outcome and acceptance contracts | docs/47-kong-enterprise-platform-strategy.md | Outcome measures and acceptance artifacts | Review measures, thresholds, artifacts, reviewers, and failure dispositions before interpreting results. |
 
@@ -2304,9 +2309,9 @@ Stable identifiers are navigation aids, not evidence. Before a participant appro
 | KGE-P2-Q01 | KGE-P2 | KGE-04 | GEO-KONG; GEO-APIGEE; GEO-MULE; GEO-APIM | Which conditional option counterfactuals stay in scope, require symmetric evidence, or are excluded with an explicit rationale? | Record the conditions that could narrow Kong, switch custody, or reopen option selection. | A fit condition or exclusion is meeting scope, not comparative product evidence or a rank. | E1 | true | KGE-CS-COUNTERFACTUAL | HOLD if an agreed mandatory counterfactual condition is unresolved without symmetric evidence. |
 | KGE-P2-Q02 | KGE-P2 | KGE-05; KGE-06; KGE-07; KGE-08 | KP-SMH1; GEW-01..GEW-08; KGE-AUTH-01..KGE-AUTH-05; GEB-01..GEB-03; KMC-1; KMC-3; KPS-FIT-01; KPS-FIT-02 | Does the room approve, amend, or hold the historical score's audit-only use, bounded authorization, operating boundary, custody benchmark, true exit, and funded duty? | Set the authorization boundary and accountable operating commitments without manufacturing a new total. | Historical ratings remain stakeholder input; role acceptance and architecture preference are not E2/E3 behavior, economics, or legal conclusions. | E2 | true | KGE-CS-AUTHORIZATION | HOLD if the score is used for authorization or the exact boundary, funded duty, custody benchmark, or true exit lacks an owner. |
 | KGE-P3-Q01 | KGE-P3 | KGE-09; KGE-10; KGE-11 | KPS-1; KPS-2; KPS-4 | Are the control, request, trust, evidence, degraded-admission, probe, threshold, owner, and reconciliation boundaries accepted, amended, held, or unknown? | Freeze the target-shaped architecture and admission questions that the proof programme must test. | An accepted model remains proposed until the exact option executes the linked tests with reviewable artifacts. | E3 | true | KGE-CS-REVIEW | HOLD target freeze when a mandatory boundary, probe, state identity, response owner, or reconciliation rule is unknown. |
-| KGE-P3-Q02 | KGE-P3 | KGE-12; KGE-13 | KPS-3; KPS-5; KP0..KP5 | Are the funded ownership model and each adoption gate's entry evidence, exit evidence, and stop authority accepted, amended, held, or unknown? | Decide whether foundation and later phase transitions have accountable owners and evidence exits. | Role and gate agreement does not show that a gate has passed or that a scenario window is a commitment. | E3 | true | KGE-CS-REVIEW | HOLD a phase transition that lacks funded ownership, exit evidence, or stop authority. |
-| KGE-P4-Q01 | KGE-P4 | KGE-14; KGE-16 | MULE-2; MULE-6; A0..A6 | Which source archetype applies, and is its responsibility, durable-state, destination, ownership, and object-state denominator sufficiently classified? | Select the applicable migration rail and create bounded classification work. | A selected source or taxonomy is not observed workload parity, converter success, migration progress, or decommission evidence. | E3 | false | KGE-CS-SOURCE | When migration is in scope, HOLD if source, responsibility, durable state, destination, denominator, or owner is unknown. |
-| KGE-P4-Q02 | KGE-P4 | KGE-15; KGE-16 | MULE-3; MULE-6; A2..A6 | Are cohorting, parity, business verification, reconciliation, route-back, per-wave evidence, and dependency-zero controls accepted, amended, held, or unknown? | Determine whether a migration cohort or wave can be designed without authorizing irreversible cutover. | A control design or exported bundle is not executed parity, safe rollback, or dependency-zero evidence. | E3 | false | KGE-CS-REVIEW | When migration is in scope, HOLD a cohort without parity, business verification, reconciliation, route-back, and dependency-zero evidence. |
+| KGE-P3-Q02 | KGE-P3 | KGE-12; KGE-13 | KPS-3; FED-API; KPS-5; KP0..KP5 | Are the application/platform ownership boundary, composed mandatory controls, one-writer rule, exception expiry, effective-configuration evidence, funded operating model, and each adoption gate's entry evidence, exit evidence, and stop authority accepted, amended, held, or unknown? | Decide whether federated delivery and later phase transitions have accountable owners, non-overlapping authority, reviewable releases, and evidence exits. | Agreement describes a proposed operating contract; it does not prove the reference pipeline, a gate passage, or a scenario-window commitment. | E3 | true | KGE-CS-REVIEW | HOLD when ownership is missing, mandatory controls can be overridden or copied, effective configuration is hidden, writers overlap, exceptions do not expire, operations are unfunded, or a phase lacks exit evidence and stop authority. |
+| KGE-P4-Q01 | KGE-P4 | KGE-14; KGE-16 | MULE-2; MULE-6; A0..A6; APIG-M01 | Which source archetype applies, and is its responsibility, durable-state, destination, ownership, dependency-closed object/state denominator, shared cut sets, and six-part disposition sufficiently classified? | Select the applicable migration rail and create bounded classification work with a mechanically reviewable denominator. | A selected source, taxonomy, mapping label, or validator self-test is not observed workload parity, converter success, migration progress, or decommission evidence. | E3 | false | KGE-CS-SOURCE | When migration is in scope, HOLD if source, responsibility, durable state, destination, dependency closure, shared cut set, disposition, denominator, or owner is unknown. |
+| KGE-P4-Q02 | KGE-P4 | KGE-15; KGE-16 | MULE-3; MULE-6; A2..A6; APIG-M02..APIG-M04 | Are product/application authorization, identity lifecycle, topology isolation, semantic parity, state drain/reset/reconciliation/loss, cohorting, business verification, route-back, per-wave artifacts, independent review, and dependency-zero controls accepted, amended, held, or unknown? | Determine whether a migration cohort can execute and reverse safely without authorizing irreversible cutover. | A control design, exported bundle, same-name mapping, or passing harness self-test is not executed parity, safe rollback, or dependency-zero evidence. | E3 | false | KGE-CS-REVIEW | When migration is in scope, HOLD a cohort without authorization and semantic parity, state treatment, business verification, reconciliation, route-back, independent review, and dependency-zero evidence. |
 | KGE-P5-Q01 | KGE-P5 | KGE-17 | KGE-PROOF-01..KGE-PROOF-03 | Does the room accept the current non-additive evidence baseline, dispute a specific result state, or leave it unknown? | Freeze the starting evidence boundary before authorizing new proof. | Acceptance preserves the recorded state and limitations; it does not convert local checks, protocols, or counts into target-option evidence. | E3 | true | KGE-CS-EVIDENCE | HOLD any readiness percentage or production claim derived from the non-additive baseline systems. |
 | KGE-P5-Q02 | KGE-P5 | KGE-18 | GEP-01..GEP-07; GSA-01 | Does each proof workstream have an authorized exact option or BOM, method, measure, threshold, raw artifact, reviewer, due gate, and stop rule? | Authorize, amend, or hold target-shaped proof work without authorizing production scale. | Authorizing a test is not executing it; GEP-07 remains adjunct feasibility until independently reviewed evidence closes its exact boundary. | E3 | true | KGE-CS-AUTHORIZATION | HOLD a workstream missing its exact option, environment, measure, threshold, artifact, reviewer, or stop rule. |
 | KGE-P5-Q03 | KGE-P5 | KGE-19; KGE-20 | KO-1..KO-11 | Is each outcome contract ready, or does its measure, target, artifact, cadence, owner, reviewer, or failure disposition require amendment, hold, or an unknown state? | Freeze the acceptance contract before demonstrations can be interpreted as outcomes. | `contract-ready` describes the test contract only; it is never a pass, achieved result, platform score, or production-readiness claim. | E3 | true | KGE-CS-CONTRACT | HOLD an outcome without an approved measure, threshold, raw artifact, reviewer, and failure disposition. |

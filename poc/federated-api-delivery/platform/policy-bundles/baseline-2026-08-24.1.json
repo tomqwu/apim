@@ -1,0 +1,81 @@
+{
+  "schema_version": 1,
+  "bundle_id": "baseline",
+  "version": "baseline-2026-08-24.1",
+  "as_of_date": "2026-08-24",
+  "writer_id": "platform:api-policy",
+  "mandatory_control_ids": [
+    "AUTHN-01",
+    "CORR-01",
+    "OBS-01"
+  ],
+  "non_exemptible_control_ids": [
+    "AUTHN-01",
+    "CORR-01",
+    "OBS-01",
+    "WRITER-01"
+  ],
+  "exception_eligible_control_ids": [
+    "ROUTE-NONSTANDARD"
+  ],
+  "required_plugins": [
+    {
+      "control_id": "AUTHN-01",
+      "name": "openid-connect",
+      "scope": "service",
+      "config": {
+        "auth_methods": [
+          "bearer"
+        ],
+        "issuer": "https://identity.example.test/.well-known/openid-configuration"
+      }
+    },
+    {
+      "control_id": "CORR-01",
+      "name": "correlation-id",
+      "scope": "service",
+      "config": {
+        "echo_downstream": true,
+        "generator": "uuid#counter",
+        "header_name": "X-Correlation-ID"
+      }
+    },
+    {
+      "control_id": "OBS-01",
+      "name": "http-log",
+      "scope": "service",
+      "config": {
+        "http_endpoint": "https://telemetry.collector.example.test/kong"
+      }
+    }
+  ],
+  "application_plugin_catalog": {
+    "request-size-limiting": {
+      "allowed_config_keys": [
+        "allowed_payload_size"
+      ],
+      "maximums": {
+        "allowed_payload_size": 10
+      }
+    }
+  },
+  "prohibited_application_plugins": [
+    "openid-connect",
+    "correlation-id",
+    "http-log",
+    "rate-limiting",
+    "rate-limiting-advanced",
+    "pre-function",
+    "post-function"
+  ],
+  "route_rules": {
+    "allowed_public_host_suffix": ".api.example.test",
+    "allowed_backend_host_suffix": ".backend.example.test",
+    "allowed_protocols": [
+      "https"
+    ],
+    "allow_wildcard_hosts": false,
+    "allow_regex_paths": false,
+    "minimum_path_segments": 1
+  }
+}

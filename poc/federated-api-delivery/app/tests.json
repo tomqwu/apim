@@ -1,0 +1,36 @@
+{
+  "schema_version": 1,
+  "cases": [
+    {
+      "id": "ORD-LIST-001",
+      "kind": "operation",
+      "operation_id": "listOrders",
+      "method": "GET",
+      "path": "/orders",
+      "expected_status": 200
+    },
+    {
+      "id": "ORD-CREATE-001",
+      "kind": "operation",
+      "operation_id": "createOrder",
+      "method": "POST",
+      "path": "/orders",
+      "expected_status": 202
+    },
+    {
+      "id": "ORD-GET-001",
+      "kind": "operation",
+      "operation_id": "getOrder",
+      "method": "GET",
+      "path": "/orders/order-123",
+      "expected_status": 200
+    },
+    {
+      "id": "ORD-UNSAFE-001",
+      "kind": "negative",
+      "method": "GET",
+      "path": "/admin",
+      "expected_status": 404
+    }
+  ]
+}

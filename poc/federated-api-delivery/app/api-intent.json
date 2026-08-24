@@ -1,0 +1,35 @@
+{
+  "schema_version": 1,
+  "api_id": "orders-v1",
+  "writer_id": "app:orders-api",
+  "service": {
+    "name": "orders-v1",
+    "url": "https://orders.backend.example.test",
+    "connect_timeout_ms": 3000,
+    "read_timeout_ms": 5000,
+    "write_timeout_ms": 5000,
+    "retries": 0
+  },
+  "route": {
+    "name": "orders-v1-public",
+    "hosts": [
+      "orders.api.example.test"
+    ],
+    "paths": [
+      "/orders"
+    ],
+    "protocols": [
+      "https"
+    ],
+    "strip_path": false,
+    "preserve_host": true
+  },
+  "plugins": [
+    {
+      "name": "request-size-limiting",
+      "config": {
+        "allowed_payload_size": 1
+      }
+    }
+  ]
+}

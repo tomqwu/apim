@@ -8,7 +8,7 @@
 | Decision question | Which portal/product model can operate discovery-through-offboarding consistently across gateway environments with secure identity, entitlement and evidence? |
 | Decision owner | API Platform Steering Committee, with API product leadership accountable for consumer outcomes and security accountable for credential controls |
 | Primary audiences | Executives, API product leaders, enterprise/security architects, developers, platform/DevOps teams, support and partner operations |
-| Scope | K-KON/K-SM, A-MGD/A-SHG, G-X/G-HYB and M-RTF; internal, partner, public and machine consumer lifecycle |
+| Scope | K-KON/K-SM, A-MGD/A-SHG, G-X/G-HYB and M-RTF; internal, partner, public and machine consumer lifecycle; federated producer publication reconciled with central product and runtime authority |
 | Evidence state | Documented E1 product mechanisms and interpreted journey hypotheses; no observed usability, accessibility, revocation or operating result |
 | Reference case | Synthetic RE-1, especially J-03 and I-03; all numeric inputs are scenario assumptions |
 | As-of date | 2026-08-17 for volatile portal, product, identity and entitlement claims |
@@ -83,6 +83,26 @@ stateDiagram-v2
 
 Every transition needs an actor, authorization, precondition, runtime effect, notification, audit event, retry/idempotency rule and recovery path. Portal UI labels are not the state model.
 
+## Federated API publication is separate from consumer application access
+
+An application programming interface (API) producer should be able to publish a contract from the service repository without becoming a Kong administrator. The producer repository owns OpenAPI, bounded Service/Route intent, API owner/support metadata and API-specific tests. A central platform pipeline composes that material with versioned mandatory policy and remains the only writer to the target Control Plane (CP). The detailed [ownership matrix and evidence chain](47-kong-enterprise-platform-strategy.md#federated-application-repository-delivery) define that boundary, and the public-safe [federated delivery reference](../poc/federated-api-delivery/README.md) makes the checks executable offline.
+
+This producer flow does not replace the consumer state machine in DX-1. A **producer application repository** defines the API offered; a **consumer application record** represents a client requesting access. Product eligibility, terms, approval, Consumer/Consumer Group mapping, credential issuance, rotation, suspension and revocation remain authoritative lifecycle state outside the producer repository.
+
+| Publication state | Accountable authority | Portal/product implication | Required binding before advancement |
+|---|---|---|---|
+| Contract draft | Application programming interface (API) producer team | May appear only in an authenticated preview, clearly marked non-active | Application commit, owner, lifecycle state, compatibility result and test coverage |
+| Composed release candidate | Central API platform pipeline | Generated documentation may be reviewed, but product access cannot imply runtime availability | Central policy version, generated Kong configuration, prohibited-override result and target Control Plane (CP) |
+| Reviewed deployment plan | Platform release approver | The create/change/delete impact and any catalog/product delta are approved together | Reviewed decK diff or equivalent plan digest, reviewer role and decision |
+| Active and reconciled | Platform runtime authority plus API owner | An environment can be advertised as active only when the named runtime matches the accepted release | Native deployment receipt, active configuration digest, outside-in route/security result and owner attestation |
+| Product publication | API product authority | Audience, operations, scopes, plans, quotas and approval paths bind to the active API version; discoverability is not entitlement | Product-to-contract-to-runtime mapping plus positive and negative authorization proof |
+| Consumer application lifecycle | Portal/product and identity authorities | Registration, credentials, rotation, suspension, revocation and offboarding follow DX-1 | Consumer/application/product records, desired/effective access, runtime denial and audit reconciliation |
+| API change or retirement | Producer, product and platform authorities | Compatibility impact, consumer notification, parallel version, route-back and final unpublish/revoke are separate decisions | New release envelope, affected-consumer inventory, transition evidence and dependency-zero closure |
+
+Mandatory security, logging, traceability, privacy, trust and product-governance controls are composed from a central bundle rather than copied into each producer repository. Producer configuration cannot remove those controls or declare reserved plugins. An exception can apply only to a rule explicitly marked exception-eligible; it requires a reviewed scope, compensating control, owner and expiry, and the pipeline rejects it after expiration. The active portal view should expose the API version and release identity needed for support without exposing sensitive platform configuration.
+
+This changes the portal gate from “the OpenAPI document rendered” to “the published contract, product entitlement and active runtime all point to the same accepted release.” It also makes drift visible: if the active configuration digest changes, the portal need not disappear immediately, but the affected environment must show a controlled degraded or investigation state rather than silently claiming current deployment.
+
 ## Mechanism-level comparison
 
 | Lifecycle concern | K-KON / K-SM | A-MGD / A-SHG | G-X / G-HYB | M-RTF | Evidence that decides the criterion |
@@ -117,6 +137,9 @@ Every transition needs an actor, authorization, precondition, runtime effect, no
 | Credential rotation race | Old key revoked before all replicas/configs accept new key, or both remain forever | Dual-credential bounded overlap, proof of new use, config propagation signal, forced old revoke and expiry alert. |
 | Product edit changes existing consumers | Removing an operation or changing quota silently breaks contracted apps | Version/product change policy, impact inventory, notification, grandfather/transition decision and runtime canary. |
 | Documentation/runtime drift | Portal advertises an operation, auth flow or error that runtime does not serve | Release-manifest binding and continuous synthetic contract checks against the published environment. |
+| Producer repository bypasses central policy | Application programming interface (API) team deploys a Route directly or copies and edits a mandatory plugin | Application repositories have no Control Plane credential; central composition rejects reserved/prohibited plugins, unsafe routes, missing owner and conflicting writers; reconcile active digest after every release. |
+| Draft contract is advertised as active | Portal renders the latest main-branch OpenAPI while the target runtime still serves an earlier accepted release | Bind active catalog environments to the reviewed release envelope and active configuration digest; label previews separately and test the advertised version outside-in. |
+| Producer and consumer “application” are conflated | An API repository change accidentally creates, approves or revokes client access | Use separate identifiers, authorities and audit streams for producer API release and consumer application lifecycle; require an explicit product mapping between them. |
 | Approval self-service bypass | User joins an overly broad group or chooses an auto-approved SLA tier | Eligibility engine, segregation, least-privilege group mapping, high-risk manual gate, audit and periodic entitlement review. |
 | Shared key destroys attribution | Standalone/team key is copied across workloads, making revoke and analytics high blast radius | Prefer per-application workload identity; where shared key is unavoidable, bound scope/age, inventory custodians and migration plan. |
 | Portal outage blocks incident response | Runtime works but administrators cannot revoke or communicate | Out-of-band control API/runbook, emergency deny at runtime/edge, status communication and later audit reconciliation. |
@@ -166,8 +189,9 @@ A regulated enterprise onboards a payment-technology partner to a versioned paym
 1. Select representative internal, partner, public and machine consumers; run the entire lifecycle, not only registration and a successful call.
 2. Make application ownership, one-time secret handling, rotation, product-change impact, runtime revoke, multi-gateway mapping, terms evidence and offboarding mandatory gates.
 3. Maintain a canonical enterprise API/product/app identity that maps platform-specific IDs without centralizing secret values.
-4. Bind portal docs, product entitlement, native policy and runtime configuration to one release manifest; continuously test the published journey.
-5. Compare the cost and risk of custom workflow/catalog integration explicitly. A smaller native portal plus a well-owned enterprise catalog may outperform a feature-rich but poorly integrated suite—and the reverse may also be true.
+4. Let producer repositories own OpenAPI and bounded API-specific intent, but compose centrally versioned controls through one platform deployment writer; never give application pipelines direct CP credentials.
+5. Bind portal docs, product entitlement, native policy and runtime configuration to one release manifest containing the application commit, central-policy version, generated configuration digest, reviewed plan, target CP and active digest; continuously test the published journey.
+6. Compare the cost and risk of custom workflow/catalog integration explicitly. A smaller native portal plus a well-owned enterprise catalog may outperform a feature-rich but poorly integrated suite—and the reverse may also be true.
 
 ## Falsification and proof plan
 
@@ -179,6 +203,7 @@ The provisional answer is falsified if a portal-visible state cannot be reconcil
 | Registration and approval retries do not create duplicate apps, credentials or contracts | Repeat the same application/access request across timeout, approval pause and IdP/DCR partial success | One logical application/request/contract; zero orphan active credentials; retry returns/reconciles state without redisplaying a secret | Correlation/audit records, IdP/DCR inventory, secret-delivery proof; IAM and platform review | Orphan/duplicate risk requires a compensating lifecycle service with owner/SLO/TCO or excludes automated onboarding. |
 | Rotation, ownership transfer and revoke close access at runtime | Remove an owner, rotate client/CA with bounded overlap, revoke during connected and stale-runtime states, then offboard | Durable owner remains throughout; new identity is proven before cutover; old access meets the approved J-03/I-03 objective; zero active entitlement after closure | Identity/product/runtime inventories, synthetic denial, notifications and audit reconciliation; risk owner review | Inability to prove effective revoke fails a mandatory gate regardless of portal usability. |
 | Version/product change and exit preserve accountable non-secret state | Run parallel v1/v2 scope/schema/product change; export catalog, docs, owners, apps/contracts and audit mappings; rebuild a minimal journey | 100% of in-scope non-secret entities classified as portable, transformed or recreated; all affected consumers identified; secrets explicitly re-issued rather than claimed portable | Consumer-impact report, entity reconciliation, export/rebuild runbook; architecture/procurement review | Hidden coupling or custom transformation changes exit risk and may make the candidate non-fit for a mandatory portability requirement. |
+| Federated publication cannot bypass product or platform authority | From one producer commit, request a reserved plugin, unsafe host/path, missing owner, conflicting writer and expired exception; then deploy the accepted candidate and alter active state independently | 100% of unsafe proposals rejected before apply; zero direct producer Control Plane write; published version, product mapping and active digest reconcile; drift is detected | Producer commit, central-policy version, generated config, reviewed plan, Control Plane receipt, active digest, portal/product mapping and negative cases; release engineering plus product-security review | Any bypass, untraceable writer or false-active publication blocks producer self-service and product publication. |
 
 ## Open evidence requests
 
@@ -188,9 +213,10 @@ The provisional answer is falsified if a portal-visible state cannot be reconcil
 | Enterprise audience, product, application-owner, terms/consent, approval, secret-delivery, recertification and offboarding policy | Product management + IAM + legal/privacy | Before journey freeze | “Good developer experience” has no governable pass/fail definition. |
 | Representative internal, partner, public and machine-consumer personas plus accessibility and support-service objectives | Developer relations/product + accessibility + service management | Before E3 execution | Journey results are not representative; qualitative UI preference cannot decide. |
 | E3 end-to-end J-03, DCR partial-failure, I-03 rotation, stale-runtime revoke and export/rebuild artifacts | Portal/product engineering + independent security reviewer | Before recommendation | Consumer lifecycle remains E1 documentation evidence; no onboarding or revocation conclusion. |
+| Producer-versus-platform ownership matrix, central policy/version schema, exception contract, release-evidence schema and portal publication-state rules | API product + platform release engineering + security/governance | Before producer self-service | Repository onboarding remains preview-only; no direct deployment or active product publication. |
 
 ## Next gate
 
-The next gate is an **E3 consumer lifecycle test readiness review** chaired by API product management with IAM, security, legal/privacy, accessibility, service management, platform engineering and representative consumers. It passes only when lifecycle states and actor authorities are ratified, runtime/product mappings and one-time-secret rules are testable, persona fixtures are approved, accessibility/support objectives are defined, and exit scope is explicit. Passing authorizes journey testing; it does not select the richest portal.
+The next gate is an **E3 consumer lifecycle test readiness review** chaired by API product management with IAM, security, legal/privacy, accessibility, service management, platform engineering and representative consumers. It passes only when lifecycle states and actor authorities are ratified, producer and consumer “application” identities are separated, the federated ownership/policy/exception/evidence schemas are approved, runtime/product mappings and one-time-secret rules are testable, persona fixtures are approved, accessibility/support objectives are defined, and exit scope is explicit. Passing authorizes journey and producer-publication testing; it does not select the richest portal or grant producer repositories direct runtime authority.
 
 Related studies: [API operations governance](29-apiops-governance.md), [security comparison](25-security-comparison.md), [observability comparison](31-observability-comparison.md), [operating model](33-operating-model.md), and [portal PoC](../poc/portal-tests.md).

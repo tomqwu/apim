@@ -1,0 +1,12 @@
+{
+  "schema_version": 1,
+  "api_id": "orders-v1",
+  "owner_id": "team:orders-api",
+  "support_ref": "service:orders-api-support",
+  "lifecycle": "experimental",
+  "data_classification": "synthetic",
+  "product_refs": [
+    "product:orders-sandbox"
+  ],
+  "exception_ids": []
+}
