@@ -11,7 +11,7 @@
 | Scope | Sanitized stakeholder evaluation inputs; Kong Gateway Enterprise 3.14 LTS-line self-managed hybrid target `KP-SMH1`; four early assessment gates for multicloud, clean exit/vendor dependency, fully allocated cost efficiency, and the optional Kong-plus-Traceable solution profile; Konnect custody benchmark; Apigee, MuleSoft, and Azure API Management counterfactuals; architecture, platform adoption, Mule and Apigee migration paths, control-plane operating accountability, production proof, seven PoC priorities, terminology mapping, and an audit appendix |
 | Evidence state | Stakeholder inputs, documented `E1` mechanisms, repository interpretation, hypotheses, and scenario assumptions; no independently validated comparative score, `E2` closure, target-option `E3` execution, `E4` representative pilot, production-fit result, or commercial conclusion |
 | Reference case | Synthetic [RE-1 regulated hybrid enterprise](41-enterprise-reference-case.md); all inherited workloads, timelines, measures, and thresholds remain scenario assumptions |
-| As-of date | 2026-08-22; revalidate exact editions, versions, entitlements, Traceable/plugin support, AI capabilities, deployment boundaries, support, pricing, and economics at option freeze |
+| As-of date | 2026-08-24 for the revised supplied scorecard; official product mechanisms last reviewed 2026-08-22; revalidate exact editions, versions, entitlements, Traceable/plugin support, AI capabilities, deployment boundaries, support, pricing, and economics at option freeze |
 | Next gate | Disposition `EAG-01`–`EAG-04`, then approve the bounded Kong foundation and seven-workstream proof programme; critical production scale remains blocked until executed evidence and reviewable artifacts close the mandatory outcome gates |
 
 ## Executive answer
@@ -40,7 +40,7 @@ The supplied document contributes three useful inputs:
 - an illustrative weighting and rating model; and
 - qualitative product-fit hypotheses.
 
-It does not contribute an observed current-state inventory, an exact option bill of materials, symmetric execution evidence, product-version entitlement proof, representative failure results, migration effort, operating RACI, or commercial evidence. The qualitative labels and corrected arithmetic are therefore retained only in the audit appendix. They do not override the evidence ladder in the [assessment methodology](03-assessment-methodology.md) or the production gates in the [Kong platform strategy](47-kong-enterprise-platform-strategy.md).
+It does not contribute an observed current-state inventory, an exact option bill of materials, symmetric execution evidence, product-version entitlement proof, representative failure results, migration effort, operating RACI, or commercial evidence. The qualitative labels and audited arithmetic are therefore retained only in the audit appendix. They do not override the evidence ladder in the [assessment methodology](03-assessment-methodology.md) or the production gates in the [Kong platform strategy](47-kong-enterprise-platform-strategy.md).
 
 Current official documentation supports the main mechanism distinctions used to design proof:
 
@@ -52,7 +52,7 @@ Current official documentation supports the main mechanism distinctions used to 
 
 ## Guided slide official reference links
 
-Every native and PowerPoint frame links back to its repository-prepared source material and to the relevant current official documentation below. Official documentation supports mechanism and product-boundary interpretation only; it does not convert a proposed target, not-run test, or stakeholder input into executed evidence.
+Every current native frame links back to its repository-prepared source material and to the relevant current official documentation below. The repository PowerPoint remains the prior 2026-08-22 offline snapshot and is intentionally outside this 2026-08-24 page-and-document scorecard revision. Official documentation supports mechanism and product-boundary interpretation only; it does not convert a proposed target, not-run test, or stakeholder input into executed evidence.
 
 | Slide IDs | Official references |
 |---|---|
@@ -118,18 +118,18 @@ These are **stakeholder-stated target inputs to confirm**, not observed estate f
 
 ## Supplied weighting model
 
-The eight supplied weights sum to 100%. Kubernetes and GitOps together carry 35%, which explains much of the directional Kong preference. The model does not separately weight developer experience, multicloud placement, migration effort, platform labor, support, HA/DR, or exit cost.
+The revised eight supplied weights sum to 100%. API management, API governance, and security/compliance now carry 50%; Kubernetes and GitOps carry 30%; observability, AI readiness, and cost efficiency carry the remaining 20%. This narrows the supplied Kong-over-Apigee difference to 1.5 points while preserving the supplied order. The model still does not separately weight developer experience, multicloud placement, migration effort, platform labor, support, high availability/disaster recovery (HA/DR), or exit cost.
 
 | Weight ID | Category | Weight | Interpretation | Evidence needed before decision use |
 |---|---|---:|---|---|
-| GEW-01 | Kubernetes and cloud native | 20% | Target-operating-model preference | Exact topology/version support and representative lifecycle proof |
+| GEW-01 | Kubernetes and cloud native | 15% | Target-operating-model preference | Exact topology/version support and representative lifecycle proof |
 | GEW-02 | GitOps and DevOps | 15% | Target-operating-model preference | Executable promotion, deletion guard, rollback, drift, and active-state evidence |
-| GEW-03 | API management | 15% | Required capability family | Product/lifecycle use cases and exact entitlement mapping |
-| GEW-04 | API governance | 10% | Required capability family | Contract, policy, exception, ownership, and enforcement evidence |
-| GEW-05 | Security and compliance | 10% | Mandatory outcome family | Equivalent IAM, PKI, audit, data, and failure controls |
+| GEW-03 | API management | 20% | Required capability family | Product/lifecycle use cases and exact entitlement mapping |
+| GEW-04 | API governance | 15% | Required capability family | Contract, policy, exception, ownership, and enforcement evidence |
+| GEW-05 | Security and compliance | 15% | Mandatory outcome family | Equivalent IAM, PKI, audit, data, and failure controls |
 | GEW-06 | Observability | 10% | Mandatory evidence family | Export, custody, loss/gap accounting, privacy, and business-probe proof |
-| GEW-07 | AI gateway readiness | 10% | Emerging hypothesis | Versioned agentic-gateway study kept separate from core gateway confidence |
-| GEW-08 | Cost efficiency | 10% | Commercial hypothesis | Quotes, licenses, platform labor, infrastructure, HA/DR, telemetry, migration, and exit cost |
+| GEW-07 | AI gateway readiness | 5% | Emerging hypothesis | Versioned agentic-gateway study kept separate from core gateway confidence |
+| GEW-08 | Cost efficiency | 5% | Commercial hypothesis | Quotes, licenses, platform labor, infrastructure, HA/DR, telemetry, migration, and exit cost |
 
 ## Meeting-feedback assurance crosswalk
 
@@ -166,14 +166,14 @@ The original GEW-01–08 ratings remain unchanged as historical `E0` stakeholder
 
 | Score ID | Dimension | Provisional weight | Rating state | Required score-capable evidence |
 |---|---|---:|---|---|
-| GEW-01 | Kubernetes and cloud native | 12% | Historical `E0` input retained | Exact-option reproducible deployment and operating evidence |
+| GEW-01 | Kubernetes and cloud native | 9% | Historical `E0` input retained | Exact-option reproducible deployment and operating evidence |
 | GEW-02 | GitOps and DevOps | 9% | Historical `E0` input retained | Equivalent APIOps execution, drift, rollback and reconciliation evidence |
-| GEW-03 | API management | 9% | Historical `E0` input retained | Equivalent lifecycle and runtime behavior evidence |
-| GEW-04 | API governance | 6% | Historical `E0` input retained | Equivalent policy, contract and organizational governance evidence |
-| GEW-05 | Product security and compliance capability | 6% | Historical `E0` input retained | Exact control-mechanism and negative-test evidence |
+| GEW-03 | API management | 12% | Historical `E0` input retained | Equivalent lifecycle and runtime behavior evidence |
+| GEW-04 | API governance | 9% | Historical `E0` input retained | Equivalent policy, contract and organizational governance evidence |
+| GEW-05 | Product security and compliance capability | 9% | Historical `E0` input retained | Exact control-mechanism and negative-test evidence |
 | GEW-06 | Observability mechanisms | 6% | Historical `E0` input retained | Equivalent telemetry, loss-accounting and incident-query evidence |
-| GEW-07 | AI gateway readiness | 6% | Historical `E0` input retained | Separate exact-option agentic proof; no uplift to core fit without execution |
-| GEW-08 | License and consumption-price input | 6% | Historical `E0` input retained | Exact quote, entitlement and meter evidence only |
+| GEW-07 | AI gateway readiness | 3% | Historical `E0` input retained | Separate exact-option agentic proof; no uplift to core fit without execution |
+| GEW-08 | License and consumption-price input | 3% | Historical `E0` input retained | Exact quote, entitlement and meter evidence only |
 | GRS-01 | Multicloud operating fit | 8% | `Unknown [0,10]` | Exact option field/flow ledger plus representative multi-zone/multiregion execution |
 | GRS-02 | Scalability and robustness | 8% | `Unknown [0,10]` | Equivalent target-shaped load, fault, recovery and reviewer evidence |
 | GRS-03 | Enterprise IAM and end-to-end traceability | 8% | `Unknown [0,10]` | Equivalent negative, lifecycle, failure, signal-gap and incident-query evidence |
@@ -190,11 +190,11 @@ The calculation remains `Σ(weight × rating ÷ 10)`. Retaining the historical r
 
 | Option | Historical-input contribution | Unknown GRS contribution | Mechanical envelope | Neutral-placeholder point |
 |---|---:|---:|---:|---:|
-| Kong | 55.8 | 0–40 | 55.8–95.8 | 75.8 |
-| Apigee | 51.3 | 0–40 | 51.3–91.3 | 71.3 |
-| MuleSoft | 46.2 | 0–40 | 46.2–86.2 | 66.2 |
+| Kong | 54.3 | 0–40 | 54.3–94.3 | 74.3 |
+| Apigee | 53.4 | 0–40 | 53.4–93.4 | 73.4 |
+| MuleSoft | 49.2 | 0–40 | 49.2–89.2 | 69.2 |
 
-All three envelopes overlap, so each option can rank first under permitted unknown completions. Apigee needs only a 1.125-point higher weighted-average GRS rating than Kong to reverse the historical-input lead; MuleSoft needs a 2.4-point advantage over Kong or a 1.275-point advantage over Apigee. Mechanical maximum regret is 35.5 for Kong, 44.5 for Apigee and 49.6 for MuleSoft. Stressing the new-dimension group at 30%, 40% and 50%, then applying the scoring guide's ±20% per-category perturbation and renormalizing, leaves the ranking unstable while the GRS block is unknown.
+All three envelopes overlap, so each option can rank first under permitted unknown completions. Apigee needs only a 0.225-point higher weighted-average GRS rating than Kong to reverse the historical-input lead; MuleSoft needs a 1.275-point advantage over Kong or a 1.05-point advantage over Apigee. Mechanical maximum regret is 39.1 for Kong, 40.9 for Apigee and 45.1 for MuleSoft. Stressing the new-dimension group at 30%, 40% and 50%, then applying the scoring guide's ±20% per-category perturbation and renormalizing, leaves the ranking unstable while the GRS block is unknown.
 
 > This is a provisional weighting and uncertainty scenario, not the governed re-score. Historical GEW ratings are unverified stakeholder inputs; GRS ratings remain unknown. The midpoint is a neutral visualization placeholder, not an assigned rating. The 0–10 bounds are uncertainty limits, not performance estimates or probabilities. Thirty mandatory gates remain unknown and common score-capable evidence coverage is 0%; therefore the decision disposition is HOLD. Traceable remains a separately tested adjunct and earns no native Kong score. Control-plane responsibility is an operating-risk and cost consideration, not a legal-liability conclusion.
 
@@ -213,19 +213,19 @@ The options below are conditional operating-model hypotheses. They are not a new
 
 ## Supplied scoring audit
 
-The supplied ratings use a 1–10 scale without a documented rubric. Recalculation preserves Kong at 93 but produces 85.5 for Apigee and 77 for MuleSoft, not 87 and 78. The ordering is unchanged; the confidence is not improved.
+The revised supplied ratings use a 1–10 scale without a documented rubric. The displayed totals now match independent arithmetic: 90.5 for Kong, 89 for Apigee, and 82 for MuleSoft. The supplied order is unchanged, but Kong's lead over Apigee is only 1.5 points. Correct arithmetic improves auditability; it does not improve evidence confidence.
 
 | Category | Weight | Kong input | Apigee input | MuleSoft input | Kong weighted | Apigee weighted | MuleSoft weighted |
 |---|---:|---:|---:|---:|---:|---:|---:|
-| Kubernetes and cloud native | 20% | 10 | 8 | 7 | 20 | 16 | 14 |
+| Kubernetes and cloud native | 15% | 10 | 8 | 7 | 15 | 12 | 10.5 |
 | GitOps and DevOps | 15% | 10 | 7 | 6 | 15 | 10.5 | 9 |
-| API management | 15% | 8 | 10 | 10 | 12 | 15 | 15 |
-| API governance | 10% | 8 | 10 | 10 | 8 | 10 | 10 |
-| Security and compliance | 10% | 9 | 10 | 9 | 9 | 10 | 9 |
+| API management | 20% | 8 | 10 | 10 | 16 | 20 | 20 |
+| API governance | 15% | 8 | 10 | 10 | 12 | 15 | 15 |
+| Security and compliance | 15% | 9 | 10 | 9 | 13.5 | 15 | 13.5 |
 | Observability | 10% | 9 | 9 | 8 | 9 | 9 | 8 |
-| AI gateway readiness | 10% | 10 | 8 | 7 | 10 | 8 | 7 |
-| Cost efficiency | 10% | 10 | 7 | 5 | 10 | 7 | 5 |
-| **Weighted total** | **100%** |  |  |  | **93** | **85.5** | **77** |
+| AI gateway readiness | 5% | 10 | 8 | 7 | 5 | 4 | 3.5 |
+| Cost efficiency | 5% | 10 | 7 | 5 | 5 | 3.5 | 2.5 |
+| **Weighted total** | **100%** |  |  |  | **90.5** | **89** | **82** |
 
 Before any scoring gate, add the exact options, rubric, scorers, evidence links, confidence, edition/version, sensitivity, platform labor, commercial basis, migration effort, and exit cost. A score without those controls remains illustrative author input.
 
@@ -233,9 +233,9 @@ Before any scoring gate, add the exact options, rubric, scorers, evidence links,
 
 | Product | Supplied displayed total | Recalculated total |
 |---|---:|---:|
-| Kong | 93 | 93 |
-| Apigee | 87 | 85.5 |
-| MuleSoft | 78 | 77 |
+| Kong | 90.5 | 90.5 |
+| Apigee | 89 | 89 |
+| MuleSoft | 82 | 82 |
 
 ## Bounded authorization
 
@@ -366,7 +366,7 @@ Public pricing pages expose different and incomplete meters: Kong Enterprise and
 
 - **Depicted scope:** sanitized target inputs and weights; conditional options; bounded Kong decision; architecture and ownership; migration controls; target-shaped proof; scale, narrow, custody-switch, exit, and hold outcomes; audit appendix.
 - **Excluded scope:** a completed comparison, deployed topology, achieved outcome, procurement decision, committed migration calendar, customer identity, private input, and a claim that document volume is evidence.
-- **Diagram source, evidence state and as-of:** synthesis of this study's KGE-P1 through KGE-P6 phases, the docs/47 evidence gates, and the docs/35 and docs/50 migration boundaries; decision-navigation interpretation; 2026-08-22.
+- **Diagram source, evidence state and as-of:** synthesis of this study's KGE-P1 through KGE-P6 phases, the docs/47 evidence gates, and the docs/35 and docs/50 migration boundaries; decision-navigation interpretation; 2026-08-24.
 - **Accessible equivalent:** confirm the stated target and preference model, compare conditional operating boundaries, authorize only a reversible Kong foundation, make architecture and durable ownership explicit, migrate through bounded coexistence, execute seven target-aligned proof workstreams, then scale, narrow, switch custody, exit, or hold according to reviewed outcomes. The audit appendix preserves supplied inputs without changing their evidence state.
 
 ```mermaid
@@ -657,7 +657,7 @@ The rows below are the exact ordered native-slide term sets. Each display string
 
 ## Native presentation contract: KGE-01–KGE-25
 
-The PowerPoint and the native Pages deck project this same 25-frame contract. The native route is a first-class presentation context, not an embedded PowerPoint, screenshot sequence, or download wrapper. The repository PowerPoint remains a portable companion artifact; neither representation is the canonical source.
+The native Pages deck projects this 25-frame contract as a first-class presentation context, not an embedded PowerPoint, screenshot sequence, or download wrapper. The repository PowerPoint remains the prior 2026-08-22 offline snapshot and does not contain the revised 2026-08-24 scorecard; use the native deck and this study for the current numbers.
 
 | Slide IDs | Visible evidence state | Source class | Interpretation |
 |---|---|---|---|
@@ -681,9 +681,9 @@ The PowerPoint and the native Pages deck project this same 25-frame contract. Th
 |---|---|---|---|---|---|---|
 | KGE-01 | `kong-guided-cover` | KGE-P1 | API management from platform choice to production proof | Guided evaluation, not product marketing; supplied input plus repository evidence plus target-shaped proof | Six-stage journey rail | This study / Executive answer |
 | KGE-02 | `kong-guided-target-model` | KGE-P1 | The operating model and four early gates drive the decision | Confirm GTM-01–09, then admit, amend, reject, or hold multicloud fit, clean exit/vendor dependency, fully allocated TCO, and the optional Kong-plus-Traceable solution profile | Three-lane target-model map using GTM-01–09 plus four `EAG-01`–`EAG-04` admission gates | This study / Stated target operating model plus Four early assessment gates |
-| KGE-03 | `kong-guided-weights` | KGE-P1 | The scorecard favors cloud-native delivery | Kubernetes plus GitOps carry 35%; the provisional scenario rebases the historical model to 60% and assigns 40% to six missing dimensions; Traceable by Harness remains an unscored admission gate | Eight supplied weights plus provisional expanded-dimension weights and explicit unscored-adjunct note | This study / Supplied weighting model, provisional weighting and uncertainty scenario, plus `EAG-04` |
+| KGE-03 | `kong-guided-weights` | KGE-P1 | The scorecard now balances platform and delivery fit | API platform capabilities carry 50%, Kubernetes plus GitOps carry 30%, and operational/future readiness carries 20%; the provisional scenario rebases the historical model to 60% and assigns 40% to six missing dimensions; Traceable by Harness remains an unscored admission gate | Eight revised supplied weights plus provisional expanded-dimension weights and explicit unscored-adjunct note | This study / Supplied weighting model, provisional weighting and uncertainty scenario, plus `EAG-04` |
 | KGE-04 | `kong-guided-options` | KGE-P2 | Each contender optimizes a different operating model | Conditional Kong, Apigee, MuleSoft, and APIM archetypes | Four option cards using GEO-KONG/APIGEE/MULE/APIM | This study / Conditional option archetypes |
-| KGE-05 | `kong-guided-score` | KGE-P2 | Preserve the historical score; expose the uncertainty | Correct totals remain 93, 85.5, and 77; the provisional scenario shows overlapping ranges rather than manufacturing a new rank | Historical score comparison plus uncertainty-envelope and rank-switch note | This study / Supplied scoring audit plus provisional weighting and uncertainty scenario |
+| KGE-05 | `kong-guided-score` | KGE-P2 | Preserve the revised supplied score; expose the uncertainty | Revised totals are 90.5, 89, and 82; the 1.5-point Kong-over-Apigee difference and overlapping provisional ranges are directional input rather than a stable rank | Revised supplied-score comparison plus uncertainty-envelope and rank-switch note | This study / Supplied scoring audit plus provisional weighting and uncertainty scenario |
 | KGE-06 | `kong-guided-decision` | KGE-P2 | Proceed with a bounded, reversible Kong foundation | Scale only after the exact option, reviewed E2/E3/E4, route-back/exit, and economics evidence | Authorization / hold split | This study / Bounded authorization |
 | KGE-07 | `kong-guided-boundary` | KGE-P2 | Choose the operating boundary before the topology | `KP-SMH1`, Konnect custody benchmark, and true exit are distinct | Three-boundary choice model | docs/44 option register plus docs/47 bounded target |
 | KGE-08 | `kong-guided-duty` | KGE-P2 | Control-plane custody transfers operating accountability | Custody advantage must be weighed against CP/PostgreSQL/PKI/plugin/license/audit/upgrade/on-call exposure and fully allocated cost; this is not a legal-liability verdict | Fit-versus-operating-accountability balance | docs/47 / Why self-managed control—and what it costs |
@@ -703,11 +703,11 @@ The PowerPoint and the native Pages deck project this same 25-frame contract. Th
 | KGE-22 | `kong-guided-compare-architecture` | KGE-P6 | Comparison input — architecture, multicloud and robustness | Preserve supplied labels; make GEC-19 scalability/robustness explicitly unscored and bind every claim to equivalent execution | GEC-01–08 plus GEC-19 evidence-obligation records | This study / Supplied comparison input: architecture and delivery |
 | KGE-23 | `kong-guided-compare-management` | KGE-P6 | Comparison input — management, AI and security traceability | Keep capabilities versioned; show GEC-20 Kong-plus-Traceable as documented feasibility, not gateway proof or score | GEC-09–15 plus GEC-20 evidence-obligation records | This study / management and AI comparison plus GSA-01 |
 | KGE-24 | `kong-guided-compare-economics` | KGE-P6 | Comparison input — pricing, lock-in and operating duty | Normalize exact meters/quotes with CP duty, labor, infrastructure, HA/DR, telemetry, adjuncts, migration, support, dual run, incident exposure and exit | GEC-16–18 evidence-obligation records plus public pricing-boundary note | This study / economics and evidence ceiling |
-| KGE-25 | `kong-guided-score-audit` | KGE-P6 | Historical audit; provisional uncertainty envelope | Preserve original ratings and corrected arithmetic; show the 60/40 planning weights, unknown GRS ranges, overlapping envelopes and HOLD disposition without calling the midpoint a score | Full GEW audit plus provisional weights, mechanical ranges and rank-stability warning | This study / supplied scoring audit plus provisional weighting and uncertainty scenario |
+| KGE-25 | `kong-guided-score-audit` | KGE-P6 | Revised supplied audit; provisional uncertainty envelope | Preserve the revised ratings, weights, and matching arithmetic; show the 60/40 planning weights, unknown GRS ranges, overlapping envelopes and HOLD disposition without calling the midpoint a score | Full GEW audit plus provisional weights, mechanical ranges and rank-stability warning | This study / supplied scoring audit plus provisional weighting and uncertainty scenario |
 
 ## Presenter guidance
 
-Use the companion [Kong guided evaluation facilitator guide](49-kong-guided-evaluation-facilitator-guide.md) as the complete public-safe meeting script: it contains the 30-, 45-, 60-, and 90-minute routes; all 25 slide-level purpose, talk-track, ask, bridge, caveat, and source blocks; bounded side discussions; decision capture; and explicit stop or hold rules. The PowerPoint embeds a synchronized concise projection of the same speaker notes for offline delivery. This study remains authoritative for slide facts, evidence states, and source interpretation.
+Use the companion [Kong guided evaluation facilitator guide](49-kong-guided-evaluation-facilitator-guide.md) as the complete public-safe meeting script: it contains the 30-, 45-, 60-, and 90-minute routes; all 25 slide-level purpose, talk-track, ask, bridge, caveat, and source blocks; bounded side discussions; decision capture; and explicit stop or hold rules. The native presentation projects the current script. The prior PowerPoint snapshot is not current for the revised scorecard. This study remains authoritative for slide facts, evidence states, and source interpretation.
 
 | Transition | Audience guidance |
 |---|---|
@@ -722,7 +722,7 @@ Use the companion [Kong guided evaluation facilitator guide](49-kong-guided-eval
 
 ## Decision implications
 
-1. Retain the supplied evaluation as a transparent decision input, including its corrected arithmetic and missing controls; do not cite its qualitative labels as product facts.
+1. Retain the revised supplied evaluation as a transparent decision input, including its audited arithmetic and missing controls; do not cite its qualitative labels as product facts.
 2. Freeze one exact `KP-SMH1` option and use the same outcome contract for the Konnect custody benchmark. Keep a separate non-Kong exit.
 3. Fund self-managed control-plane, PostgreSQL, PKI, APIOps, restore, observability, plugin, license, support, and on-call duties before topology becomes commitment; record legal liability separately through counsel and contract review.
 4. Make GEP-01 through GEP-07 the next PoC, with owner roles, pre-approved thresholds, raw artifacts, independent reviewers, and stop rules. Keep GEP-07 an adjunct feasibility track rather than a gateway score.
@@ -753,7 +753,7 @@ Use the companion [Kong guided evaluation facilitator guide](49-kong-guided-eval
 - Kong Gateway Enterprise 3.14 is a target line, not an immutable option; exact patch, images, plugins, decK, PostgreSQL, Kubernetes/OS, entitlements, and support must be frozen and retested.
 - The reference case, timelines, thresholds, and workloads are synthetic scenario assumptions until an observed estate inventory replaces them.
 - The deck is deliberately low-density. Its decision summaries link to detailed canonical models and cannot replace engineering review of the source studies.
-- The PowerPoint and native Pages presentation are derived projections. If either differs from this study or a cited canonical source, the source wins.
+- The native Pages presentation is the current derived projection. The PowerPoint is a prior offline snapshot; if either differs from this study or a cited canonical source, the source wins.
 - No legal, regulatory, security certification, procurement, production, or universal product recommendation is provided.
 - “Operating accountability” describes service and risk ownership in the proposed architecture. Allocation of legal liability requires exact contracts, policy and qualified counsel and is not determined by this study.
 

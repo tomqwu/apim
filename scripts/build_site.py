@@ -2875,7 +2875,7 @@ def validate_site_projection(stats: dict[str, int], visuals: dict[str, object]) 
             isinstance(guided_evaluation, dict)
             and bool(guided_evaluation.get("sourceId"))
             and guided_evaluation.get("sourceClass") == "comparative-study"
-            and guided_evaluation.get("asOf") == "2026-08-22"
+            and guided_evaluation.get("asOf") == "2026-08-24"
             and bool(guided_evaluation.get("evidenceState"))
             and guided_evaluation.get("identifierCatalog", {}).get("rowTotal") == 16
             and [row.get("token") for row in guided_evaluation.get("identifierCatalog", {}).get("rows", [])]
@@ -2924,7 +2924,7 @@ def validate_site_projection(stats: dict[str, int], visuals: dict[str, object]) 
             and [row.get("id") for row in guided_evaluation.get("provisionalWeights", {}).get("rows", [])]
             == [f"GEW-{rank:02d}" for rank in range(1, 9)] + [f"GRS-{rank:02d}" for rank in range(1, 7)]
             and [row.get("weight") for row in guided_evaluation.get("provisionalWeights", {}).get("rows", [])]
-            == [12, 9, 9, 6, 6, 6, 6, 6, 8, 8, 8, 6, 6, 4]
+            == [9, 9, 12, 9, 9, 6, 3, 3, 8, 8, 8, 6, 6, 4]
             and all(
                 row.get("ratingState") and row.get("evidence")
                 for row in guided_evaluation.get("provisionalWeights", {}).get("rows", [])
@@ -2933,15 +2933,15 @@ def validate_site_projection(stats: dict[str, int], visuals: dict[str, object]) 
             and [row.get("option") for row in guided_evaluation.get("uncertaintyEnvelope", {}).get("rows", [])]
             == ["Kong", "Apigee", "MuleSoft"]
             and [row.get("envelope") for row in guided_evaluation.get("uncertaintyEnvelope", {}).get("rows", [])]
-            == ["55.8–95.8", "51.3–91.3", "46.2–86.2"]
+            == ["54.3–94.3", "53.4–93.4", "49.2–89.2"]
             and guided_evaluation.get("options", {}).get("rowTotal") == 4
             and [row.get("id") for row in guided_evaluation.get("options", {}).get("rows", [])]
             == ["GEO-KONG", "GEO-APIGEE", "GEO-MULE", "GEO-APIM"]
             and guided_evaluation.get("scoring", {}).get("rowTotal") == 8
             and guided_evaluation.get("scoring", {}).get("totals")
-            == {"weight": 100, "kong": 93, "apigee": 85.5, "muleSoft": 77}
+            == {"weight": 100, "kong": 90.5, "apigee": 89, "muleSoft": 82}
             and guided_evaluation.get("scoring", {}).get("displayedTotals")
-            == {"kong": 93, "apigee": 87, "muleSoft": 78}
+            == {"kong": 90.5, "apigee": 89, "muleSoft": 82}
             and guided_evaluation.get("authorization", {}).get("rowTotal") == 5
             and [row.get("id") for row in guided_evaluation.get("authorization", {}).get("rows", [])]
             == [f"KGE-AUTH-{rank:02d}" for rank in range(1, 6)]
