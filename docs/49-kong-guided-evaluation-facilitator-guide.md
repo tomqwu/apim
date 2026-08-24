@@ -8,7 +8,8 @@
 | Intended users | Product owner, meeting chair, presenter, note taker, evidence reviewer, timekeeper, and the technical or commercial leads who will own follow-up work |
 | Scope | Meeting opening, full scripts and three talking points for all 25 slides, four early questions, an 18-question local assessment, meeting routes, challenge responses, decision capture, stop conditions, and a closing checklist |
 | Evidence state | Meeting guidance based on the guided evaluation and slide notes. It adds no new product claim, test result, price conclusion, or production approval. |
-| As-of date | 2026-08-22; use the current canonical study and deck revision when facilitating |
+| As-of date | 2026-08-24 for the revised supplied scorecard; official product mechanisms last reviewed 2026-08-22; use the current canonical study and deck revision when facilitating |
+| PowerPoint status | Prior 2026-08-22 offline snapshot; intentionally not updated by the 2026-08-24 page-and-document scorecard revision |
 | Next gate | Answer Early Assessment Gate (EAG) 01–04, then record approve, change, or hold. For every approved test, name its owner, measure, proof, reviewer, due date, and stop condition. |
 
 ## Use this guide with the presentation
@@ -16,7 +17,7 @@
 This is the **complete meeting and speaker-notes guide** for the Kong evaluation. Every slide has a ready-to-say script and three short talking points. It also includes the purpose, question to ask, transition, caution, sources, likely challenges, safe responses, follow-up questions, decisions to capture, and places to pause. Use this page to prepare the meeting, present the story, handle challenges, or hand the meeting to another facilitator.
 
 - [Open the native 25-slide presentation](https://tomqwu.github.io/apim/#/present/kong-platform-journey-guided/0)
-- [Open the PowerPoint in the repository](https://github.com/tomqwu/apim/blob/main/presentations/kong-platform-journey-guided.pptx)
+- [Open the prior PowerPoint snapshot in the repository](https://github.com/tomqwu/apim/blob/main/presentations/kong-platform-journey-guided.pptx) — it does not contain the revised 2026-08-24 scorecard
 - [Read the canonical guided evaluation](48-kong-guided-evaluation.md)
 - [Disposition the four early assessment gates](48-kong-guided-evaluation.md#four-early-assessment-gates)
 - [Apply the evidence method](03-assessment-methodology.md)
@@ -225,7 +226,7 @@ Use the index below as the compact discussion control. The complete point-of-use
 | Slide | Facilitation job and ask | Likely challenge and evidence reminder | Capture, branch, or rejoin |
 |---|---|---|---|
 | [4 · KGE-04](https://tomqwu.github.io/apim/#/present/kong-platform-journey-guided/3) | Agree the business conditions under which each option becomes stronger. | “The feature list is biased or incomplete.” These are conditional archetypes, not a rank. | Convert product debate into symmetric evidence; appendix → 22–24; return → 6. |
-| [5 · KGE-05](https://tomqwu.github.io/apim/#/present/kong-platform-journey-guided/4) | Preserve the historical score and expose the provisional uncertainty envelope. | “Make the score more convincing.” The 60/40 scenario yields 55.8–95.8, 51.3–91.3, and 46.2–86.2; overlapping ranges mean rank instability, not a new score. | Record permitted use, scenario amendments, and roles that can replace unknowns with common evidence. Audit → 25; decision → 6. |
+| [5 · KGE-05](https://tomqwu.github.io/apim/#/present/kong-platform-journey-guided/4) | Preserve the revised supplied score and expose the provisional uncertainty envelope. | “Make the score more convincing.” The 60/40 scenario yields 54.3–94.3, 53.4–93.4, and 49.2–89.2; overlapping ranges mean rank instability, not a new score. | Record permitted use, scenario amendments, and roles that can replace unknowns with common evidence. Audit → 25; decision → 6. |
 | [6 · KGE-06](https://tomqwu.github.io/apim/#/present/kong-platform-journey-guided/5) | Decide separately on `KP-SMH1`, one reversible foundation, GEP-01–07, custody/exit benchmarks, and the block on critical scale. | “Why choose before PoC?” The authorization is foundation plus proof, not production. | Record approve/amend/hold for every row and dissent. Return here at close. |
 | [7 · KGE-07](https://tomqwu.github.io/apim/#/present/kong-platform-journey-guided/6) | Confirm self-managed lead, Konnect custody benchmark, and a true non-Kong exit as distinct boundaries. | “Konnect is the exit.” It is a same-vendor custody switch, not platform exit. | Name exact-option, custody-benchmark, and exit owners. Continue → 8. |
 | [8 · KGE-08](https://tomqwu.github.io/apim/#/present/kong-platform-journey-guided/7) | Confirm role ownership and funded capacity for control-plane, PostgreSQL, PKI, plugin/license, release, restore, audit, support, and on-call duty. | “Who carries the liability?” The slide allocates operating accountability and risk exposure; legal liability requires counsel and exact contracts. | Capture public role RACI, capacity, sourcing, support, and TCO gaps. No accountable owner = HOLD. |
@@ -269,7 +270,7 @@ Use the index below as the compact discussion control. The complete point-of-use
 
 ## Complete speaker notes and side talks
 
-These sections are the complete point-of-use speaker notes. Read the six synchronized note blocks as the planned narrative, then use the side-talk fields only when the room raises the mapped challenge. A branch must return to its named rejoin slide; an issue may enter the parking lot only with a decision impact, owner, closure evidence, and re-entry condition.
+These sections are the complete point-of-use speaker notes for the current native presentation. Read the six core note blocks as the planned narrative, then use the side-talk fields only when the room raises the mapped challenge. A branch must return to its named rejoin slide; an issue may enter the parking lot only with a decision impact, owner, closure evidence, and re-entry condition. The prior PowerPoint snapshot is not current for the revised scorecard.
 
 ### Phase 1 — Why now
 
@@ -428,7 +429,7 @@ Continue to slide 3 for weighting and unscored-adjunct implications. For deeper 
 
 HOLD bounded authorization when a material target input or applicable early gate is undispositioned, unknown without accountable closure, or being treated as already proved. Park only bounded inventory or evidence work with a due gate and slide-6 re-entry.
 
-#### KGE-03 · The scorecard favors cloud-native delivery
+#### KGE-03 · The scorecard now balances platform and delivery fit
 
 - **Phase:** `KGE-P1 — Why now`
 - **Native route:** [Open slide 3](https://tomqwu.github.io/apim/#/present/kong-platform-journey-guided/2) (`#/present/kong-platform-journey-guided/2`)
@@ -442,11 +443,11 @@ Make the historical weighting model transparent, expose the dimensions required 
 
 ##### Talk track
 
-Eight supplied categories sum to 100%, and Kubernetes plus GitOps carry 35%. The provisional planning scenario rebases those historical categories to 60% and allocates 40% across multicloud, scalability/robustness, enterprise IAM and traceability, reversibility/vendor dependency, fully allocated TCO, and control-plane operating responsibility. This makes the meeting feedback visible without changing the historical ratings. The 40% split is an assumption to approve or amend; every new product rating remains unknown. `EAG-04` stays separate: admitting `KP-SMH1 + GSA-01` for GEP-07 study cannot add native Kong points.
+Eight revised supplied categories sum to 100%. API management, API governance, and security/compliance now carry 50%; Kubernetes plus GitOps carry 30%; observability, artificial intelligence (AI) readiness, and cost efficiency carry 20%. The provisional planning scenario rebases those historical categories to 60% and allocates 40% across multicloud, scalability/robustness, enterprise identity and access management (IAM) and traceability, reversibility/vendor dependency, fully allocated total cost of ownership (TCO), and control-plane operating responsibility. This makes the meeting feedback visible without changing the historical ratings. The 40% split is an assumption to approve or amend; every new product rating remains unknown. `EAG-04` stays separate: admitting `KP-SMH1 + GSA-01` for GEP-07 study cannot add native Kong points.
 
 ##### Speaker script
 
-The original score favors Kong for a clear reason: 35 percent of the weighting rewards Kubernetes and Git-reviewed operations. Those are central to the organization’s target model, so the result supports Kong as the current strategic leader.
+The revised supplied score puts Kong first, but the emphasis has shifted. Half covers core API capabilities; 30 percent covers Kubernetes and Git-reviewed operations; 20 percent covers operations and future readiness. That leaves only 1.5 points between Kong and Apigee, so it supports Kong as a direction to test, not a settled winner.
 
 But the score does not yet answer six important questions. Forty percent of the proposed comparison is reserved for multicloud operation, scalability and resilience, enterprise Identity and Access Management (IAM) and end-to-end traceability, ease of exit, full Total Cost of Ownership (TCO), and the work required to run the control plane. Every product score in that new block is still unknown.
 
@@ -456,7 +457,7 @@ The decision is whether these are the right criteria and scoring rules. We need 
 
 ##### Talking points
 
-- Kong leads the original score because the model strongly values Kubernetes and Git-managed delivery.
+- Kong leads the revised supplied score by 1.5 points; the narrow difference is directional, not decisive.
 - Forty percent of the proposed comparison still covers unanswered strategic and operating risks.
 - Approve fair scoring rules that can confirm, narrow, or reverse Kong’s lead.
 
@@ -548,7 +549,7 @@ Agree on the counterfactuals that would change the platform direction.
 
 ##### Bridge
 
-The supplied scorecard encodes one of these preferences. We correct its arithmetic on the next slide.
+The revised supplied scorecard encodes one of these preferences. We inspect its matching arithmetic and remaining uncertainty on the next slide.
 
 ##### Caveat
 
@@ -587,13 +588,13 @@ Branch to slides 22–24 for supplied comparison inputs. Rejoin at slide 6; do n
 
 HOLD if an agreed mandatory condition favors another option and no comparative proof is authorized. Park feature detail only as a symmetric evidence request.
 
-#### KGE-05 · Preserve the historical score; expose the uncertainty
+#### KGE-05 · Preserve the revised supplied score; expose the uncertainty
 
 - **Phase:** `KGE-P2 — Options and decision`
 - **Native route:** [Open slide 5](https://tomqwu.github.io/apim/#/present/kong-platform-journey-guided/4) (`#/present/kong-platform-journey-guided/4`)
 - **Timebox:** 3 minutes
 - **Evidence state:** Provisional scenario over stakeholder input
-- **Meeting job:** Preserve the corrected historical arithmetic and show why the new dimensions leave the ranking unstable until evidence replaces their unknown ranges.
+- **Meeting job:** Preserve the revised supplied arithmetic and show why the new dimensions leave the ranking unstable until evidence replaces their unknown ranges.
 
 ##### Purpose
 
@@ -601,13 +602,13 @@ Use the scorecard transparently without overstating its evidentiary value.
 
 ##### Talk track
 
-The historical inputs recalculate to 93 for Kong, 85.5 for Apigee, and 77 for MuleSoft. Under the provisional 60/40 weighting, their historical-input contributions are 55.8, 51.3, and 46.2. Leaving the added 40% honestly unknown produces ranges of 55.8–95.8, 51.3–91.3, and 46.2–86.2. The overlap is the finding: a modest advantage on the missing dimensions can reverse the historical order, so the deck does not publish a new decision score.
+The revised supplied inputs calculate to 90.5 for Kong, 89 for Apigee, and 82 for MuleSoft, exactly matching the displayed totals. Under the provisional 60/40 weighting, their historical-input contributions are 54.3, 53.4, and 49.2. Leaving the added 40% honestly unknown produces ranges of 54.3–94.3, 53.4–93.4, and 49.2–89.2. The overlap is the finding: a small advantage on the missing dimensions can reverse the supplied order, so the deck does not publish a new decision score.
 
 ##### Speaker script
 
-The historical score gives Kong a clear lead: 93, compared with 85.5 for Apigee and 77 for MuleSoft. That result is useful because it shows how strongly the original evaluation values cloud-native delivery. It is not yet enough to prove that Kong is the best production choice, because the products were not scored against one approved rulebook and common evidence set.
+The revised supplied score places Kong first at 90.5, compared with 89 for Apigee and 82 for MuleSoft. The arithmetic now matches the displayed totals, but the Kong-over-Apigee difference is only 1.5 points. That is useful decision context, not proof that Kong is the best production choice, because the products were not scored against one approved rulebook and common evidence set.
 
-In the proposed 60/40 scenario, the historical contribution becomes 55.8 for Kong, 51.3 for Apigee, and 46.2 for MuleSoft. The remaining 40 points cover important questions that are still unknown. That creates overlapping ranges, so any option could still finish first when those questions are answered.
+In the proposed 60/40 scenario, the historical contribution becomes 54.3 for Kong, 53.4 for Apigee, and 49.2 for MuleSoft. The remaining 40 points cover important questions that are still unknown. That creates overlapping ranges, so any option could still finish first when those questions are answered.
 
 The message is not that the products are equal. It is that Kong’s current advantage is promising but not stable enough for a broad commitment. The midpoint on the chart is only a drawing aid, not a forecast or final score.
 
@@ -639,11 +640,11 @@ The arithmetic scenario has been run; the governed product comparison has not. T
 
 ##### Listen for
 
-“A score of 93 proves fit,” “the corrected totals invalidate the whole exercise,” or “change the criteria and ratings until the recommendation is more convincing.”
+“A score of 90.5 proves fit,” “the narrow difference proves the products are equivalent,” or “change the criteria and ratings until the recommendation is more convincing.”
 
 ##### Evidence-safe response
 
-The correction makes the historical input auditable. It does not create exact options, mandatory-gate results, a rubric, common evidence, confidence, sensitivity, bounds, maximum regret, or an executed comparison. A governed re-score is valuable only if it can expose instability or reverse the direction; it must not be tuned to defend a preferred rank.
+Matching arithmetic makes the supplied input auditable. It does not create exact options, mandatory-gate results, a rubric, common evidence, confidence, sensitivity, bounds, maximum regret, or an executed comparison. A governed re-score is valuable only if it can expose instability or reverse the direction; it must not be tuned to defend a preferred rank.
 
 ##### Follow-up probe
 
@@ -2101,7 +2102,7 @@ Assign public FinOps, sourcing, platform/SRE, security-adjunct, migration, and i
 
 ##### Bridge
 
-The final appendix page exposes the raw score inputs and corrected arithmetic.
+The final appendix page exposes the revised supplied score inputs and matching arithmetic.
 
 ##### Caveat
 
@@ -2141,13 +2142,13 @@ Branch to slides 7–8 for custody and duty, slide 20 for sustainability, or sli
 
 HOLD a price, cost-efficiency, operating-duty, or lock-in conclusion without exact options, a normalized fully allocated model, and executable rebuild/exit evidence. Park commercial and legal detail only in the approved restricted system with a public-safe closure record.
 
-#### KGE-25 · Historical audit; provisional uncertainty envelope
+#### KGE-25 · Revised supplied audit; provisional uncertainty envelope
 
 - **Phase:** `KGE-P6 — Audit appendix`
 - **Native route:** [Open slide 25](https://tomqwu.github.io/apim/#/present/kong-platform-journey-guided/24) (`#/present/kong-platform-journey-guided/24`)
 - **Timebox:** On demand; 3-minute branch
 - **Evidence state:** Provisional scenario over stakeholder input
-- **Meeting job:** Preserve the historical score audit, review the transparent 60/40 planning weights and uncertainty range, and keep the decision on HOLD until the governed re-score contract and score-capable evidence close.
+- **Meeting job:** Preserve the revised supplied score audit, review the transparent 60/40 planning weights and uncertainty range, and keep the decision on HOLD until the governed re-score contract and score-capable evidence close.
 
 ##### Purpose
 
@@ -2155,11 +2156,11 @@ Provide an auditable record of the source scorecard while showing what the newly
 
 ##### Talk track
 
-The sanitized inputs still recalculate to 93 for Kong, 85.5 for Apigee, and 77 for MuleSoft. The provisional scenario rebases those historical ratings to 60% and assigns 40% to `GRS-01`–`GRS-06`: multicloud, scalability/robustness, enterprise IAM and traceability, reversibility/vendor dependency, fully allocated TCO, and control-plane operating responsibility. Every new product rating remains `Unknown [0,10]`. That produces mechanical envelopes of 55.8–95.8 for Kong, 51.3–91.3 for Apigee, and 46.2–86.2 for MuleSoft. The ranges overlap completely enough that every option can still rank first. A midpoint of 5 is only a neutral drawing aid, not an assigned score.
+The revised sanitized inputs calculate to 90.5 for Kong, 89 for Apigee, and 82 for MuleSoft, exactly matching the supplied display. The provisional scenario rebases those historical ratings to 60% and assigns 40% to `GRS-01`–`GRS-06`: multicloud, scalability/robustness, enterprise IAM and traceability, reversibility/vendor dependency, fully allocated TCO, and control-plane operating responsibility. Every new product rating remains `Unknown [0,10]`. That produces mechanical envelopes of 54.3–94.3 for Kong, 53.4–93.4 for Apigee, and 49.2–89.2 for MuleSoft. The ranges overlap completely enough that every option can still rank first. A midpoint of 5 is only a neutral drawing aid, not an assigned score.
 
 ##### Speaker script
 
-This final appendix keeps the original scores visible while showing how much remains unknown. Kong still leads at 93, compared with 85.5 for Apigee and 77 for MuleSoft. In the proposed 60/40 planning model, the known contributions become 55.8, 51.3, and 46.2.
+This final appendix keeps the revised supplied scores visible while showing how much remains unknown. Kong leads at 90.5, compared with 89 for Apigee and 82 for MuleSoft. In the proposed 60/40 planning model, the known contributions become 54.3, 53.4, and 49.2.
 
 The remaining 40 percent covers multicloud operation, scalability and resilience, enterprise Identity and Access Management (IAM) and traceability, ease of exit, full Total Cost of Ownership (TCO), and control-plane responsibility. Every product rating in that block is still unknown from zero to ten.
 
@@ -2197,7 +2198,7 @@ The 0–10 bounds are uncertainty limits, not performance estimates or probabili
 
 ##### Evidence-safe response
 
-The calculation is complete as an uncertainty scenario, not as a governed product ranking. Its useful result is rank instability: Apigee needs only a 1.125-point higher average across the new 40% block to reverse Kong's historical-input lead; MuleSoft needs 2.4 points. The answer becomes more convincing only when equivalent evidence replaces those unknown ranges under independent scoring and preserved dissent.
+The calculation is complete as an uncertainty scenario, not as a governed product ranking. Its useful result is rank instability: Apigee needs only a 0.225-point higher average across the new 40% block to reverse Kong's historical-input lead; MuleSoft needs 1.275 points. The answer becomes more convincing only when equivalent evidence replaces those unknown ranges under independent scoring and preserved dissent.
 
 ##### Follow-up probe
 
@@ -2455,7 +2456,7 @@ Avoid:
 
 - “Kong is proven best.”
 - “Hybrid guarantees uptime.”
-- “A score of 93 means 93% fit.”
+- “A score of 90.5 means 90.5% fit.”
 - “Five of sixteen means 31% ready.”
 - “The 28 cases are additional completed tests.”
 - “Konnect is vendor exit.”
@@ -2507,7 +2508,7 @@ End on [slide 6](https://tomqwu.github.io/apim/#/present/kong-platform-journey-g
 
 ## References and limitations
 
-The complete slide sections above are the point-of-use facilitation and speaker-notes source. The PowerPoint carries a synchronized concise projection. The canonical studies below continue to own product facts, evidence meanings, and decision content:
+The complete slide sections above are the point-of-use facilitation and speaker-notes source for the current native presentation. The PowerPoint remains a prior offline snapshot and is not current for the revised scorecard. The canonical studies below continue to own product facts, evidence meanings, and decision content:
 
 - [Kong guided evaluation](48-kong-guided-evaluation.md), including [Four early assessment gates](48-kong-guided-evaluation.md#four-early-assessment-gates)
 - [Assessment methodology](03-assessment-methodology.md)

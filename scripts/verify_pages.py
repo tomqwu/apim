@@ -173,8 +173,8 @@ KONG_GUIDED_COMPARISON_IDS = (
     (*tuple(f"GEC-{index:02d}" for index in range(9, 16)), "GEC-20"),
     tuple(f"GEC-{index:02d}" for index in range(16, 19)),
 )
-KONG_GUIDED_SCORE_TOTALS = {"weight": 100.0, "kong": 93.0, "apigee": 85.5, "muleSoft": 77.0}
-KONG_GUIDED_DISPLAYED_TOTALS = {"kong": 93.0, "apigee": 87.0, "muleSoft": 78.0}
+KONG_GUIDED_SCORE_TOTALS = {"weight": 100.0, "kong": 90.5, "apigee": 89.0, "muleSoft": 82.0}
+KONG_GUIDED_DISPLAYED_TOTALS = {"kong": 90.5, "apigee": 89.0, "muleSoft": 82.0}
 KONG_GUIDED_PHASES = (
     (
         "KGE-P1",
@@ -1016,7 +1016,7 @@ def validate_kong_guided_evaluation(
         and early_gate_provenance.get("sourceId") == KONG_GUIDED_SOURCE_IDS[0]
         and early_gate_provenance.get("sourceHeading") == "Four early assessment gates"
         and early_gate_provenance.get("heading") == "Four early assessment gates"
-        and early_gate_provenance.get("asOf") == "2026-08-22",
+        and early_gate_provenance.get("asOf") == "2026-08-24",
         "manifest guided early gates must retain exact doc48 provenance",
     )
 

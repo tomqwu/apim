@@ -201,8 +201,8 @@ KONG_GUIDED_COMPARISON_IDS = (
     (*tuple(f"GEC-{index:02d}" for index in range(9, 16)), "GEC-20"),
     tuple(f"GEC-{index:02d}" for index in range(16, 19)),
 )
-KONG_GUIDED_SCORE_TOTALS = {"weight": 100.0, "kong": 93.0, "apigee": 85.5, "muleSoft": 77.0}
-KONG_GUIDED_DISPLAYED_TOTALS = {"kong": 93.0, "apigee": 87.0, "muleSoft": 78.0}
+KONG_GUIDED_SCORE_TOTALS = {"weight": 100.0, "kong": 90.5, "apigee": 89.0, "muleSoft": 82.0}
+KONG_GUIDED_DISPLAYED_TOTALS = {"kong": 90.5, "apigee": 89.0, "muleSoft": 82.0}
 KONG_GUIDED_ARCHITECTURE_CONTROL_IDS = ("gitops-trust", "kong-control-plane", "postgresql-ha")
 KONG_GUIDED_ARCHITECTURE_LANE_IDS = ("cloud-a", "cloud-b", "private-legacy")
 KONG_GUIDED_ARCHITECTURE_EDGES = (
@@ -274,7 +274,7 @@ KONG_GUIDED_ASSESSMENT_EVIDENCE_STATE = (
     "Meeting guidance based on the guided evaluation and slide notes. "
     "It adds no new product claim, test result, price conclusion, or production approval."
 )
-KONG_GUIDED_ASSESSMENT_AS_OF = "2026-08-22"
+KONG_GUIDED_ASSESSMENT_AS_OF = "2026-08-24"
 KONG_GUIDED_ASSESSMENT_REFERENCE_COLUMNS = (
     "Selectors",
     "Plain-language meaning",
@@ -352,14 +352,15 @@ KONG_GUIDED_EARLY_SLIDE_CONTRACT = {
         ),
     },
     "KGE-03": {
-        "title": "The scorecard favors cloud-native delivery",
+        "title": "The scorecard now balances platform and delivery fit",
         "body": (
-            "Kubernetes plus GitOps carry 35%; the provisional scenario rebases the "
-            "historical model to 60% and assigns 40% to six missing dimensions; "
+            "API platform capabilities carry 50%, Kubernetes plus GitOps carry 30%, "
+            "and operational/future readiness carries 20%; the provisional scenario "
+            "rebases the historical model to 60% and assigns 40% to six missing dimensions; "
             "Traceable by Harness remains an unscored admission gate"
         ),
         "visualContract": (
-            "Eight supplied weights plus provisional expanded-dimension weights and "
+            "Eight revised supplied weights plus provisional expanded-dimension weights and "
             "explicit unscored-adjunct note"
         ),
         "canonicalSource": (
@@ -2355,7 +2356,7 @@ def validate_kong_guided_evaluation(
     require(isinstance(weight_rows, list) and weights.get("rowTotal") == 8, "guided evaluation weights must contain exactly eight rows")
     require(tuple(row.get("id") for row in weight_rows if isinstance(row, dict)) == KONG_GUIDED_WEIGHT_IDS, "guided evaluation weight IDs must be GEW-01 through GEW-08")
     require(all(isinstance(row, dict) for row in weight_rows), "guided evaluation weight rows must be objects")
-    require(tuple(row.get("weight") for row in weight_rows) == (20, 15, 15, 10, 10, 10, 10, 10), "guided evaluation weights must preserve the supplied eight-weight model")
+    require(tuple(row.get("weight") for row in weight_rows) == (15, 15, 20, 15, 15, 10, 5, 5), "guided evaluation weights must preserve the revised supplied eight-weight model")
     require(weights.get("weightTotal") == 100 and sum(row["weight"] for row in weight_rows) == 100, "guided evaluation weights must sum to 100")
     for row in weight_rows:
         nonempty_strings(row, ("id", "category", "interpretation", "evidenceNeeded"), f"guided weight {row.get('id')}")

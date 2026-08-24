@@ -801,6 +801,11 @@ class CanonicalContractTests(WorkflowTestCase):
         slides_by_key = {slide["key"]: slide for slide in manifest["presentation"]}
         contract = [slides_by_key[key] for key in deck["presentationSlides"]]
         self.assertEqual(25, len(contract))
+        snapshot_title_overrides = {
+            3: "The scorecard favors cloud-native delivery",
+            5: "Preserve the historical score; expose the uncertainty",
+            25: "Historical audit; provisional uncertainty envelope",
+        }
 
         pptx = SOURCE_ROOT / "presentations" / "kong-platform-journey-guided.pptx"
         drawing = "http://schemas.openxmlformats.org/drawingml/2006/main"
@@ -832,10 +837,11 @@ class CanonicalContractTests(WorkflowTestCase):
                     for paragraph in slide.findall(".//a:p", namespaces)
                 )
                 visible_text = re.sub(r"\s+", " ", " ".join(visible_paragraphs)).strip()
+                expected_title = snapshot_title_overrides.get(index, slide_contract["title"])
                 self.assertIn(
-                    re.sub(r"\s+", " ", slide_contract["title"]).strip(),
+                    re.sub(r"\s+", " ", expected_title).strip(),
                     visible_text,
-                    f"slide {index} visible title drifted from the native KGE contract",
+                    f"slide {index} visible title drifted from its declared PowerPoint snapshot contract",
                 )
                 if index == 2:
                     for marker in (
@@ -1213,6 +1219,11 @@ class CanonicalContractTests(WorkflowTestCase):
         self.assertIn("### Acronym and identifier reading rule", guide)
         self.assertIn("Full Name (ACRONYM)", guide)
         self.assertIn("## Opening the meeting", guide)
+        self.assertIn(
+            "Prior 2026-08-22 offline snapshot; intentionally not updated by the "
+            "2026-08-24 page-and-document scorecard revision",
+            guide,
+        )
         h4_matches = tuple(re.finditer(r"(?m)^####[ \t]+(?P<heading>.+?)\s*$", guide))
         detailed_matches = tuple(
             match for match in h4_matches if re.search(r"\bKGE-\d{2}\b", match.group("heading"))
@@ -1320,6 +1331,7 @@ class CanonicalContractTests(WorkflowTestCase):
         presentation = "http://schemas.openxmlformats.org/presentationml/2006/main"
         namespaces = {"a": drawing, "p": presentation}
         note_labels = ("Purpose", "Talk track", "Ask", "Bridge", "Caveat", "Sources")
+        native_only_note_overrides = {"KGE-03", "KGE-04", "KGE-05", "KGE-24", "KGE-25"}
         discussion_labels = (
             "Listen for",
             "Evidence-safe response",
@@ -1388,11 +1400,12 @@ class CanonicalContractTests(WorkflowTestCase):
                 for label in note_labels[:-1]:
                     self.assertEqual(1, len(extracted[label]), f"{slide_id} `{label}` must be one paragraph")
                     guide_value = require_h5_field(section, label, slide_id)
-                    self.assertEqual(
-                        normalized_prose(extracted[label][0]),
-                        normalized_prose(guide_value),
-                        f"{slide_id} `{label}` drifted from its embedded PowerPoint note",
-                    )
+                    if slide_id not in native_only_note_overrides:
+                        self.assertEqual(
+                            normalized_prose(extracted[label][0]),
+                            normalized_prose(guide_value),
+                            f"{slide_id} `{label}` drifted from its embedded PowerPoint note",
+                        )
 
                 speaker_script = require_h5_field(section, "Speaker script", slide_id)
                 speaker_word_count = len(re.findall(r"\b[\w’-]+\b", speaker_script))
@@ -2387,7 +2400,7 @@ process.stdout.write(JSON.stringify(samples));
                 self.assertIn(f"#/present/kong-platform-journey-guided/{phase_index}", routes)
 
         guided = manifest["visuals"]["guidedEvaluation"]
-        self.assertEqual("2026-08-22", guided["asOf"])
+        self.assertEqual("2026-08-24", guided["asOf"])
         self.assertEqual(16, guided["identifierCatalog"]["rowTotal"])
         self.assertEqual(identifier_tokens, tuple(row["token"] for row in guided["identifierCatalog"]["rows"]))
         identifier_by_token = {
@@ -2488,12 +2501,21 @@ process.stdout.write(JSON.stringify(samples));
                 self.assertTrue(figure["depictedScope"], "figure contract depicted scope must be projected")
                 self.assertTrue(figure["accessibleEquivalent"], "figure contract accessible equivalent must be projected")
         self.assertEqual(tuple(f"GEW-{index:02d}" for index in range(1, 9)), tuple(row["id"] for row in guided["weights"]["rows"]))
+        self.assertEqual((15, 15, 20, 15, 15, 10, 5, 5), tuple(row["weight"] for row in guided["weights"]["rows"]))
         self.assertEqual(100, guided["weights"]["weightTotal"])
         self.assertEqual(tuple(f"GRS-{index:02d}" for index in range(1, 7)), tuple(row["id"] for row in guided["governedRescore"]["rows"]))
+        self.assertEqual(
+            (9, 9, 12, 9, 9, 6, 3, 3, 8, 8, 8, 6, 6, 4),
+            tuple(row["weight"] for row in guided["provisionalWeights"]["rows"]),
+        )
+        self.assertEqual(
+            ("54.3–94.3", "53.4–93.4", "49.2–89.2"),
+            tuple(row["envelope"] for row in guided["uncertaintyEnvelope"]["rows"]),
+        )
         self.assertEqual(("GEO-KONG", "GEO-APIGEE", "GEO-MULE", "GEO-APIM"), tuple(row["id"] for row in guided["options"]["rows"]))
         self.assertTrue(all(row["presentationStrongestWhen"] and row["presentationConcern"] for row in guided["options"]["rows"]))
-        self.assertEqual({"weight": 100, "kong": 93, "apigee": 85.5, "muleSoft": 77}, guided["scoring"]["totals"])
-        self.assertEqual({"kong": 93, "apigee": 87, "muleSoft": 78}, guided["scoring"]["displayedTotals"])
+        self.assertEqual({"weight": 100, "kong": 90.5, "apigee": 89, "muleSoft": 82}, guided["scoring"]["totals"])
+        self.assertEqual({"kong": 90.5, "apigee": 89, "muleSoft": 82}, guided["scoring"]["displayedTotals"])
         self.assertEqual(tuple(f"GEP-{index:02d}" for index in range(1, 8)), tuple(row["id"] for row in guided["proofProgramme"]["rows"]))
         self.assertTrue(all(row["presentationSummary"] for row in guided["proofProgramme"]["rows"]))
         self.assertEqual(("GSA-01",), tuple(row["id"] for row in guided["securityAdjuncts"]["rows"]))
@@ -2590,14 +2612,15 @@ process.stdout.write(JSON.stringify(samples));
         )
         self.assertEqual(
             {
-                "title": "The scorecard favors cloud-native delivery",
+                "title": "The scorecard now balances platform and delivery fit",
                 "body": (
-                    "Kubernetes plus GitOps carry 35%; the provisional scenario rebases the "
-                    "historical model to 60% and assigns 40% to six missing dimensions; "
+                    "API platform capabilities carry 50%, Kubernetes plus GitOps carry 30%, "
+                    "and operational/future readiness carries 20%; the provisional scenario "
+                    "rebases the historical model to 60% and assigns 40% to six missing dimensions; "
                     "Traceable by Harness remains an unscored admission gate"
                 ),
                 "visualContract": (
-                    "Eight supplied weights plus provisional expanded-dimension weights and "
+                    "Eight revised supplied weights plus provisional expanded-dimension weights and "
                     "explicit unscored-adjunct note"
                 ),
                 "canonicalSource": (
@@ -3175,7 +3198,7 @@ process.stdout.write(JSON.stringify({
             assessment["sourceId"],
         )
         self.assertEqual("meeting-facilitation-guide", assessment["sourceClass"])
-        self.assertEqual("2026-08-22", assessment["asOf"])
+        self.assertEqual("2026-08-24", assessment["asOf"])
         self.assertEqual(
             expected_phase_questions,
             {
